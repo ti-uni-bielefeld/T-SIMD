@@ -1,0 +1,2158 @@
+// ===========================================================================
+// 
+// SIMDMaskIntel64.H --
+// Mask class definitions and architecture specific functions
+// for Intel 64 byte (512 bit)
+// Author: Markus Vieth (Bielefeld University, mvieth@techfak.uni-bielefeld.de)
+// Year of creation: 2019
+// 
+// This source code file is part of the following software:
+// 
+//    - the low-level C++ template SIMD library
+//    - the SIMD implementation of the MinWarping and the 2D-Warping methods 
+//      for local visual homing.
+// 
+// The software is provided based on the accompanying license agreement
+// in the file LICENSE or LICENSE.doc. The software is provided "as is"
+// without any warranty by the licensor and without any liability of the
+// licensor, and the software may not be distributed by the licensee; see
+// the license agreement for details.
+// 
+// (C) Markus Vieth, Ralf Möller
+//     Computer Engineering
+//     Faculty of Technology
+//     Bielefeld University
+//     www.ti.uni-bielefeld.de
+// 
+// ===========================================================================
+
+#ifndef _SIMDMASKINTEL64_H_
+#define _SIMDMASKINTEL64_H_
+
+#ifdef __AVX512F__
+
+#include "SIMDMaskIntel32.H"
+//  1. Oct 19 (rm)
+#include "SIMDVecExt.H"
+#include <immintrin.h>
+
+namespace ns_simd {
+  #define CLASS_MASK(TYPE, MASK_SIZE) \
+  template <> \
+  class SIMDMask<TYPE, 64> \
+  { \
+  public: \
+    __mmask ## MASK_SIZE k; \
+    SIMDMask() { k=0; } \
+    SIMDMask(const __mmask ## MASK_SIZE &x) { k = x; } \
+    SIMDMask& operator=(const __mmask ## MASK_SIZE &x) { k = x; return *this; } \
+    operator __mmask ## MASK_SIZE () const { return k; } \
+    bool operator[](const uint8_t i) { \
+      return ((1lu<<i)&k)!=0; \
+    } \
+    bool operator==(const SIMDMask<TYPE, 64> &x) { \
+      return k==x; \
+    } \
+  };
+
+  #define EMULATE_CLASS_MASK(TYPE, MASK_SIZE) \
+  template <> \
+  class SIMDMask<TYPE, 64> \
+  { \
+  public: \
+    __m512i k; \
+    SIMDMask() { k=setzero<TYPE, 64>(); } \
+    SIMDMask(const __m512i &x) { k = x; } \
+    SIMDMask(const uint64_t &x) { k= mask ## MASK_SIZE ## _from_int(x); } \
+    SIMDMask& operator=(const __m512i &x) { k=x; return *this; } \
+    SIMDMask& operator=(const uint64_t &x) { k= mask ## MASK_SIZE ## _from_int(x); return *this; } \
+    operator uint64_t() const { return mask ## MASK_SIZE ## _to_int(k); } \
+    operator __m512i() const { return k; } \
+    bool operator[](const uint8_t i) { \
+      return mask ## MASK_SIZE ## _index(k, i); \
+    } \
+    bool operator==(const SIMDMask<TYPE, 64> &x) {\
+      return _mm512_cmpeq_epi64_mask(k, x)==0xff; \
+    } \
+  };
+
+#ifdef __AVX512BW__
+  CLASS_MASK(SIMDByte, 64)
+  CLASS_MASK(SIMDSignedByte, 64)
+  CLASS_MASK(SIMDWord, 32)
+  CLASS_MASK(SIMDShort, 32)
+#else
+//  1. Oct 19 (rm): removed __artificial__, clang doesn't like it, only
+// affects debugging anyhow
+//movm-instructions are not available
+//This is necessary for _mm512_set_epi8 and _mm512_set_epi16 for gcc (all versions but the newest) TODO better solution?
+extern __inline __m512i
+// __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+__attribute__((__gnu_inline__, __always_inline__))
+_mm512_set_epi16 (short __q31, short __q30, short __q29, short __q28,
+		  short __q27, short __q26, short __q25, short __q24,
+		  short __q23, short __q22, short __q21, short __q20,
+		  short __q19, short __q18, short __q17, short __q16,
+		  short __q15, short __q14, short __q13, short __q12,
+		  short __q11, short __q10, short __q09, short __q08,
+		  short __q07, short __q06, short __q05, short __q04,
+		  short __q03, short __q02, short __q01, short __q00)
+{
+  return __extension__ (__m512i)(__v32hi){
+    __q00, __q01, __q02, __q03, __q04, __q05, __q06, __q07,
+    __q08, __q09, __q10, __q11, __q12, __q13, __q14, __q15,
+    __q16, __q17, __q18, __q19, __q20, __q21, __q22, __q23,
+    __q24, __q25, __q26, __q27, __q28, __q29, __q30, __q31
+  };
+}
+
+extern __inline __m512i
+// __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+__attribute__((__gnu_inline__, __always_inline__))
+_mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
+		 char __q59, char __q58, char __q57, char __q56,
+		 char __q55, char __q54, char __q53, char __q52,
+		 char __q51, char __q50, char __q49, char __q48,
+		 char __q47, char __q46, char __q45, char __q44,
+		 char __q43, char __q42, char __q41, char __q40,
+		 char __q39, char __q38, char __q37, char __q36,
+		 char __q35, char __q34, char __q33, char __q32,
+		 char __q31, char __q30, char __q29, char __q28,
+		 char __q27, char __q26, char __q25, char __q24,
+		 char __q23, char __q22, char __q21, char __q20,
+		 char __q19, char __q18, char __q17, char __q16,
+		 char __q15, char __q14, char __q13, char __q12,
+		 char __q11, char __q10, char __q09, char __q08,
+		 char __q07, char __q06, char __q05, char __q04,
+		 char __q03, char __q02, char __q01, char __q00)
+{
+  return __extension__ (__m512i)(__v64qi){
+    __q00, __q01, __q02, __q03, __q04, __q05, __q06, __q07,
+    __q08, __q09, __q10, __q11, __q12, __q13, __q14, __q15,
+    __q16, __q17, __q18, __q19, __q20, __q21, __q22, __q23,
+    __q24, __q25, __q26, __q27, __q28, __q29, __q30, __q31,
+    __q32, __q33, __q34, __q35, __q36, __q37, __q38, __q39,
+    __q40, __q41, __q42, __q43, __q44, __q45, __q46, __q47,
+    __q48, __q49, __q50, __q51, __q52, __q53, __q54, __q55,
+    __q56, __q57, __q58, __q59, __q60, __q61, __q62, __q63
+  };
+}
+
+  static SIMD_INLINE __m512i
+  mask64_from_int(const uint64_t x) {
+    return _mm512_set_epi8(((x&0x8000000000000000)?0xFF:0x0), ((x&0x4000000000000000)?0xFF:0x0), ((x&0x2000000000000000)?0xFF:0x0), ((x&0x1000000000000000)?0xFF:0x0), ((x&0x800000000000000)?0xFF:0x0), ((x&0x400000000000000)?0xFF:0x0), ((x&0x200000000000000)?0xFF:0x0), ((x&0x100000000000000)?0xFF:0x0), ((x&0x80000000000000)?0xFF:0x0), ((x&0x40000000000000)?0xFF:0x0), ((x&0x20000000000000)?0xFF:0x0), ((x&0x10000000000000)?0xFF:0x0), ((x&0x8000000000000)?0xFF:0x0), ((x&0x4000000000000)?0xFF:0x0), ((x&0x2000000000000)?0xFF:0x0), ((x&0x1000000000000)?0xFF:0x0), ((x&0x800000000000)?0xFF:0x0), ((x&0x400000000000)?0xFF:0x0), ((x&0x200000000000)?0xFF:0x0), ((x&0x100000000000)?0xFF:0x0), ((x&0x80000000000)?0xFF:0x0), ((x&0x40000000000)?0xFF:0x0), ((x&0x20000000000)?0xFF:0x0), ((x&0x10000000000)?0xFF:0x0), ((x&0x8000000000)?0xFF:0x0), ((x&0x4000000000)?0xFF:0x0), ((x&0x2000000000)?0xFF:0x0), ((x&0x1000000000)?0xFF:0x0), ((x&0x800000000)?0xFF:0x0), ((x&0x400000000)?0xFF:0x0), ((x&0x200000000)?0xFF:0x0), ((x&0x100000000)?0xFF:0x0), ((x&0x80000000)?0xFF:0x0), ((x&0x40000000)?0xFF:0x0), ((x&0x20000000)?0xFF:0x0), ((x&0x10000000)?0xFF:0x0), ((x&0x8000000)?0xFF:0x0), ((x&0x4000000)?0xFF:0x0), ((x&0x2000000)?0xFF:0x0), ((x&0x1000000)?0xFF:0x0), ((x&0x800000)?0xFF:0x0), ((x&0x400000)?0xFF:0x0), ((x&0x200000)?0xFF:0x0), ((x&0x100000)?0xFF:0x0), ((x&0x80000)?0xFF:0x0), ((x&0x40000)?0xFF:0x0), ((x&0x20000)?0xFF:0x0), ((x&0x10000)?0xFF:0x0), ((x&0x8000)?0xFF:0x0), ((x&0x4000)?0xFF:0x0), ((x&0x2000)?0xFF:0x0), ((x&0x1000)?0xFF:0x0), ((x&0x800)?0xFF:0x0), ((x&0x400)?0xFF:0x0), ((x&0x200)?0xFF:0x0), ((x&0x100)?0xFF:0x0), ((x&0x80)?0xFF:0x0), ((x&0x40)?0xFF:0x0), ((x&0x20)?0xFF:0x0), ((x&0x10)?0xFF:0x0), ((x&0x8)?0xFF:0x0), ((x&0x4)?0xFF:0x0), ((x&0x2)?0xFF:0x0), ((x&0x1)?0xFF:0x0));
+  }
+
+  static SIMD_INLINE __m512i
+  mask32_from_int(const uint64_t x) {
+    return _mm512_set_epi16(((x&0x80000000)?0xFFFF:0x0), ((x&0x40000000)?0xFFFF:0x0), ((x&0x20000000)?0xFFFF:0x0), ((x&0x10000000)?0xFFFF:0x0), ((x&0x8000000)?0xFFFF:0x0), ((x&0x4000000)?0xFFFF:0x0), ((x&0x2000000)?0xFFFF:0x0), ((x&0x1000000)?0xFFFF:0x0), ((x&0x800000)?0xFFFF:0x0), ((x&0x400000)?0xFFFF:0x0), ((x&0x200000)?0xFFFF:0x0), ((x&0x100000)?0xFFFF:0x0), ((x&0x80000)?0xFFFF:0x0), ((x&0x40000)?0xFFFF:0x0), ((x&0x20000)?0xFFFF:0x0), ((x&0x10000)?0xFFFF:0x0), ((x&0x8000)?0xFFFF:0x0), ((x&0x4000)?0xFFFF:0x0), ((x&0x2000)?0xFFFF:0x0), ((x&0x1000)?0xFFFF:0x0), ((x&0x800)?0xFFFF:0x0), ((x&0x400)?0xFFFF:0x0), ((x&0x200)?0xFFFF:0x0), ((x&0x100)?0xFFFF:0x0), ((x&0x80)?0xFFFF:0x0), ((x&0x40)?0xFFFF:0x0), ((x&0x20)?0xFFFF:0x0), ((x&0x10)?0xFFFF:0x0), ((x&0x8)?0xFFFF:0x0), ((x&0x4)?0xFFFF:0x0), ((x&0x2)?0xFFFF:0x0), ((x&0x1)?0xFFFF:0x0));
+  }
+
+  static SIMD_INLINE uint64_t
+  mask64_to_int(const __m512i x) {
+    return (((uint64_t) ((unsigned int) _mm256_movemask_epi8(_mm512_extracti64x4_epi64(x, 1))))<<32lu | ((uint64_t) ((unsigned int) _mm256_movemask_epi8(_mm512_extracti64x4_epi64(x, 0)))));//unsigned int casts to avoid sign extension
+  }
+
+  static SIMD_INLINE uint64_t
+  mask32_to_int(const __m512i x) {
+    //uint64_t temp1=((uint64_t) _mm256_movemask_epi8(_mm512_extracti64x4_epi64(x, 1)))<<32;
+    //uint64_t temp2=0xffffffff & ((uint64_t) _mm256_movemask_epi8(_mm512_extracti64x4_epi64(x, 0)));
+    uint64_t a=(((uint64_t) _mm256_movemask_epi8(_mm512_extracti64x4_epi64(x, 1)))<<32 | (0xffffffff & ((uint64_t) _mm256_movemask_epi8(_mm512_extracti64x4_epi64(x, 0)))));
+    //printf("mask_to_int: %lx\n", a);
+    //printf("%lx %lx\n", temp1, temp2);
+    //SIMDVec<SIMDWord, 64> vec(x);
+    //print("%x ", vec); puts("");
+    // Every second bit of a is needed, in a compact 32 bit number. Found on stackoverflow (https://stackoverflow.com/a/45385051)
+    a = a & 0x5555555555555555;
+    // or for the alternate bits: a = (a >> 1) & 0x5555555555555555
+    a = (a | (a >>  1)) & 0x3333333333333333;
+    a = (a | (a >>  2)) & 0x0f0f0f0f0f0f0f0f;
+    a = (a | (a >>  4)) & 0x00ff00ff00ff00ff;
+    a = (a | (a >>  8)) & 0x0000ffff0000ffff;
+    a = (a | (a >> 16)) & 0x00000000ffffffff;
+    return a;
+  }
+
+  static SIMD_INLINE bool
+  mask64_index(const __m512i x, const uint8_t i) {
+    if(i<32) {
+      return ((1lu<<i)&_mm256_movemask_epi8(_mm512_extracti64x4_epi64(x, 0)))!=0;
+    } else if(i<64) {
+      return ((1lu<<(i-32))&_mm256_movemask_epi8(_mm512_extracti64x4_epi64(x, 1)))!=0;
+    } else {
+      return false;
+    }
+  }
+  
+  static SIMD_INLINE bool
+  mask32_index(const __m512i x, const uint8_t i) {
+    if(i<16) {
+      return ((3lu<<2lu*i)&_mm256_movemask_epi8(_mm512_extracti64x4_epi64(x, 0)))!=0;
+    } else if(i<32) {
+      return ((3lu<<(2lu*(i-16lu)))&_mm256_movemask_epi8(_mm512_extracti64x4_epi64(x, 1)))!=0;
+    } else {
+      return false;
+    }
+  }
+
+  EMULATE_CLASS_MASK(SIMDByte, 64)
+  EMULATE_CLASS_MASK(SIMDSignedByte, 64)
+  EMULATE_CLASS_MASK(SIMDWord, 32)
+  EMULATE_CLASS_MASK(SIMDShort, 32)
+#endif
+  CLASS_MASK(SIMDInt, 16)
+  CLASS_MASK(SIMDFloat, 16)
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  setTrueLeft(const unsigned int x)
+  {
+    return kshiftli(mask_all_ones<T, 64>(), x);
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  setTrueRight(const unsigned int x)
+  {
+    return kshiftri(mask_all_ones<T, 64>(), x);
+  }
+
+
+
+
+  #define MASK_SOP(OP, TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_ ## OP (const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return _mm512_mask_ ## OP ## _ ## SUF (src, k, a); \
+  }
+
+  #define MASKZ_SOP(OP, TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_ ## OP (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return _mm512_maskz_ ## OP ## _ ## SUF (k, a); \
+  }
+
+  //For operations with one argument. OP is the name of the operation (e.g. add, sub, mul), TYPE is the typename (e.g. SIMDWord, SIMDFloat), and SUF is the suffix of the intrinsic (e.g. epi8, epi16, ps).
+  #define GENERATE_SOP(OP, TYPE, SUF) MASK_SOP(OP, TYPE, SUF) MASKZ_SOP(OP, TYPE, SUF)
+
+
+  #define MASK_DOP(OP, TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_ ## OP (const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return _mm512_mask_ ## OP ## _ ## SUF (src, k, a, b); \
+  }
+
+  #define MASKZ_DOP(OP, TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_ ## OP (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return _mm512_maskz_ ## OP ## _ ## SUF (k, a, b); \
+  }
+
+  //For operations with two arguments. OP is the name of the operation (e.g. add, sub, mul), TYPE is the typename (e.g. SIMDWord, SIMDFloat), and SUF is the suffix of the intrinsic (e.g. epi8, epi16, ps).
+  #define GENERATE_DOP(OP, TYPE, SUF) MASK_DOP(OP, TYPE, SUF) MASKZ_DOP(OP, TYPE, SUF)
+
+
+
+  #define EMULATE_SOP_TYPE(OP, TYPE) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_ ## OP (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return mask_ifelsezero(k, OP (a)); \
+  } \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_ ## OP(const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return mask_ifelse(k, OP (a), src); \
+  }
+
+  #define EMULATE_SOP_FLOAT_64(OP) \
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64> \
+  maskz_ ## OP (const SIMDMask<SIMDFloat, 64> &k, \
+      const SIMDVec<SIMDFloat, 64> &a) \
+  { \
+    return OP (mask_ifelsezero(k, a)); \
+  } \
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64> \
+  mask_ ## OP (const SIMDVec<SIMDFloat, 64> &src, \
+      const SIMDMask<SIMDFloat, 64> &k, \
+      const SIMDVec<SIMDFloat, 64> &a) \
+  { \
+    return mask_ifelse(k, maskz_ ## OP (k, a), src); \
+  }
+
+  #define EMULATE_DOP_TYPE(OP, TYPE) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_ ## OP (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return mask_ifelsezero(k, OP (a, b)); \
+  } \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_ ## OP(const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return mask_ifelse(k, OP (a, b), src); \
+  }
+
+  #define EMULATE_DOP_FLOAT_64(OP) \
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64> \
+  maskz_ ## OP (const SIMDMask<SIMDFloat, 64> &k, \
+      const SIMDVec<SIMDFloat, 64> &a, \
+      const SIMDVec<SIMDFloat, 64> &b) \
+  { \
+    return OP (mask_ifelsezero(k, a), mask_ifelsezero(k, b)); \
+  } \
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64> \
+  mask_ ## OP (const SIMDVec<SIMDFloat, 64> &src, \
+      const SIMDMask<SIMDFloat, 64> &k, \
+      const SIMDVec<SIMDFloat, 64> &a, \
+      const SIMDVec<SIMDFloat, 64> &b) \
+  { \
+    return mask_ifelse(k, maskz_ ## OP (k, a, b), src); \
+  }
+
+
+  // ---------------------------------------------------------------------------
+  // mask_ifelse v
+  // ---------------------------------------------------------------------------
+
+  #define MASK_IFELSE(TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_ifelse(const SIMDMask<TYPE, 64> &cond, \
+	 const SIMDVec<TYPE, 64> &a, \
+	 const SIMDVec<TYPE, 64> &b) \
+  { \
+    return _mm512_mask_blend_ ## SUF (cond, (__m512i) b, (__m512i) a); \
+  }
+  #define EMULATE_MASK_IFELSE(TYPE) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_ifelse(const SIMDMask<TYPE, 64> &cond, \
+	 const SIMDVec<TYPE, 64> &trueVal, \
+	 const SIMDVec<TYPE, 64> &falseVal) \
+  { \
+    return ifelse((SIMDVec<TYPE, 64>) cond, trueVal, falseVal); \
+  }
+
+#ifdef __AVX512BW__
+  MASK_IFELSE(SIMDByte, epi8)
+  MASK_IFELSE(SIMDSignedByte, epi8)
+  MASK_IFELSE(SIMDWord, epi16)
+  MASK_IFELSE(SIMDShort, epi16)
+#else
+  EMULATE_MASK_IFELSE(SIMDByte)
+  EMULATE_MASK_IFELSE(SIMDSignedByte)
+  EMULATE_MASK_IFELSE(SIMDWord)
+  EMULATE_MASK_IFELSE(SIMDShort)
+#endif
+  MASK_IFELSE(SIMDInt, epi32)
+
+  //MASK_IFELSE(SIMDFloat, ps)
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_ifelse(const SIMDMask<SIMDFloat, 64> &cond,
+         const SIMDVec<SIMDFloat, 64> &trueVal,
+         const SIMDVec<SIMDFloat, 64> &falseVal)
+  {
+    //__mmask64 k=cond;
+    //__m512i a=falseVal;
+    //__m512i b=trueVal;
+    return _mm512_mask_blend_ps (cond, falseVal, trueVal);
+  }
+
+  // ---------------------------------------------------------------------------
+  // mask_ifelsezero (mask_ifelsezero(cond, a) is the same as mask_ifelse(cond, a, setzero()), but may have faster implementations)
+  // ---------------------------------------------------------------------------
+
+  #define MASK_IFELSEZERO(TYPE) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_ifelsezero(const SIMDMask<TYPE, 64> &cond, \
+	 const SIMDVec<TYPE, 64> &trueVal) \
+  { \
+    return mask_ifelse(cond, trueVal, setzero<TYPE, 64>()); \
+  }
+
+  #define MASK_IFELSEZEROV(TYPE) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_ifelsezero(const SIMDMask<TYPE, 64> &cond, \
+	 const SIMDVec<TYPE, 64> &trueVal) \
+  { \
+    return _mm512_and_si512(cond, trueVal); \
+  }
+#ifdef __AVX512BW__
+  MASK_IFELSEZERO(SIMDByte)
+  MASK_IFELSEZERO(SIMDSignedByte)
+  MASK_IFELSEZERO(SIMDWord)
+  MASK_IFELSEZERO(SIMDShort)
+#else
+  MASK_IFELSEZEROV(SIMDByte)
+  MASK_IFELSEZEROV(SIMDSignedByte)
+  MASK_IFELSEZEROV(SIMDWord)
+  MASK_IFELSEZEROV(SIMDShort)
+#endif
+  MASK_IFELSEZERO(SIMDInt)
+  MASK_IFELSEZERO(SIMDFloat)
+
+  // ---------------------------------------------------------------------------
+  // masked convert (without changes in the number of of elements) v
+  // ---------------------------------------------------------------------------
+
+  // conversion with saturation; we wanted to have a fast solution that
+  // doesn't trigger the overflow which results in a negative two's
+  // complement result ("invalid int32": 0x80000000); therefore we clamp
+  // the positive values at the maximal positive float which is
+  // convertible to int32 without overflow (0x7fffffbf = 2147483520);
+  // negative values cannot overflow (they are clamped to invalid int
+  // which is the most negative int32)
+  SIMD_INLINE SIMDVec<SIMDInt, 64>
+  maskz_cvts(const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    __m512 clip = _mm512_set1_ps(MAX_POS_FLOAT_CONVERTIBLE_TO_INT32);
+    return _mm512_maskz_cvtps_epi32(k, _mm512_maskz_min_ps(k, clip, a));
+  }
+
+  SIMD_INLINE SIMDVec<SIMDInt, 64>
+  mask_cvts(const SIMDVec<SIMDInt, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    __m512 clip = _mm512_set1_ps(MAX_POS_FLOAT_CONVERTIBLE_TO_INT32);
+    return _mm512_mask_cvtps_epi32(src, k, _mm512_maskz_min_ps(k, clip, a));
+  }
+
+  // saturation is not necessary in this case
+  SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_cvts(const SIMDMask<SIMDInt, 64> &k,
+      const SIMDVec<SIMDInt, 64> &a)
+  {
+    return _mm512_maskz_cvtepi32_ps(k, a);
+  }
+
+  // saturation is not necessary in this case
+  SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_cvts(const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDInt, 64> &k,
+      const SIMDVec<SIMDInt, 64> &a)
+  {
+    return _mm512_mask_cvtepi32_ps(src, k, a);
+  }
+
+  // ---------------------------------------------------------------------------
+  // mask_set1 v
+  // ---------------------------------------------------------------------------
+
+  #define GENERATE_SET1(TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_set1 (const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const TYPE a) \
+  { \
+    return _mm512_mask_set1_ ## SUF (src, k, a); \
+  } \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_set1 (const SIMDMask<TYPE, 64> &k, \
+      const TYPE a) \
+  { \
+    return _mm512_maskz_set1_ ## SUF (k, a); \
+  }
+
+#ifdef __AVX512BW__
+  GENERATE_SET1(SIMDByte, epi8)
+  GENERATE_SET1(SIMDSignedByte, epi8)
+  GENERATE_SET1(SIMDWord, epi16)
+  GENERATE_SET1(SIMDShort, epi16)
+#else
+  #define EMULATE_SET1(TYPE) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_set1 (const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const TYPE a) \
+  { \
+    return mask_ifelse(k, set1<TYPE, 64>(a), src); \
+  } \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_set1 (const SIMDMask<TYPE, 64> &k, \
+      const TYPE a) \
+  { \
+    /*return mask_ifelse(k, set1(a), setzero<TYPE, 64>());*/ \
+    return _mm512_castps_si512(x_mm512_and_ps(_mm512_castsi512_ps(k), _mm512_castsi512_ps(set1<TYPE, 64>(a)))); \
+  }
+  EMULATE_SET1(SIMDByte)
+  EMULATE_SET1(SIMDSignedByte)
+  EMULATE_SET1(SIMDWord)
+  EMULATE_SET1(SIMDShort)
+#endif
+  GENERATE_SET1(SIMDInt, epi32)
+  //Workaround for SIMDFloat, because there is no mask_set1_ps
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_set1 (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDFloat a)
+  {
+    SIMDInt a_int;
+    memcpy(&a_int, &a, sizeof(SIMDInt));
+    return _mm512_castsi512_ps (_mm512_mask_set1_epi32 (_mm512_castps_si512 (src), k, a_int));//Reinterpetation
+    //return mask_ifelse(k, set1<SIMDFloat, 64>(a), src);
+  }
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_set1 (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDFloat a)
+  {
+    SIMDInt a_int;
+    memcpy(&a_int, &a, sizeof(SIMDInt));
+    return _mm512_castsi512_ps (_mm512_maskz_set1_epi32 (k, a_int));//Reinterpetation
+    //return mask_ifelse(k, set1<SIMDFloat, 64>(a), setzero<SIMDFloat, 64>());
+  }
+
+  // ---------------------------------------------------------------------------
+  // mask_load v
+  // ---------------------------------------------------------------------------
+
+#ifdef SIMD_ALIGN_CHK
+  #define GENERATE_LOAD(NAME, TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_load (const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const TYPE *const p) \
+  { \
+    /* AVX load and store instructions need alignment to 64 byte*/ \
+    /* (lower 6 bit need to be zero) */ \
+    assert((((uintptr_t) p) & 0x3f) == 0); \
+    return _mm512_mask_ ## NAME ## _ ## SUF (src, k, p); \
+  } \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_load (const SIMDMask<TYPE, 64> &k, \
+      const TYPE *const p) \
+  { \
+    /* AVX load and store instructions need alignment to 64 byte*/ \
+    /* (lower 6 bit need to be zero) */ \
+    assert((((uintptr_t) p) & 0x3f) == 0); \
+    return _mm512_maskz_ ## NAME ## _ ## SUF (k, p); \
+  }
+#else
+  #define GENERATE_LOAD(NAME, TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_load (const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const TYPE *const p) \
+  { \
+    return _mm512_mask_ ## NAME ## _ ## SUF (src, k, p); \
+  } \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_load (const SIMDMask<TYPE, 64> &k, \
+      const TYPE *const p) \
+  { \
+    return _mm512_maskz_ ## NAME ## _ ## SUF (k, p); \
+  }
+#endif
+
+#ifdef __AVX512BW__
+  GENERATE_LOAD(loadu, SIMDByte, epi8) //Workaround
+  GENERATE_LOAD(loadu, SIMDSignedByte, epi8) //Workaround
+  GENERATE_LOAD(loadu, SIMDWord, epi16) //Workaround
+  GENERATE_LOAD(loadu, SIMDShort, epi16) //Workaround
+#else
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  mask_load(const SIMDVec<T,64> &src,
+	const SIMDMask<T,64> &k,
+	const T *const p)
+  {
+    //Align check is made in 256-bit versions of mask_load
+    return SIMDVec<T,64>(mask_load(src.lo(), x_mm512_lo_si256(k), p),
+			 mask_load(src.hi(), x_mm512_hi_si256(k), p+(32/sizeof(T))));
+  }
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  maskz_load(const SIMDMask<T,64> &k,
+	const T *const p)
+  {
+    //Align check is made in 256-bit versions of maskz_load
+    return SIMDVec<T,64>(maskz_load(x_mm512_lo_si256(k), p),
+			 maskz_load(x_mm512_hi_si256(k), p+(32/sizeof(T))));
+  }
+#endif
+  GENERATE_LOAD(load, SIMDInt, epi32)
+  GENERATE_LOAD(load, SIMDFloat, ps)
+
+  // ---------------------------------------------------------------------------
+  // mask_loadu v
+  // ---------------------------------------------------------------------------
+
+  #define GENERATE_LOADU(TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_loadu (const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const TYPE *const p) \
+  { \
+    return _mm512_mask_loadu_ ## SUF (src, k, p); \
+  } \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_loadu (const SIMDMask<TYPE, 64> &k, \
+      const TYPE *const p) \
+  { \
+    return _mm512_maskz_loadu_ ## SUF (k, p); \
+  }
+
+#ifdef __AVX512BW__
+  GENERATE_LOADU(SIMDByte, epi8)
+  GENERATE_LOADU(SIMDSignedByte, epi8)
+  GENERATE_LOADU(SIMDWord, epi16)
+  GENERATE_LOADU(SIMDShort, epi16)
+#else
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  mask_loadu(const SIMDVec<T,64> &src,
+	const SIMDMask<T,64> &k,
+	const T *const p)
+  {
+    return SIMDVec<T,64>(mask_loadu(src.lo(), x_mm512_lo_si256(k), p),
+			 mask_loadu(src.hi(), x_mm512_hi_si256(k), p+(32/sizeof(T))));
+  }
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  maskz_loadu(const SIMDMask<T,64> &k,
+	const T *const p)
+  {
+    return SIMDVec<T,64>(maskz_loadu(x_mm512_lo_si256(k), p),
+			 maskz_loadu(x_mm512_hi_si256(k), p+(32/sizeof(T))));
+  }
+#endif
+  GENERATE_LOADU(SIMDInt, epi32)
+  GENERATE_LOADU(SIMDFloat, ps)
+
+  // ---------------------------------------------------------------------------
+  // mask_store v
+  // ---------------------------------------------------------------------------
+
+  // There are no *_maskz_store_* intrinsics, only *_mask_store_* intrinsics
+
+#ifdef SIMD_ALIGN_CHK
+  #define MASK_STORE(NAME, TYPE, SUF) \
+  static SIMD_INLINE void \
+  mask_store (TYPE *const p, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    /* AVX load and store instructions need alignment to 64 byte*/ \
+    /* (lower 6 bit need to be zero) */ \
+    assert((((uintptr_t) p) & 0x3f) == 0); \
+    return _mm512_mask_ ## NAME ## _ ## SUF (p, k, a); \
+  }
+#else
+  #define MASK_STORE(NAME, TYPE, SUF) \
+  static SIMD_INLINE void \
+  mask_store (TYPE *const p, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return _mm512_mask_ ## NAME ## _ ## SUF (p, k, a); \
+  }
+#endif
+
+#ifdef __AVX512BW__
+  MASK_STORE(storeu, SIMDByte, epi8) //Workaround
+  MASK_STORE(storeu, SIMDSignedByte, epi8) //Workaround
+  MASK_STORE(storeu, SIMDWord, epi16) //Workaround
+  MASK_STORE(storeu, SIMDShort, epi16) //Workaround
+#else
+  template <typename T>
+  static SIMD_INLINE void
+  mask_store(T *const p,
+	const SIMDMask<T,64> &k,
+	const SIMDVec<T,64> &a)
+  {
+    // Align check is made in 256-bit versions of mask_store
+    mask_store(p, x_mm512_lo_si256(k), a.lo());
+    mask_store(p+(32/sizeof(T)), x_mm512_hi_si256(k), a.hi());
+  }
+#endif
+  MASK_STORE(store, SIMDInt, epi32)
+  MASK_STORE(store, SIMDFloat, ps)
+
+  // ---------------------------------------------------------------------------
+  // mask_storeu v
+  // ---------------------------------------------------------------------------
+
+  // There are no *_maskz_storeu_* intrinsics, only *_mask_storeu_* intrinsics
+
+  #define MASK_STOREU(TYPE, SUF) \
+  static SIMD_INLINE void \
+  mask_storeu (TYPE *const p, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return _mm512_mask_storeu_ ## SUF (p, k, a); \
+  }
+#ifdef __AVX512BW__
+  MASK_STOREU(SIMDByte, epi8)
+  MASK_STOREU(SIMDSignedByte, epi8)
+  MASK_STOREU(SIMDWord, epi16)
+  MASK_STOREU(SIMDShort, epi16)
+#else
+  template <typename T>
+  static SIMD_INLINE void
+  mask_storeu(T *const p,
+	const SIMDMask<T,64> &k,
+	const SIMDVec<T,64> &a)
+  {
+    mask_storeu(p, x_mm512_lo_si256(k), a.lo());
+    mask_storeu(p+(32/sizeof(T)), x_mm512_hi_si256(k), a.hi());
+  }
+#endif
+  MASK_STOREU(SIMDInt, epi32)
+  MASK_STOREU(SIMDFloat, ps)
+
+  // ---------------------------------------------------------------------------
+  // mask_add v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_DOP(add, SIMDByte, epi8)
+  GENERATE_DOP(add, SIMDSignedByte, epi8)
+  GENERATE_DOP(add, SIMDWord, epi16)
+  GENERATE_DOP(add, SIMDShort, epi16)
+#else
+  EMULATE_DOP_TYPE(add, SIMDByte)
+  EMULATE_DOP_TYPE(add, SIMDSignedByte)
+  EMULATE_DOP_TYPE(add, SIMDWord)
+  EMULATE_DOP_TYPE(add, SIMDShort)
+#endif
+  GENERATE_DOP(add, SIMDInt, epi32)
+  GENERATE_DOP(add, SIMDFloat, ps)
+
+  // ---------------------------------------------------------------------------
+  // mask_adds v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_DOP(adds, SIMDByte, epu8)
+  GENERATE_DOP(adds, SIMDSignedByte, epi8)
+  GENERATE_DOP(adds, SIMDWord, epu16)
+  GENERATE_DOP(adds, SIMDShort, epi16)
+#else
+  EMULATE_DOP_TYPE(adds, SIMDByte)
+  EMULATE_DOP_TYPE(adds, SIMDSignedByte)
+  EMULATE_DOP_TYPE(adds, SIMDWord)
+  EMULATE_DOP_TYPE(adds, SIMDShort)
+#endif
+
+#ifndef SIMD_STRICT_SATURATION
+  #define ADDS_WORKAROUND(TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_adds (const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return _mm512_mask_add_ ## SUF (src, k, a, b); \
+  } \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_adds (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return _mm512_maskz_add_ ## SUF (k, a, b); \
+  }
+
+  // NOT SATURATED!
+  ADDS_WORKAROUND(SIMDInt, epi32)
+  ADDS_WORKAROUND(SIMDFloat, ps)
+#endif
+
+  // ---------------------------------------------------------------------------
+  // mask_sub v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_DOP(sub, SIMDByte, epi8)
+  GENERATE_DOP(sub, SIMDSignedByte, epi8)
+  GENERATE_DOP(sub, SIMDWord, epi16)
+  GENERATE_DOP(sub, SIMDShort, epi16)
+#else
+  EMULATE_DOP_TYPE(sub, SIMDByte)
+  EMULATE_DOP_TYPE(sub, SIMDSignedByte)
+  EMULATE_DOP_TYPE(sub, SIMDWord)
+  EMULATE_DOP_TYPE(sub, SIMDShort)
+#endif
+  GENERATE_DOP(sub, SIMDInt, epi32)
+  GENERATE_DOP(sub, SIMDFloat, ps)
+
+  // ---------------------------------------------------------------------------
+  // mask_subs v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_DOP(subs, SIMDByte, epu8)
+  GENERATE_DOP(subs, SIMDSignedByte, epi8)
+  GENERATE_DOP(subs, SIMDWord, epu16)
+  GENERATE_DOP(subs, SIMDShort, epi16)
+#else
+  EMULATE_DOP_TYPE(subs, SIMDByte)
+  EMULATE_DOP_TYPE(subs, SIMDSignedByte)
+  EMULATE_DOP_TYPE(subs, SIMDWord)
+  EMULATE_DOP_TYPE(subs, SIMDShort)
+#endif
+
+#ifndef SIMD_STRICT_SATURATION
+  #define SUBS_WORKAROUND(TYPE, SUF) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_subs (const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return _mm512_mask_sub_ ## SUF (src, k, a, b); \
+  } \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_subs (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return _mm512_maskz_sub_ ## SUF (k, a, b); \
+  }
+
+  // NOT SATURATED!
+  SUBS_WORKAROUND(SIMDInt, epi32)
+  SUBS_WORKAROUND(SIMDFloat, ps)
+#endif
+
+  // ---------------------------------------------------------------------------
+  // mask_mul v
+  // ---------------------------------------------------------------------------
+
+  GENERATE_DOP(mul, SIMDFloat, ps)
+
+  // ---------------------------------------------------------------------------
+  // mask_div v
+  // ---------------------------------------------------------------------------
+
+  GENERATE_DOP(div, SIMDFloat, ps)
+
+  // ---------------------------------------------------------------------------
+  // masked ceil, floor, round, truncate v
+  // ---------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_ceil (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_mask_roundscale_ps(src, k, a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_ceil (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_maskz_roundscale_ps(k, a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_floor (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_mask_roundscale_ps(src, k, a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_floor (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_maskz_roundscale_ps(k, a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_round (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_mask_roundscale_ps(src, k, a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_round (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_maskz_roundscale_ps(k, a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_truncate (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_mask_roundscale_ps(src, k, a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_truncate (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_maskz_roundscale_ps(k, a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+  }
+
+  // ---------------------------------------------------------------------------
+  // masked elementary mathematical functions v
+  // ---------------------------------------------------------------------------
+
+  // masked estimate of a reciprocal
+  // NOTE: this has better precision than SSE and AVX versions!
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_rcp (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_mask_rcp14_ps (src, k, a);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_rcp (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_maskz_rcp14_ps (k, a);
+  }
+
+  // masked estimate of reverse square root
+  // NOTE: this has better precision than SSE and AVX versions!
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_rsqrt (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_mask_rsqrt14_ps (src, k, a);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_rsqrt (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_maskz_rsqrt14_ps (k, a);
+  }
+
+  // masked square root
+  GENERATE_SOP(sqrt, SIMDFloat, ps)
+
+  // ---------------------------------------------------------------------------
+  // masked_abs (integer: signed only) v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_SOP(abs, SIMDSignedByte, epi8)
+  GENERATE_SOP(abs, SIMDShort, epi16)
+#else
+  EMULATE_SOP_TYPE(abs, SIMDSignedByte)
+  EMULATE_SOP_TYPE(abs, SIMDShort)
+#endif
+  GENERATE_SOP(abs, SIMDInt, epi32)
+
+#if defined(GCC_VERSION) && GCC_VERSION < 70000
+//_mm512_mask_abs_ps is not defined
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_abs (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_castsi512_ps(_mm512_mask_andnot_epi32(_mm512_castps_si512(src), k, _mm512_castps_si512(_mm512_set1_ps(-0.0F)), _mm512_castps_si512(a)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_abs (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_castsi512_ps(_mm512_maskz_andnot_epi32(k, _mm512_castps_si512(_mm512_set1_ps(-0.0F)), _mm512_castps_si512(a)));
+  }
+#else
+//_mm512_mask_abs_ps is defined
+  MASK_SOP(abs, SIMDFloat, ps)
+
+  //There is no _mm512_maskz_abs_ps
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_abs (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return _mm512_mask_abs_ps (setzero<SIMDFloat, 64>(), k, a);
+  }
+#endif
+
+  // ---------------------------------------------------------------------------
+  // mask_and v
+  // ---------------------------------------------------------------------------
+
+  //workaround for SIMDByte, SIMDSignedByte, SIMDWord, SIMDShort, because there is no _mm512_mask_and_epi8 or _mm512_mask_and_epi16
+  EMULATE_DOP_TYPE(and, SIMDByte)
+  EMULATE_DOP_TYPE(and, SIMDSignedByte)
+  EMULATE_DOP_TYPE(and, SIMDWord)
+  EMULATE_DOP_TYPE(and, SIMDShort)
+
+  GENERATE_DOP(and, SIMDInt, epi32)
+#ifdef __AVX512DQ__
+  GENERATE_DOP(and, SIMDFloat, ps)
+#else
+  //Workaround with the epi32-version and casts
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_and (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a,
+      const SIMDVec<SIMDFloat, 64> &b)
+  {
+    return _mm512_castsi512_ps(_mm512_mask_and_epi32 (_mm512_castps_si512(src), k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_and (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a,
+      const SIMDVec<SIMDFloat, 64> &b)
+  {
+    return _mm512_castsi512_ps(_mm512_maskz_and_epi32 (k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
+  }
+#endif
+
+  // ---------------------------------------------------------------------------
+  // mask_or v
+  // ---------------------------------------------------------------------------
+
+  //workaround for SIMDByte, SIMDSignedByte, SIMDWord, SIMDShort, because there is no _mm512_mask_or_epi8 or _mm512_mask_or_epi16
+  EMULATE_DOP_TYPE(or, SIMDByte)
+  EMULATE_DOP_TYPE(or, SIMDSignedByte)
+  EMULATE_DOP_TYPE(or, SIMDWord)
+  EMULATE_DOP_TYPE(or, SIMDShort)
+  GENERATE_DOP(or, SIMDInt, epi32)
+#ifdef __AVX512DQ__
+  GENERATE_DOP(or, SIMDFloat, ps)
+#else
+  //Workaround with the epi32-version and casts
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_or (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a,
+      const SIMDVec<SIMDFloat, 64> &b)
+  {
+    return _mm512_castsi512_ps(_mm512_mask_or_epi32 (_mm512_castps_si512(src), k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_or (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a,
+      const SIMDVec<SIMDFloat, 64> &b)
+  {
+    return _mm512_castsi512_ps(_mm512_maskz_or_epi32 (k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
+  }
+#endif
+
+  // ---------------------------------------------------------------------------
+  // mask_andnot v
+  // ---------------------------------------------------------------------------
+
+  // Workaround for SIMDByte, SIMDSignedByte, SIMDWord, SIMDShort, because there is no _mm512_mask_andnot_epi8 or _mm512_mask_andnot_epi16
+  EMULATE_DOP_TYPE(andnot, SIMDByte)
+  EMULATE_DOP_TYPE(andnot, SIMDSignedByte)
+  EMULATE_DOP_TYPE(andnot, SIMDWord)
+  EMULATE_DOP_TYPE(andnot, SIMDShort)
+  GENERATE_DOP(andnot, SIMDInt, epi32)
+#ifdef __AVX512DQ__
+  GENERATE_DOP(andnot, SIMDFloat, ps)
+#else
+  //Workaround with the epi32-version and casts
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_andnot (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a,
+      const SIMDVec<SIMDFloat, 64> &b)
+  {
+    return _mm512_castsi512_ps(_mm512_mask_andnot_epi32 (_mm512_castps_si512(src), k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_andnot (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a,
+      const SIMDVec<SIMDFloat, 64> &b)
+  {
+    return _mm512_castsi512_ps(_mm512_maskz_andnot_epi32 (k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
+  }
+#endif
+
+  // ---------------------------------------------------------------------------
+  // mask_xor v
+  // ---------------------------------------------------------------------------
+
+  // Workaround for SIMDByte, SIMDSignedByte, SIMDWord, SIMDShort, because there is no _mm512_mask_xor_epi8 or _mm512_mask_xor_epi16
+  EMULATE_DOP_TYPE(xor, SIMDByte)
+  EMULATE_DOP_TYPE(xor, SIMDSignedByte)
+  EMULATE_DOP_TYPE(xor, SIMDWord)
+  EMULATE_DOP_TYPE(xor, SIMDShort)
+  GENERATE_DOP(xor, SIMDInt, epi32)
+#ifdef __AVX512DQ__
+  GENERATE_DOP(xor, SIMDFloat, ps)
+#else
+  //Workaround with the epi32-version and casts
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_xor (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a,
+      const SIMDVec<SIMDFloat, 64> &b)
+  {
+    return _mm512_castsi512_ps(_mm512_mask_xor_epi32 (_mm512_castps_si512(src), k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_xor (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a,
+      const SIMDVec<SIMDFloat, 64> &b)
+  {
+    return _mm512_castsi512_ps(_mm512_maskz_xor_epi32 (k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
+  }
+#endif
+
+  // ---------------------------------------------------------------------------
+  // mask_not v
+  // ---------------------------------------------------------------------------
+
+  // There is absolutely no "not"-intrinsic
+  EMULATE_SOP_TYPE(not, SIMDByte)
+  EMULATE_SOP_TYPE(not, SIMDSignedByte)
+  EMULATE_SOP_TYPE(not, SIMDWord)
+  EMULATE_SOP_TYPE(not, SIMDShort)
+  EMULATE_SOP_TYPE(not, SIMDInt)
+  //EMULATE_SOP_FLOAT_64(not)
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  maskz_not (const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return not(mask_ifelse(k, a, reinterpret<SIMDFloat>(set1<SIMDInt, 64>(0xffffffff))));
+  }
+  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
+  mask_not (const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return mask_ifelse(k, maskz_not (k, a), src);
+  }
+
+  // ---------------------------------------------------------------------------
+  // mask_neg (negate = two's complement or unary minus), only signed types v
+  // ---------------------------------------------------------------------------
+
+  #define GENERATE_NEG(TYPE, SUF, ZERO) \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  mask_neg (const SIMDVec<TYPE, 64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return _mm512_mask_sub_ ## SUF (src, k, ZERO, a); \
+  } \
+  static SIMD_INLINE SIMDVec<TYPE, 64> \
+  maskz_neg (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return _mm512_maskz_sub_ ## SUF (k, ZERO, a); \
+  }
+
+#ifdef __AVX512BW__
+  GENERATE_NEG(SIMDSignedByte, epi8, _mm512_setzero_si512())
+  GENERATE_NEG(SIMDShort, epi16, _mm512_setzero_si512())
+#else
+  EMULATE_SOP_TYPE(neg, SIMDSignedByte)
+  EMULATE_SOP_TYPE(neg, SIMDShort)
+#endif
+  GENERATE_NEG(SIMDInt, epi32, _mm512_setzero_si512())
+  GENERATE_NEG(SIMDFloat, ps, _mm512_setzero_ps())
+
+  // ---------------------------------------------------------------------------
+  // mask_min v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_DOP(min, SIMDByte, epu8)
+  GENERATE_DOP(min, SIMDSignedByte, epi8)
+  GENERATE_DOP(min, SIMDWord, epu16)
+  GENERATE_DOP(min, SIMDShort, epi16)
+#else
+  EMULATE_DOP_TYPE(min, SIMDByte)
+  EMULATE_DOP_TYPE(min, SIMDSignedByte)
+  EMULATE_DOP_TYPE(min, SIMDWord)
+  EMULATE_DOP_TYPE(min, SIMDShort)
+#endif
+  GENERATE_DOP(min, SIMDInt, epi32)
+  GENERATE_DOP(min, SIMDFloat, ps)
+
+  // ---------------------------------------------------------------------------
+  // mask_max v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_DOP(max, SIMDByte, epu8)
+  GENERATE_DOP(max, SIMDSignedByte, epi8)
+  GENERATE_DOP(max, SIMDWord, epu16)
+  GENERATE_DOP(max, SIMDShort, epi16)
+#else
+  EMULATE_DOP_TYPE(max, SIMDByte)
+  EMULATE_DOP_TYPE(max, SIMDSignedByte)
+  EMULATE_DOP_TYPE(max, SIMDWord)
+  EMULATE_DOP_TYPE(max, SIMDShort)
+#endif
+  GENERATE_DOP(max, SIMDInt, epi32)
+  GENERATE_DOP(max, SIMDFloat, ps)
+
+  // ===========================================================================
+  // div2r0: integer div. by 2 with round to 0 (for integers)
+  // ===========================================================================
+
+  EMULATE_SOP_TYPE(div2r0, SIMDByte)
+  //EMULATE_SOP_TYPE(div2r0, SIMDSignedByte)//TODO the unmasked version in SIMDVecExt is not implemented
+  EMULATE_SOP_TYPE(div2r0, SIMDWord)
+  EMULATE_SOP_TYPE(div2r0, SIMDShort)
+  EMULATE_SOP_TYPE(div2r0, SIMDInt)
+  EMULATE_SOP_FLOAT_64(div2r0)
+
+  // ===========================================================================
+  // div2rd: integer division by two with rounding down (for integers)
+  // ===========================================================================
+
+  EMULATE_SOP_TYPE(div2rd, SIMDByte)
+  //EMULATE_SOP_TYPE(div2rd, SIMDSignedByte)//TODO the unmasked version in SIMDVecExt is not implemented
+  EMULATE_SOP_TYPE(div2rd, SIMDWord)
+  EMULATE_SOP_TYPE(div2rd, SIMDShort)
+  EMULATE_SOP_TYPE(div2rd, SIMDInt)
+  EMULATE_SOP_FLOAT_64(div2rd)
+
+
+  // For all shifts
+  //ARG1, ARG2, and ARG3 can be used to control whether the parameter should be named (or not, to suppress compiler's unused warning). Default: a, k, a
+  #define MAKE_X_SHIFT(OP, BITS, MASK_SIZE) \
+  /* positive and in range: shift */ \
+  template <int IMM> \
+  static SIMD_INLINE __m512i \
+  x_mm512_mask_ ## OP ## _epi ## BITS (__m512i src, __mmask ## MASK_SIZE k, __m512i a, IsPosInRange<true, true>) \
+  { \
+    return _mm512_mask_ ## OP ## _epi ## BITS (src, k, a, IMM); \
+  } \
+  /* hub */ \
+  template <int IMM> \
+  static SIMD_INLINE __m512i \
+  x_mm512_mask_ ## OP ## _epi ## BITS (__m512i src, __mmask ## MASK_SIZE k, __m512i a) \
+  { \
+    return x_mm512_mask_ ## OP ## _epi ## BITS <IMM>(src, k, a, IsPosInGivenRange<BITS, IMM>()); \
+  } \
+  /* positive and in range: shift */ \
+  template <int IMM> \
+  static SIMD_INLINE __m512i \
+  x_mm512_maskz_ ## OP ## _epi ## BITS (__mmask ## MASK_SIZE k, __m512i a, IsPosInRange<true, true>) \
+  { \
+    return _mm512_maskz_ ## OP ## _epi ## BITS (k, a, IMM); \
+  } \
+  /* hub */ \
+  template <int IMM> \
+  static SIMD_INLINE __m512i \
+  x_mm512_maskz_ ## OP ## _epi ## BITS (__mmask ## MASK_SIZE k, __m512i a) \
+  { \
+    return x_mm512_maskz_ ## OP ## _epi ## BITS <IMM>(k, a, IsPosInGivenRange<BITS, IMM>()); \
+  }
+
+  #define GENERATE_SHIFT(OP, TYPE, SUF) \
+  template <int IMM> \
+  static SIMD_INLINE SIMDVec<TYPE,64> \
+  mask_ ## OP (const SIMDVec<TYPE,64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE,64> &a) \
+  { \
+    return x_mm512_mask_ ## OP ## _ ## SUF <IMM>(src, k, a); \
+  } \
+  template <int IMM> \
+  static SIMD_INLINE SIMDVec<TYPE,64> \
+  maskz_ ## OP (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE,64> &a) \
+  { \
+    return x_mm512_maskz_ ## OP ## _ ## SUF <IMM>(k, a); \
+  }
+
+  #define EMULATE_SHIFT_64(OP, TYPE) \
+  template <int IMM> \
+  static SIMD_INLINE SIMDVec<TYPE,64> \
+  mask_ ## OP (const SIMDVec<TYPE,64> &src, \
+      const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE,64> &a) \
+  { \
+    return mask_ifelse(k, OP <IMM>(a), src); \
+  } \
+  template <int IMM> \
+  static SIMD_INLINE SIMDVec<TYPE,64> \
+  maskz_ ## OP (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE,64> &a) \
+  { \
+    return mask_ifelse(k, OP <IMM>(a), setzero<TYPE, 64>()); \
+  }
+
+  // ---------------------------------------------------------------------------
+  // masked srai (16/32 only) v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  /* positive and out of range */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_mask_srai_epi16(__m512i src, __mmask32 k, __m512i a, IsPosInRange<true, false>)
+  {
+    return _mm512_mask_srai_epi16(src, k, a, 15);
+  }
+  /* positive and out of range: maximal shift */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_maskz_srai_epi16(__mmask32 k, __m512i a, IsPosInRange<true, false>)
+  {
+    return _mm512_maskz_srai_epi16(k, a, 15);
+  }
+  MAKE_X_SHIFT(srai, 16, 32)
+  GENERATE_SHIFT(srai, SIMDWord, epi16)
+  GENERATE_SHIFT(srai, SIMDShort, epi16)
+#else
+  EMULATE_SHIFT_64(srai, SIMDWord)
+  EMULATE_SHIFT_64(srai, SIMDShort)
+#endif
+  /* positive and out of range */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_mask_srai_epi32(__m512i src, __mmask16 k, __m512i a, IsPosInRange<true, false>)
+  {
+    return _mm512_mask_srai_epi32(src, k, a, 31);
+  }
+  /* positive and out of range: maximal shift */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_maskz_srai_epi32(__mmask16 k, __m512i a, IsPosInRange<true, false>)
+  {
+    return _mm512_maskz_srai_epi16(k, a, 31);
+  }
+  MAKE_X_SHIFT(srai, 32, 16)
+  GENERATE_SHIFT(srai, SIMDInt, epi32)
+
+  // ---------------------------------------------------------------------------
+  // masked srli v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  /* positive and out of range */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_mask_srli_epi16(__m512i src, __mmask32 k, __m512i, IsPosInRange<true, false>)
+  {
+    return _mm512_mask_set1_epi16(src, k, 0);
+  }
+  /* positive and out of range: maximal shift */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_maskz_srli_epi16(__mmask32, __m512i, IsPosInRange<true, false>)
+  {
+    return _mm512_setzero_si512();
+  }
+  MAKE_X_SHIFT(srli, 16, 32)
+  GENERATE_SHIFT(srli, SIMDWord, epi16)
+  GENERATE_SHIFT(srli, SIMDShort, epi16)
+#else
+  EMULATE_SHIFT_64(srli, SIMDWord)
+  EMULATE_SHIFT_64(srli, SIMDShort)
+#endif
+  /* positive and out of range */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_mask_srli_epi32(__m512i src, __mmask16 k, __m512i, IsPosInRange<true, false>)
+  {
+    return _mm512_mask_set1_epi32(src, k, 0);
+  }
+  /* positive and out of range: maximal shift */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_maskz_srli_epi32(__mmask16, __m512i, IsPosInRange<true, false>)
+  {
+    return _mm512_setzero_si512();
+  }
+  MAKE_X_SHIFT(srli, 32, 16)
+  GENERATE_SHIFT(srli, SIMDInt, epi32)
+
+  // ---------------------------------------------------------------------------
+  // masked slli v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  /* positive and out of range */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_mask_slli_epi16(__m512i src, __mmask32 k, __m512i, IsPosInRange<true, false>)
+  {
+    return _mm512_mask_set1_epi16(src, k, 0);
+  }
+  /* positive and out of range: maximal shift */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_maskz_slli_epi16(__mmask32, __m512i, IsPosInRange<true, false>)
+  {
+    return _mm512_setzero_si512();
+  }
+  MAKE_X_SHIFT(slli, 16, 32)
+  GENERATE_SHIFT(slli, SIMDWord, epi16)
+  GENERATE_SHIFT(slli, SIMDShort, epi16)
+#else
+  EMULATE_SHIFT_64(slli, SIMDWord)
+  EMULATE_SHIFT_64(slli, SIMDShort)
+#endif
+  /* positive and out of range */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_mask_slli_epi32(__m512i src, __mmask16 k, __m512i, IsPosInRange<true, false>)
+  {
+    return _mm512_mask_set1_epi32(src, k, 0);
+  }
+  /* positive and out of range: maximal shift */
+  template <int IMM>
+  static SIMD_INLINE __m512i
+  x_mm512_maskz_slli_epi32(__mmask16, __m512i, IsPosInRange<true, false>)
+  {
+    return _mm512_setzero_si512();
+  }
+  MAKE_X_SHIFT(slli, 32, 16)
+  GENERATE_SHIFT(slli, SIMDInt, epi32)
+
+  // ---------------------------------------------------------------------------
+  // masked hadd (16/32 only) v
+  // ---------------------------------------------------------------------------
+
+  EMULATE_DOP_TYPE(hadd, SIMDWord)
+  EMULATE_DOP_TYPE(hadd, SIMDShort)
+  EMULATE_DOP_TYPE(hadd, SIMDInt)
+  EMULATE_DOP_FLOAT_64(hadd)
+
+  // ---------------------------------------------------------------------------
+  // masked hadds (signed 16/32 only) v
+  // ---------------------------------------------------------------------------
+
+  EMULATE_DOP_TYPE(hadds, SIMDShort)
+  EMULATE_DOP_TYPE(hadds, SIMDInt)
+  EMULATE_DOP_FLOAT_64(hadds)
+
+  // ---------------------------------------------------------------------------
+  // masked hsub (16/32 only) v
+  // ---------------------------------------------------------------------------
+
+  EMULATE_DOP_TYPE(hsub, SIMDWord)
+  EMULATE_DOP_TYPE(hsub, SIMDShort)
+  EMULATE_DOP_TYPE(hsub, SIMDInt)
+  EMULATE_DOP_FLOAT_64(hsub)
+
+  // ---------------------------------------------------------------------------
+  // masked hsubs (signed 16/32 only) v
+  // ---------------------------------------------------------------------------
+
+  EMULATE_DOP_TYPE(hsubs, SIMDShort)
+  EMULATE_DOP_TYPE(hsubs, SIMDInt)
+  EMULATE_DOP_FLOAT_64(hsubs)
+
+
+
+  #define GENERATE_CMP(OP, TYPE, SUF) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  mask_ ## OP (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return _mm512_mask_ ## OP ## _ ## SUF ## _mask (k, a, b); \
+  }
+
+  #define GENERATE_CMP_WITH_GENERALIZED_FCT(OP, IMM8) \
+  static SIMD_INLINE SIMDMask<SIMDFloat, 64> \
+  mask_ ## OP (const SIMDMask<SIMDFloat, 64> &k, \
+      const SIMDVec<SIMDFloat, 64> &a, \
+      const SIMDVec<SIMDFloat, 64> &b) \
+  { \
+    return _mm512_mask_cmp_ps_mask (k, a, b, IMM8); \
+  }
+
+  #define EMULATE_CMP_64(OP, TYPE) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  mask_ ## OP (const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return _mm512_and_si512(k, OP (a, b)); \
+  }
+
+  // ---------------------------------------------------------------------------
+  // masked compare < v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_CMP(cmplt, SIMDByte, epu8)
+  GENERATE_CMP(cmplt, SIMDSignedByte, epi8)
+  GENERATE_CMP(cmplt, SIMDWord, epu16)
+  GENERATE_CMP(cmplt, SIMDShort, epi16)
+#else
+  EMULATE_CMP_64(cmplt, SIMDByte)
+  EMULATE_CMP_64(cmplt, SIMDSignedByte)
+  EMULATE_CMP_64(cmplt, SIMDWord)
+  EMULATE_CMP_64(cmplt, SIMDShort)
+#endif
+  GENERATE_CMP(cmplt, SIMDInt, epi32)
+
+//#if defined(GCC_VERSION) && GCC_VERSION < 80000
+  GENERATE_CMP_WITH_GENERALIZED_FCT(cmplt, _CMP_LT_OS)
+//#else
+//  GENERATE_CMP(cmplt, SIMDFloat, ps)
+//#endif
+
+  // ---------------------------------------------------------------------------
+  // masked compare <= v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_CMP(cmple, SIMDByte, epu8)
+  GENERATE_CMP(cmple, SIMDSignedByte, epi8)
+  GENERATE_CMP(cmple, SIMDWord, epu16)
+  GENERATE_CMP(cmple, SIMDShort, epi16)
+#else
+  EMULATE_CMP_64(cmple, SIMDByte)
+  EMULATE_CMP_64(cmple, SIMDSignedByte)
+  EMULATE_CMP_64(cmple, SIMDWord)
+  EMULATE_CMP_64(cmple, SIMDShort)
+#endif
+  GENERATE_CMP(cmple, SIMDInt, epi32)
+
+//#if defined(GCC_VERSION) && GCC_VERSION < 80000
+  GENERATE_CMP_WITH_GENERALIZED_FCT(cmple, _CMP_LE_OS)
+//#else
+//  GENERATE_CMP(cmple, SIMDFloat, ps)
+//#endif
+
+  // ---------------------------------------------------------------------------
+  // masked compare == v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_CMP(cmpeq, SIMDByte, epu8)
+  GENERATE_CMP(cmpeq, SIMDSignedByte, epi8)
+  GENERATE_CMP(cmpeq, SIMDWord, epu16)
+  GENERATE_CMP(cmpeq, SIMDShort, epi16)
+#else
+  EMULATE_CMP_64(cmpeq, SIMDByte)
+  EMULATE_CMP_64(cmpeq, SIMDSignedByte)
+  EMULATE_CMP_64(cmpeq, SIMDWord)
+  EMULATE_CMP_64(cmpeq, SIMDShort)
+#endif
+  GENERATE_CMP(cmpeq, SIMDInt, epi32)
+
+//#if defined(GCC_VERSION) && GCC_VERSION < 80000
+  GENERATE_CMP_WITH_GENERALIZED_FCT(cmpeq, _CMP_EQ_OQ)
+//#else
+//  GENERATE_CMP(cmpeq, SIMDFloat, ps)
+//#endif
+
+  // ---------------------------------------------------------------------------
+  // masked compare > v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_CMP(cmpgt, SIMDByte, epu8)
+  GENERATE_CMP(cmpgt, SIMDSignedByte, epi8)
+  GENERATE_CMP(cmpgt, SIMDWord, epu16)
+  GENERATE_CMP(cmpgt, SIMDShort, epi16)
+#else
+  EMULATE_CMP_64(cmpgt, SIMDByte)
+  EMULATE_CMP_64(cmpgt, SIMDSignedByte)
+  EMULATE_CMP_64(cmpgt, SIMDWord)
+  EMULATE_CMP_64(cmpgt, SIMDShort)
+#endif
+  GENERATE_CMP(cmpgt, SIMDInt, epi32)
+
+  //There is no _mm512_mask_cmpgt_ps_mask
+  GENERATE_CMP_WITH_GENERALIZED_FCT(cmpgt, _CMP_GT_OS)
+
+  // ---------------------------------------------------------------------------
+  // masked compare >= v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_CMP(cmpge, SIMDByte, epu8)
+  GENERATE_CMP(cmpge, SIMDSignedByte, epi8)
+  GENERATE_CMP(cmpge, SIMDWord, epu16)
+  GENERATE_CMP(cmpge, SIMDShort, epi16)
+#else
+  EMULATE_CMP_64(cmpge, SIMDByte)
+  EMULATE_CMP_64(cmpge, SIMDSignedByte)
+  EMULATE_CMP_64(cmpge, SIMDWord)
+  EMULATE_CMP_64(cmpge, SIMDShort)
+#endif
+  GENERATE_CMP(cmpge, SIMDInt, epi32)
+
+  //There is no _mm512_mask_cmpge_ps_mask
+  GENERATE_CMP_WITH_GENERALIZED_FCT(cmpge, _CMP_GE_OS)
+
+  // ---------------------------------------------------------------------------
+  // masked compare != v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  GENERATE_CMP(cmpneq, SIMDByte, epu8)
+  GENERATE_CMP(cmpneq, SIMDSignedByte, epi8)
+  GENERATE_CMP(cmpneq, SIMDWord, epu16)
+  GENERATE_CMP(cmpneq, SIMDShort, epi16)
+#else
+  EMULATE_CMP_64(cmpneq, SIMDByte)
+  EMULATE_CMP_64(cmpneq, SIMDSignedByte)
+  EMULATE_CMP_64(cmpneq, SIMDWord)
+  EMULATE_CMP_64(cmpneq, SIMDShort)
+#endif
+  GENERATE_CMP(cmpneq, SIMDInt, epi32)
+
+//#if defined(GCC_VERSION) && GCC_VERSION < 80000
+  GENERATE_CMP_WITH_GENERALIZED_FCT(cmpneq, _CMP_NEQ_OQ)
+//#else
+//  GENERATE_CMP(cmpneq, SIMDFloat, ps)
+//#endif
+
+  // ---------------------------------------------------------------------------
+  // masked avg: average with rounding down v
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+  static SIMD_INLINE SIMDVec<SIMDByte,64>
+  mask_avg(const SIMDVec<SIMDByte, 64> &src, \
+      const SIMDMask<SIMDByte, 64> &k, \
+      const SIMDVec<SIMDByte,64> &a,
+      const SIMDVec<SIMDByte,64> &b)
+  {
+    return _mm512_mask_avg_epu8(src, k, a, b);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDByte,64>
+  maskz_avg(const SIMDMask<SIMDByte, 64> &k, \
+      const SIMDVec<SIMDByte,64> &a,
+      const SIMDVec<SIMDByte,64> &b)
+  {
+    return _mm512_maskz_avg_epu8(k, a, b);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,64>
+  mask_avg(const SIMDVec<SIMDWord, 64> &src,
+      const SIMDMask<SIMDWord, 64> &k,
+      const SIMDVec<SIMDWord,64> &a,
+      const SIMDVec<SIMDWord,64> &b)
+  {
+    return _mm512_mask_avg_epu16(src, k, a, b);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,64>
+  maskz_avg(const SIMDMask<SIMDWord, 64> &k,
+      const SIMDVec<SIMDWord,64> &a,
+      const SIMDVec<SIMDWord,64> &b)
+  {
+    return _mm512_maskz_avg_epu16(k, a, b);
+  }
+#else
+  EMULATE_DOP_TYPE(avg, SIMDByte)
+  EMULATE_DOP_TYPE(avg, SIMDWord)
+#endif
+  EMULATE_DOP_TYPE(avg, SIMDSignedByte)
+  EMULATE_DOP_TYPE(avg, SIMDShort)
+
+  //EMULATE_DOP_TYPE(avg, SIMDInt)
+  // Paul R at
+  // http://stackoverflow.com/questions/12152640/signed-16-bit-sse-average
+  static SIMD_INLINE SIMDVec<SIMDInt,64>
+  mask_avg(const SIMDVec<SIMDInt, 64> &src,
+      const SIMDMask<SIMDInt, 64> &k,
+      const SIMDVec<SIMDInt,64> &a,
+      const SIMDVec<SIMDInt,64> &b)
+  {
+    SIMDVec<SIMDInt,64> one = set1<SIMDInt,64>(1), as, bs, lsb;
+    lsb = and(or(a, b), one);
+    as = srai<1>(a);
+    bs = srai<1>(b);
+    return mask_add(src, k, lsb, add(as, bs));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,64>
+  maskz_avg(const SIMDMask<SIMDInt, 64> &k,
+      const SIMDVec<SIMDInt,64> &a,
+      const SIMDVec<SIMDInt,64> &b)
+  {
+    SIMDVec<SIMDInt,64> one = set1<SIMDInt,64>(1), as, bs, lsb;
+    lsb = and(or(a, b), one);
+    as = srai<1>(a);
+    bs = srai<1>(b);
+    return maskz_add(k, lsb, add(as, bs));
+  }
+
+  // NOTE: SIMDFloat version doesn't round!
+  static SIMD_INLINE SIMDVec<SIMDFloat,64>
+  mask_avg(const SIMDVec<SIMDFloat, 64> &src,
+      const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat,64> &a,
+      const SIMDVec<SIMDFloat,64> &b)
+  {
+    return _mm512_mask_mul_ps(src, k, _mm512_maskz_add_ps(k, a, b), _mm512_set1_ps(0.5f));
+  }
+
+  // NOTE: SIMDFloat version doesn't round!
+  static SIMD_INLINE SIMDVec<SIMDFloat,64>
+  maskz_avg(const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat,64> &a,
+      const SIMDVec<SIMDFloat,64> &b)
+  {
+    return _mm512_maskz_mul_ps(k, _mm512_maskz_add_ps(k, a, b), _mm512_set1_ps(0.5f));
+  }
+
+  // ---------------------------------------------------------------------------
+  // masked test_all_zeros v
+  // ---------------------------------------------------------------------------
+
+  #define TEST_ALL_ZEROS(TYPE, SUF) \
+  static SIMD_INLINE int \
+  mask_test_all_zeros(const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return (_mm512_mask_test_epi ## SUF ## _mask(k, a, a) == 0); \
+  }
+
+  #define EMULATE_TEST_ALL_ZEROS(TYPE) \
+  static SIMD_INLINE int \
+  mask_test_all_zeros(const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return test_all_zeros(mask_ifelse(k, a, setzero<TYPE, 64>())); \
+  }
+
+#ifdef __AVX512BW__
+  TEST_ALL_ZEROS(SIMDByte, 8)
+  TEST_ALL_ZEROS(SIMDSignedByte, 8)
+  TEST_ALL_ZEROS(SIMDWord, 16)
+  TEST_ALL_ZEROS(SIMDShort, 16)
+#else
+  EMULATE_TEST_ALL_ZEROS(SIMDByte)
+  EMULATE_TEST_ALL_ZEROS(SIMDSignedByte)
+  EMULATE_TEST_ALL_ZEROS(SIMDWord)
+  EMULATE_TEST_ALL_ZEROS(SIMDShort)
+#endif
+  TEST_ALL_ZEROS(SIMDInt, 32)
+
+  static SIMD_INLINE int
+  mask_test_all_zeros(const SIMDMask<SIMDFloat, 64> &k,
+      const SIMDVec<SIMDFloat, 64> &a)
+  {
+    return (_mm512_mask_test_epi32_mask(k, _mm512_castps_si512(a), _mm512_castps_si512(a)) == 0);
+  }
+
+  // ---------------------------------------------------------------------------
+  // masked test_all_ones v
+  // ---------------------------------------------------------------------------
+
+  // description of testn intrinsics was not clear, chosen other way
+  template <typename T>
+  static SIMD_INLINE int
+  mask_test_all_ones(const SIMDMask<T, 64> &k,
+      const SIMDVec<T, 64> &a)
+  {
+    return mask_test_all_zeros(k, not(a));
+  }
+
+  template <typename T, int SIMD_WIDTH> SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_all_ones();
+
+  #define MASK_ALL_ONES(TYPE, MASK) \
+  template <> \
+  SIMD_INLINE SIMDMask<TYPE, 64> \
+  mask_all_ones() \
+  { \
+    return MASK; \
+  }
+
+#ifdef __AVX512BW__
+  MASK_ALL_ONES(SIMDByte, 0xFFFFFFFFFFFFFFFF)
+  MASK_ALL_ONES(SIMDSignedByte, 0xFFFFFFFFFFFFFFFF)
+  MASK_ALL_ONES(SIMDWord, 0xFFFFFFFF)
+  MASK_ALL_ONES(SIMDShort, 0xFFFFFFFF)
+#else
+  template <>
+  SIMD_INLINE SIMDMask<SIMDByte, 64>
+  mask_all_ones()
+  {
+    return _mm512_set1_epi32(-1);
+  }
+  template <>
+  SIMD_INLINE SIMDMask<SIMDSignedByte, 64>
+  mask_all_ones()
+  {
+    return _mm512_set1_epi32(-1);
+  }
+  template <>
+  SIMD_INLINE SIMDMask<SIMDWord, 64>
+  mask_all_ones()
+  {
+    return _mm512_set1_epi32(-1);
+  }
+  template <>
+  SIMD_INLINE SIMDMask<SIMDShort, 64>
+  mask_all_ones()
+  {
+    return _mm512_set1_epi32(-1);
+  }
+#endif
+  MASK_ALL_ONES(SIMDInt, 0xFFFF)
+  MASK_ALL_ONES(SIMDFloat, 0xFFFF)
+
+/*
+Short explanation:
+Intrinsics (e.g. _kand_mask16, _kor_mask32) are only available for gcc versions >= 7. The intrinsics for __mmask32 and __mmask64 are only available under AVX512BW
+Intrinsics with a different name and only for __mmask16 (e.g. _mm512_kand) are available for gcc versions >= 6
+If AVX512BW is not available, the SIMDByte/SignedByte/Word/Short masks are vectors, then the vector functions are used
+The last resort (because it is probably slower in most cases) is to emulate the functions with normal operators (e.g. "+" for kadd, "<<" for kshiftl, "&" for kand)
+*/
+
+#define EMULATE_KADD(TYPE) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  kadd (const SIMDMask<TYPE, 64> &a, \
+      const SIMDMask<TYPE, 64> &b) \
+  { \
+    return (((uint64_t) a) + ((uint64_t) b)); \
+  }
+
+#if __GNUC__ >= 7 //TODO other compilers (not really a problem, then the intrinsics will just not be used)
+  #define GENERATE_DMASKOP(NAME, TYPE, NUM) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  k ## NAME (const SIMDMask<TYPE, 64> &a, \
+      const SIMDMask<TYPE, 64> &b) \
+  { \
+    return _k ## NAME ## _mask ## NUM (a, b); \
+  }
+
+  #define KNOT(TYPE, NUM) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  knot(const SIMDMask<TYPE, 64> &a) \
+  { \
+    return _knot_mask ## NUM (a); \
+  }
+
+  //shift with template parameter
+  #define KSHIFT(R_OR_L, TYPE, NUM) \
+  template <unsigned int IMM> \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  kshift ## R_OR_L ## i (const SIMDMask<TYPE, 64> &a) \
+  { \
+    return _kshift ## R_OR_L ## i_mask ## NUM (a, IMM); \
+  }
+#ifdef __AVX512BW__
+  GENERATE_DMASKOP(and, SIMDByte, 64)
+  GENERATE_DMASKOP(and, SIMDSignedByte, 64)
+  GENERATE_DMASKOP(and, SIMDWord, 32)
+  GENERATE_DMASKOP(and, SIMDShort, 32)
+
+  GENERATE_DMASKOP(andn, SIMDByte, 64)
+  GENERATE_DMASKOP(andn, SIMDSignedByte, 64)
+  GENERATE_DMASKOP(andn, SIMDWord, 32)
+  GENERATE_DMASKOP(andn, SIMDShort, 32)
+
+  GENERATE_DMASKOP(or, SIMDByte, 64)
+  GENERATE_DMASKOP(or, SIMDSignedByte, 64)
+  GENERATE_DMASKOP(or, SIMDWord, 32)
+  GENERATE_DMASKOP(or, SIMDShort, 32)
+
+  GENERATE_DMASKOP(xor, SIMDByte, 64)
+  GENERATE_DMASKOP(xor, SIMDSignedByte, 64)
+  GENERATE_DMASKOP(xor, SIMDWord, 32)
+  GENERATE_DMASKOP(xor, SIMDShort, 32)
+
+  GENERATE_DMASKOP(xnor, SIMDByte, 64)
+  GENERATE_DMASKOP(xnor, SIMDSignedByte, 64)
+  GENERATE_DMASKOP(xnor, SIMDWord, 32)
+  GENERATE_DMASKOP(xnor, SIMDShort, 32)
+
+  GENERATE_DMASKOP(add, SIMDByte, 64)
+  GENERATE_DMASKOP(add, SIMDSignedByte, 64)
+  GENERATE_DMASKOP(add, SIMDWord, 32)
+  GENERATE_DMASKOP(add, SIMDShort, 32)
+
+  KNOT(SIMDByte, 64)
+  KNOT(SIMDSignedByte, 64)
+  KNOT(SIMDWord, 32)
+  KNOT(SIMDShort, 32)
+  
+  KSHIFT(r, SIMDByte, 64)
+  KSHIFT(r, SIMDSignedByte, 64)
+  KSHIFT(r, SIMDWord, 32)
+  KSHIFT(r, SIMDShort, 32)
+  KSHIFT(l, SIMDByte, 64)
+  KSHIFT(l, SIMDSignedByte, 64)
+  KSHIFT(l, SIMDWord, 32)
+  KSHIFT(l, SIMDShort, 32)
+//else-case is further down
+#endif //ifdef __AVX512BW__
+
+  GENERATE_DMASKOP(and, SIMDInt, 16)
+  GENERATE_DMASKOP(and, SIMDFloat, 16)
+
+  GENERATE_DMASKOP(andn, SIMDInt, 16)
+  GENERATE_DMASKOP(andn, SIMDFloat, 16)
+
+  GENERATE_DMASKOP(or, SIMDInt, 16)
+  GENERATE_DMASKOP(or, SIMDFloat, 16)
+
+  GENERATE_DMASKOP(xor, SIMDInt, 16)
+  GENERATE_DMASKOP(xor, SIMDFloat, 16)
+
+  GENERATE_DMASKOP(xnor, SIMDInt, 16)
+  GENERATE_DMASKOP(xnor, SIMDFloat, 16)
+
+#ifdef __AVX512DQ__ //_kadd_mask16 is only available unter AVX512DQ
+  GENERATE_DMASKOP(add, SIMDInt, 16)
+  GENERATE_DMASKOP(add, SIMDFloat, 16)
+#else
+  EMULATE_KADD(SIMDInt)
+  EMULATE_KADD(SIMDFloat)
+#endif
+
+  KNOT(SIMDInt, 16)
+  KNOT(SIMDFloat, 16)
+  
+  KSHIFT(r, SIMDInt, 16)
+  KSHIFT(r, SIMDFloat, 16)
+  KSHIFT(l, SIMDInt, 16)
+  KSHIFT(l, SIMDFloat, 16)
+#else
+//(__GNUC__ >= 7) is false
+#if __GNUC__ >= 6
+//At least the intrinsics for 16-masks (SIMDInt and SIMDFloat) are defined.
+  #define GENERATE_DMASKOP(NAME, TYPE, NUM) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  k ## NAME (const SIMDMask<TYPE, 64> &a, \
+      const SIMDMask<TYPE, 64> &b) \
+  { \
+    return _mm512_k ## NAME (a, b); \
+  }
+
+  #define KNOT(TYPE, NUM) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  knot(const SIMDMask<TYPE, 64> &a) \
+  { \
+    return _mm512_knot (a); \
+  }
+  GENERATE_DMASKOP(and, SIMDInt, 16)
+  GENERATE_DMASKOP(and, SIMDFloat, 16)
+
+  GENERATE_DMASKOP(andn, SIMDInt, 16)
+  GENERATE_DMASKOP(andn, SIMDFloat, 16)
+
+  GENERATE_DMASKOP(or, SIMDInt, 16)
+  GENERATE_DMASKOP(or, SIMDFloat, 16)
+
+  GENERATE_DMASKOP(xor, SIMDInt, 16)
+  GENERATE_DMASKOP(xor, SIMDFloat, 16)
+
+  GENERATE_DMASKOP(xnor, SIMDInt, 16)
+  GENERATE_DMASKOP(xnor, SIMDFloat, 16)
+
+  KNOT(SIMDInt, 16)
+  KNOT(SIMDFloat, 16)
+#endif
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  kand (const SIMDMask<T, 64> &a,
+      const SIMDMask<T, 64> &b)
+  {
+    return (a & b);
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  kandn (const SIMDMask<T, 64> &a,
+      const SIMDMask<T, 64> &b)
+  {
+    return (mask_all_ones<T, 64>() & ((~a) & b));
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  kor (const SIMDMask<T, 64> &a,
+      const SIMDMask<T, 64> &b)
+  {
+    return (a | b);
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  kxor (const SIMDMask<T, 64> &a,
+      const SIMDMask<T, 64> &b)
+  {
+    return (a ^ b);
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  kxnor (const SIMDMask<T, 64> &a,
+      const SIMDMask<T, 64> &b)
+  {
+    return (mask_all_ones<T, 64>() & (~(a ^ b)));
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  kadd (const SIMDMask<T, 64> &a,
+      const SIMDMask<T, 64> &b)
+  {
+    return (a + b);
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  knot(const SIMDMask<T, 64> &a)
+  {
+    return (mask_all_ones<T, 64>() & (~a));
+  }
+
+  template <unsigned int IMM, typename T> \
+  static SIMD_INLINE SIMDMask<T, 64> \
+  kshiftri (const SIMDMask<T, 64> &a) \
+  { \
+    return ((uint64_t) a) >> ((uint64_t) IMM); \
+  }
+
+  template <unsigned int IMM, typename T> \
+  static SIMD_INLINE SIMDMask<T, 64> \
+  kshiftli (const SIMDMask<T, 64> &a) \
+  { \
+    return ((uint64_t) a) << ((uint64_t) IMM); \
+  }
+#endif //if __GNUC__ >= 7
+#ifndef __AVX512BW__
+//Masks are vectors
+  #define EMULATE_DMASKOP_64(NAME, TYPE) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  k ## NAME (const SIMDMask<TYPE, 64> &a, \
+      const SIMDMask<TYPE, 64> &b) \
+  { \
+    return (SIMDMask<TYPE, 64>) NAME ((SIMDVec<TYPE, 64>) a, (SIMDVec<TYPE, 64>) b); \
+  }
+  EMULATE_DMASKOP_64(and, SIMDByte)
+  EMULATE_DMASKOP_64(and, SIMDSignedByte)
+  EMULATE_DMASKOP_64(and, SIMDWord)
+  EMULATE_DMASKOP_64(and, SIMDShort)
+
+  EMULATE_DMASKOP_64(or, SIMDByte)
+  EMULATE_DMASKOP_64(or, SIMDSignedByte)
+  EMULATE_DMASKOP_64(or, SIMDWord)
+  EMULATE_DMASKOP_64(or, SIMDShort)
+
+  EMULATE_DMASKOP_64(xor, SIMDByte)
+  EMULATE_DMASKOP_64(xor, SIMDSignedByte)
+  EMULATE_DMASKOP_64(xor, SIMDWord)
+  EMULATE_DMASKOP_64(xor, SIMDShort)
+
+  EMULATE_KADD(SIMDByte)
+  EMULATE_KADD(SIMDSignedByte)
+  EMULATE_KADD(SIMDWord)
+  EMULATE_KADD(SIMDShort)
+
+  #define EMULATE_KNOT(TYPE) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  knot(const SIMDMask<TYPE, 64> &a) \
+  { \
+    return (SIMDMask<TYPE, 64>) not((SIMDVec<TYPE, 64>) a); \
+  }
+
+  EMULATE_KNOT(SIMDByte)
+  EMULATE_KNOT(SIMDSignedByte)
+  EMULATE_KNOT(SIMDWord)
+  EMULATE_KNOT(SIMDShort)
+
+  // function name should be "kandn" but the vector function is "andnot"
+  #define EMULATE_ANDN(TYPE) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  kandn (const SIMDMask<TYPE, 64> &a, \
+      const SIMDMask<TYPE, 64> &b) \
+  { \
+    return (SIMDMask<TYPE, 64>) andnot ((SIMDVec<TYPE, 64>) a, (SIMDVec<TYPE, 64>) b); \
+  }
+  EMULATE_ANDN(SIMDByte)
+  EMULATE_ANDN(SIMDSignedByte)
+  EMULATE_ANDN(SIMDWord)
+  EMULATE_ANDN(SIMDShort)
+
+  // there is not xnor-function for vectors, so we have to do: not(xor(a, b))
+  #define EMULATE_XNOR(TYPE) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  kxnor (const SIMDMask<TYPE, 64> &a, \
+      const SIMDMask<TYPE, 64> &b) \
+  { \
+    return (SIMDMask<TYPE, 64>) not(xor((SIMDVec<TYPE, 64>) a, (SIMDVec<TYPE, 64>) b)); \
+  }
+  EMULATE_XNOR(SIMDByte)
+  EMULATE_XNOR(SIMDSignedByte)
+  EMULATE_XNOR(SIMDWord)
+  EMULATE_XNOR(SIMDShort)
+  
+  #define EMULATE_KSHIFT(R_OR_L, TYPE, NUM) \
+  template <unsigned int IMM> \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  kshift ## R_OR_L ## i (const SIMDMask<TYPE, 64> &a) \
+  { \
+    return (SIMDMask<TYPE, 64>) (s ## R_OR_L ## le<IMM>((SIMDVec<TYPE, 64>) a)); \
+  }
+  
+  EMULATE_KSHIFT(r, SIMDByte, 64)
+  EMULATE_KSHIFT(r, SIMDSignedByte, 64)
+  EMULATE_KSHIFT(r, SIMDWord, 32)
+  EMULATE_KSHIFT(r, SIMDShort, 32)
+  EMULATE_KSHIFT(l, SIMDByte, 64)
+  EMULATE_KSHIFT(l, SIMDSignedByte, 64)
+  EMULATE_KSHIFT(l, SIMDWord, 32)
+  EMULATE_KSHIFT(l, SIMDShort, 32)
+#endif //ifndef __AVX512BW__
+  //shift with flexible parameter (not template), probably slower than template-version
+  /*//TODO faster implementation with switch-case possible?
+  #define SHIFT_CASE(OP, NUM) case : OP<NUM>(a); break;
+
+  #define EMULATE_KSHIFT(R_OR_L, OP, TYPE) \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  kshift ## R_OR_L ## i (const SIMDMask<TYPE, 64> &a, \
+      uint64_t count) \
+  { \
+    return (a OP count); \
+    switch(count) { \
+      SHIFT_CASE(OP2, 0) \
+      SHIFT_CASE(OP2, 1) \
+    } \
+  }*/
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  kshiftli (const SIMDMask<T, 64> &a,
+      uint64_t count)
+  {
+    return (((uint64_t) a) << count);
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  kshiftri (const SIMDMask<T, 64> &a,
+      uint64_t count)
+  {
+    return (((uint64_t) a) >> count);
+  }
+} //namespace ns_simd
+
+#endif // __AVX512F__
+#endif // _SIMDMASKINTEL64_H_

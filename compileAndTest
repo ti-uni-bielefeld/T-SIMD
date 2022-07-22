@@ -33,6 +33,8 @@ set autotest_errors = 1
 set cppstd_test = 1
 set default_compilation = 1
 
+set VMK_JOBS = 16
+
 if ($useGccClang) then
     # g++, clang++
     # set compiler = g++

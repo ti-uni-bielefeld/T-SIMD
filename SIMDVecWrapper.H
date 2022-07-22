@@ -33,7 +33,7 @@
 #include "SIMDSerialVec.H"
 
 // - template parameters T and SIMD_WIDTH are included in class
-//   definition and therefore have to be explicitely provided (no
+//   definition and therefore have to be explicitly provided (no
 //   deduction possible), this allows members or methods to use these
 //   parameters (e.g. maxI)
 // - apply() has a template-template parameter such that both SIMDVec

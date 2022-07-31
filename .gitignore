@@ -11,3 +11,9 @@ styleExamples
 styleExamples.o
 tsimdtest
 tsimdtest.o
+simdvecautotest0
+simdvecautotest0.o
+simdvecautotest1
+simdvecautotest1.o
+COMPILE_AND_TEST/
+*.tmp

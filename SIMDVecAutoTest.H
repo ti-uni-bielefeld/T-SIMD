@@ -31,6 +31,11 @@
 // template-parameter shall be the name of a class template or an
 // alias template, expressed as id-expression.
 
+// 01. Aug 22 (Jonas Keller):
+// removed SIMD_INLINE from all test functions, speeds up compilation by a
+// factor of at least 6 with clang and there is no reason to inline the test
+// functions
+
 #ifndef _SIMD_VEC_AUTO_TEST_H_
 #define _SIMD_VEC_AUTO_TEST_H_
 
@@ -88,7 +93,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct TestSignedInt
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       Tester<SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -103,7 +108,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct TestUnsignedInt
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       Tester<SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -117,7 +122,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct TestFloat
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       Tester<SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -130,7 +135,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct TestInt
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       TestSignedInt<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -144,7 +149,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct TestSigned
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       TestSignedInt<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -158,7 +163,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct TestAll
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       TestInt<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -176,7 +181,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct TestSignedIntTI
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       Tester<SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -191,7 +196,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct TestUnsignedIntTI
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       Tester<SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -205,7 +210,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct TestFloatTI
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       Tester<SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -218,7 +223,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct TestIntTI
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       TestSignedIntTI<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -232,7 +237,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct TestSignedTI
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       TestSignedIntTI<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -246,7 +251,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct TestAllTI
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       TestIntTI<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -264,7 +269,7 @@ namespace ns_simd {
 	    template <int, int, typename, int> class FCT>
   struct TestSignedIntTII
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       Tester<SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -279,7 +284,7 @@ namespace ns_simd {
 	    template <int, int, typename, int> class FCT>
   struct TestUnsignedIntTII
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       Tester<SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -293,7 +298,7 @@ namespace ns_simd {
 	    template <int, int, typename, int> class FCT>
   struct TestFloatTII
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       Tester<SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -306,7 +311,7 @@ namespace ns_simd {
 	    template <int, int, typename, int> class FCT>
   struct TestIntTII
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       TestSignedIntTII<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -320,7 +325,7 @@ namespace ns_simd {
 	    template <int, int, typename, int> class FCT>
   struct TestSignedTII
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       TestSignedIntTII<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -334,7 +339,7 @@ namespace ns_simd {
 	    template <int, int, typename, int> class FCT>
   struct TestAllTII
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       TestIntTII<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -352,7 +357,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct TestAllTT
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       Tester<SIMDByte,SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
@@ -402,7 +407,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct Nullary
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "";
@@ -439,7 +444,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct Unary
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v";
@@ -477,7 +482,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct Scalar
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "s";
@@ -517,7 +522,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct UnaryScalar
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v";
@@ -569,7 +574,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct UnaryTemplateType
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v";
@@ -609,7 +614,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct UnaryTemplateIntScalar
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v";
@@ -648,7 +653,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct UnaryTemplateIntScalar<T,SIMD_WIDTH,N,N,FCT>
   {
-    static SIMD_INLINE void
+    static void
     test(int, const std::string&)
     {
     }
@@ -658,7 +663,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct UnaryTemplateIntScalarMinToMax
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       UnaryTemplateIntScalar<T, SIMD_WIDTH, 
@@ -676,7 +681,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct UnaryTemplateInt
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v";
@@ -714,7 +719,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct UnaryTemplateInt<T,SIMD_WIDTH,N,N,FCT>
   {
-    static SIMD_INLINE void
+    static void
     test(int, const std::string&)
     {
     }
@@ -724,7 +729,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct UnaryTemplateIntMinToMax
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       UnaryTemplateInt<T, SIMD_WIDTH,
@@ -742,7 +747,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct Binary
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v,v";
@@ -782,7 +787,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct BinaryTemplateType
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v,v";
@@ -824,7 +829,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct UnaryArrayTemplateType
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v,*v";
@@ -874,7 +879,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct Array
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "*v";
@@ -919,7 +924,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct ArrayTemplateType
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "*v";
@@ -965,7 +970,7 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct ArrayArrayVoid
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "*v,*v";
@@ -1022,7 +1027,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct ArrayArrayVoidTemplateType
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "*v,*v";
@@ -1083,7 +1088,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct ArrayDoubleArrayVoidTemplateType
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "*v,s,*v";
@@ -1146,7 +1151,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct ArrayDoubleDoubleArrayVoidTemplateType
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "*v,s,s,*v";
@@ -1210,7 +1215,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct ArrayArrayDoubleArrayVoidTemplateType
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "*v,*v,s,*v";
@@ -1277,7 +1282,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct ArrayArrayDoubleDoubleArrayVoidTemplateType
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "*v,*v,s,s,*v";
@@ -1345,7 +1350,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct ArrayVoidTemplateInt
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "*v";
@@ -1403,7 +1408,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct ArrayVoidTemplateInt<T,SIMD_WIDTH,N,N,FCT>
   {
-    static SIMD_INLINE void
+    static void
     test(int, const std::string&)
     {
     }
@@ -1413,7 +1418,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct ArrayVoidTemplateIntMinToMax
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       ArrayVoidTemplateInt<T, SIMD_WIDTH,
@@ -1431,7 +1436,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct BinaryTemplateInt
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v,v";
@@ -1471,7 +1476,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct BinaryTemplateInt<T,SIMD_WIDTH,N,N,FCT>
   {
-    static SIMD_INLINE void
+    static void
     test(int, const std::string&)
     {
     }
@@ -1481,7 +1486,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct BinaryTemplateIntMinToMax
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       BinaryTemplateInt<T, SIMD_WIDTH, 
@@ -1500,7 +1505,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct BinaryBinaryTemplateInt
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v,v,v&,v&";
@@ -1545,7 +1550,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct BinaryBinaryTemplateInt<T,SIMD_WIDTH,IMAX,IMAX,FCT>
   {
-    static SIMD_INLINE void
+    static void
     test(int, const std::string&)
     {
     }
@@ -1555,7 +1560,7 @@ namespace ns_simd {
 	    template <int, typename, int> class FCT>
   struct BinaryBinaryTemplateIntMinToMax
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       BinaryBinaryTemplateInt<T, SIMD_WIDTH, 
@@ -1575,7 +1580,7 @@ namespace ns_simd {
 	    template <int, int, typename, int> class FCT>
   struct BinaryTemplateIntInt
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v,v";
@@ -1617,7 +1622,7 @@ namespace ns_simd {
 	    template <int, int, typename, int> class FCT>
   struct BinaryTemplateIntInt<T,SIMD_WIDTH,I,IMAX,JMAX,JMAX,FCT>
   {
-    static SIMD_INLINE void
+    static void
     test(int, const std::string&)
     {
     }
@@ -1627,7 +1632,7 @@ namespace ns_simd {
 	    template <int, int, typename, int> class FCT>
   struct BinaryTemplateIntIntMinToMax
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       BinaryTemplateIntInt<T, SIMD_WIDTH, 
@@ -1647,7 +1652,7 @@ namespace ns_simd {
 	    template <typename, typename, int> class FCT>
   struct TernaryConditionTemplateType
   {
-    static SIMD_INLINE void
+    static void
     test(int repeats, const std::string &pattern)
     {
       std::string args = "v,v,v";

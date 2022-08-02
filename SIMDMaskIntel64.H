@@ -312,6 +312,10 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
     return mask_ifelse(k, OP (a, b), src); \
   }
 
+  // 02. Aug 22 (Jonas Keller):
+  // removed EMULATE_DOP_FLOAT_64 as it is not needed anymore because change
+  // of the implementation of hadd, hadds, hsub and hsubs functions below
+  /*
   #define EMULATE_DOP_FLOAT_64(OP) \
   static SIMD_INLINE SIMDVec<SIMDFloat, 64> \
   maskz_ ## OP (const SIMDMask<SIMDFloat, 64> &k, \
@@ -328,7 +332,7 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
   { \
     return mask_ifelse(k, maskz_ ## OP (k, a, b), src); \
   }
-
+  */
 
   // ---------------------------------------------------------------------------
   // mask_ifelse v
@@ -1430,6 +1434,8 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
   MAKE_X_SHIFT(slli, 32, 16)
   GENERATE_SHIFT(slli, SIMDInt, epi32)
 
+
+
   // ---------------------------------------------------------------------------
   // masked hadd (16/32 only) v
   // ---------------------------------------------------------------------------
@@ -1437,7 +1443,11 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
   EMULATE_DOP_TYPE(hadd, SIMDWord)
   EMULATE_DOP_TYPE(hadd, SIMDShort)
   EMULATE_DOP_TYPE(hadd, SIMDInt)
-  EMULATE_DOP_FLOAT_64(hadd)
+  // 02. Aug 22 (Jonas Keller): don't know why there was a special case for
+  // floats that had a wrong implementation, used EMULATE_DOP_TYPE for floats
+  // as well
+  // EMULATE_DOP_FLOAT_64(hadd)
+  EMULATE_DOP_TYPE(hadd, SIMDFloat)
 
   // ---------------------------------------------------------------------------
   // masked hadds (signed 16/32 only) v
@@ -1445,7 +1455,11 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
 
   EMULATE_DOP_TYPE(hadds, SIMDShort)
   EMULATE_DOP_TYPE(hadds, SIMDInt)
-  EMULATE_DOP_FLOAT_64(hadds)
+  // 02. Aug 22 (Jonas Keller): don't know why there was a special case for
+  // floats that had a wrong implementation, used EMULATE_DOP_TYPE for floats
+  // as well
+  // EMULATE_DOP_FLOAT_64(hadds)
+  EMULATE_DOP_TYPE(hadds, SIMDFloat)
 
   // ---------------------------------------------------------------------------
   // masked hsub (16/32 only) v
@@ -1454,7 +1468,11 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
   EMULATE_DOP_TYPE(hsub, SIMDWord)
   EMULATE_DOP_TYPE(hsub, SIMDShort)
   EMULATE_DOP_TYPE(hsub, SIMDInt)
-  EMULATE_DOP_FLOAT_64(hsub)
+  // 02. Aug 22 (Jonas Keller): don't know why there was a special case for
+  // floats that had a wrong implementation, used EMULATE_DOP_TYPE for floats
+  // as well
+  // EMULATE_DOP_FLOAT_64(hsub)
+  EMULATE_DOP_TYPE(hsub, SIMDFloat)
 
   // ---------------------------------------------------------------------------
   // masked hsubs (signed 16/32 only) v
@@ -1462,7 +1480,11 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
 
   EMULATE_DOP_TYPE(hsubs, SIMDShort)
   EMULATE_DOP_TYPE(hsubs, SIMDInt)
-  EMULATE_DOP_FLOAT_64(hsubs)
+  // 02. Aug 22 (Jonas Keller): don't know why there was a special case for
+  // floats that had a wrong implementation, used EMULATE_DOP_TYPE for floats
+  // as well
+  // EMULATE_DOP_FLOAT_64(hsubs)
+  EMULATE_DOP_TYPE(hsubs, SIMDFloat)
 
 
 

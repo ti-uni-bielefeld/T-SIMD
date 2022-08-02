@@ -1762,13 +1762,26 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
   // ---------------------------------------------------------------------------
 
   // description of testn intrinsics was not clear, chosen other way
-  template <typename T>
-  static SIMD_INLINE int
-  mask_test_all_ones(const SIMDMask<T, 64> &k,
-      const SIMDVec<T, 64> &a)
-  {
-    return mask_test_all_zeros(k, not(a));
+
+  // 02. Aug 22 (Jonas Keller): Was implemented using a template parameter for
+  // the type, but that was ambiguous with the emulated version in SIMDMaskEmu.H,
+  // so defining it for every type explicitly instead to resolve the ambiguity.
+
+  #define TEST_ALL_ONES(TYPE) \
+  static SIMD_INLINE int \
+  mask_test_all_ones(const SIMDMask<TYPE, 64> &k, \
+      const SIMDVec<TYPE, 64> &a) \
+  { \
+    return mask_test_all_zeros(k, not(a)); \
   }
+
+  TEST_ALL_ONES(SIMDByte)
+  TEST_ALL_ONES(SIMDSignedByte)
+  TEST_ALL_ONES(SIMDWord)
+  TEST_ALL_ONES(SIMDShort)
+  TEST_ALL_ONES(SIMDInt)
+  TEST_ALL_ONES(SIMDFloat)
+
 
   template <typename T, int SIMD_WIDTH> SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_all_ones();
 

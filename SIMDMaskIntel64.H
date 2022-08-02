@@ -1343,7 +1343,10 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
   static SIMD_INLINE __m512i
   x_mm512_maskz_srai_epi32(__mmask16 k, __m512i a, IsPosInRange<true, false>)
   {
-    return _mm512_maskz_srai_epi16(k, a, 31);
+    // 02. Aug 22 (Jonas Keller):
+    // fixed wrong intrinsic
+    // return _mm512_maskz_srai_epi16(k, a, 31);
+    return _mm512_maskz_srai_epi32(k, a, 31);
   }
   MAKE_X_SHIFT(srai, 32, 16)
   GENERATE_SHIFT(srai, SIMDInt, epi32)

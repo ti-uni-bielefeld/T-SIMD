@@ -32,7 +32,23 @@
 // TODO:   need the include files included here depending on the architecture
 
 #if defined(__i386__) || defined(__x86_64__)
+
+// 03. Aug 22 (Jonas Keller):
+// gcc warns that the value returned by the _mm*_undefined_* intrinsics is
+// used uninitialized, which is exactly what these intrinsics are for,
+// so disabling the warning
+#pragma GCC diagnostic push
+// clang doesn't know -Wmaybe-uninitialized, so it warns,
+// so disabling warning -Wunknown-warning-option
+// however, gcc doesn't know -Wunknown-warning-option, so it warns,
+// so disabling warning -Wpragmas
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wunknown-warning-option"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Wuninitialized"
 #include <x86intrin.h>
+#pragma GCC diagnostic pop
+
 #define SIMDVEC_INTEL_ENABLE 1
 #endif
 

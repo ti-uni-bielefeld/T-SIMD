@@ -360,7 +360,11 @@ kshiftli(const SIMDSerialMask<T, SIMD_WIDTH> &a) {
   if (IMM >= SIMDSerialMask<T, SIMD_WIDTH>::bits) {
     return 0;
   }
+  // we checked that IMM is not too large above, disable warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshift-count-overflow"
   return a << IMM;
+#pragma GCC diagnostic pop
 }
 
 template <unsigned int IMM, typename T, int SIMD_WIDTH>
@@ -369,7 +373,11 @@ kshiftri(const SIMDSerialMask<T, SIMD_WIDTH> &a) {
   if (IMM >= SIMDSerialMask<T, SIMD_WIDTH>::bits) {
     return 0;
   }
+  // we checked that IMM is not too large above, disable warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshift-count-overflow"
   return a >> IMM;
+#pragma GCC diagnostic pop
 }
 
 template <typename T, int SIMD_WIDTH>

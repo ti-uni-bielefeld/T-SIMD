@@ -254,6 +254,10 @@ namespace ns_simd {
     {
       memcpy(vec, x.vec, SIMD_WIDTH);
     }
+    SIMDSerialVec(const SIMDVec<T,SIMD_WIDTH> &x)
+    {
+      storeu(vec, x);
+    }
     template <typename U>
     SIMDSerialVec& operator=(const SIMDSerialVec<U,SIMD_WIDTH> &x)
     {
@@ -264,6 +268,10 @@ namespace ns_simd {
     {
       store(vec, x);
       return *this;
+    }
+    operator SIMDVec<T, SIMD_WIDTH>() const
+    {
+      return getSIMDVec();
     }
     SIMDVec<T, SIMD_WIDTH> getSIMDVec() const
     {

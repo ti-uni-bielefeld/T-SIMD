@@ -15,5 +15,7 @@ simdvecautotest0
 simdvecautotest0.o
 simdvecautotest1
 simdvecautotest1.o
+simdvecautotestM
+simdvecautotestM.o
 COMPILE_AND_TEST/
 *.tmp

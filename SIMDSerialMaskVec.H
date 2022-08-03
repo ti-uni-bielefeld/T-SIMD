@@ -63,7 +63,19 @@ public:
     return (mask & (UInt<bits>(1) << i)) != 0;
   }
 
-  void randomize() { mask = getRandomUInt<bits>(); }
+  void randomize() {
+    // randomize with a 1 in 16 chance to be all 1s or all 0s
+    // to make sure these cases are also tested
+    if ((random() & 0x0f) == 0) {
+      if (random() & 0x01) {
+        mask = 0;
+      } else {
+        mask = -1;
+      }
+    } else {
+      mask = getRandomUInt<bits>();
+    }
+  }
 
   SIMDMask<T, SIMD_WIDTH> getSIMDMask() const {
     return SIMDMask<T, SIMD_WIDTH>(mask);

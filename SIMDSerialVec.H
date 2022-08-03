@@ -303,33 +303,176 @@ namespace ns_simd {
     void randomize()
     {
       // random init
-      for (int i = 0; i < elements; i++)
-	vec[i] = getRandom<T>();
-      // TODO: randomly insert min/max values
+
+      // 03. Aug (Jonas Keller):
+      // increased the chance of extreme values (min, max, 0, -0)
+      // to make sure those are tested as well
+      //
+      //     for (int i = 0; i < elements; i++)
+	    // vec[i] = getRandom<T>();
+
+      // randomize with a 1 in 16 chance to be completely one of min, max, 0 and -0
+      if ((random() & 0x0f) == 0) {
+        T val;
+        switch (random() & 0x03) {
+        case 0: val = SIMDTypeInfo<T>::min(); break;
+        case 1: val = SIMDTypeInfo<T>::max(); break;
+        case 2: val = T(0); break;
+        case 3: val = -T(0); break;
+        default: assert(false); break;
+        }
+        for (int i = 0; i < elements; i++)
+          vec[i] = val;
+      } else {
+        for (int i = 0; i < elements; i++) {
+          // randomize with a 1 in 16 chance to be one of min, max, 0 and -0
+          if ((random() & 0x0f) == 0) {
+            switch (random() & 0x03) {
+            case 0: vec[i] = SIMDTypeInfo<T>::min(); break;
+            case 1: vec[i] = SIMDTypeInfo<T>::max(); break;
+            case 2: vec[i] = T(0); break;
+            case 3: vec[i] = -T(0); break;
+            default: assert(false); break;
+            }
+          } else {
+            vec[i] = getRandom<T>();
+          }
+        }
+      }
     }
     void randomizeNonNegative()
     {
       // random init: non-negative, with injection of zeros
-      for (int i = 0; i < elements; i++) {
-	if ((random() & 0x0f) == 0) vec[i] = T(0);
-	else while ((vec[i] = getRandom<T>()) < T(0));
+
+      // 03. Aug (Jonas Keller):
+      // increased the chance of extreme values (min, max, 0)
+      // to make sure those are tested as well
+      //
+      //     for (int i = 0; i < elements; i++) {
+	    // if ((random() & 0x0f) == 0) vec[i] = T(0);
+	    // else while ((vec[i] = getRandom<T>()) < T(0));
+
+      // randomize with a 1 in 16 chance to be completely one of min, max and 0
+      if ((random() & 0x0f) == 0) {
+        T val;
+        switch (random() & 0x03) {
+        case 0: val = SIMDTypeInfo<T>::min(); break;
+        case 1: val = SIMDTypeInfo<T>::max(); break;
+        case 2: case 3: val = T(0); break;
+        default: assert(false); break;
+        }
+        for (int i = 0; i < elements; i++)
+          vec[i] = val;
+      } else {
+        for (int i = 0; i < elements; i++) {
+          // randomize with a 1 in 16 chance to be one of min, max, and 0
+          if ((random() & 0x0f) == 0) {
+            switch (random() & 0x03) {
+            case 0: vec[i] = SIMDTypeInfo<T>::min(); break;
+            case 1: vec[i] = SIMDTypeInfo<T>::max(); break;
+            case 2: case 3: vec[i] = T(0); break;
+            default: assert(false); break;
+            }
+          } else {
+            while ((vec[i] = getRandom<T>()) < T(0));
+          }
+        }
       }
-      // TODO: randomly insert min/max values
     }
     void randomizeRanges()
     {
-      for (int i = 0; i < elements; i++) 
-	vec[i] = getRandomRanges<T>();
+      // 03. Aug (Jonas Keller):
+      // increased the chance of extreme values (min, max, 0, -0)
+      // to make sure those are tested as well
+      //
+      //     for (int i = 0; i < elements; i++) 
+	    // vec[i] = getRandomRanges<T>();
+
+      // randomize with a 1 in 16 chance to be completely one of min, max, 0 and -0
+      if ((random() & 0x0f) == 0) {
+        T val;
+        switch (random() & 0x03) {
+        case 0: val = SIMDTypeInfo<T>::min(); break;
+        case 1: val = SIMDTypeInfo<T>::max(); break;
+        case 2: val = T(0); break;
+        case 3: val = -T(0); break;
+        default: assert(false); break;
+        }
+        for (int i = 0; i < elements; i++)
+          vec[i] = val;
+      } else {
+        for (int i = 0; i < elements; i++) {
+          // randomize with a 1 in 16 chance to be one of min, max, 0 and -0
+          if ((random() & 0x0f) == 0) {
+            switch (random() & 0x03) {
+            case 0: vec[i] = SIMDTypeInfo<T>::min(); break;
+            case 1: vec[i] = SIMDTypeInfo<T>::max(); break;
+            case 2: vec[i] = T(0); break;
+            case 3: vec[i] = -T(0); break;
+            default: assert(false); break;
+            }
+          } else {
+            vec[i] = getRandomRanges<T>();
+          }
+        }
+      }
     }
     void randomizeRangesNonZero()
     {
-      for (int i = 0; i < elements; i++)
-	while ((vec[i] = getRandomRanges<T>()) == T(0));
+      // 03. Aug (Jonas Keller):
+      // increased the chance of extreme values (min, max, 0, -0)
+      // to make sure those are tested as well
+      //
+      //     for (int i = 0; i < elements; i++)
+	    // while ((vec[i] = getRandomRanges<T>()) == T(0));
+
+      // randomize with a 1 in 16 chance to be completely one of min and max
+      if ((random() & 0x0f) == 0) {
+        T val;
+        if (SIMDTypeInfo<T>::min() != 0) {
+          val = random() & 0x01 ? SIMDTypeInfo<T>::min()
+                                : SIMDTypeInfo<T>::max();
+        } else {
+          val = SIMDTypeInfo<T>::max();
+        }
+        for (int i = 0; i < elements; i++)
+          vec[i] = val;
+      } else {
+        for (int i = 0; i < elements; i++) {
+          // randomize with a 1 in 16 chance to be one of min and max
+          if ((random() & 0x0f) == 0) {
+            if (SIMDTypeInfo<T>::min() != 0) {
+              vec[i] = random() & 0x01 ? SIMDTypeInfo<T>::min()
+                                       : SIMDTypeInfo<T>::max();
+            } else {
+              vec[i] = SIMDTypeInfo<T>::max();
+            }
+          } else {
+            while ((vec[i] = getRandomRanges<T>()) == T(0));
+          }
+        }
+      }
     }
     void randomizeCond()
     {
-      for (int i = 0; i < elements; i++)
-	vec[i] = (random() & 0x01) ? SIMDTypeInfo<T>::trueval() : T(0);
+      // 03. Aug (Jonas Keller):
+      // increased the chance of extreme values (all 0s, all 1s)
+      // to make sure those are tested as well
+      //
+      //     for (int i = 0; i < elements; i++)
+	    // vec[i] = (random() & 0x01) ? SIMDTypeInfo<T>::trueval() : T(0);
+
+      // randomize with a 1 in 16 chance to be all 1s or all 0s
+      if ((random() & 0x0f) == 0) {
+        if (random() & 0x01) {
+          setzero();
+        } else {
+          setones();
+        }
+      } else {
+        for (int i = 0; i < elements; i++)
+          vec[i] = (random() & 0x01) ? SIMDTypeInfo<T>::trueval() : T(0);
+      }
     }
     void setzero()
     {

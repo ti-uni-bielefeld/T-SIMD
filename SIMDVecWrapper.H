@@ -1250,9 +1250,12 @@ namespace ns_simd {
     randomizeInputFloat()
     { return getRandomRanges<SIMDFloat>(); }
 
+    // 03. Aug 22 (Jonas Keller):
+    // include zeros in the randomization of the input vectors
     static SIMD_INLINE void
     randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
-    { vec.randomizeRangesNonZero(); }
+    // { vec.randomizeRangesNonZero(); }
+    { vec.randomizeRanges(); }
     
     template <template <typename, int> class VEC>
     static SIMD_INLINE void
@@ -1279,9 +1282,12 @@ namespace ns_simd {
     randomizeInputFloat()
     { return getRandomRanges<SIMDFloat>(); }
 
+    // 03. Aug 22 (Jonas Keller):
+    // include zeros in the randomization of the input vectors
     static SIMD_INLINE void
     randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
-    { vec.randomizeRangesNonZero(); }
+    // { vec.randomizeRangesNonZero(); }
+    { vec.randomizeRanges(); }
     
     template <template <typename, int> class VEC>
     static SIMD_INLINE void
@@ -1309,9 +1315,12 @@ namespace ns_simd {
     randomizeInputFloat()
     { return getRandomRanges<SIMDFloat>(); }
 
+    // 03. Aug 22 (Jonas Keller):
+    // include zeros in the randomization of the input vectors
     static SIMD_INLINE void
     randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
-    { vec.randomizeRangesNonZero(); }
+    // { vec.randomizeRangesNonZero(); }
+    { vec.randomizeRanges(); }
     
     template <template <typename, int> class VEC>
     static SIMD_INLINE void

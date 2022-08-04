@@ -45,7 +45,7 @@ struct TesterMaskUnary {
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(src, k, a);
+          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -85,7 +85,7 @@ struct TesterMaskZUnary {
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(k, a);
+          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -127,7 +127,7 @@ struct TesterMaskBinary {
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a, b);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(src, k, a, b);
+          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a, b);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -169,7 +169,7 @@ struct TesterMaskZBinary {
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a, b);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(k, a, b);
+          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -210,7 +210,7 @@ struct TesterMaskConditionBinary {
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a, b);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(k, a, b);
+          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -250,7 +250,7 @@ struct TesterMaskConditionUnary {
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(k, a);
+          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -293,7 +293,8 @@ struct TesterMaskUnaryTemplateType {
       SIMDSerialVec<Tout, SIMD_WIDTH> cs =
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
       SIMDSerialVec<Tout, SIMD_WIDTH> cp =
-          FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec>(src, k, a);
+          FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k,
+                                                                      a);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -335,7 +336,7 @@ struct TesterMaskZUnaryTemplateType {
       SIMDSerialVec<Tout, SIMD_WIDTH> cs =
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       SIMDSerialVec<Tout, SIMD_WIDTH> cp =
-          FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec>(k, a);
+          FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -375,7 +376,7 @@ struct TesterMaskScalar {
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(src, k, a);
+          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -414,7 +415,7 @@ struct TesterMaskZScalar {
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(k, a);
+          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -455,7 +456,7 @@ struct TesterMaskCmp {
       SIMDSerialMask<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a, b);
       SIMDSerialMask<T, SIMD_WIDTH> cp =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(k, a, b);
+          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -609,7 +610,7 @@ struct TesterMaskUnaryTI {
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
-          FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec>(src, k, a);
+          FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -666,7 +667,7 @@ struct TesterMaskZUnaryTI {
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
-          FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec>(k, a);
+          FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {

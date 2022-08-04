@@ -108,21 +108,24 @@ namespace ns_simd {
   // ===========================================================================
   // print functions (for tests)
   // ===========================================================================
-
-  // integer types don't have negative zero
-  template <typename T>
-  static SIMD_INLINE T
-  treatZero(T in)
-  {
-    return in;
-  }
-
-  // SIMDFloat: map -0.0f to 0.0f
-  static SIMD_INLINE SIMDFloat
-  treatZero(SIMDFloat in)
-  {
-    return (in == -0.0f) ? 0.0f : in;
-  }
+  
+  // 04. Aug 22 (Jonas Keller):
+  // removed treatZero(), not needed anymore because of change below
+  //
+  // // integer types don't have negative zero
+  // template <typename T>
+  // static SIMD_INLINE T
+  // treatZero(T in)
+  // {
+  //   return in;
+  // }
+  // 
+  // // SIMDFloat: map -0.0f to 0.0f
+  // static SIMD_INLINE SIMDFloat
+  // treatZero(SIMDFloat in)
+  // {
+  //   return (in == -0.0f) ? 0.0f : in;
+  // }
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
@@ -137,7 +140,11 @@ namespace ns_simd {
     storeu(buf, vec);
     // print elements of vector to f
     for (int i = 0; i < elems; i++)
-      fprintf(f, format, treatZero(buf[i]));
+      // 04. Aug 22 (Jonas Keller):
+      // removed mapping from -0.0f to 0.0f,
+      // for debugging you want to see -0.0f
+      // fprintf(f, format, treatZero(buf[i]));
+      fprintf(f, format, buf[i]);
   }
 
   template <typename T, int SIMD_WIDTH>

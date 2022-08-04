@@ -7,6 +7,7 @@
 namespace ns_simd {
 
 template <int Bits> struct _UInt;
+template <> struct _UInt<4> { using type = uint8_t; };
 template <> struct _UInt<8> { using type = uint8_t; };
 template <> struct _UInt<16> { using type = uint16_t; };
 template <> struct _UInt<32> { using type = uint32_t; };
@@ -15,11 +16,16 @@ template <> struct _UInt<64> { using type = uint64_t; };
 template <int Bits> using UInt = typename _UInt<Bits>::type;
 
 template <int Bits> UInt<Bits> getRandomUInt();
+template <> UInt<4> getRandomUInt<4>() { return random() & 0xF; }
 template <> UInt<8> getRandomUInt<8>() { return random() & 0xFF; }
 template <> UInt<16> getRandomUInt<16>() { return random() & 0xFFFF; }
 template <> UInt<32> getRandomUInt<32>() { return random(); }
 template <> UInt<64> getRandomUInt<64>() {
   return ((UInt<64>)random() << 32) | random();
+}
+
+template <int Bits> UInt<Bits> maskUInt(UInt<Bits> x) {
+  return x & (UInt<Bits>(-1) >> (sizeof(UInt<Bits>) * 8 - Bits));
 }
 
 template <typename T, int SIMD_WIDTH> class SIMDSerialMask {
@@ -28,7 +34,7 @@ public:
   UInt<bits> mask;
 
   SIMDSerialMask() : mask(0) {}
-  SIMDSerialMask(const UInt<bits> &_mask) : mask(_mask) {}
+  SIMDSerialMask(const UInt<bits> &_mask) : mask(maskUInt<bits>(_mask)) {}
   SIMDSerialMask(const SIMDSerialVec<T, SIMD_WIDTH> &x) {
     mask = 0;
     // avoids comparison with SIMDTypeInfo::trueval, which fails for
@@ -40,20 +46,20 @@ public:
       }
     }
   }
-  SIMDSerialMask(const SIMDMask<T, SIMD_WIDTH> &x) : mask(x) {}
+  SIMDSerialMask(const SIMDMask<T, SIMD_WIDTH> &x) : mask(maskUInt<bits>(x)) {}
   SIMDSerialMask<T, SIMD_WIDTH> &operator=(const UInt<bits> &_mask) {
-    mask = _mask;
+    mask = maskUInt<bits>(_mask);
     return *this;
   }
   SIMDSerialMask<T, SIMD_WIDTH> &operator=(const SIMDMask<T, SIMD_WIDTH> &x) {
-    mask = x;
+    mask = maskUInt<bits>(x);
     return *this;
   }
 
   operator UInt<bits>() const { return mask; }
   operator SIMDMask<T, SIMD_WIDTH>() const { return getSIMDMask(); }
   bool operator==(const SIMDSerialMask<T, SIMD_WIDTH> &other) const {
-    return mask == other.mask;
+    return maskUInt<bits>(mask) == maskUInt<bits>(other.mask);
   }
 
   bool operator[](const uint8_t i) const {
@@ -70,15 +76,15 @@ public:
       if (random() & 0x01) {
         mask = 0;
       } else {
-        mask = -1;
+        mask = maskUInt<bits>(-1);
       }
     } else {
-      mask = getRandomUInt<bits>();
+      mask = maskUInt<bits>(getRandomUInt<bits>());
     }
   }
 
   SIMDMask<T, SIMD_WIDTH> getSIMDMask() const {
-    return SIMDMask<T, SIMD_WIDTH>(mask);
+    return SIMDMask<T, SIMD_WIDTH>(maskUInt<bits>(mask));
   }
 };
 

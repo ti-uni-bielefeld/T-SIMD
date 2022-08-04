@@ -348,11 +348,21 @@ namespace ns_simd {
   EMULATE_SHIFT(srai)
   EMULATE_SHIFT(srli)
   EMULATE_SHIFT(slli)
-  
-  EMULATE_DOP(hadd)
-  EMULATE_DOP(hadds)
-  EMULATE_DOP(hsub)
-  EMULATE_DOP(hsubs)
+
+  // 04. Aug 22 (Jonas Keller):
+  // Removed float specialization of hadd, hadds, hsub and hsubs,
+  // instead use generic int version for floats as well.
+  // Special float implementation causes wrong results for
+  // hadd, hadds, hsub and hsubs.
+  //
+  // EMULATE_DOP(hadd)
+  // EMULATE_DOP(hadds)
+  // EMULATE_DOP(hsub)
+  // EMULATE_DOP(hsubs)
+  EMULATE_DOP_INT(hadd)
+  EMULATE_DOP_INT(hadds)
+  EMULATE_DOP_INT(hsub)
+  EMULATE_DOP_INT(hsubs)
 
   //TODO mask parameters?
   #define EMULATE_CMP(OP) \

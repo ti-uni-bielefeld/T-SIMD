@@ -330,7 +330,9 @@ static int mask_test_all_zeros(const SIMDSerialMask<T, SIMD_WIDTH> &k,
 template <typename T, int SIMD_WIDTH>
 static int mask_test_all_ones(const SIMDSerialMask<T, SIMD_WIDTH> &k,
                               const SIMDSerialVec<T, SIMD_WIDTH> &a) {
-  return test_all_ones(mask_ifelsezero(k, a));
+  SIMDSerialVec<T, SIMD_WIDTH> ones;
+  ones.setones();
+  return test_all_ones(mask_ifelse(k, a, ones));
 }
 
 #define GENERATE_SERIAL_BINARY_K(OP_NAME, OP)                                  \

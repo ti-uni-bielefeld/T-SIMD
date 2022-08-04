@@ -117,6 +117,15 @@ namespace ns_simd {
   {
     return ifelse((SIMDVec<T, SIMD_WIDTH>) k, trueVal, falseVal);
   }
+
+  // 04. Aug 22 (Jonas Keller): added mask_ifelsezero
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_ifelsezero(const SIMDMask<T, SIMD_WIDTH> &k,
+      const SIMDVec<T, SIMD_WIDTH> &trueVal)
+  {
+    return ifelse((SIMDVec<T, SIMD_WIDTH>) k, trueVal, setzero<T,SIMD_WIDTH>());
+  }
   
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<SIMDInt, SIMD_WIDTH>

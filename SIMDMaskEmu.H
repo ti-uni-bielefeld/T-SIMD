@@ -454,6 +454,13 @@ namespace ns_simd {
   kshiftri (const SIMDMask<T, SIMD_WIDTH> &a,
       uintmax_t count)
   {
+    // 04. Aug 22 (Jonas Keller):
+    // return zero if count is larger than sizeof(uintmax_t)*8 - 1, since then
+    // the >> operator is undefined, but kshift should return zero
+    // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
+    if (count >= sizeof(uintmax_t)*8) {
+      return 0;
+    }
     return (SIMDMask<T, SIMD_WIDTH>) (((uintmax_t) a) >> count);
   }
   template <typename T, int SIMD_WIDTH>
@@ -461,6 +468,13 @@ namespace ns_simd {
   kshiftli (const SIMDMask<T, SIMD_WIDTH> &a,
       uintmax_t count)
   {
+    // 04. Aug 22 (Jonas Keller):
+    // return zero if count is larger than sizeof(uintmax_t)*8 - 1, since then
+    // the << operator is undefined, but kshift should return zero
+    // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
+    if (count >= sizeof(uintmax_t)*8) {
+      return 0;
+    }
     return (SIMDMask<T, SIMD_WIDTH>) (((uintmax_t) a) << count);
   }
   

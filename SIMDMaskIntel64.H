@@ -2061,18 +2061,42 @@ The last resort (because it is probably slower in most cases) is to emulate the 
     return (mask_all_ones<T, 64>() & (~a));
   }
 
-  template <unsigned int IMM, typename T> \
-  static SIMD_INLINE SIMDMask<T, 64> \
-  kshiftri (const SIMDMask<T, 64> &a) \
-  { \
-    return ((uint64_t) a) >> ((uint64_t) IMM); \
+  template <unsigned int IMM, typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  kshiftri (const SIMDMask<T, 64> &a)
+  {
+    // 04. Aug 22 (Jonas Keller):
+    // return zero if IMM is larger than 63, since then the >> operator is
+    // undefined, but kshift should return zero
+    // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
+    // since IMM is a constant, the compiler should optimize away the if-statement
+    if (IMM >= 64) {
+      return 0;
+    }
+    // we checked that IMM is not too large above, disable warning
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wshift-count-overflow"
+    return ((uint64_t) a) >> ((uint64_t) IMM);
+    #pragma GCC diagnostic pop
   }
 
-  template <unsigned int IMM, typename T> \
-  static SIMD_INLINE SIMDMask<T, 64> \
-  kshiftli (const SIMDMask<T, 64> &a) \
-  { \
-    return ((uint64_t) a) << ((uint64_t) IMM); \
+  template <unsigned int IMM, typename T>
+  static SIMD_INLINE SIMDMask<T, 64>
+  kshiftli (const SIMDMask<T, 64> &a)
+  {
+    // 04. Aug 22 (Jonas Keller):
+    // return zero if IMM is larger than 63, since then the << operator is
+    // undefined, but kshift should return zero
+    // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
+    // since IMM is a constant, the compiler should optimize away the if-statement
+    if (IMM >= 64) {
+      return 0;
+    }
+    // we checked that IMM is not too large above, disable warning
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wshift-count-overflow"
+    return ((uint64_t) a) << ((uint64_t) IMM);
+    #pragma GCC diagnostic pop
   }
 #endif //if __GNUC__ >= 7
 #ifndef __AVX512BW__
@@ -2180,6 +2204,13 @@ The last resort (because it is probably slower in most cases) is to emulate the 
   kshiftli (const SIMDMask<T, 64> &a,
       uint64_t count)
   {
+    // 04. Aug 22 (Jonas Keller):
+    // return zero if count is larger than 63, since then the << operator is
+    // undefined, but kshift should return zero
+    // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
+    if (count >= 64) {
+      return 0;
+    }
     return (((uint64_t) a) << count);
   }
 
@@ -2188,6 +2219,13 @@ The last resort (because it is probably slower in most cases) is to emulate the 
   kshiftri (const SIMDMask<T, 64> &a,
       uint64_t count)
   {
+    // 04. Aug 22 (Jonas Keller):
+    // return zero if count is larger than 63, since then the >> operator is
+    // undefined, but kshift should return zero
+    // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
+    if (count >= 64) {
+      return 0;
+    }
     return (((uint64_t) a) >> count);
   }
 } //namespace ns_simd

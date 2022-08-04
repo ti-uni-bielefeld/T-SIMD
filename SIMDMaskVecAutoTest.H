@@ -6,6 +6,7 @@
 #include "SIMDVecAutoTest.H"
 #include <bitset>
 #include <iostream>
+#include <string>
 
 namespace ns_simd {
 
@@ -14,8 +15,8 @@ namespace ns_simd {
   {                                                                            \
     printf(#MASK "\t= ");                                                      \
     fflush(stdout);                                                            \
-    std::cout << std::bitset<MASK.bits>(MASK).flip() << std::endl              \
-              << std::flush;                                                   \
+    std::string s = std::bitset<MASK.bits>(MASK).to_string();                  \
+    std::cout << std::string(s.rbegin(), s.rend()) << std::endl << std::flush; \
   }
 #define PRINT_SCALAR(T, SCALAR)                                                \
   PRINTVAL(SIMDTypeInfo<T>::defaultFormat(), SCALAR)

@@ -312,28 +312,6 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
     return mask_ifelse(k, OP (a, b), src); \
   }
 
-  // 02. Aug 22 (Jonas Keller):
-  // removed EMULATE_DOP_FLOAT_64 as it is not needed anymore because change
-  // of the implementation of hadd, hadds, hsub and hsubs functions below
-  /*
-  #define EMULATE_DOP_FLOAT_64(OP) \
-  static SIMD_INLINE SIMDVec<SIMDFloat, 64> \
-  maskz_ ## OP (const SIMDMask<SIMDFloat, 64> &k, \
-      const SIMDVec<SIMDFloat, 64> &a, \
-      const SIMDVec<SIMDFloat, 64> &b) \
-  { \
-    return OP (mask_ifelsezero(k, a), mask_ifelsezero(k, b)); \
-  } \
-  static SIMD_INLINE SIMDVec<SIMDFloat, 64> \
-  mask_ ## OP (const SIMDVec<SIMDFloat, 64> &src, \
-      const SIMDMask<SIMDFloat, 64> &k, \
-      const SIMDVec<SIMDFloat, 64> &a, \
-      const SIMDVec<SIMDFloat, 64> &b) \
-  { \
-    return mask_ifelse(k, maskz_ ## OP (k, a, b), src); \
-  }
-  */
-
   // ---------------------------------------------------------------------------
   // mask_ifelse v
   // ---------------------------------------------------------------------------
@@ -1438,56 +1416,119 @@ _mm512_set_epi8 (char __q63, char __q62, char __q61, char __q60,
   GENERATE_SHIFT(slli, SIMDInt, epi32)
 
 
+  // 05. Aug 22 (Jonas Keller):
+  // Improved implementation of masked hadd, hadds, hsub and hsubs,
+  // implementation uses masked add/adds/sub/subs directly now instead of
+  // wrapping hadd, hadds, hsub and hsubs with a mask_ifelse(zero).
+  // SIMDByte and SIMDSignedByte are now supported as well.
 
   // ---------------------------------------------------------------------------
-  // masked hadd (16/32 only) v
+  // masked hadd v
   // ---------------------------------------------------------------------------
 
-  EMULATE_DOP_TYPE(hadd, SIMDWord)
-  EMULATE_DOP_TYPE(hadd, SIMDShort)
-  EMULATE_DOP_TYPE(hadd, SIMDInt)
-  // 02. Aug 22 (Jonas Keller): don't know why there was a special case for
-  // floats that had a wrong implementation, used EMULATE_DOP_TYPE for floats
-  // as well
-  // EMULATE_DOP_FLOAT_64(hadd)
-  EMULATE_DOP_TYPE(hadd, SIMDFloat)
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T, 64>
+  mask_hadd(const SIMDVec<T, 64> &src,
+            const SIMDMask<T, 64> &k,
+            const SIMDVec<T, 64> &a,
+            const SIMDVec<T, 64> &b)
+  {
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return mask_add(src, k, x, y);
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T, 64>
+  maskz_hadd(const SIMDMask<T, 64> &k,
+             const SIMDVec<T, 64> &a,
+             const SIMDVec<T, 64> &b)
+  {
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return maskz_add(k, x, y);
+  }
 
   // ---------------------------------------------------------------------------
-  // masked hadds (signed 16/32 only) v
+  // masked hadds v
   // ---------------------------------------------------------------------------
 
-  EMULATE_DOP_TYPE(hadds, SIMDShort)
-  EMULATE_DOP_TYPE(hadds, SIMDInt)
-  // 02. Aug 22 (Jonas Keller): don't know why there was a special case for
-  // floats that had a wrong implementation, used EMULATE_DOP_TYPE for floats
-  // as well
-  // EMULATE_DOP_FLOAT_64(hadds)
-  EMULATE_DOP_TYPE(hadds, SIMDFloat)
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T, 64>
+  mask_hadds(const SIMDVec<T, 64> &src,
+             const SIMDMask<T, 64> &k,
+             const SIMDVec<T, 64> &a,
+             const SIMDVec<T, 64> &b)
+  {
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return mask_adds(src, k, x, y);
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T, 64>
+  maskz_hadds(const SIMDMask<T, 64> &k,
+              const SIMDVec<T, 64> &a,
+              const SIMDVec<T, 64> &b)
+  {
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return maskz_adds(k, x, y);
+  }
 
   // ---------------------------------------------------------------------------
-  // masked hsub (16/32 only) v
+  // masked hsub v
   // ---------------------------------------------------------------------------
 
-  EMULATE_DOP_TYPE(hsub, SIMDWord)
-  EMULATE_DOP_TYPE(hsub, SIMDShort)
-  EMULATE_DOP_TYPE(hsub, SIMDInt)
-  // 02. Aug 22 (Jonas Keller): don't know why there was a special case for
-  // floats that had a wrong implementation, used EMULATE_DOP_TYPE for floats
-  // as well
-  // EMULATE_DOP_FLOAT_64(hsub)
-  EMULATE_DOP_TYPE(hsub, SIMDFloat)
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T, 64>
+  mask_hsub(const SIMDVec<T, 64> &src,
+            const SIMDMask<T, 64> &k,
+            const SIMDVec<T, 64> &a,
+            const SIMDVec<T, 64> &b)
+  {
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return mask_sub(src, k, x, y);
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T, 64>
+  maskz_hsub(const SIMDMask<T, 64> &k,
+             const SIMDVec<T, 64> &a,
+             const SIMDVec<T, 64> &b)
+  {
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return maskz_sub(k, x, y);
+  }
 
   // ---------------------------------------------------------------------------
-  // masked hsubs (signed 16/32 only) v
+  // masked hsubs v
   // ---------------------------------------------------------------------------
 
-  EMULATE_DOP_TYPE(hsubs, SIMDShort)
-  EMULATE_DOP_TYPE(hsubs, SIMDInt)
-  // 02. Aug 22 (Jonas Keller): don't know why there was a special case for
-  // floats that had a wrong implementation, used EMULATE_DOP_TYPE for floats
-  // as well
-  // EMULATE_DOP_FLOAT_64(hsubs)
-  EMULATE_DOP_TYPE(hsubs, SIMDFloat)
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T, 64>
+  mask_hsubs(const SIMDVec<T, 64> &src,
+             const SIMDMask<T, 64> &k,
+             const SIMDVec<T, 64> &a,
+             const SIMDVec<T, 64> &b)
+  {
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return mask_subs(src, k, x, y);
+  }
+
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T, 64>
+  maskz_hsubs(const SIMDMask<T, 64> &k,
+              const SIMDVec<T, 64> &a,
+              const SIMDVec<T, 64> &b)
+  {
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return maskz_subs(k, x, y);
+  }
 
 
 

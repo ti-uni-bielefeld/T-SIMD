@@ -3429,143 +3429,69 @@ namespace ns_simd {
     return x_mm512_slli_epi32<IMM>(a);
   }
 
+
+  // 05. Aug 22 (Jonas Keller):
+  // Improved implementation of hadd, hadds, hsub and hsubs,
+  // implementation does not use emulation via AVX anymore.
+  // SIMDByte and SIMDSignedByte are now supported as well.
+  // The new implementation is faster for SIMDInt and SIMDFloat, but
+  // slower for SIMDWord and SIMDShort for some reason.
+
   // ---------------------------------------------------------------------------
-  // hadd (16/32 only) v
+  // hadd v
   // ---------------------------------------------------------------------------
 
-  // horizontal add sub are not supported by AVX512, emulated above via AVX
-  
-  static SIMD_INLINE SIMDVec<SIMDWord,64>
-  hadd(const SIMDVec<SIMDWord,64> &a,
-       const SIMDVec<SIMDWord,64> &b)
+  template<typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  hadd(const SIMDVec<T,64> &a,
+       const SIMDVec<T,64> &b)
   {
-    return x_mm512_evenodd8x64_epi64
-      (x_mm512_hadd_epi16(a, b));
-  }
-
-  static SIMD_INLINE SIMDVec<SIMDShort,64>
-  hadd(const SIMDVec<SIMDShort,64> &a,
-       const SIMDVec<SIMDShort,64> &b)
-  {
-    return x_mm512_evenodd8x64_epi64
-      (x_mm512_hadd_epi16(a, b));
-  }
-
-  static SIMD_INLINE SIMDVec<SIMDInt,64>
-  hadd(const SIMDVec<SIMDInt,64> &a,
-       const SIMDVec<SIMDInt,64> &b)
-  {
-    return x_mm512_evenodd8x64_epi64
-      (x_mm512_hadd_epi32(a, b));
-  }
-
-  static SIMD_INLINE SIMDVec<SIMDFloat,64>
-  hadd(const SIMDVec<SIMDFloat,64> &a,
-       const SIMDVec<SIMDFloat,64> &b)
-  {
-    return x_mm512_evenodd8x64_ps
-      (x_mm512_hadd_ps(a, b));
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return add(x, y);
   }
 
   // ---------------------------------------------------------------------------
-  // hadds (signed 16/32 only) v
+  // hadds v
   // ---------------------------------------------------------------------------
 
-  static SIMD_INLINE SIMDVec<SIMDShort,64>
-  hadds(const SIMDVec<SIMDShort,64> &a,
-	const SIMDVec<SIMDShort,64> &b)
+  template<typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  hadds(const SIMDVec<T,64> &a,
+	      const SIMDVec<T,64> &b)
   {
-    return x_mm512_evenodd8x64_epi64
-      (x_mm512_hadds_epi16(a, b));
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return adds(x, y);
   }
-
-#ifndef SIMD_STRICT_SATURATION
-  // NOT SATURATED!
-  static SIMD_INLINE SIMDVec<SIMDInt,64>
-  hadds(const SIMDVec<SIMDInt,64> &a,
-	const SIMDVec<SIMDInt,64> &b)
-  {
-    return x_mm512_evenodd8x64_epi64
-      (x_mm512_hadd_epi32(a, b));
-  }
-
-  // NOT SATURATED!
-  static SIMD_INLINE SIMDVec<SIMDFloat,64>
-  hadds(const SIMDVec<SIMDFloat,64> &a,
-	const SIMDVec<SIMDFloat,64> &b)
-  {
-    return x_mm512_evenodd8x64_ps
-      (x_mm512_hadd_ps(a, b));
-  }
-#endif
 
   // ---------------------------------------------------------------------------
-  // hsub (16/32 only) v
+  // hsub v
   // ---------------------------------------------------------------------------
 
-  static SIMD_INLINE SIMDVec<SIMDWord,64>
-  hsub(const SIMDVec<SIMDWord,64> &a,
-       const SIMDVec<SIMDWord,64> &b)
+  template<typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  hsub(const SIMDVec<T,64> &a,
+       const SIMDVec<T,64> &b)
   {
-    return x_mm512_evenodd8x64_epi64
-      (x_mm512_hsub_epi16(a, b));    
-  }
-
-  static SIMD_INLINE SIMDVec<SIMDShort,64>
-  hsub(const SIMDVec<SIMDShort,64> &a,
-       const SIMDVec<SIMDShort,64> &b)
-  {
-    return x_mm512_evenodd8x64_epi64
-      (x_mm512_hsub_epi16(a, b));    
-  }
-
-  static SIMD_INLINE SIMDVec<SIMDInt,64>
-  hsub(const SIMDVec<SIMDInt,64> &a,
-       const SIMDVec<SIMDInt,64> &b)
-  {
-    return x_mm512_evenodd8x64_epi64
-      (x_mm512_hsub_epi32(a, b));
-  }
-  
-  static SIMD_INLINE SIMDVec<SIMDFloat,64>
-  hsub(const SIMDVec<SIMDFloat,64> &a,
-       const SIMDVec<SIMDFloat,64> &b)
-  {
-    return x_mm512_evenodd8x64_ps
-      (x_mm512_hsub_ps(a, b));
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return sub(x, y);
   }
   
   // ---------------------------------------------------------------------------
-  // hsubs (signed 16/32 only) v
+  // hsubs v
   // ---------------------------------------------------------------------------
   
-  static SIMD_INLINE SIMDVec<SIMDShort,64>
-  hsubs(const SIMDVec<SIMDShort,64> &a,
-        const SIMDVec<SIMDShort,64> &b)
+  template<typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  hsubs(const SIMDVec<T,64> &a,
+        const SIMDVec<T,64> &b)
   {
-    return x_mm512_evenodd8x64_epi64
-      (x_mm512_hsubs_epi16(a, b));
+    SIMDVec<T, 64> x, y;
+    unzip<1>(a, b, x, y);
+    return subs(x, y);
   }
-
-#ifndef SIMD_STRICT_SATURATION
-  // NOT SATURATED!
-  static SIMD_INLINE SIMDVec<SIMDInt,64>
-  hsubs(const SIMDVec<SIMDInt,64> &a,
-	const SIMDVec<SIMDInt,64> &b)
-  {
-    return x_mm512_evenodd8x64_epi64
-      (x_mm512_hsub_epi32(a, b));
-  }
-
-  // NOT SATURATED!
-  static SIMD_INLINE SIMDVec<SIMDFloat,64>
-  hsubs(const SIMDVec<SIMDFloat,64> &a,
-	const SIMDVec<SIMDFloat,64> &b)
-  {
-    return x_mm512_evenodd8x64_ps
-      (x_mm512_hsub_ps(a, b));
-  }
-#endif
 
   // ---------------------------------------------------------------------------
   // extraction of element 0 v

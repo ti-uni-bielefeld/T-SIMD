@@ -48,6 +48,11 @@ namespace ns_simd {
   // 15. Oct 21 (rm): add NATIVE_SIMD_WIDTH
   template <int NUM, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
   using Vecs = SIMDVecs<NUM, T, SIMD_WIDTH>;
+
+  // 05. Aug 22 (Jonas Keller): add simd::Mask alias for SIMDMask
+  // we can use simd::Mask instead of SIMDMask (requires C++11)
+  template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+  using Mask = SIMDMask<T, SIMD_WIDTH>;
   
   // we can use simd::TypeInfo instead of SIMDTypeInfo (requires C++11)
   template <typename T>

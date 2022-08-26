@@ -1838,6 +1838,7 @@ namespace ns_simd {
 
   // contributed by Benedikt Volkmer
   // negate a, where b is negative
+  // note: contrary to IEEE 754, this function considers -0.0f to be negative
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
   sign(SIMDVec<SIMDFloat, SIMD_WIDTH> a, SIMDVec<SIMDFloat, SIMD_WIDTH> b)

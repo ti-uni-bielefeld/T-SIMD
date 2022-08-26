@@ -1945,6 +1945,19 @@ namespace ns_simd {
     return 1;
   }
 
+  // 26. Aug 22 (Jonas Keller):
+  // added float version of test_all_zeros since the generic version
+  // considers -0.0f to be equal to 0.0f (in accordance with IEEE 754),
+  // but we want to treat -0.0f as non-zero
+
+  // note: contrary to IEEE 754, this function considers -0.0f to be negative
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE int
+  test_all_zeros(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a)
+  {
+    return test_all_zeros(reinterpret<SIMDInt>(a));
+  }
+
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE int
   test_all_ones(const SIMDSerialVec<T, SIMD_WIDTH> &a)
@@ -1956,6 +1969,19 @@ namespace ns_simd {
       if (aNot[i] != T(0))
 	return 0;
     return 1;
+  }
+
+  // 26. Aug 22 (Jonas Keller):
+  // added float version of test_all_ones since the generic version
+  // considers -0.0f to be equal to 0.0f (in accordance with IEEE 754),
+  // but we want to treat -0.0f as non-zero
+
+  // note: contrary to IEEE 754, this function considers -0.0f to be negative
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE int
+  test_all_ones(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a)
+  {
+    return test_all_ones(reinterpret<SIMDInt>(a));
   }
 
   template <typename T, int SIMD_WIDTH>

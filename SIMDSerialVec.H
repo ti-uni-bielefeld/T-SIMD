@@ -1352,14 +1352,22 @@ namespace ns_simd {
   }
 
   // negate a, where b is negative (SIMDFloat only)
+  // note: contrary to IEEE 754, this function considers -0.0f to be negative
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH> 
   sign(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a,
        const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &b)
   {
+    // 26. Aug 22 (Jonas Keller):
+    // checked sign bit instead of comparison with 0.0f, since
+    // IEEE 754 defines -0.0f as non-negative, making -0.0f < 0.0f false
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
-    for (int i = 0; i < c.elements; i++)
-      c[i] = (b[i] < 0.0f) ? -a[i] : a[i];
+    SIMDSerialVec<SIMDInt, SIMD_WIDTH> intB = reinterpret<SIMDInt>(b);
+    for (int i = 0; i < c.elements; i++) {
+      // examine sign bit
+      c[i] = (intB[i] & 0x80000000) ? -a[i] : a[i];
+      //c[i] = (b[i] < 0.0f) ? -a[i] : a[i];
+    }
     return c;
   }
 

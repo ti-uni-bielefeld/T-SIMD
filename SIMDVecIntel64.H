@@ -4948,6 +4948,7 @@ namespace ns_simd {
   }
 
   // float version
+  // note: contrary to IEEE 754, this function considers -0.0f to be negative
   static SIMD_INLINE int
   test_all_zeros(const SIMDVec<SIMDFloat,64> &a)
   {
@@ -4959,6 +4960,7 @@ namespace ns_simd {
   // ---------------------------------------------------------------------------
 
   // description of testn intrinsics was not clear, chosen other way
+  // note: contrary to IEEE 754, this function considers -0.0f to be negative
   template <typename T>
   static SIMD_INLINE int
   test_all_ones(const SIMDVec<T,64> &a)

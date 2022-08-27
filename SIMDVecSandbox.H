@@ -683,6 +683,15 @@ namespace ns_simd {
     return SIMDVec<T,SIMD_WIDTH>();
   }
 
+  // 27. Aug 22 (Jonas Keller): added movemask
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<T, SIMD_WIDTH> &)
+  {
+    printf("movemask<%s,%d>(V)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return 0;
+  }
+
   // ===========================================================================
   // masked functions
   // ===========================================================================

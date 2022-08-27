@@ -195,6 +195,8 @@ main(int argc, char *argv[])
   TestAll<UnaryScalarInt,SW,Test_all_zeros>::test(repeats1, pattern);
   TestAll<UnaryScalarInt,SW,Test_all_ones>::test(repeats1, pattern);
   TestAll<Unary,SW,Reverse>::test(repeats1, pattern);
+  // 27. Aug 22 (Jonas Keller): added movemask
+  TestAll<UnaryScalarInt,SW,Movemask>::test(repeats1, pattern);
   printf("simdvecautotest0 complete\n");
   return 0;
 }

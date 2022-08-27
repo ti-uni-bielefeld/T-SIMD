@@ -1807,6 +1807,26 @@ namespace ns_simd {
     }
   };
 
+  // 27. Aug 22 (Jonas Keller): added movemask
+
+  template <typename T, int SIMD_WIDTH>
+  struct Movemask
+  {
+    static SIMD_INLINE std::string name() 
+    { return t2s<T,SIMD_WIDTH>("movemask"); }
+    
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+    
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE uint64_t
+    apply(const VEC<T,SIMD_WIDTH> &a)
+    {
+      return movemask(a);
+    }
+  };
+
 } // namespace
 
 #endif

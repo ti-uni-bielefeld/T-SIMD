@@ -4886,6 +4886,100 @@ namespace ns_simd {
 #endif
   }
 
+
+  // ---------------------------------------------------------------------------
+  // movemask
+  // ---------------------------------------------------------------------------
+
+  // 26. Aug 22 (Jonas Keller): added movemask functions
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDByte,32> &a)
+  {
+    return _mm256_movemask_epi8(a);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDSignedByte,32> &a)
+  {
+    return _mm256_movemask_epi8(a);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDShort,32> &a)
+  {
+    // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
+    // and discard the even bits
+    // discarding the even bytes in a with a shuffle does not work,
+    // since shuffle shuffles within 128 bit lanes
+    // TODO: better way to do this?
+    uint64_t x = _mm256_movemask_epi8(a);
+    // idea from: https://stackoverflow.com/a/45695465/8461272
+    // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.
+    // where a,b,c,d,... are the bits we care about and . represents
+    // the bits we don't care about
+
+    x >>= 1;
+    // x = 0b .a.b .c.d .e.f .g.h .i.j .k.l .m.n .o.p
+
+    x = ((x & 0x44444444) >> 1) | ((x & 0x11111111) >> 0);
+    // x = 0b ..ab ..cd ..ef ..gh ..ij ..kl ..mn ..op
+
+    x = ((x & 0x30303030) >> 2) | ((x & 0x03030303) >> 0);
+    // x = 0b .... abcd .... efgh .... ijkl .... mnop
+
+    x = ((x & 0x0F000F00) >> 4) | ((x & 0x000F000F) >> 0);
+    // x = 0b .... .... abcd efgh .... .... ijkl mnop
+
+    x = ((x & 0x00FF0000) >> 8) | ((x & 0x000000FF) >> 0);
+    // x = 0b .... .... .... .... abcd efgh ijkl mnop
+
+    return x;
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDWord,32> &a)
+  {
+    // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
+    // and discard the even bits
+    // discarding the even bytes in a with a shuffle does not work,
+    // since shuffle shuffles within 128 bit lanes
+    // TODO: better way to do this?
+    uint64_t x = _mm256_movemask_epi8(a);
+    // idea from: https://stackoverflow.com/a/45695465/8461272
+    // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.
+    // where a,b,c,d,... are the bits we care about and . represents
+    // the bits we don't care about
+
+    x >>= 1;
+    // x = 0b .a.b .c.d .e.f .g.h .i.j .k.l .m.n .o.p
+
+    x = ((x & 0x44444444) >> 1) | ((x & 0x11111111) >> 0);
+    // x = 0b ..ab ..cd ..ef ..gh ..ij ..kl ..mn ..op
+
+    x = ((x & 0x30303030) >> 2) | ((x & 0x03030303) >> 0);
+    // x = 0b .... abcd .... efgh .... ijkl .... mnop
+
+    x = ((x & 0x0F000F00) >> 4) | ((x & 0x000F000F) >> 0);
+    // x = 0b .... .... abcd efgh .... .... ijkl mnop
+
+    x = ((x & 0x00FF0000) >> 8) | ((x & 0x000000FF) >> 0);
+    // x = 0b .... .... .... .... abcd efgh ijkl mnop
+
+    return x;
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDInt,32> &a)
+  {
+    return _mm256_movemask_ps(_mm256_castsi256_ps(a));
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDFloat,32> &a)
+  {
+    return _mm256_movemask_ps(a);
+  }
 }
 
 

@@ -3777,6 +3777,58 @@ namespace ns_simd {
     return _mm_shuffle_ps(a, a, _MM_SHUFFLE(0,1,2,3));
   }
   
+
+  // ---------------------------------------------------------------------------
+  // movemask
+  // ---------------------------------------------------------------------------
+
+  // 26. Aug 22 (Jonas Keller): added movemask functions
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDByte,16> &a)
+  {
+    return _mm_movemask_epi8(a);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDSignedByte,16> &a)
+  {
+    return _mm_movemask_epi8(a);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDShort,16> &a)
+  {
+    // move the upper bytes of the 8 shorts to the lower 8 bytes of the vector
+    // and set the upper 8 bytes of to 0, so that _mm_movemask_epi8
+    // can be used to extract the upper bit of each short
+    const __m128i mask = _mm_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 15, 13, 11, 9, 7, 5, 3, 1);
+    const __m128i shuffled = _mm_shuffle_epi8(a, mask);
+    return _mm_movemask_epi8(shuffled);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDWord,16> &a)
+  {
+    // move the upper bytes of the 8 words to the lower 8 bytes of the vector
+    // and set the upper 8 bytes of to 0, so that _mm_movemask_epi8
+    // can be used to extract the upper bit of each word
+    const __m128i mask = _mm_set_epi8(0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 15, 13, 11, 9, 7, 5, 3, 1);
+    const __m128i shuffled = _mm_shuffle_epi8(a, mask);
+    return _mm_movemask_epi8(shuffled);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDInt,16> &a)
+  {
+    return _mm_movemask_ps(_mm_castsi128_ps(a));
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDFloat,16> &a)
+  {
+    return _mm_movemask_ps(a);
+  }
 }
 
 #endif // __SSE2__

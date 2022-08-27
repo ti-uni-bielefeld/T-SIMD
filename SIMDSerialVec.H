@@ -2368,6 +2368,33 @@ namespace ns_simd {
     return c;
   }
 
+  // ---------------------------------------------------------------------------
+  // movemask
+  // ---------------------------------------------------------------------------
+
+  // 27. Aug 22 (Jonas Keller): added movemask functions
+
+  // integer types
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDSerialVec<T,SIMD_WIDTH> &a)
+  {
+    T highestBitMask = T(T(1) << (sizeof(T) * 8 - 1));
+    uint64_t result = 0;
+    for (int i = 0; i < a.elements; i++)
+      if ((a[i] & highestBitMask) != 0)
+        result |= (uint64_t(1) << i);
+    return result;
+  }
+
+  // SIMDFloat
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDSerialVec<SIMDFloat,SIMD_WIDTH> &a)
+  {
+    return movemask(reinterpret<SIMDInt>(a));
+  }
+
 } // namespace
 
 #endif

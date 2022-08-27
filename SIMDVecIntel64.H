@@ -5054,6 +5054,58 @@ namespace ns_simd {
     return _mm512_permutexvar_ps(load<64>(reverse_mask_4), a);
   }
 
+
+  // ---------------------------------------------------------------------------
+  // movemask
+  // ---------------------------------------------------------------------------
+
+  // 27. Aug 22 (Jonas Keller): added movemask functions
+
+#ifdef __AVX512BW__
+  // TODO: workaround for movemask for 8 and 16 bits if AVX512BW is not available
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDByte,64> &a)
+  {
+    const __m512i mask = _mm512_set1_epi8(0x80);
+    return _mm512_test_epi8_mask(a, mask);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDSignedByte,64> &a)
+  {
+    const __m512i mask = _mm512_set1_epi8(0x80);
+    return _mm512_test_epi8_mask(a, mask);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDShort,64> &a)
+  {
+    const __m512i mask = _mm512_set1_epi16(0x8000);
+    return _mm512_test_epi16_mask(a, mask);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDWord,64> &a)
+  {
+    const __m512i mask = _mm512_set1_epi16(0x8000);
+    return _mm512_test_epi16_mask(a, mask);
+  }
+#endif // __AVX512BW__
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDInt,64> &a)
+  {
+    const __m512i mask = _mm512_set1_epi32(0x80000000);
+    return _mm512_test_epi32_mask(a, mask);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDFloat,64> &a)
+  {
+    const __m512i mask = _mm512_set1_epi32(0x80000000);
+    return _mm512_test_epi32_mask(_mm512_castps_si512(a), mask);
+  }
 }
 
 #endif // __AVX__

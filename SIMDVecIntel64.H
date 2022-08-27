@@ -4994,7 +4994,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDVec<SIMDByte,64>
   reverse(const SIMDVec<SIMDByte,64> &a)
   {
-#ifdef __AVX512VMBI__
+#ifdef __AVX512VBMI__
     return _mm512_permutexvar_epi8(load<64>(reverse_mask_1), a);
 #else
     SIMDVec<SIMDByte,64> r =
@@ -5006,7 +5006,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDVec<SIMDSignedByte,64>
   reverse(const SIMDVec<SIMDSignedByte,64> &a)
   {
-#ifdef __AVX512VMBI__
+#ifdef __AVX512VBMI__
     return _mm512_permutexvar_epi8(load<64>(reverse_mask_1), a);
 #else
     SIMDVec<SIMDSignedByte,64> r =

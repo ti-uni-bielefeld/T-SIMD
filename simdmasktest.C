@@ -37,7 +37,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
-#include <linux/random.h>
 #include <float.h>
 #include <time.h>
 #include <sys/time.h>//gettimeofday
@@ -136,7 +135,7 @@ getRandomVector()
     //getrandom(buf, 64, 0);
     uint8_t i;
     for(i=0; i<SIMD_WIDTH; i++) {
-        ((uint8_t *) buf)[i] = random()&0xff;
+        ((uint8_t *) buf)[i] = rand()&0xff;
     }
     SIMDVec<T, SIMD_WIDTH> vec=loadu<SIMD_WIDTH, T>((T *) buf);
     free(buf);
@@ -144,12 +143,12 @@ getRandomVector()
 }
 
 uinttest_t random64() {
-    return ((((uinttest_t) random())*RAND_MAX) + random());//random()*1000000+random();
+    return ((((uinttest_t) rand())*RAND_MAX) + rand());//rand()*1000000+rand();
 }
 
 //Returns a number 2^a where a is a random number smaller than size. In other words: the number contains at most "size" many successive ones.
 uinttest_t random_continuous(uint8_t size) {
-    long int a=(random()%(size-1));
+    long int a=(rand()%(size-1));
     //printf("random_continuous: %li\n", a);
     //return ((intmax_t) -1)>>(63-a);
     return (1<<a)-1;
@@ -213,7 +212,7 @@ SIMDMask<TYPE, SIMD_WIDTH> rand_mask; \
 rand_mask=mask; \
 TYPE * arg=(TYPE *) malloc(SIMD_WIDTH), * result1=(TYPE *) malloc(SIMD_WIDTH), * result2=(TYPE *) malloc(SIMD_WIDTH); \
 for(i=0; i<SIMD_WIDTH; i++) { \
-    ((uint8_t *) arg)[i] = random()&0xff; \
+    ((uint8_t *) arg)[i] = rand()&0xff; \
 } \
 storeu(result1, maskz_ ## NAME(rand_mask, loadu<SIMD_WIDTH>(arg))); \
 /*print("%i ", maskz_ ## NAME(k, loadu<SIMD_WIDTH>(arg))); puts("");*/ \
@@ -258,8 +257,8 @@ rand_mask=mask; \
 TYPE * arg1=(TYPE *) malloc(SIMD_WIDTH), * arg2=(TYPE *) malloc(SIMD_WIDTH); \
 uinttest_t result1=0, result2=0; \
 for(i=0; i<SIMD_WIDTH; i++) { \
-    ((uint8_t *) arg1)[i] = random()&0xff; \
-    ((uint8_t *) arg2)[i] = random()&0xff; \
+    ((uint8_t *) arg1)[i] = rand()&0xff; \
+    ((uint8_t *) arg2)[i] = rand()&0xff; \
 } \
 result1=mask_ ## NAME(rand_mask, loadu<SIMD_WIDTH>(arg1), loadu<SIMD_WIDTH>(arg2)); \
 /*print("%i ", maskz_ ## NAME(k, loadu<SIMD_WIDTH>(arg))); puts("");*/ \
@@ -311,7 +310,7 @@ SIMDMask<TYPE, SIMD_WIDTH> rand_mask; \
 rand_mask=mask; \
 TYPE * arg=(TYPE *) malloc(SIMD_WIDTH), * result1=(TYPE *) malloc(SIMD_WIDTH), * result2=(TYPE *) malloc(SIMD_WIDTH); \
 for(i=0; i<SIMD_WIDTH; i++) { \
-    ((uint8_t *) arg)[i] = random()&0xff; \
+    ((uint8_t *) arg)[i] = rand()&0xff; \
 } \
 storeu(result1, maskz_ ## NAME<COUNT>(rand_mask, loadu<SIMD_WIDTH>(arg))); \
 for(i=0; i<SIMD_WIDTH/sizeof(TYPE); i++) { \
@@ -339,7 +338,7 @@ rand_mask=mask; \
 TYPE * arg=(TYPE *) malloc(SIMD_WIDTH); \
 int result1, result2=1; \
 for(i=0; i<SIMD_WIDTH/sizeof(TYPE); i++) { \
-    arg[i] = ((random()&1)==0?TARGET:2); \
+    arg[i] = ((rand()&1)==0?TARGET:2); \
 } \
 result1=mask_test_all_ ## NAME (rand_mask, loadu<SIMD_WIDTH>(arg)); \
 for(i=0; i<SIMD_WIDTH/sizeof(TYPE); i++) { \
@@ -362,7 +361,7 @@ TYPE * buffer; \
 if(0==posix_memalign((void**)&(buffer), SIMD_WIDTH, SIMD_WIDTH)) { \
 uint8_t i; \
 for(i=0; i<SIMD_WIDTH; i++) { \
-    ((uint8_t *) buffer)[i] = random()&0xff; \
+    ((uint8_t *) buffer)[i] = rand()&0xff; \
 } \
 SIMDVec<TYPE, SIMD_WIDTH> res1, res2; \
 /* First test */ \
@@ -489,7 +488,7 @@ void benchmark() {
     struct timeval start, end;
     srand48(time(NULL));
     for(i=0; i<SIMD_WIDTH; i++) {
-        ((uint8_t *) buffer)[i] = random()&0xff;
+        ((uint8_t *) buffer)[i] = rand()&0xff;
     }
     
     gettimeofday(&start, NULL);
@@ -780,7 +779,7 @@ void testsuite() {
 
 int main() {
     //printf("RAND_MAX=%u\n", RAND_MAX);
-    srandom(time(NULL));
+    srand(time(NULL));
     /*SIMDVec<SIMDShort, 64> a=getRandomVector<SIMDShort, 64>(), b=getRandomVector<SIMDShort, 64>();
     uinttest_t mask=random64();
     printf("%lx\n", mask);

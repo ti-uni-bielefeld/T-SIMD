@@ -24,7 +24,7 @@ using namespace ns_simd;
 #define REPEATS1 100000
 
 int main(int argc, char *argv[]) {
-  srandom(time(NULL));
+  srand(time(NULL));
   // default values
   int repeats1 = REPEATS1;
   std::string pattern = "";

@@ -16,12 +16,12 @@ template <> struct _UInt<64> { using type = uint64_t; };
 template <int Bits> using UInt = typename _UInt<Bits>::type;
 
 template <int Bits> UInt<Bits> getRandomUInt();
-template <> UInt<4> getRandomUInt<4>() { return random() & 0xF; }
-template <> UInt<8> getRandomUInt<8>() { return random() & 0xFF; }
-template <> UInt<16> getRandomUInt<16>() { return random() & 0xFFFF; }
-template <> UInt<32> getRandomUInt<32>() { return random(); }
+template <> UInt<4> getRandomUInt<4>() { return rand() & 0xF; }
+template <> UInt<8> getRandomUInt<8>() { return rand() & 0xFF; }
+template <> UInt<16> getRandomUInt<16>() { return rand() & 0xFFFF; }
+template <> UInt<32> getRandomUInt<32>() { return rand(); }
 template <> UInt<64> getRandomUInt<64>() {
-  return ((UInt<64>)random() << 32) | random();
+  return ((UInt<64>)rand() << 32) | rand();
 }
 
 template <int Bits> UInt<Bits> maskUInt(UInt<Bits> x) {
@@ -72,8 +72,8 @@ public:
   void randomize() {
     // randomize with a 1 in 16 chance to be all 1s or all 0s
     // to make sure these cases are also tested
-    if ((random() & 0x0f) == 0) {
-      if (random() & 0x01) {
+    if ((rand() & 0x0f) == 0) {(
+      if (rand() & 0x01) {
         mask = 0;
       } else {
         mask = maskUInt<bits>(-1);

@@ -64,14 +64,14 @@ namespace ns_simd {
   SIMD_INLINE SIMDByte
   getRandom<SIMDByte>()
   {
-    return random() & 0xff;
+    return rand() & 0xff;
   }
 
   template <>
   SIMD_INLINE SIMDSignedByte
   getRandom<SIMDSignedByte>()
   {
-    return random() & 0xff;
+    return rand() & 0xff;
   }
 
   template <>
@@ -121,7 +121,7 @@ namespace ns_simd {
     SIMDFloat f;
     int exponent;
     // restricted selection means: only accept restricted exponent range
-    bool restricted = (random() & 0x01);
+    bool restricted = (rand() & 0x01);
     do {
       // get random SIMDInt
       i = getRandom<SIMDInt>();
@@ -163,7 +163,7 @@ namespace ns_simd {
   SIMD_INLINE SIMDWord
   getRandomRanges<SIMDWord>()
   {
-    if (random() & 0x01) return getRandomRanges<SIMDByte>();
+    if (rand() & 0x01) return getRandomRanges<SIMDByte>();
     return getRandom<SIMDWord>();
   }
 
@@ -171,7 +171,7 @@ namespace ns_simd {
   SIMD_INLINE SIMDShort
   getRandomRanges<SIMDShort>()
   {
-    if (random() & 0x01) return getRandomRanges<SIMDSignedByte>();
+    if (rand() & 0x01) return getRandomRanges<SIMDSignedByte>();
     return getRandom<SIMDShort>();
   }
 
@@ -179,7 +179,7 @@ namespace ns_simd {
   SIMD_INLINE SIMDInt
   getRandomRanges<SIMDInt>()
   {
-    if (random() & 0x01) return getRandomRanges<SIMDShort>();
+    if (rand() & 0x01) return getRandomRanges<SIMDShort>();
     return getRandom<SIMDInt>();
   }
 
@@ -193,7 +193,7 @@ namespace ns_simd {
     SIMDFloat f12;
     memcpy(&f12, &i, 4);
     // generate random exponent from [0,31]
-    if (random() & 0x01) return ldexpf(f12, random() & 0x1f);
+    if (rand() & 0x01) return ldexpf(f12, rand() & 0x1f);
     // or just return completely random float
     return getRandom<SIMDFloat>();
   }
@@ -312,9 +312,9 @@ namespace ns_simd {
 	    // vec[i] = getRandom<T>();
 
       // randomize with a 1 in 16 chance to be completely one of min, max, 0 and -0
-      if ((random() & 0x0f) == 0) {
+      if ((rand() & 0x0f) == 0) {
         T val;
-        switch (random() & 0x03) {
+        switch (rand() & 0x03) {
         case 0: val = SIMDTypeInfo<T>::min(); break;
         case 1: val = SIMDTypeInfo<T>::max(); break;
         case 2: val = T(0); break;
@@ -326,8 +326,8 @@ namespace ns_simd {
       } else {
         for (int i = 0; i < elements; i++) {
           // randomize with a 1 in 16 chance to be one of min, max, 0 and -0
-          if ((random() & 0x0f) == 0) {
-            switch (random() & 0x03) {
+          if ((rand() & 0x0f) == 0) {
+            switch (rand() & 0x03) {
             case 0: vec[i] = SIMDTypeInfo<T>::min(); break;
             case 1: vec[i] = SIMDTypeInfo<T>::max(); break;
             case 2: vec[i] = T(0); break;
@@ -349,13 +349,13 @@ namespace ns_simd {
       // to make sure those are tested as well
       //
       //     for (int i = 0; i < elements; i++) {
-	    // if ((random() & 0x0f) == 0) vec[i] = T(0);
+	    // if ((rand() & 0x0f) == 0) vec[i] = T(0);
 	    // else while ((vec[i] = getRandom<T>()) < T(0));
 
       // randomize with a 1 in 16 chance to be completely one of min, max and 0
-      if ((random() & 0x0f) == 0) {
+      if ((rand() & 0x0f) == 0) {
         T val;
-        switch (random() & 0x03) {
+        switch (rand() & 0x03) {
         case 0: val = SIMDTypeInfo<T>::min(); break;
         case 1: val = SIMDTypeInfo<T>::max(); break;
         case 2: case 3: val = T(0); break;
@@ -366,8 +366,8 @@ namespace ns_simd {
       } else {
         for (int i = 0; i < elements; i++) {
           // randomize with a 1 in 16 chance to be one of min, max, and 0
-          if ((random() & 0x0f) == 0) {
-            switch (random() & 0x03) {
+          if ((rand() & 0x0f) == 0) {
+            switch (rand() & 0x03) {
             case 0: vec[i] = SIMDTypeInfo<T>::min(); break;
             case 1: vec[i] = SIMDTypeInfo<T>::max(); break;
             case 2: case 3: vec[i] = T(0); break;
@@ -389,9 +389,9 @@ namespace ns_simd {
 	    // vec[i] = getRandomRanges<T>();
 
       // randomize with a 1 in 16 chance to be completely one of min, max, 0 and -0
-      if ((random() & 0x0f) == 0) {
+      if ((rand() & 0x0f) == 0) {
         T val;
-        switch (random() & 0x03) {
+        switch (rand() & 0x03) {
         case 0: val = SIMDTypeInfo<T>::min(); break;
         case 1: val = SIMDTypeInfo<T>::max(); break;
         case 2: val = T(0); break;
@@ -403,8 +403,8 @@ namespace ns_simd {
       } else {
         for (int i = 0; i < elements; i++) {
           // randomize with a 1 in 16 chance to be one of min, max, 0 and -0
-          if ((random() & 0x0f) == 0) {
-            switch (random() & 0x03) {
+          if ((rand() & 0x0f) == 0) {
+            switch (rand() & 0x03) {
             case 0: vec[i] = SIMDTypeInfo<T>::min(); break;
             case 1: vec[i] = SIMDTypeInfo<T>::max(); break;
             case 2: vec[i] = T(0); break;
@@ -427,10 +427,10 @@ namespace ns_simd {
 	    // while ((vec[i] = getRandomRanges<T>()) == T(0));
 
       // randomize with a 1 in 16 chance to be completely one of min and max
-      if ((random() & 0x0f) == 0) {
+      if ((rand() & 0x0f) == 0) {
         T val;
         if (SIMDTypeInfo<T>::min() != 0) {
-          val = random() & 0x01 ? SIMDTypeInfo<T>::min()
+          val = rand() & 0x01 ? SIMDTypeInfo<T>::min()
                                 : SIMDTypeInfo<T>::max();
         } else {
           val = SIMDTypeInfo<T>::max();
@@ -440,9 +440,9 @@ namespace ns_simd {
       } else {
         for (int i = 0; i < elements; i++) {
           // randomize with a 1 in 16 chance to be one of min and max
-          if ((random() & 0x0f) == 0) {
+          if ((rand() & 0x0f) == 0) {
             if (SIMDTypeInfo<T>::min() != 0) {
-              vec[i] = random() & 0x01 ? SIMDTypeInfo<T>::min()
+              vec[i] = rand() & 0x01 ? SIMDTypeInfo<T>::min()
                                        : SIMDTypeInfo<T>::max();
             } else {
               vec[i] = SIMDTypeInfo<T>::max();
@@ -460,18 +460,18 @@ namespace ns_simd {
       // to make sure those are tested as well
       //
       //     for (int i = 0; i < elements; i++)
-	    // vec[i] = (random() & 0x01) ? SIMDTypeInfo<T>::trueval() : T(0);
+	    // vec[i] = (rand() & 0x01) ? SIMDTypeInfo<T>::trueval() : T(0);
 
       // randomize with a 1 in 16 chance to be all 1s or all 0s
-      if ((random() & 0x0f) == 0) {
-        if (random() & 0x01) {
+      if ((rand() & 0x0f) == 0) {
+        if (rand() & 0x01) {
           setzero();
         } else {
           setones();
         }
       } else {
         for (int i = 0; i < elements; i++)
-          vec[i] = (random() & 0x01) ? SIMDTypeInfo<T>::trueval() : T(0);
+          vec[i] = (rand() & 0x01) ? SIMDTypeInfo<T>::trueval() : T(0);
       }
     }
     void setzero()

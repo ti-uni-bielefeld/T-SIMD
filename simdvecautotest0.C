@@ -60,7 +60,7 @@ using namespace ns_simd;
 int
 main(int argc, char *argv[])
 {
-  srandom(time(NULL));
+  srand(time(NULL));
   // default values
   int repeats1 = REPEATS1;
   std::string pattern = "";

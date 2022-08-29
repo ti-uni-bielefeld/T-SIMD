@@ -1122,7 +1122,7 @@ namespace ns_simd {
     static SIMD_INLINE void
     randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
     { 
-      if (random() & 0x01)
+      if (rand() & 0x01)
 	vec.randomize(); 
       else
 	vec.setzero();
@@ -1145,7 +1145,7 @@ namespace ns_simd {
     static SIMD_INLINE void
     randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
     { 
-      if (random() & 0x01) 
+      if (rand() & 0x01) 
 	vec.randomize(); 
       else
 	vec.setones();

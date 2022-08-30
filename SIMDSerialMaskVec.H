@@ -72,7 +72,7 @@ public:
   void randomize() {
     // randomize with a 1 in 16 chance to be all 1s or all 0s
     // to make sure these cases are also tested
-    if ((rand() & 0x0f) == 0) {(
+    if ((rand() & 0x0f) == 0) {
       if (rand() & 0x01) {
         mask = 0;
       } else {

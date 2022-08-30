@@ -5067,28 +5067,28 @@ namespace ns_simd {
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDByte,64> &a)
   {
-    const __m512i mask = _mm512_set1_epi8(0x80);
+    const __m512i mask = _mm512_set1_epi8(uint8_t(0x80));
     return _mm512_test_epi8_mask(a, mask);
   }
 
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDSignedByte,64> &a)
   {
-    const __m512i mask = _mm512_set1_epi8(0x80);
+    const __m512i mask = _mm512_set1_epi8(uint8_t(0x80));
     return _mm512_test_epi8_mask(a, mask);
   }
 
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDShort,64> &a)
   {
-    const __m512i mask = _mm512_set1_epi16(0x8000);
+    const __m512i mask = _mm512_set1_epi16(uint16_t(0x8000));
     return _mm512_test_epi16_mask(a, mask);
   }
 
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDWord,64> &a)
   {
-    const __m512i mask = _mm512_set1_epi16(0x8000);
+    const __m512i mask = _mm512_set1_epi16(uint16_t(0x8000));
     return _mm512_test_epi16_mask(a, mask);
   }
 #endif // __AVX512BW__
@@ -5096,7 +5096,7 @@ namespace ns_simd {
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDInt,64> &a)
   {
-    const __m512i mask = _mm512_set1_epi32(0x80000000);
+    const __m512i mask = _mm512_set1_epi32(uint32_t(0x80000000));
     return _mm512_test_epi32_mask(a, mask);
   }
 

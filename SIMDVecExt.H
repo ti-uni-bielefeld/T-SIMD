@@ -161,7 +161,15 @@ namespace ns_simd {
 	 const SIMDVec<T,SIMD_WIDTH> &vec)
   {
     char fmtSep[256];
+    // 30. Aug 22 (Jonas Keller): clang++ on windows warns that strcat and
+    // strcpy are deprecated and suggests to use strcpy_s and strncat_s
+    // instead
+#ifdef _WIN32
+    strcpy_s(fmtSep, format);
+    strcat_s(fmtSep, separator);
+#else
     strcat(strcpy(fmtSep, format), separator);
+#endif
     fprint(f, fmtSep, vec);
   }
 

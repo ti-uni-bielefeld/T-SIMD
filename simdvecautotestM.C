@@ -126,17 +126,17 @@ int main(int argc, char *argv[]) {
            SIMDFloat>::test(repeats1, pattern);
   TestList<TesterMaskZBinary, SW, MaskZ_hadd, SIMDWord, SIMDShort, SIMDInt,
            SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskBinary, SW, Mask_hadds, SIMDWord, SIMDShort, SIMDInt,
+  TestList<TesterMaskBinary, SW, Mask_hadds, SIMDShort, SIMDInt,
            SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskZBinary, SW, MaskZ_hadds, SIMDWord, SIMDShort, SIMDInt,
+  TestList<TesterMaskZBinary, SW, MaskZ_hadds, SIMDShort, SIMDInt,
            SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskBinary, SW, Mask_hsub, SIMDWord, SIMDShort, SIMDInt,
+  TestList<TesterMaskBinary, SW, Mask_hsub, SIMDShort, SIMDInt,
            SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskZBinary, SW, MaskZ_hsub, SIMDWord, SIMDShort, SIMDInt,
+  TestList<TesterMaskZBinary, SW, MaskZ_hsub, SIMDShort, SIMDInt,
            SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskBinary, SW, Mask_hsubs, SIMDWord, SIMDShort, SIMDInt,
+  TestList<TesterMaskBinary, SW, Mask_hsubs, SIMDShort, SIMDInt,
            SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskZBinary, SW, MaskZ_hsubs, SIMDWord, SIMDShort, SIMDInt,
+  TestList<TesterMaskZBinary, SW, MaskZ_hsubs, SIMDShort, SIMDInt,
            SIMDFloat>::test(repeats1, pattern);
 #endif
 

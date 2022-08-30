@@ -161,7 +161,6 @@ main(int argc, char *argv[])
   Binary<SIMDShort,SW,Hadds>::test(repeats1, pattern);
   Binary<SIMDInt,SW,Hadds>::test(repeats1, pattern);
   Binary<SIMDFloat,SW,Hadds>::test(repeats1, pattern);
-  Binary<SIMDWord,SW,Hsub>::test(repeats1, pattern);
   Binary<SIMDShort,SW,Hsub>::test(repeats1, pattern);
   Binary<SIMDInt,SW,Hsub>::test(repeats1, pattern);
   Binary<SIMDFloat,SW,Hsub>::test(repeats1, pattern);

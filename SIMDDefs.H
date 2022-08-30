@@ -48,7 +48,9 @@
 // ---------------------------------------------------------------------------
 
 // TODO: icc and clang++ also define __GNUC__: make this one specific for g++?
-#ifdef __GNUC__
+// 30. Aug 22 (Jonas Keller): clang++ on windows does not define __GNUC__
+//#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__clang__)
 #define SIMD_DEFS_DEFINED
 #define SIMD_INLINE inline __attribute__ ((always_inline))
 #define SIMD_ATTR_ALIGNED(ALIGN) __attribute__ ((aligned(ALIGN)))

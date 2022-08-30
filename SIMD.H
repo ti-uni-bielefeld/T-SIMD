@@ -40,6 +40,7 @@
 #pragma GCC diagnostic push
 #if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
 #include <x86intrin.h>
 #pragma GCC diagnostic pop

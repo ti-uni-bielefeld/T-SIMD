@@ -487,7 +487,7 @@ void benchmark() {
         puts("Error simd_aligned_malloc"); return;
     }
     struct timeval start, end;
-    srand48(time(NULL));
+    srand(time(NULL));
     for(i=0; i<SIMD_WIDTH; i++) {
         ((uint8_t *) buffer)[i] = rand()&0xff;
     }

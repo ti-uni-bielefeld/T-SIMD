@@ -357,8 +357,8 @@ for(i=0; i<SIMD_WIDTH/sizeof(TYPE); i++) { printf(FORMAT, arg[i]); } puts(""); }
 //Test load function: 1. Test if "maskz_load" does the same as "load" if all mask bits are ones. 2. Test if "maskz_load" does not access the memory and returns only zeros if all mask bits are zeros. 3. Test if maskz_load with a random mask returns the same result as load and mask_ifelse
 #define TEST_FUNCTION_LOAD_TYPE(TYPE, SIMD_WIDTH, FORMAT) { \
 unsigned int csr0, csr1, csr2; \
-TYPE * buffer; \
-if(0==posix_memalign((void**)&(buffer), SIMD_WIDTH, SIMD_WIDTH)) { \
+TYPE * buffer = (TYPE*) simd_aligned_malloc(SIMD_WIDTH, SIMD_WIDTH); \
+if(buffer != NULL) { \
 uint8_t i; \
 for(i=0; i<SIMD_WIDTH; i++) { \
     ((uint8_t *) buffer)[i] = rand()&0xff; \
@@ -396,14 +396,15 @@ if(!vectorsEqual(res1, res2) || csr1!=csr2) \
 { printf("Problem with %s for %s, csr1=%x, csr2=%x \n", "load", #TYPE, csr1, csr2); printf("res1="); print(FORMAT, res1); printf("\nres2="); print(FORMAT, res2); printf("\nres1="); print("%x ", reinterpret<SIMDInt>(res1)); printf("\nres2="); print("%x ", reinterpret<SIMDInt>(res2)); puts(""); } \
  else { if (PRINT_PASS) printf("Pass %s for %s \n", "load", #TYPE); }	\
 setcsr(csr0); \
-free(buffer); } else { puts("Error posix_memalign"); } \
+simd_aligned_free(buffer); } else { puts("Error simd_aligned_malloc"); } \
 }
 
 //Test store function: 1. Test if "mask_store" does the same as "store" if all mask bits are ones. 2. Test if mask_store does not write anything if all mask bits are zeros
 #define TEST_FUNCTION_STORE_TYPE(TYPE, SIMD_WIDTH) { \
 SIMDVec<TYPE, SIMD_WIDTH> a=getRandomVector<TYPE, SIMD_WIDTH>(); \
-TYPE * buffer1, * buffer2; \
-if(0==posix_memalign((void**)&(buffer1), SIMD_WIDTH, SIMD_WIDTH) && 0==posix_memalign((void**)&(buffer2), SIMD_WIDTH, SIMD_WIDTH)) { \
+TYPE * buffer1 = (TYPE*) simd_aligned_malloc(SIMD_WIDTH, SIMD_WIDTH); \
+TYPE * buffer2 = (TYPE*) simd_aligned_malloc(SIMD_WIDTH, SIMD_WIDTH); \
+if(buffer1 != NULL && buffer2 != NULL) { \
 SIMDMask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>(); \
 unsigned int csr0=getcsr(); \
 /*printf("Performing %s for %s\n", "store", #TYPE);*/ \
@@ -419,7 +420,7 @@ SIMDMask<TYPE, SIMD_WIDTH> kzero; \
 setcsr(csr0); \
 mask_store((TYPE *) 0, kzero, a); /* As long as there is no segfault here, this is a success. */ \
 setcsr(csr0); \
-free(buffer1); free(buffer2); } else { puts("Error posix_memalign"); } \
+simd_aligned_free(buffer1); simd_aligned_free(buffer2); } else { puts("Error simd_aligned_malloc"); } \
 }
 
 template <typename Tin, typename Tout, int SIMD_WIDTH>
@@ -481,9 +482,9 @@ void benchmark() {
     SIMDMask<T, SIMD_WIDTH> kones=mask_all_ones<T, SIMD_WIDTH>();
     SIMDMask<T, SIMD_WIDTH> krand;
     SIMDMask<T, SIMD_WIDTH> krand2;
-    T * buffer;
-    if(0!=posix_memalign((void**)&(buffer), SIMD_WIDTH, SIMD_WIDTH)) {
-        puts("Error posix_memalign"); return;
+    T * buffer = (T*) simd_aligned_malloc(SIMD_WIDTH, SIMD_WIDTH);
+    if(buffer == NULL) {
+        puts("Error simd_aligned_malloc"); return;
     }
     struct timeval start, end;
     srand48(time(NULL));

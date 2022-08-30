@@ -61,12 +61,13 @@ public:
   }
   Vector(ssize_t size, ssize_t alignment) : size(size)
   {
-    assert(!posix_memalign((void**) &data, alignment, size * sizeof(T)));
+    data = (T*) simd_aligned_malloc(alignment, size * sizeof(T));
+    assert(data != NULL);
     bzero(data, size * sizeof(T));
   }
   ~Vector()
   {
-    free(data);
+    simd_aligned_free(data);
   }
 };
 

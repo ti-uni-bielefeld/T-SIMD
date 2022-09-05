@@ -68,6 +68,7 @@ void simd_aligned_free(void *ptr) {
   _aligned_free(ptr);
 }
 #else
+#include <stdlib.h>
 void *simd_aligned_malloc(size_t alignment, size_t size) {
   void *ptr = NULL;
   if (posix_memalign(&ptr, alignment, size) != 0) {

@@ -5,6 +5,9 @@ COMPILE_AND_TEST/
 *.ilk
 *.pdb
 *.exe
+*.bc
+*.ii
+*.s
 nativetest
 simdmasktest
 simdRadixSortGeneric

@@ -17,3 +17,9 @@ tsimdtest
 simdvecautotest0
 simdvecautotest1
 simdvecautotestM
+BaselineDemo
+IdealScale
+Tilt
+TiltSearchDemo
+warpingSIMDSmallTest
+warpingSIMDTest

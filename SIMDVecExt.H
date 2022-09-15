@@ -359,7 +359,7 @@ namespace ns_simd {
 
   public:
     static SIMD_INLINE void
-    _store16(T *const p, const SIMDVec<T, SIMD_WIDTH> *outVecs)
+    _store16(T *const, const SIMDVec<T, SIMD_WIDTH> *)
     {
     }
   };
@@ -1515,7 +1515,7 @@ namespace ns_simd {
 
   public:
     static SIMD_INLINE void
-    _copy(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    _copy(SIMDVec<T, SIMD_WIDTH> *, SIMDVec<T, SIMD_WIDTH> *)
     {
     }
   };
@@ -1605,8 +1605,8 @@ namespace ns_simd {
 
   public:
     static SIMD_INLINE void
-    _transpose(const SIMDVec<T,SIMD_WIDTH> *const inRows,
-               SIMDVec<T,SIMD_WIDTH> *const outRows)
+    _transpose(const SIMDVec<T,SIMD_WIDTH> *const,
+               SIMDVec<T,SIMD_WIDTH> *const)
     {
     }
   };
@@ -1965,7 +1965,7 @@ namespace ns_simd {
   {
   public:
     static SIMD_INLINE void
-    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    _swizzle(SIMDVec<T, SIMD_WIDTH> */*v*/, SIMDVec<T, SIMD_WIDTH> */*v2*/)
     {
       // for (int i = 0; i < 2 * N; i++) {
       //   print("%4d", v2[i]);
@@ -2004,7 +2004,7 @@ namespace ns_simd {
   {
   public:
     static SIMD_INLINE void
-    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *, SIMDVec<T, SIMD_WIDTH> *)
     {
     }
   };
@@ -2103,7 +2103,7 @@ namespace ns_simd {
   {
   public:
     static SIMD_INLINE void
-    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    _swizzle(SIMDVec<T, SIMD_WIDTH> */*v*/, SIMDVec<T, SIMD_WIDTH> */*v2*/)
     {
       // for (int i = 0; i < 2 * N; i++) {
       //   print("%4d", v2[i]);
@@ -2144,7 +2144,7 @@ namespace ns_simd {
 
   public:
     static SIMD_INLINE void
-    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *, SIMDVec<T, SIMD_WIDTH> *)
     {
     }
   };
@@ -2177,7 +2177,7 @@ namespace ns_simd {
 
   public:
     static SIMD_INLINE void
-    _swizzle(SIMDVec<T, SIMD_WIDTH> *v)
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *)
     {
     }
   };
@@ -2271,8 +2271,8 @@ namespace ns_simd {
 
   public:
     static SIMD_INLINE void
-    _transpose(const SIMDVec<T, SIMD_WIDTH> * const inRows,
-               SIMDVec<T, SIMD_WIDTH> * const outRows)
+    _transpose(const SIMDVec<T, SIMD_WIDTH> * const /*inRows*/,
+               SIMDVec<T, SIMD_WIDTH> * const /*outRows*/)
     {
       // printf("%2d\n", PROCESS_ROWS);
       // for (int i = 0; i < PROCESS_ROWS; i++) {
@@ -2323,8 +2323,8 @@ namespace ns_simd {
 
   public:
     static SIMD_INLINE void
-    _transpose(SIMDVec<T, SIMD_WIDTH> * const inRows,
-               SIMDVec<T, SIMD_WIDTH> * const outRows)
+    _transpose(SIMDVec<T, SIMD_WIDTH> * const,
+               SIMDVec<T, SIMD_WIDTH> * const)
     {
     }
   };
@@ -2383,7 +2383,7 @@ namespace ns_simd {
 
   public:
     static SIMD_INLINE void
-    _store(T *const outArray, SIMDVec<T, SIMD_WIDTH> * outRows)
+    _store(T *const, SIMDVec<T, SIMD_WIDTH> *)
     {
     }
   };
@@ -2422,7 +2422,7 @@ namespace ns_simd {
 
   public:
     static SIMD_INLINE void
-    _store(T *const  outArray, SIMDVec<T, SIMD_WIDTH> * outRows)
+    _store(T *const, SIMDVec<T, SIMD_WIDTH> *)
     {
     }
   };
@@ -2522,7 +2522,7 @@ namespace ns_simd {
 
   public:
     static SIMD_INLINE void
-    _transpose(const T *const inArray, T *const outArray)
+    _transpose(const T *const, T *const)
     {
     }
   };

@@ -1395,14 +1395,14 @@ namespace ns_simd {
   // transpose2
   // ===========================================================================
 
-  // called transpose2 as it is based on swizzle2, but expects same
+  // is called transpose2 as it is based on swizzle2, but expects same
   // number of vectors as transpose (not twice the number)
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   transpose2(const SIMDVec<T,SIMD_WIDTH> *const inRows,
 	     SIMDVec<T,SIMD_WIDTH> *const outRows)
   {
-    const int n = SIMDVec<T,SIMD_WIDTH>::elements, N = n / 2;
+    SIMD_CONSTEXPR int n = SIMDVec<T,SIMD_WIDTH>::elements, N = n / 2;
     for (int i = 0; i < n; i++)
       outRows[i] = inRows[i];
     swizzle2<N,N>(outRows);
@@ -1849,7 +1849,8 @@ namespace ns_simd {
   // note: contrary to IEEE 754, this function considers -0.0f to be negative
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
-  sign(SIMDVec<SIMDFloat, SIMD_WIDTH> a, SIMDVec<SIMDFloat, SIMD_WIDTH> b)
+  sign(const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
+       const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
   {
     // -0.0F aka. 0x80000000 aka. 1000...b
     return xor(a, and(set1<SIMDFloat, SIMD_WIDTH>(-0.0F), b));
@@ -1912,6 +1913,220 @@ namespace ns_simd {
     return abs(sub(v1, v2));
   }
 
+  // ===========================================================================
+  // bitonic sort
+  // ===========================================================================
+
+  // code contributed by Lukas Schiermeier and Moritz Breipohl, modified
+
+  const int ASCENDING = 0;
+  const int DESCENDING = 1;
+
+  // compare-and-swap
+#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
+  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+#else
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+#endif
+  class Cas;
+
+  // specialization for DESCENDING
+  template <typename T, int SIMD_WIDTH>
+  class Cas<DESCENDING, T, SIMD_WIDTH>
+  {
+  public:
+    static void
+    compareAndSwap(SIMDVec<T, SIMD_WIDTH> &a, SIMDVec<T, SIMD_WIDTH> &b)
+    {
+      SIMDVec<T, SIMD_WIDTH> temp = min(a, b);
+      a = max(a, b);
+      b = temp;
+    }
+  };
+
+  // specialization for ASCENDING
+  template <typename T, int SIMD_WIDTH>
+  class Cas<ASCENDING, T, SIMD_WIDTH>
+  {
+  public:
+    static void
+    compareAndSwap(SIMDVec<T, SIMD_WIDTH> &a, SIMDVec<T, SIMD_WIDTH> &b)
+    {
+      SIMDVec<T, SIMD_WIDTH> temp = max(a, b);
+      a = min(a, b);
+      b = temp;
+    }
+  };
+
+  // in-place sorting of multiple arbitrary vectors;
+  // transVecs have to be transposed vectors (same number of elements
+  // as in SIMDVec), are still transposed afterwards
+#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
+  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+#else
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+#endif
+  static SIMD_INLINE void
+  bitonicSortTransposed(SIMDVec<T, SIMD_WIDTH> *const transVecs)
+  {
+    SIMD_CONSTEXPR uint numVecs = SIMDVec<T, SIMD_WIDTH>::elements;
+    /* Dependent Loops */
+    for (uint blkSize = 2; blkSize <= numVecs; blkSize *= 2) {
+      /*
+       * Bitonic Core
+       * Independent Loops
+       */
+      for (uint blkStart = 0; blkStart < numVecs; blkStart += blkSize) {
+	uint halfBlk = blkSize / 2;
+	uint leftCounter = blkStart;
+	uint rightCounter = blkStart + (blkSize - 1);
+	/* Independent Loops */
+	for (uint i = 0; i < halfBlk; i++) {
+	  Cas<SLOPE,T,SIMD_WIDTH>::compareAndSwap
+	    (transVecs[leftCounter], transVecs[rightCounter]);
+	  leftCounter++;
+	  rightCounter--;
+	}
+	/*
+	 * This loop is skipped for blkSize < 4
+	 * Builds the second half of the bitonic core.
+	 *
+	 * Dependent Loops
+	 */
+	for (uint step = blkSize / 4; step > 0; step /= 2) {
+	  /* Independent Loops */
+	  for (uint jump = 0; jump < blkSize; jump += step * 2) {
+	    leftCounter = blkStart + jump;
+	    rightCounter = blkStart + jump + step;	    
+	    /* Independent Loops */
+	    for (uint k = 0; k < step; k++) {
+	      Cas<SLOPE,T,SIMD_WIDTH>::compareAndSwap
+		(transVecs[leftCounter], transVecs[rightCounter]);
+	      leftCounter++;
+	      rightCounter++;
+	    }
+	  }
+	}
+      }
+    }
+  }
+
+  // post-fusion stage of bitonic sort, used to sort pairs of sorted vectors
+  // which were fused (one reversed) and then sorted such that the pair
+  // is sorted over the two vectors
+  // in-place sorting; transVecs have to be transposed vectors (same
+  // number of elements as in SIMDVec), are still transposed
+  // afterwards
+#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
+  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+#else
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+#endif
+  static SIMD_INLINE void
+  bitonicSortReducedTransposed(SIMDVec<T, SIMD_WIDTH> *const transVecs)
+  {
+    SIMD_CONSTEXPR uint numVecs = SIMDVec<T, SIMD_WIDTH>::elements;
+    for (uint step = numVecs / 2; step > 0; step /= 2) {
+      /* Independent Loops */
+      for (uint jump = 0; jump < numVecs; jump += step * 2) {
+	uint leftCounter = jump;
+	uint rightCounter = jump + step;	
+	/* Independent Loops */
+	for (uint k = 0; k < step; k++) {
+	  Cas<SLOPE,T,SIMD_WIDTH>::compareAndSwap
+	    (transVecs[leftCounter], transVecs[rightCounter]);
+	  leftCounter++;
+	  rightCounter++;
+	}
+      }
+    }
+  }
+
+  // with transpose
+#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
+  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+#else
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+#endif
+  static SIMD_INLINE void
+  bitonicSort(SIMDVec<T, SIMD_WIDTH> *const vecs)
+  {
+    SIMDVec<T, SIMD_WIDTH> transVecs[SIMDVec<T, SIMD_WIDTH>::elements];
+    transpose(vecs, transVecs);
+    bitonicSortTransposed<SLOPE>(transVecs);
+    transpose(transVecs, vecs);
+  }
+
+  // with transpose2
+#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
+  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+#else
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+#endif
+  static SIMD_INLINE void
+  bitonicSort2(SIMDVec<T, SIMD_WIDTH> *const vecs)
+  {
+    SIMDVec<T, SIMD_WIDTH> transVecs[SIMDVec<T, SIMD_WIDTH>::elements];
+    transpose2(vecs, transVecs);
+    bitonicSortTransposed<SLOPE>(transVecs);
+    transpose2(transVecs, vecs);
+  }
+
+  // second vector is reversed and fused with first vector
+  // we don't have to reverse b after the compare-swap since it is
+  // bitonic
+#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
+  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+#else
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+#endif
+  static SIMD_INLINE void
+  bitonicFusion(SIMDVec<T, SIMD_WIDTH> &a, SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    b = reverse(b);
+    Cas<SLOPE,T,SIMD_WIDTH>::compareAndSwap(a, b);
+  }
+  
+  // given sorted vectors as inputs, it fuses each consecutive pair
+  // such it is completely sorted over the pair
+  // with transpose
+#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
+  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+#else
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+#endif
+  static SIMD_INLINE void
+  bitonicSortSortedPairs(SIMDVec<T, SIMD_WIDTH> *const vecs)
+  {
+    SIMDVec<T, SIMD_WIDTH> transVecs[SIMDVec<T, SIMD_WIDTH>::elements];
+    // second vector of each pair is reversed and fused with first vector
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elements; i += 2)
+      bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
+    transpose(vecs, transVecs);
+    bitonicSortReducedTransposed<SLOPE>(transVecs);
+    transpose(transVecs, vecs);
+  }
+
+  // given sorted vectors as inputs, it fuses each consecutive pair
+  // such it is completely sorted over the pair
+  // with transpose2
+#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
+  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+#else
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+#endif
+  static SIMD_INLINE void
+  bitonicSortSortedPairs2(SIMDVec<T, SIMD_WIDTH> *const vecs)
+  {
+    SIMDVec<T, SIMD_WIDTH> transVecs[SIMDVec<T, SIMD_WIDTH>::elements];
+    // second vector of each pair is reversed and fused with first vector
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elements; i += 2)
+      bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
+    transpose2(vecs, transVecs);
+    bitonicSortReducedTransposed<SLOPE>(transVecs);
+    transpose2(transVecs, vecs);
+  }
+  
   // ===========================================================================
   // operators
   // ===========================================================================

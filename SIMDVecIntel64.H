@@ -30,11 +30,14 @@
 //  
 // ===========================================================================
 
+// TODO:
+// [ ] more efficient hadd/hsub implementation
+
 #ifndef _SIMD_VEC_INTEL_64_H_
 #define _SIMD_VEC_INTEL_64_H_
 
 // TODO: remove
-#define WHICH_SIMDVECINTEL64 "new"
+// #define WHICH_SIMDVECINTEL64 "new"
 
 #ifdef __AVX512F__
 // this can be used to check whether 64-byte support is available
@@ -45,8 +48,23 @@
 #endif
 
 // determine NATIVE_SIMD_WIDTH
+// we are the first to define NATIVE_SIMD_WIDTH, nobody else will do it later
 #ifndef NATIVE_SIMD_WIDTH
-#define NATIVE_SIMD_WIDTH 64
+// the user specified a maximal width
+# ifdef MAX_SIMD_WIDTH
+// the maximal width is smaller than what would be possible, so we
+// take the reduced width (but it is ignored if not 32 or 16)
+#  if (MAX_SIMD_WIDTH == 32) || (MAX_SIMD_WIDTH == 16)
+#   define NATIVE_SIMD_WIDTH MAX_SIMD_WIDTH
+// the maximal width is not smaller than what would be possible, so we
+// take what is possible
+#  else
+#   define NATIVE_SIMD_WIDTH 64
+#  endif
+// the user didn't specify a maximal width, we take what is possible
+# else
+#  define NATIVE_SIMD_WIDTH 64
+# endif
 #endif
 
 #include "SIMDVec.H"
@@ -128,6 +146,8 @@ namespace ns_simd {
     typedef T Type;
     __m512i zmm;
     enum { elements = 64 / sizeof(T), bytes = 64 };
+    // shorter version:
+    enum { elems = elements };
     SIMDVec() {}
     SIMDVec(const __m512i &x) { zmm = x; }
     SIMDVec& operator=(const __m512i &x) { zmm = x; return *this; }
@@ -152,6 +172,8 @@ namespace ns_simd {
     typedef SIMDFloat Type;
     __m512 zmm;
     enum { elements = 64 / sizeof(SIMDFloat), bytes = 64 };
+    // shorter version:
+    enum { elems = elements };
     SIMDVec() {}
     SIMDVec(const __m512 &x) { zmm = x; }
     SIMDVec& operator=(const __m512 &x) { zmm = x; return *this; }

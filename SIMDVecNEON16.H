@@ -150,6 +150,8 @@ namespace ns_simd {
     typedef T Type;
     typename SIMDVecNeon<T>::Type reg;
     enum { elements = 16 / sizeof(T), bytes = 16 };
+    // shorter version:
+    enum { elems = elements };
     SIMDVec() {}
     SIMDVec(const typename SIMDVecNeon<T>::Type &x) { reg = x; }
     SIMDVec& operator=(const typename SIMDVecNeon<T>::Type &x) 

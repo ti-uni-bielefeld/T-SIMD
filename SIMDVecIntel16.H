@@ -34,6 +34,8 @@
 #define _SIMD_VEC_16_AVAIL_
 
 // determine NATIVE_SIMD_WIDTH
+// a maximal width MAX_SIMD_WIDTH could be specified, but it can't be
+// smaller than 16, so we don't have to
 #ifndef NATIVE_SIMD_WIDTH
 #define NATIVE_SIMD_WIDTH 16
 #endif
@@ -79,6 +81,8 @@ namespace ns_simd {
     typedef T Type;
     __m128i xmm;
     enum { elements = 16 / sizeof(T), bytes = 16 };
+    // shorter version:
+    enum { elems = elements };
     SIMDVec() {}
     SIMDVec(const __m128i &x) { xmm = x; }
     SIMDVec& operator=(const __m128i &x) { xmm = x; return *this; }
@@ -96,6 +100,8 @@ namespace ns_simd {
     typedef SIMDFloat Type;
     __m128 xmm;
     enum { elements = 16 / sizeof(SIMDFloat), bytes = 16 };
+    // shorter version:
+    enum { elems = elements };
     SIMDVec() {}
     SIMDVec(const __m128 &x) { xmm = x; }
     SIMDVec& operator=(const __m128 &x) { xmm = x; return *this; }

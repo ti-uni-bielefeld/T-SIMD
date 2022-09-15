@@ -34,6 +34,7 @@
 #include <cmath>
 // min, max
 #include <algorithm>
+#include <functional>
 #include <assert.h>
 #include "SIMDVecAll.H"
 #include <limits>
@@ -243,6 +244,8 @@ namespace ns_simd {
   public:
     
     enum { elements = NUM_SIMDVEC_ELEMENTS(T,SIMD_WIDTH), bytes = SIMD_WIDTH};
+    // shorter version:
+    enum { elems = elements };
     
     T vec[elements] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
     
@@ -339,6 +342,14 @@ namespace ns_simd {
           }
         }
       }
+    }
+    void randomizeSorted(int s)
+    {
+      randomize();
+      if (s == ASCENDING)
+	std::sort(vec, vec + elements, std::less<T>());
+      else
+	std::sort(vec, vec + elements, std::greater<T>());
     }
     void randomizeNonNegative()
     {
@@ -2263,6 +2274,60 @@ namespace ns_simd {
     // same as transpose
     transpose(inRows, outRows);
   }  
+
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  bitonicSort(SIMDSerialVec<T,SIMD_WIDTH> *const vecs)
+  {
+    const int n = SIMDSerialVec<T,SIMD_WIDTH>::elements;
+    for (int i = 0; i < n; i++)
+      if (SLOPE == ASCENDING)
+	std::sort(vecs[i].vec, vecs[i].vec + n, std::less<T>());
+      else
+	std::sort(vecs[i].vec, vecs[i].vec + n, std::greater<T>());
+  }
+  
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  bitonicSort2(SIMDSerialVec<T,SIMD_WIDTH> *const vecs)
+  {
+    // same as bitonicSort
+    bitonicSort<SLOPE>(vecs);
+  }
+
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  bitonicSortSortedPairs(SIMDSerialVec<T,SIMD_WIDTH> *const vecs)
+  {
+    const int n = SIMDSerialVec<T,SIMD_WIDTH>::elements;
+    T twovecs[2 * n];
+    
+    for (int i = 0; i < n; i += 2) {
+      // join two consecutive vectors
+      for (int j = 0; j < n; j++) {
+	twovecs[j] = vecs[i][j];
+	twovecs[j + n] = vecs[i + 1][j];
+      }
+      // sort two vectors together
+      if (SLOPE == ASCENDING)
+	std::sort(twovecs, twovecs + 2 * n, std::less<T>());
+      else
+	std::sort(twovecs, twovecs + 2 * n, std::greater<T>());
+      // split two consecutive vectors
+       for (int j = 0; j < n; j++) {
+	 vecs[i][j] = twovecs[j];
+	 vecs[i + 1][j] = twovecs[j + n];
+      }
+    }
+  }
+  
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  bitonicSortSortedPairs2(SIMDSerialVec<T,SIMD_WIDTH> *const vecs)
+  {
+    // same as bitonicSortSortedPairs
+    bitonicSortSortedPairs<SLOPE>(vecs);
+  }
   
   // synonymous to avg
   template <typename T, int SIMD_WIDTH>

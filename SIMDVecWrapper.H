@@ -28,6 +28,8 @@
 
 #include <string>
 #include <stdio.h>
+#include <algorithm>
+#include <functional>
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
 #include "SIMDSerialVec.H"
@@ -1596,6 +1598,98 @@ namespace ns_simd {
 	  VEC<T,SIMD_WIDTH> *const outRows)
     {
       transpose2(inRows, outRows);
+    }
+  };
+
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+  struct BitonicSort
+  {
+    static SIMD_INLINE std::string name() 
+    { return ti2s<SLOPE,T,SIMD_WIDTH>("bitonicSort"); }
+
+    static SIMD_CONSTEXPR int minI = 0;
+    static SIMD_CONSTEXPR int maxI = 2;
+    static SIMD_CONSTEXPR int nextI = SLOPE + 1;
+    static SIMD_CONSTEXPR int numVecs = SIMDSerialVec<T,SIMD_WIDTH>::elements;
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(VEC<T,SIMD_WIDTH> *const vecs)
+    {
+      bitonicSort<SLOPE>(vecs);
+    }
+  };
+
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+  struct BitonicSort2
+  {
+    static SIMD_INLINE std::string name() 
+    { return ti2s<SLOPE,T,SIMD_WIDTH>("bitonicSort2"); }
+    
+    static SIMD_CONSTEXPR int minI = 0;
+    static SIMD_CONSTEXPR int maxI = 2;
+    static SIMD_CONSTEXPR int nextI = SLOPE + 1;
+    static SIMD_CONSTEXPR int numVecs = SIMDSerialVec<T,SIMD_WIDTH>::elements;
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(VEC<T,SIMD_WIDTH> *const vecs)
+    {
+      bitonicSort2<SLOPE>(vecs);
+    }
+  };
+  
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+  struct BitonicSortSortedPairs
+  {
+    static SIMD_INLINE std::string name() 
+    { return ti2s<SLOPE,T,SIMD_WIDTH>("bitonicSortSortedPairs"); }
+    
+    static SIMD_CONSTEXPR int minI = 0;
+    static SIMD_CONSTEXPR int maxI = 2;
+    static SIMD_CONSTEXPR int nextI = SLOPE + 1;
+    static SIMD_CONSTEXPR int numVecs = SIMDSerialVec<T,SIMD_WIDTH>::elements;
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomizeSorted(SLOPE); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(VEC<T,SIMD_WIDTH> *const vecs)
+    {
+      bitonicSortSortedPairs<SLOPE>(vecs);
+    }
+  };
+
+  template <int SLOPE, typename T, int SIMD_WIDTH>
+  struct BitonicSortSortedPairs2
+  {
+    static SIMD_INLINE std::string name() 
+    { return ti2s<SLOPE,T,SIMD_WIDTH>("bitonicSortSortedPairs2"); }
+    
+    static SIMD_CONSTEXPR int minI = 0;
+    static SIMD_CONSTEXPR int maxI = 2;
+    static SIMD_CONSTEXPR int nextI = SLOPE + 1;
+    static SIMD_CONSTEXPR int numVecs = SIMDSerialVec<T,SIMD_WIDTH>::elements;
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomizeSorted(SLOPE) ;}
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(VEC<T,SIMD_WIDTH> *const vecs)
+    {
+      bitonicSortSortedPairs2<SLOPE>(vecs);
     }
   };
 

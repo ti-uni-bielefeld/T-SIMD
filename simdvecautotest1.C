@@ -23,6 +23,8 @@
 // 
 // ===========================================================================
 
+// TODO: auto-test for SIMDVecs functions
+
 // https://stackoverflow.com/questions/15651488/
 // how-to-pass-a-template-function-in-a-template-argument-list 
 //
@@ -164,6 +166,10 @@ main(int argc, char *argv[])
   TestAll<ArrayArrayVoid,SW,Transpose2_>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Swizzle2>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Unswizzle2>::test(repeats1, pattern);
+  TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSort>::test(repeats1, pattern);
+  TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSort2>::test(repeats1, pattern);
+  TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSortSortedPairs>::test(repeats1, pattern);
+  TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSortSortedPairs2>::test(repeats1, pattern);
   TestAll<Binary,SW,Avgru>::test(repeats1, pattern);
   // NOTE: Avgrd: srai not yet implemented for SIMDSignedByte
   Binary<SIMDByte,SW,Avgrd>::test(repeats1, pattern);

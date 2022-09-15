@@ -30,6 +30,8 @@
 #ifndef _SIMD_VEC_SANDBOX_H_
 #define _SIMD_VEC_SANDBOX_H_
 
+// TODO: should this only contain level 0 functions?
+
 // determine NATIVE_SIMD_WIDTH: in this case we take a default value
 #define NATIVE_SIMD_WIDTH 16
 
@@ -49,6 +51,8 @@ namespace ns_simd {
   public:
     typedef T Type;
     enum { elements = SIMD_WIDTH / sizeof(T), bytes = SIMD_WIDTH };
+    // shorter version:
+    enum { elems = elements };
     SIMDVec() {}
   };
 
@@ -672,6 +676,28 @@ namespace ns_simd {
   {
     printf("test_all_ones<%s,%d>(V)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return 0;
+  }
+
+  // TODO: not level 0, should this be in the sandbox?
+  // negate a, where b is negative, SIMDFloat only
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  sign(const SIMDVec<T, SIMD_WIDTH> &,
+       const SIMDVec<T, SIMD_WIDTH> &)
+  {
+    printf("sign<%s,%d>(V,V)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDVec<T,SIMD_WIDTH>();
+  }
+
+  // TODO: not level 0, should this be in the sandbox?
+  // Computes elementwise absolute difference of vectors
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  absDiff(const SIMDVec<T, SIMD_WIDTH> &,
+	  const SIMDVec<T, SIMD_WIDTH> &)
+  {
+    printf("absDiff<%s,%d>(V,V)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDVec<T,SIMD_WIDTH>();
   }
 
   // reverse order

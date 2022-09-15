@@ -126,4 +126,13 @@
 #define SIMD_ELEMENTS_FLOOR(NSIMD,NDATA) ((NDATA) & ~((NSIMD)-1))
 #define SIMD_ELEMENTS_CEIL(NSIMD,NDATA) (((NDATA)+((NSIMD)-1)) & ~((NSIMD)-1))
 
+// macros to compute how many SIMD vectors with NSIMD elements each
+// are required to hold NDATA elements
+// FLOOR: number of completely filled SIMD vectors (excess elements may exist)
+// CEIL: number of SIMD vectors required to hold all elements (some unused)
+#define SIMD_VECTORS_FLOOR(NSIMD, NDATA) \
+  (unsigned(NDATA) / unsigned(NSIMD))
+#define SIMD_VECTORS_CEIL(NSIMD, NDATA) \
+  ((unsigned(NDATA)+(unsigned(NSIMD)-1u)) / unsigned(NSIMD))
+
 #endif

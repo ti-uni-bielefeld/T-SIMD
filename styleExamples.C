@@ -27,6 +27,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <time.h>
+
+// #define MAX_SIMD_WIDTH 16
+
 #include "tsimd.H"
 
 // note: we use ssize_t instead of size_t to simplify arithmetics;

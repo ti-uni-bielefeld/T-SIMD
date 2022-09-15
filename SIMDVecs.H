@@ -56,6 +56,9 @@ namespace ns_simd {
       elements = NUM * SIMDVec<T,SIMD_WIDTH>::elements,
       bytes    = NUM * SIMDVec<T,SIMD_WIDTH>::bytes
     };
+    // shorter version:
+    enum { vecs = vectors, elems = elements };
+    
     SIMDVec<T,SIMD_WIDTH> vec[NUM];
   };
   

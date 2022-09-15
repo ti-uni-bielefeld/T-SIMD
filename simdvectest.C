@@ -1218,7 +1218,7 @@ main()
   SIMDVecs<NTRANSPOSE,TRANSPOSETYPE,SW> inRows, outRows;
   setzero(inRows);
   SIMDVecs<NUMTRANSPOSEROWS,TRANSPOSETYPE,SW> outRowsPart;
-  transpose(inRows, outRows);
+  transpose1(inRows, outRows);
   transposePartial(inRows, outRowsPart);
 #define HORTYPE SIMDShort
 #define NHOR (SW/sizeof(HORTYPE))

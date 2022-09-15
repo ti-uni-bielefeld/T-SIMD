@@ -114,7 +114,7 @@ main(int argc, char *argv[])
   TestAll<Binary,SW,Max>::test(repeats1, pattern);
   TestSignedInt<Unary,SW,Abs>::test(repeats1, pattern);
   TestAllTII<BinaryTemplateIntIntMinToMax,SW,Unpack_>::test(repeats1, pattern);
-  TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Zip>::test(repeats1, pattern);
+  TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Zip_>::test(repeats1, pattern);
   TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Unzip>::test(repeats1, pattern);
   BinaryTemplateType<SIMDSignedByte,SIMDShort,SW,Packs>::test(repeats1, pattern);
   BinaryTemplateType<SIMDShort,SIMDInt,SW,Packs>::test(repeats1, pattern);

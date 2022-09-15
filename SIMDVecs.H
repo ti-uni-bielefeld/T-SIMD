@@ -164,6 +164,20 @@ namespace ns_simd {
     storeu(p, outVecs.vec, outVecs.vectors);
   }
 
+  template <int NUM, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  store16(T *const p, const SIMDVecs<NUM,T, SIMD_WIDTH> &outVecs)
+  {
+    store16(p, outVecs.vec);
+  }
+
+  template <int NUM, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  storeu16(T *const p, const SIMDVecs<NUM,T, SIMD_WIDTH> &outVecs)
+  {
+    storeu16(p, outVecs.vec);
+  }
+
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
   packs(const SIMDVecs<NumSIMDVecs<Tout,Tin>::in, Tin, SIMD_WIDTH> &a)
@@ -201,7 +215,7 @@ namespace ns_simd {
   // inRows passed by-value to allow in-place transpose
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
-  transpose(const SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> inRows,
+  transpose1(const SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> inRows,
 	    SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> &outRows)
   {
     transpose(inRows.vec, outRows.vec);
@@ -221,6 +235,33 @@ namespace ns_simd {
     transpose<NUM_TRANSPOSE_ROWS>(inRows.vec, outRows.vec);
   }
 
+  // inRows passed by-value to allow in-place transpose
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose0(const SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> inRows,
+             SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> &outRows)
+  {
+    transpose0(inRows.vec, outRows.vec);
+  }
+
+  // inRows passed by-value to allow in-place transpose
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose1_16(const SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> inRows,
+                 SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> &outRows)
+  {
+    transpose1_16(inRows.vec, outRows.vec);
+  }
+
+  // inRows passed by-value to allow in-place transpose
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose16(const SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> inRows,
+              SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> &outRows)
+  {
+    transpose16(inRows.vec, outRows.vec);
+  }
+
   template <int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   swizzle2(SIMDVecs<2*N, T, SIMD_WIDTH> &v)
@@ -237,6 +278,33 @@ namespace ns_simd {
     transpose2(inRows.vec, outRows.vec);
   }
  
+  // inRows passed by-value to allow in-place transpose
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose3(const SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> inRows,
+             SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> &outRows)
+  {
+    transpose3(inRows.vec, outRows.vec);
+  }
+
+  // inRows passed by-value to allow in-place transpose
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose4(const SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> inRows,
+             SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> &outRows)
+  {
+    transpose4(inRows.vec, outRows.vec);
+  }
+
+  // inRows passed by-value to allow in-place transpose
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose5(const SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> inRows,
+             SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> &outRows)
+  {
+    transpose5(inRows.vec, outRows.vec);
+  }
+
   template <int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   unswizzle2(SIMDVecs<2*N, T, SIMD_WIDTH> &v)

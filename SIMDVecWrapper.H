@@ -500,8 +500,9 @@ namespace ns_simd {
     }
   };
 
+  // SIMDVecExt.H has a template class Zip, so we add an underscore
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
-  struct Zip
+  struct Zip_
   {
     static SIMD_INLINE std::string name()
     { return ti2s<NUM_ELEMS,T,SIMD_WIDTH>("zip"); }
@@ -1690,6 +1691,139 @@ namespace ns_simd {
     apply(VEC<T,SIMD_WIDTH> *const vecs)
     {
       bitonicSortSortedPairs2<SLOPE>(vecs);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  struct Transpose0_
+  {
+    static SIMD_INLINE std::string name()
+    { return t2s<T,SIMD_WIDTH>("transpose0"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(const VEC<T,SIMD_WIDTH> *const inRows,
+          VEC<T,SIMD_WIDTH> *const outRows)
+    {
+      transpose0(inRows, outRows);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  struct Transpose16_
+  {
+    static SIMD_INLINE std::string name()
+    { return t2s<T,SIMD_WIDTH>("transpose16"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(const VEC<T,SIMD_WIDTH> *const inRows,
+          VEC<T,SIMD_WIDTH> *const outRows)
+    {
+      transpose16(inRows, outRows);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  struct Transpose3_
+  {
+    static SIMD_INLINE std::string name()
+    { return t2s<T,SIMD_WIDTH>("transpose3"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(const VEC<T,SIMD_WIDTH> *const inRows,
+          VEC<T,SIMD_WIDTH> *const outRows)
+    {
+      transpose3(inRows, outRows);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  struct Transpose4_
+  {
+    static SIMD_INLINE std::string name()
+    { return t2s<T,SIMD_WIDTH>("transpose4"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(const VEC<T,SIMD_WIDTH> *const inRows,
+          VEC<T,SIMD_WIDTH> *const outRows)
+    {
+      transpose4(inRows, outRows);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  struct Transpose5_
+  {
+    static SIMD_INLINE std::string name()
+    { return t2s<T,SIMD_WIDTH>("transpose5"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(const VEC<T,SIMD_WIDTH> *const inRows,
+          VEC<T,SIMD_WIDTH> *const outRows)
+    {
+      transpose5(inRows, outRows);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  struct Transpose1_16_
+  {
+    static SIMD_INLINE std::string name()
+    { return t2s<T,SIMD_WIDTH>("transpose1_16"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(const VEC<T,SIMD_WIDTH> *const inRows,
+          VEC<T,SIMD_WIDTH> *const outRows)
+    {
+      transpose1_16_t(inRows, outRows);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  struct Transpose6_
+  {
+    static SIMD_INLINE std::string name()
+    { return t2s<T,SIMD_WIDTH>("transpose6"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(const VEC<T,SIMD_WIDTH> *const inRows,
+          VEC<T,SIMD_WIDTH> *const outRows)
+    {
+      transpose6_t(inRows, outRows);
     }
   };
 

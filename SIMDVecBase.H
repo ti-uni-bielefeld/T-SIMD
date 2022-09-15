@@ -70,7 +70,8 @@
 // 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
 #include "SIMDMaskNEON16.H"
 #include "SIMDMaskEmu.H"
-#endif
+
+#endif // SIMDVEC_INTEL_ENABLE
 
 #endif // else SIMDVEC_SANDBOX
 

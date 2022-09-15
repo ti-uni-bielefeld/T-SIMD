@@ -164,6 +164,13 @@ main(int argc, char *argv[])
   // TODO: partial transpose
   TestAll<ArrayArrayVoid,SW,Transpose_>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid,SW,Transpose2_>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid,SW,Transpose0_>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid,SW,Transpose16_>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid,SW,Transpose3_>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid,SW,Transpose4_>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid,SW,Transpose5_>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid,SW,Transpose1_16_>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid,SW,Transpose6_>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Swizzle2>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Unswizzle2>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSort>::test(repeats1, pattern);

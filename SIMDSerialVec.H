@@ -2275,6 +2275,69 @@ namespace ns_simd {
     transpose(inRows, outRows);
   }  
 
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose0(const SIMDSerialVec<T,SIMD_WIDTH> *const inRows,
+             SIMDSerialVec<T,SIMD_WIDTH> *const outRows)
+  {
+    // same as transpose
+    transpose(inRows, outRows);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose16(const SIMDSerialVec<T,SIMD_WIDTH> *const inRows,
+              SIMDSerialVec<T,SIMD_WIDTH> *const outRows)
+  {
+    // same as transpose
+    transpose(inRows, outRows);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose3(const SIMDSerialVec<T,SIMD_WIDTH> *const inRows,
+              SIMDSerialVec<T,SIMD_WIDTH> *const outRows)
+  {
+    // same as transpose
+    transpose(inRows, outRows);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose4(const SIMDSerialVec<T,SIMD_WIDTH> *const inRows,
+              SIMDSerialVec<T,SIMD_WIDTH> *const outRows)
+  {
+    // same as transpose
+    transpose(inRows, outRows);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose5(const SIMDSerialVec<T,SIMD_WIDTH> *const inRows,
+              SIMDSerialVec<T,SIMD_WIDTH> *const outRows)
+  {
+    // same as transpose
+    transpose(inRows, outRows);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose1_16_t(const SIMDSerialVec<T,SIMD_WIDTH> *const inRows,
+                  SIMDSerialVec<T,SIMD_WIDTH> *const outRows)
+  {
+    // same as transpose
+    transpose(inRows, outRows);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose6_t(const SIMDSerialVec<T,SIMD_WIDTH> *const inRows,
+               SIMDSerialVec<T,SIMD_WIDTH> *const outRows)
+  {
+    // same as transpose
+    transpose(inRows, outRows);
+  }
+
   template <int SLOPE, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   bitonicSort(SIMDSerialVec<T,SIMD_WIDTH> *const vecs)

@@ -1168,7 +1168,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDFloat
   extract(const SIMDVec<SIMDFloat,16> &a)
   {
-    SIMD_RETURN_REINTERPRET_INT(SIMDFloat,x_mm_extract_ps<IMM>(a),0);
+    SIMD_RETURN_REINTERPRET_INT(SIMDFloat,x_mm_extract_ps<IMM>(a),0)
   }
 
   // ---------------------------------------------------------------------------
@@ -1850,6 +1850,18 @@ namespace ns_simd {
     return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
   }
 
+  // 16-byte-lane oriented unpack: for 16 bytes same as generalized unpack
+  // unpack blocks of NUM_ELEMS elements of type T
+  // PART=0: low half of input vectors,
+  // PART=1: high half of input vectors
+  template <int PART, int NUM_ELEMS, typename T>
+  static SIMD_INLINE SIMDVec<T, 16>
+  unpack16(const SIMDVec<T, 16> &a,
+	 const SIMDVec<T, 16> &b)
+  {
+    return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
+  }
+
   // ---------------------------------------------------------------------------
   // zip (two unpacks similar to ARM NEON vzip, but for different NUM_ELEMS)
   // ---------------------------------------------------------------------------
@@ -1866,6 +1878,22 @@ namespace ns_simd {
   {
     l = unpack<0, NUM_ELEMS>(a, b);
     h = unpack<1, NUM_ELEMS>(a, b);
+  }
+
+  // ---------------------------------------------------------------------------
+  // zip16 hub  (16-byte-lane oriented zip): for 16 bytes same as zip
+  // ---------------------------------------------------------------------------
+
+  // a, b are passed by-value to avoid problems with identical input/output args.
+
+  template <int NUM_ELEMS, typename T>
+  static SIMD_INLINE void
+  zip16(const SIMDVec<T, 16> a,
+        const SIMDVec<T, 16> b,
+        SIMDVec<T, 16> &l,
+        SIMDVec<T, 16> &h)
+  {
+    zip<NUM_ELEMS, T>(a, b, l, h);
   }
 
   // ---------------------------------------------------------------------------

@@ -105,6 +105,25 @@ namespace ns_simd {
     return NUM_SIMDVECS_ELEMENTS(Tout,Tin,SIMD_WIDTH);
   }
   
+  // https://stackoverflow.com/questions/23781506/compile-time-computing-of-number-of-bits-needed-to-encode-n-different-states
+  constexpr unsigned floorlog2(unsigned x)
+  {
+    return x == 1 ? 0 : 1+floorlog2(x >> 1);
+  }
+
+
+  // determine NATIVE_SIMD_REG_COUNT
+  // https://stackoverflow.com/questions/62419256/how-can-i-determine-how-many-avx-registers-my-processor-has
+#ifdef __x86_64__
+#ifdef __AVX512VL__
+#define NATIVE_SIMD_REG_COUNT 32
+#else
+#define NATIVE_SIMD_REG_COUNT 16
+#endif
+#else
+#define NATIVE_SIMD_REG_COUNT 8
+#endif
+
   // ===========================================================================
   // print functions (for tests)
   // ===========================================================================
@@ -245,6 +264,126 @@ namespace ns_simd {
       = NUM_SIMDVEC_ELEMENTS(T,SIMD_WIDTH); 
     for (int vo = 0, off = 0; vo < numOutVecs; vo++, off += vecElemsOut)
       storeu(p + off, outVec);
+  }
+
+  // -------------------- different store functions ----------------------------
+
+  template <typename T, int SIMD_WIDTH>
+  class Store
+  {
+  public:
+    static SIMD_INLINE void
+    _store(T *const p, const SIMDVec<T, SIMD_WIDTH> &outVec)
+    {
+      return store(p, outVec);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  class StoreU
+  {
+  public:
+    static SIMD_INLINE void
+    _store(T *const p, const SIMDVec<T, SIMD_WIDTH> &outVec)
+    {
+      return storeu(p, outVec);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // Meta Template Class Store16
+  // used to store matrix after transposed with Transpose<Unpack16>
+  //
+  // TODO: Currently storing complete quadratic matrix. Integrate numOutVecs?
+  //
+  // gcc error with inline template function: inlining failed in call to
+  // always_inline ‘void ns_simd::storeu16(..) [..]’: recursive inlining
+  // ---------------------------------------------------------------------------
+
+  template< template <typename, int> class Store,
+      typename T, int SIMD_WIDTH,
+      int NUMROWS, int ROW, int STORE_STOP,
+      int STORE_WIDTH, int SRC_OFF, int DST_OFF>
+  class Store16
+  {
+
+  public:
+    static SIMD_INLINE void
+    _store16(T *const p, const SIMDVec<T, SIMD_WIDTH> *outVecs)
+    {
+      // printf("STORE_WIDTH=%d, SRC_OFFSET=%d, DST_OFFSET=%d\n",
+      // STORE_WIDTH, SRC_OFFSET, DST_OFFSET);
+      Store16<Store, T, SIMD_WIDTH,
+          NUMROWS, ROW, STORE_STOP,
+          STORE_WIDTH / 2, SRC_OFF,
+          2 * DST_OFF>::_store16(p, outVecs);
+      Store16<Store, T, SIMD_WIDTH,
+          NUMROWS, ROW, STORE_STOP,
+          STORE_WIDTH / 2, SRC_OFF + SIMD_WIDTH / STORE_WIDTH,
+          2 * DST_OFF + STORE_STOP>::_store16(p, outVecs);
+    }
+  };
+
+  template< template <typename, int> class Store,
+      typename T, int SIMD_WIDTH,
+      int NUMROWS, int ROW, int STORE_STOP,
+      int SRC_OFF, int DST_OFF>
+  class Store16<Store, T, SIMD_WIDTH,
+      NUMROWS, ROW, STORE_STOP,
+      16, SRC_OFF, DST_OFF>
+  {
+    enum { STEP = SIMD_WIDTH / 16 };
+    enum { VO = SRC_OFF + ROW * STEP };
+    enum { OFF = (DST_OFF + ROW) * NUMROWS };
+
+  public:
+    static SIMD_INLINE void
+    _store16(T *const p, const SIMDVec<T, SIMD_WIDTH> *outVecs)
+    {
+      // printf("VO=%d\n", OFF=%d\n", VO, OFF);
+      Store<T, SIMD_WIDTH>::_store(p + OFF, outVecs[VO]);
+      Store16<Store, T, SIMD_WIDTH,
+          NUMROWS, ROW + 1, STORE_STOP,
+          16, SRC_OFF, DST_OFF>::_store16(p, outVecs);
+    }
+  };
+
+  template< template <typename, int> class Store,
+      typename T, int SIMD_WIDTH,
+      int NUMROWS, int STORE_STOP,
+      int SRC_OFF, int DST_OFF>
+  class Store16<Store, T, SIMD_WIDTH,
+      NUMROWS, STORE_STOP, STORE_STOP,
+      16, SRC_OFF, DST_OFF>
+  {
+
+  public:
+    static SIMD_INLINE void
+    _store16(T *const p, const SIMDVec<T, SIMD_WIDTH> *outVecs)
+    {
+    }
+  };
+
+  // -------------------- store16 functions ------------------------------------
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  store16(T *const p, const SIMDVec<T, SIMD_WIDTH> *outVecs)
+  {
+    const int numRows = SIMD_WIDTH / sizeof(T);
+    const int storeStop = 16 / sizeof(T);
+    Store16<Store, T, SIMD_WIDTH, numRows, 0, storeStop, SIMD_WIDTH, 0, 0>
+        ::_store16(p, outVecs);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  storeu16(T *const p, const SIMDVec<T, SIMD_WIDTH> *outVecs)
+  {
+    const int numRows = SIMD_WIDTH / sizeof(T);
+    const int storeStop = 16 / sizeof(T);
+    Store16<StoreU, T, SIMD_WIDTH, numRows, 0, storeStop, SIMD_WIDTH, 0, 0>
+        ::_store16(p, outVecs);
   }
 
   // ===========================================================================
@@ -1226,19 +1365,17 @@ namespace ns_simd {
     }
   };
 
-  /*
-    template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
-    class Unpack16
-    {
-    public:
+  template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+  class Unpack16
+  {
+  public:
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
     _unpack(const SIMDVec<T, SIMD_WIDTH> &a,
-    const SIMDVec<T, SIMD_WIDTH> &b)
+      const SIMDVec<T, SIMD_WIDTH> &b)
     {
-    return unpack16<PART,NUM_ELEMS>(a, b);
+      return unpack16<PART,NUM_ELEMS>(a, b);
     }
-    };
-  */
+  };
 
   // ------------------------ transpose a single row ---------------------------
 
@@ -1353,6 +1490,295 @@ namespace ns_simd {
   }
 
   // ===========================================================================
+  // copy matrix
+  // ===========================================================================
+
+  // primary template
+  template <typename T, int SIMD_WIDTH,
+      int ROW, int ROW_STOP>
+  class CopyMatrix
+  {
+
+  public:
+    static SIMD_INLINE void
+    _copy(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      v2[ROW] = v[ROW];
+      CopyMatrix<T, SIMD_WIDTH, ROW + 1, ROW_STOP>::_copy(v, v2);
+    }
+  };
+
+  // partial specialization to end the iteration
+  template <typename T, int SIMD_WIDTH, int ROW_STOP>
+  class CopyMatrix<T, SIMD_WIDTH, ROW_STOP, ROW_STOP>
+  {
+
+  public:
+    static SIMD_INLINE void
+    _copy(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+    }
+  };
+
+  // ===========================================================================
+  // Transpose Post-Process
+  // ===========================================================================
+
+  // ------------------------ transpose post-process 16 ------------------------
+  //            Used to post-process transposed matrix using unpack16
+
+  // primary template
+  template <typename T, int SIMD_WIDTH,
+      int NUMROWS, int ROW, int ROW_STOP,
+      int TRANSPOSE_WIDTH, int SRC_OFF, int DST_OFF>
+  class TransposePostprocess16
+  {
+
+  public:
+    static SIMD_INLINE void
+    _transpose(const SIMDVec<T,SIMD_WIDTH> *const inRows,
+               SIMDVec<T,SIMD_WIDTH> *const outRows)
+    {
+      // printf("%s", "\nTransposePostprocess16\n");
+      // printf("TRANSPOSE_WIDTH=%d\n", TRANSPOSE_WIDTH);
+      TransposePostprocess16<T, SIMD_WIDTH,
+          NUMROWS, ROW, ROW_STOP,
+          TRANSPOSE_WIDTH / 2, SRC_OFF,
+          2 * DST_OFF>::_transpose(inRows, outRows);
+      TransposePostprocess16<T, SIMD_WIDTH,
+          NUMROWS, ROW, ROW_STOP,
+          TRANSPOSE_WIDTH / 2, SRC_OFF + SIMD_WIDTH / TRANSPOSE_WIDTH,
+          2 * DST_OFF + ROW_STOP>::_transpose(inRows, outRows);
+    }
+  };
+
+  // partial specialization
+  template <typename T, int SIMD_WIDTH,
+      int NUMROWS, int ROW, int ROW_STOP,
+      int SRC_OFF, int DST_OFF>
+  class TransposePostprocess16<T, SIMD_WIDTH,
+      NUMROWS, ROW, ROW_STOP,
+      16, SRC_OFF, DST_OFF>
+  {
+    enum { STEP = SIMD_WIDTH / 16 };
+    enum { SRC_ROW = SRC_OFF + ROW * STEP };
+    enum { DST_ROW = DST_OFF + ROW };
+
+  public:
+    static SIMD_INLINE void
+    _transpose(const SIMDVec<T,SIMD_WIDTH> *const inRows,
+               SIMDVec<T,SIMD_WIDTH> *const outRows)
+    {
+      // printf("%s", "\nTransposePostprocess16\n");
+      // printf("TRANSPOSE_WIDTH=%d\n", 16);
+      // printf("SRC_ROW=%d DST_ROW=%d\n", SRC_ROW, DST_ROW);
+      outRows[DST_ROW] = inRows[SRC_ROW];
+      TransposePostprocess16<T, SIMD_WIDTH,
+          NUMROWS, ROW + 1, ROW_STOP,
+          16, SRC_OFF, DST_OFF>::_transpose(inRows, outRows);
+    }
+  };
+
+  // partial specialization to end the iteration
+  template  <typename T, int SIMD_WIDTH,
+      int NUMROWS, int ROW_STOP,
+      int SRC_OFF, int DST_OFF>
+  class TransposePostprocess16<T, SIMD_WIDTH,
+      NUMROWS, ROW_STOP, ROW_STOP,
+      16, SRC_OFF, DST_OFF>
+  {
+  public:
+    static SIMD_INLINE void
+    _transpose(const SIMDVec<T,SIMD_WIDTH> *const,
+               SIMDVec<T,SIMD_WIDTH> *const)
+    {
+    }
+  };
+
+  // ------------------------ transpose post-process hub -----------------------
+
+  // primary template
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH>
+  class TransposePostprocess
+  {
+
+  public:
+    static SIMD_INLINE void
+    _transpose(const SIMDVec<T,SIMD_WIDTH> *const inRows,
+               SIMDVec<T,SIMD_WIDTH> *const outRows)
+    {
+    }
+  };
+
+  // partial specialization to post-process Transpose<Unpack16>
+  template <typename T, int SIMD_WIDTH>
+  class TransposePostprocess<Unpack16, T, SIMD_WIDTH>
+  {
+    enum { NUMROWS = SIMD_WIDTH / sizeof(T) };
+    enum { ROW_STOP = 16 / sizeof(T) };
+
+  public:
+    static SIMD_INLINE void
+    _transpose(const SIMDVec<T,SIMD_WIDTH> *const inRows,
+               SIMDVec<T,SIMD_WIDTH> *const outRows)
+    {
+      // printf("%s", "\nTransposePostprocess\n");
+      // printf("SIMD_WIDTH=%d TYPE=%s\n", SIMD_WIDTH, SIMDTypeInfo<T>::name());
+      TransposePostprocess16<T, SIMD_WIDTH,
+          NUMROWS, 0, ROW_STOP, SIMD_WIDTH, 0, 0>::_transpose(
+          inRows, outRows);
+    }
+  };
+
+  // ===========================================================================
+  // transpose0: Transpose<Unpack16> + post-process
+  // ===========================================================================
+
+  // function template: full transpose
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose0(const SIMDVec<T,SIMD_WIDTH> *const inRows,
+             SIMDVec<T,SIMD_WIDTH> *const outRows)
+  {
+    SIMDVec<T,SIMD_WIDTH> tempRows[SIMDVec<T,SIMD_WIDTH>::elements];
+    Transpose<Unpack16,T,SIMD_WIDTH,
+        SIMD_WIDTH / sizeof(T), SIMD_WIDTH / sizeof(T), 0>
+        ::_transpose(inRows, tempRows);
+    TransposePostprocess<Unpack16, T, SIMD_WIDTH>::_transpose(tempRows, outRows);
+  }
+
+  // ===========================================================================
+  // transpose1_16: Transpose<Unpack16> - needs store16
+  // ===========================================================================
+
+  // function template: full transpose
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose1_16(const SIMDVec<T,SIMD_WIDTH> *const inRows,
+                SIMDVec<T,SIMD_WIDTH> *const outRows)
+  {
+    Transpose<Unpack16,T,SIMD_WIDTH,
+        SIMD_WIDTH / sizeof(T), SIMD_WIDTH / sizeof(T), 0>
+        ::_transpose(inRows, outRows);
+  }
+
+  // function template: full transpose (for tests, includes store16)
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose1_16_t(const SIMDVec<T,SIMD_WIDTH> *const inRows,
+                  SIMDVec<T,SIMD_WIDTH> *const outRows)
+  {
+    Transpose<Unpack16,T,SIMD_WIDTH,
+        SIMD_WIDTH / sizeof(T), SIMD_WIDTH / sizeof(T), 0>
+        ::_transpose(inRows, outRows);
+
+    // post-process with store16 ...
+    const int n = SIMD_WIDTH / sizeof(T);
+    T outArray[n * n];
+    storeu16(outArray, outRows);
+
+    // ... and reload to outRows
+    loadu(outArray, outRows, n);
+  }
+
+  // ===========================================================================
+  // Transpose16: Template Class to transpose multiple rows with integrated
+  // Unpack16 post-process
+  // Uses Transpose1 to transpose single rows.
+  // ===========================================================================
+
+  // ----------------------- transpose multiple rows --------------------------
+
+  // primary template
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH,
+      // NUMROWS: total number of rows
+      // ROW: index of row to transpose
+      int NUMROWS, int ROW, int ROW_STOP,
+      int TRANSPOSE_WIDTH, int SRC_OFF, int DST_OFF>
+  class Transpose16
+  {
+  public:
+    static SIMD_INLINE void
+    _transpose(const SIMDVec<T,SIMD_WIDTH> *const inRows,
+               SIMDVec<T,SIMD_WIDTH> *const outRows)
+    {
+      Transpose16<Unpack, T, SIMD_WIDTH,
+          NUMROWS,  ROW, ROW_STOP,
+          TRANSPOSE_WIDTH / 2, SRC_OFF,
+          2 * DST_OFF>::_transpose(inRows, outRows);
+      Transpose16<Unpack, T, SIMD_WIDTH,
+          NUMROWS,  ROW, ROW_STOP,
+          TRANSPOSE_WIDTH / 2, SRC_OFF + SIMD_WIDTH / TRANSPOSE_WIDTH,
+          2 * DST_OFF + ROW_STOP>::_transpose(inRows, outRows);
+    }
+  };
+
+  // partial specialization to end first iteration
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH,
+      int NUMROWS, int ROW, int ROW_STOP,
+      int SRC_OFF, int DST_OFF>
+  class Transpose16<Unpack, T, SIMD_WIDTH,
+      NUMROWS, ROW, ROW_STOP,
+      16, SRC_OFF, DST_OFF>
+  {
+    enum { STEP = SIMD_WIDTH / 16 };
+    enum { SRC_ROW = SRC_OFF + ROW * STEP };
+    enum { DST_ROW = DST_OFF + ROW };
+
+  public:
+    static SIMD_INLINE void
+    _transpose(const SIMDVec<T,SIMD_WIDTH> *inRows,
+               SIMDVec<T,SIMD_WIDTH> *outRows)
+    {
+      // printf("\n_transpose0(SRC=%d,DST=%d)", SRC_ROW, DST_ROW);
+      // printf("\n   ROW=%d,OFF=%d,STEP=%d", ROW, TRANSPOSE_OFFSET, STEP);
+      // transpose single row with index SRC_ROW
+      outRows[DST_ROW] =
+          Transpose1<Unpack,T,SIMD_WIDTH,
+              // INDEX=0, NLOWHI=SRC_ROW, ELEMS=NUMROWS/2
+              0,SRC_ROW,NUMROWS/2>::_transpose1(inRows);
+      // transpose next row
+      // NUMROWS=NUMROWS, ROW=ROW+1
+      Transpose16<Unpack, T, SIMD_WIDTH,
+          NUMROWS, ROW + 1, ROW_STOP,
+          16, SRC_OFF, DST_OFF>::_transpose(
+          inRows, outRows);
+    }
+  };
+
+  // partial specialization to end the iteration
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH,
+      int NUMROWS, int ROW_STOP,
+      int SRC_OFF,  int DST_OFF>
+  class Transpose16<Unpack, T, SIMD_WIDTH,
+      NUMROWS, ROW_STOP, ROW_STOP,
+      16, SRC_OFF, DST_OFF>
+  {
+  public:
+    static SIMD_INLINE void
+    _transpose(const SIMDVec<T,SIMD_WIDTH> *const,
+               SIMDVec<T,SIMD_WIDTH> *const)
+    {
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose16(const SIMDVec<T,SIMD_WIDTH> *const inRows,
+              SIMDVec<T,SIMD_WIDTH> *const outRows)
+  {
+    Transpose16<Unpack16,T,SIMD_WIDTH,
+        // NUMROWS, ROW, ROW_STOP
+        SIMD_WIDTH / sizeof(T), 0, 16 / sizeof(T),
+        // TRANSPOSE_WIDTH, SRC_OFF, DST_OFF
+        SIMD_WIDTH, 0, 0>::_transpose(inRows, outRows);
+  }
+
+  // ===========================================================================
   // swizzle2 (deinterleave)
   // ===========================================================================
   
@@ -1408,6 +1834,755 @@ namespace ns_simd {
     swizzle2<N,N>(outRows);
   }
   
+  // ===========================================================================
+  // swizzle3 (deinterleave)
+  // ===========================================================================
+
+  // generalized from Marat Dukhan's solution referred to at
+  // https://stackoverflow.com/a/15377386/3852630
+  // takes 2*N input elements
+
+  // v has to have length 2*N
+  // FINALBLKSIZE template argument is required since function is also
+  // used for transpose3
+  template<int N, int FINALBLKSIZE, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  swizzle3(SIMDVec<T, SIMD_WIDTH> *const v)
+  {
+    SIMDVec<T, SIMD_WIDTH> v2[2 * N];
+    int origReps = log2(FINALBLKSIZE) + 1;
+    int finalReps = std::floor(origReps / 2.0);
+    // printf("origReps=%d finalReps=%d\n", origReps, finalReps);
+
+    for (int rep = 0; rep < finalReps; rep++) {
+      // zip there ...
+      for (int src = 0, dst = 0; src < N; src++, dst += 2)
+        zip<1>(v[src], v[src + N], v2[dst], v2[dst + 1]);
+
+      // ... and zip back again
+      for (int src = 0, dst = 0; src < N; src++, dst += 2)
+        zip<1>(v2[src], v2[src + N], v[dst], v[dst + 1]);
+    }
+
+    // skip post-amble in case of even origReps
+    if (origReps % 2 == 0)
+      return;
+
+    // zip there ...
+    for (int src = 0, dst = 0; src < N; src++, dst += 2)
+      zip<1>(v[src], v[src + N], v2[dst], v2[dst + 1]);
+
+    // ...and copy back again
+    for (int i = 0; i < 2 * N; i++)
+      v[i] = v2[i];
+  }
+
+  // v has to have length 2*N
+  template<int N, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  swizzle3(SIMDVec<T, SIMD_WIDTH> *const v)
+  {
+    swizzle3<N, SIMDVec<T, SIMD_WIDTH>::elements>(v);
+  }
+
+  // ===========================================================================
+  // transpose3
+  // ===========================================================================
+
+  // called transpose3 as it is based on swizzle2, but expects same
+  // number of vectors as transpose (not twice the number)
+  template<typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose3(const SIMDVec<T, SIMD_WIDTH> *const inRows,
+             SIMDVec<T, SIMD_WIDTH> *const outRows)
+  {
+    const int n = SIMDVec<T, SIMD_WIDTH>::elements, N = n / 2;
+    for (int i = 0; i < n; i++)
+      outRows[i] = inRows[i];
+    swizzle3<N, N>(outRows);
+  }
+
+  // ===========================================================================
+  // Swizzle3 meta template
+  // ===========================================================================
+
+  // -------------------- different zip functions ------------------------------
+
+  template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+  class Zip
+  {
+  public:
+    static SIMD_INLINE void
+    _zip(SIMDVec<T, SIMD_WIDTH> a,
+         SIMDVec<T, SIMD_WIDTH> b,
+         SIMDVec<T, SIMD_WIDTH> &l,
+         SIMDVec<T, SIMD_WIDTH> &h)
+    {
+      zip<NUM_ELEMS, T>(a, b, l, h);
+    }
+  };
+
+  template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+  class Zip16
+  {
+  public:
+    static SIMD_INLINE void
+    _zip(SIMDVec<T, SIMD_WIDTH> a,
+         SIMDVec<T, SIMD_WIDTH> b,
+         SIMDVec<T, SIMD_WIDTH> &l,
+         SIMDVec<T, SIMD_WIDTH> &h)
+    {
+      zip16<NUM_ELEMS, T>(a, b, l, h);
+    }
+  };
+
+  // ------------------------ swizzle matrix once ------------------------------
+
+  // primary template
+  template <template <int, typename, int> class Zip,
+      typename T, int SIMD_WIDTH,
+      int N, int SRC, int DST>
+  class Swizzle3Once
+  {
+    enum { SRC2 = SRC + N, DST2 = DST + 1 };
+
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      // printf("%s\n", "SwizzleOnce");
+      // printf("  SRC=%d, SRC2=%d, DST=%d, DS2T=%d\n", SRC, SRC2, DST, DST2);
+      Zip<1,T,SIMD_WIDTH>::_zip(v[SRC], v[SRC2], v2[DST], v2[DST2]);
+      Swizzle3Once<Zip, T, SIMD_WIDTH, N, SRC + 1, DST + 2>::_swizzle(v, v2);
+    }
+  };
+
+  // partial specialization to end the iteration
+  template <template <int, typename, int> class Zip,
+      typename T, int SIMD_WIDTH,
+      int N, int DST>
+  class Swizzle3Once<Zip, T, SIMD_WIDTH, N, N, DST>
+  {
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      // for (int i = 0; i < 2 * N; i++) {
+      //   print("%4d", v2[i]);
+      //   puts("");
+      // }
+    }
+  };
+
+  // ------------------------ swizzle matrix multiple times --------------------
+
+  // primary template
+  template <template <int, typename, int> class Zip,
+      typename T, int SIMD_WIDTH,
+      int N, int REP, int FINAL_REPS, int ODD>
+  class Swizzle3Multiple
+  {
+
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      // printf("%s\n", "SwizzleMultiple");
+      // printf("  REP=%d, FINAL_REPS=%d\n", REP, FINAL_REPS);
+      Swizzle3Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v, v2);
+      Swizzle3Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v2, v);
+      Swizzle3Multiple<Zip, T, SIMD_WIDTH, N,
+          REP + 1, FINAL_REPS, ODD>::_swizzle(v, v2);
+    }
+  };
+
+  // partial specialization to end the iteration without swizzle post-amble
+  template <template <int, typename, int> class Zip,
+      typename T, int SIMD_WIDTH,
+      int N, int FINAL_REPS, int ODD>
+  class Swizzle3Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
+  {
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+    }
+  };
+
+  // partial specialization to end the iteration with swizzle post-amble
+  template <template <int, typename, int> class Zip,
+      typename T, int SIMD_WIDTH,
+      int N, int FINAL_REPS>
+  class Swizzle3Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
+  {
+    enum { ROW_STOP = 2 * N };
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      // printf("%s\n", "SwizzlePostamble");
+      Swizzle3Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v, v2);
+      CopyMatrix<T, SIMD_WIDTH, 0, ROW_STOP>::_copy(v2, v);
+    }
+  };
+
+  // ------------------------ swizzle main meta template -----------------------
+
+  // generalized from Marat Dukhan's solution referred to at
+  // https://stackoverflow.com/a/15377386/3852630
+  // takes 2*N input elements
+
+  // primary template
+  template <template <int, typename, int> class Zip,
+      typename T, int SIMD_WIDTH, int N, int FINALBLKSIZE>
+  class Swizzle3
+  {
+    enum { ORIG_REPS = (int) floorlog2(FINALBLKSIZE) + 1 };
+    enum { FINAL_REPS = ORIG_REPS / 2 };
+    enum { ODD = (ORIG_REPS & 0x01) };
+
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v) {
+      SIMDVec<T, SIMD_WIDTH> v2[2 * N];
+      // printf("%s\n", "Swizzle");
+      // printf("  N=%d, FINALBLKSIZE=%d\n", N, FINALBLKSIZE);
+      // printf("  ORIG_REPS=%d, FINAL_REPS=%d, ODD=%d\n", ORIG_REPS, FINAL_REPS, ODD);
+      Swizzle3Multiple<Zip, T, SIMD_WIDTH, N,
+          0, FINAL_REPS, ODD>::_swizzle(v, v2);
+    }
+  };
+
+  // ===========================================================================
+  // transpose4 Swizzle3<Zip>
+  // ===========================================================================
+
+  // called transpose4 as it is based on swizzle3, but expects same
+  // number of vectors as transpose (not twice the number)
+  template<typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose4(const SIMDVec<T, SIMD_WIDTH> *const inRows,
+             SIMDVec<T, SIMD_WIDTH> *const outRows)
+  {
+    const int n = SIMDVec<T, SIMD_WIDTH>::elements, N = n / 2;
+    for (int i = 0; i < n; i++)
+      outRows[i] = inRows[i];
+    Swizzle3<Zip, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
+  }
+
+  // ===========================================================================
+  // transpose5: Swizzle3<Zip16> + Swizzle post-process
+  // ===========================================================================
+
+  // ------------------------ swizzle post-process 16 once ---------------------
+
+  // primary template
+  template <typename T, int SIMD_WIDTH,
+      int N, int SRC, int DST, int LANE_ELEMS>
+  class Swizzle3Postprocess16Once
+  {
+    enum { SRC2 = SRC + 1, DST2 = DST + N };
+
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      // printf("%s\n", "SwizzlePostprocess16Once");
+      // printf("  SRC=%d, SRC2=%d, DST=%d, DS2T=%d\n", SRC, SRC2, DST, DST2);
+      Zip16<LANE_ELEMS,T,SIMD_WIDTH>
+          ::_zip(v[SRC], v[SRC2], v2[DST], v2[DST2]);
+      Swizzle3Postprocess16Once<T, SIMD_WIDTH,
+          N, SRC + 2, DST + 1, LANE_ELEMS>::_swizzle(v, v2);
+    }
+  };
+
+  // partial specialization to end the iteration
+  template <typename T, int SIMD_WIDTH,
+      int N, int SRC, int LANE_ELEMS>
+  class Swizzle3Postprocess16Once<T, SIMD_WIDTH, N, SRC, N, LANE_ELEMS>
+  {
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      // for (int i = 0; i < 2 * N; i++) {
+      //   print("%4d", v2[i]);
+      //   puts("");
+      // }
+    }
+  };
+
+  // ------------------------ swizzle post-process 16 --------------------------
+
+  // primary template
+  template <typename T, int SIMD_WIDTH,
+      int N, int LANE_ELEMS, int REP, int FINAL_REPS, int ODD>
+  class Swizzle3Postprocess16
+  {
+
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      // printf("%s\n", "SwizzlePostprocess16");
+      // printf("  REP=%d, FINAL_REPS=%d, LANE_ELEMS=%d\n", REP, FINAL_REPS, LANE_ELEMS);
+      Swizzle3Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS>
+          ::_swizzle(v, v2);
+      Swizzle3Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS * 2>
+          ::_swizzle(v2, v);
+      Swizzle3Postprocess16<T, SIMD_WIDTH, N,
+          LANE_ELEMS * 4, REP + 1, FINAL_REPS, ODD>::_swizzle(v, v2);
+    }
+  };
+
+  // partial specialization to end the iteration without post-process post-amble
+  template <typename T, int SIMD_WIDTH,
+      int N, int LANE_ELEMS, int FINAL_REPS, int ODD>
+  class Swizzle3Postprocess16<T, SIMD_WIDTH,
+      N, LANE_ELEMS, FINAL_REPS, FINAL_REPS, ODD>
+  {
+
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+    }
+  };
+
+  // partial specialization to end the iteration with post-process post-amble
+  template <typename T, int SIMD_WIDTH,
+      int N, int LANE_ELEMS, int FINAL_REPS>
+  class Swizzle3Postprocess16<T, SIMD_WIDTH,
+      N, LANE_ELEMS, FINAL_REPS, FINAL_REPS, 1>
+  {
+    enum { ROW_STOP = 2 * N };
+
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      Swizzle3Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS>
+          ::_swizzle(v, v2);
+      CopyMatrix<T, SIMD_WIDTH, 0, ROW_STOP>::_copy(v2, v);
+    }
+  };
+
+  // ------------------------ swizzle post-process hub -------------------------
+
+  // primary template
+  template <template <int, typename, int> class Zip,
+      typename T, int SIMD_WIDTH, int N>
+  class Swizzle3Postprocess
+  {
+
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v)
+    {
+    }
+  };
+
+  // partial specialization to post-process Swizzle<Zip16>
+  template <typename T, int SIMD_WIDTH, int N>
+  class Swizzle3Postprocess<Zip16, T, SIMD_WIDTH, N>
+  {
+    enum { ORIG_REPS = (int) floorlog2(SIMD_WIDTH) - 4 };
+    enum { FINAL_REPS = ORIG_REPS / 2 };
+    enum { ODD = (ORIG_REPS & 0x01) };
+    enum { LANE_ELEMS = 16 / sizeof(T) };
+
+  public:
+    static SIMD_INLINE void
+    _swizzle(SIMDVec<T, SIMD_WIDTH> *v)
+    {
+      SIMDVec<T, SIMD_WIDTH> v2[2 * N];
+      Swizzle3Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, 0, FINAL_REPS, ODD>
+          ::_swizzle(v, v2);
+    }
+  };
+  // ------------------------ transpose5 function call -------------------------
+
+  // called transpose5 as it is based on swizzle2, but expects same
+  // number of vectors as transpose (not twice the number)
+  template<typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose5(const SIMDVec<T, SIMD_WIDTH> *const inRows,
+             SIMDVec<T, SIMD_WIDTH> *const outRows)
+  {
+    const int n = SIMDVec<T, SIMD_WIDTH>::elements, N = n / 2;
+    for (int i = 0; i < n; i++)
+      outRows[i] = inRows[i];
+    Swizzle3<Zip16, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
+    Swizzle3Postprocess<Zip16, T, SIMD_WIDTH, N>::_swizzle(outRows);
+  }
+
+  // ===========================================================================
+  // transpose6: register-count based transpose
+  // ===========================================================================
+
+  // primary template: unpack repetition
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH,
+      int PROCESS_ROW, int PROCESS_ROWS, int UNPACK_ELEMS,
+      int UNPACK_REP, int UNPACK_REPS, int SUB_BASE, int SUB>
+  class TransposeRcUnpackSingle
+  {
+    enum { UNPACK_PART = ((PROCESS_ROW >> (UNPACK_REPS-UNPACK_REP-1)) & 0x01) };
+    enum { UNPACK_PART_NEXT = (((PROCESS_ROW+1) >> (UNPACK_REPS-UNPACK_REP-1)) & 0x01) };
+    enum { SRC1 = (PROCESS_ROW - SUB) * 2 };
+    enum { SRC2 = (PROCESS_ROW - SUB) * 2 + 1 };
+
+    // wrong numbering of rows
+    // enum { HALF_ROWS = PROCESS_ROWS / 2 };
+    // enum { UNPACK_PART = PROCESS_ROW / HALF_ROWS };
+    // enum { SRC1 = ((PROCESS_ROW * 2) % PROCESS_ROWS) };
+    // enum { SRC2 = ((PROCESS_ROW * 2) % PROCESS_ROWS) + 1 };
+
+  public:
+    static SIMD_INLINE void
+    _transpose(const SIMDVec<T, SIMD_WIDTH> *const inRows,
+               SIMDVec<T, SIMD_WIDTH> *const outRows)
+    {
+      // printf("%2d <- Unpack<%d, %d, %s, %d>(%2d, %2d) SUB_BASE: %d, SUB: %d\n",
+      //    PROCESS_ROW, UNPACK_PART, UNPACK_ELEMS,
+      //    SIMDTypeInfo<T>::name(), SIMD_WIDTH, SRC1, SRC2, SUB_BASE, SUB);
+      outRows[PROCESS_ROW] = Unpack<UNPACK_PART, UNPACK_ELEMS, T, SIMD_WIDTH>
+          ::_unpack(inRows[SRC1], inRows[SRC2]);
+      TransposeRcUnpackSingle<Unpack, T, SIMD_WIDTH,
+          PROCESS_ROW + 1, PROCESS_ROWS, UNPACK_ELEMS, UNPACK_REP, UNPACK_REPS,
+          SUB_BASE,
+          SUB + (UNPACK_PART_NEXT == 1 && (PROCESS_ROW + 1) % SUB_BASE == 0
+                 ? SUB_BASE
+                 : 0)>
+          ::_transpose(inRows, outRows);
+    }
+  };
+
+  // partial specialisation to end iteration PROCESS_REP
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH,
+      int PROCESS_ROWS, int UNPACK_ELEMS,
+      int UNPACK_REP, int UNPACK_REPS, int SUB_BASE, int SUB>
+  class TransposeRcUnpackSingle <Unpack,
+      T, SIMD_WIDTH,
+      PROCESS_ROWS, PROCESS_ROWS, UNPACK_ELEMS,
+      UNPACK_REP, UNPACK_REPS, SUB_BASE, SUB>
+  {
+
+  public:
+    static SIMD_INLINE void
+    _transpose(const SIMDVec<T, SIMD_WIDTH> * const inRows,
+               SIMDVec<T, SIMD_WIDTH> * const outRows)
+    {
+      // printf("%2d\n", PROCESS_ROWS);
+      // for (int i = 0; i < PROCESS_ROWS; i++) {
+      //   print("%5d", outRows[i]);
+      //   puts("");
+      // }
+      // puts("");
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+
+  // primary template: unpack repetition
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH,
+      int UNPACK_REP, int UNPACK_REPS, int PROCESS_ROWS, int UNPACK_ELEMS,
+      int SUB_BASE, int UNPACK_ODD>
+  class TransposeRcUnpackMultiple
+  {
+
+  public:
+    static SIMD_INLINE void
+    _transpose(SIMDVec<T, SIMD_WIDTH> * const inRows,
+               SIMDVec<T, SIMD_WIDTH> * const outRows)
+    {
+      // printf("\nTransposeRcUnpackMultiple %2d %s  %d/%d\n",
+      //        SIMD_WIDTH, SIMDTypeInfo<T>::name(), UNPACK_REP+1, UNPACK_REPS);
+      TransposeRcUnpackSingle<Unpack, T, SIMD_WIDTH,
+          0, PROCESS_ROWS, UNPACK_ELEMS, UNPACK_REP, UNPACK_REPS, SUB_BASE, 0>
+          ::_transpose(inRows, outRows);
+      TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH,
+          UNPACK_REP + 1, UNPACK_REPS, PROCESS_ROWS,
+          UNPACK_ELEMS * 2, SUB_BASE / 2, UNPACK_ODD>
+          ::_transpose(outRows, inRows);
+    }
+  };
+
+  // partial specialisation to end iteration UNPACK_REP
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH,
+      int UNPACK_REPS, int PROCESS_ROWS, int UNPACK_ELEMS,
+      int SUB_BASE, int UNPACK_ODD>
+  class TransposeRcUnpackMultiple <Unpack,
+      T, SIMD_WIDTH,
+      UNPACK_REPS, UNPACK_REPS, PROCESS_ROWS, UNPACK_ELEMS, SUB_BASE,
+      UNPACK_ODD>
+  {
+
+  public:
+    static SIMD_INLINE void
+    _transpose(SIMDVec<T, SIMD_WIDTH> * const inRows,
+               SIMDVec<T, SIMD_WIDTH> * const outRows)
+    {
+    }
+  };
+
+  // partial specialisation to end iteration UNPACK_REP
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH,
+      int UNPACK_REPS, int PROCESS_ROWS, int UNPACK_ELEMS,
+      int SUB_BASE>
+  class TransposeRcUnpackMultiple <Unpack,
+      T, SIMD_WIDTH,
+      UNPACK_REPS, UNPACK_REPS, PROCESS_ROWS, UNPACK_ELEMS, SUB_BASE, 0>
+  {
+
+  public:
+    static SIMD_INLINE void
+    _transpose(SIMDVec<T, SIMD_WIDTH> * const inRows,
+               SIMDVec<T, SIMD_WIDTH> * const outRows)
+    {
+      // printf("\nTransposeRcUnpackMultiple %2d %s  %d/%d Copy Matrix\n",
+      //        SIMD_WIDTH, SIMDTypeInfo<T>::name(), UNPACK_REPS, UNPACK_REPS);
+      CopyMatrix<T, SIMD_WIDTH, 0, PROCESS_ROWS>::_copy(inRows, outRows);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+
+  // primary template: store all registers lane-wise
+  template <typename T, int SIMD_WIDTH,
+      int PROCESS_REP, int PROCESS_REPS, int PROCESS_ROWS, int UNPACK_REPS,
+      int STORE_OFF, int VO, int LANE>
+  class TransposeRcStoreLane
+  {
+    enum { VEC_ELEMS_OUT =  NUM_SIMDVEC_ELEMENTS(T,SIMD_WIDTH) };
+
+  public:
+    static SIMD_INLINE void
+    _store(T *const outArray, SIMDVec<T, SIMD_WIDTH> * outRows)
+    {
+      storeu(outArray + STORE_OFF, extractLane<LANE>(outRows[VO]));
+      TransposeRcStoreLane<T, SIMD_WIDTH,
+          PROCESS_REP, PROCESS_REPS, PROCESS_ROWS, UNPACK_REPS,
+          STORE_OFF + PROCESS_ROWS * VEC_ELEMS_OUT, VO, LANE + 1>
+          ::_store(outArray, outRows);
+    }
+  };
+
+  // partial specialisation to end iteration LANE=PROCESS_REPS
+  template <typename T, int SIMD_WIDTH,
+      int PROCESS_REP, int PROCESS_REPS, int PROCESS_ROWS, int UNPACK_REPS,
+      int STORE_OFF, int VO>
+  class TransposeRcStoreLane <T, SIMD_WIDTH,
+      PROCESS_REP, PROCESS_REPS, PROCESS_ROWS, UNPACK_REPS,
+      STORE_OFF, VO, PROCESS_REPS>
+  {
+
+  public:
+    static SIMD_INLINE void
+    _store(T *const outArray, SIMDVec<T, SIMD_WIDTH> * outRows)
+    {
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+
+  // primary template: store all registers lane-wise
+  template <typename T, int SIMD_WIDTH,
+      int PROCESS_REP, int PROCESS_REPS, int PROCESS_ROWS, int UNPACK_REPS,
+      int STORE_OFF, int VO>
+  class TransposeRcStoreLanes
+  {
+    enum { VEC_ELEMS_OUT =  NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH) };
+
+  public:
+    static SIMD_INLINE void
+    _store(T *const  outArray, SIMDVec<T, SIMD_WIDTH> *  outRows)
+    {
+      TransposeRcStoreLane<T, SIMD_WIDTH,
+          PROCESS_REP, PROCESS_REPS, PROCESS_ROWS, UNPACK_REPS,
+          STORE_OFF, VO, 0>::_store(outArray, outRows);
+      TransposeRcStoreLanes<T, SIMD_WIDTH,
+          PROCESS_REP, PROCESS_REPS, PROCESS_ROWS, UNPACK_REPS,
+          STORE_OFF + VEC_ELEMS_OUT, VO + 1>
+          ::_store(outArray, outRows);
+    }
+  };
+
+  // partial specialisation to end iteration VO=PROCESS_ROWS
+  template <typename T, int SIMD_WIDTH,
+      int PROCESS_REP, int PROCESS_REPS, int PROCESS_ROWS, int UNPACK_REPS,
+      int STORE_OFF>
+  class TransposeRcStoreLanes <T, SIMD_WIDTH,
+      PROCESS_REP, PROCESS_REPS, PROCESS_ROWS, UNPACK_REPS, STORE_OFF, PROCESS_ROWS>
+  {
+
+  public:
+    static SIMD_INLINE void
+    _store(T *const  outArray, SIMDVec<T, SIMD_WIDTH> * outRows)
+    {
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+
+  // primary template: store hub
+  // decides whether to store directly (Store16) or to store lane-wise
+  template <typename T, int SIMD_WIDTH,
+      int PROCESS_REP, int PROCESS_REPS, int PROCESS_ROWS, int UNPACK_REPS>
+  class TransposeRcStore
+  {
+    enum { ELEMS_PER_LANE = 16 / sizeof(T) };
+    enum { STORE_OFF = PROCESS_REP * ELEMS_PER_LANE };
+
+  public:
+    static SIMD_INLINE void
+    _store(T *const outArray, SIMDVec<T, SIMD_WIDTH> * outRows)
+    {
+      TransposeRcStoreLanes<T, SIMD_WIDTH,
+          PROCESS_REP, PROCESS_REPS, PROCESS_ROWS, UNPACK_REPS, STORE_OFF, 0>
+          ::_store(outArray, outRows);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH,
+      int PROCESS_REP, int PROCESS_ROWS, int UNPACK_REPS>
+  class TransposeRcStore <T, SIMD_WIDTH,
+      PROCESS_REP, 1, PROCESS_ROWS, UNPACK_REPS>
+  {
+
+  public:
+    static SIMD_INLINE void
+    _store(T *const outArray, SIMDVec<T, SIMD_WIDTH> * outRows)
+    {
+      // printf("\nStore16 PROCESS_ROWS=%d\n", PROCESS_ROWS);
+      Store16<Store, T, SIMD_WIDTH,
+          PROCESS_ROWS, 0, 16 / sizeof(T),
+          SIMD_WIDTH, 0, 0>::_store16(outArray, outRows);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+
+
+  // primary template: main repetition
+  // loads, transposes, stores chunk of matrix
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH,
+      int PROCESS_REP, int PROCESS_REPS, int PROCESS_ROWS, int UNPACK_REPS,
+      int UNPACK_ODD>
+  class TransposeRcRep
+  {
+    enum { LOAD_OFF = PROCESS_REP * PROCESS_ROWS * SIMD_WIDTH / sizeof(T) };
+    enum { SUB_BASE = 1 << (floorlog2(PROCESS_ROWS) - 1) };
+
+  public:
+    static SIMD_INLINE void
+    _transpose(const T *const inArray, T *const outArray)
+    {
+      // printf("\nTransposeRcRep %2d %s  %d/%d\n",
+      //         SIMD_WIDTH, SIMDTypeInfo<T>::name(), PROCESS_REP+1, PROCESS_REPS);
+      SIMDVec<T, SIMD_WIDTH> inRows[PROCESS_ROWS];
+      SIMDVec<T, SIMD_WIDTH> outRows[PROCESS_ROWS];
+      load(inArray + LOAD_OFF, inRows, PROCESS_ROWS);
+      // for (int i = 0; i < PROCESS_ROWS; i++) {
+      //   print("%5d", inRows[i]);
+      //   puts("");
+      // }
+      // puts("");
+      TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH,
+          0, UNPACK_REPS, PROCESS_ROWS, 1, SUB_BASE, UNPACK_ODD>
+          ::_transpose(inRows, outRows);
+      // for (int i = 0; i < PROCESS_ROWS; i++) {
+      //   print("%5d", outRows[i]);
+      //   puts("");
+      // }
+      // puts("");
+      TransposeRcStore<T, SIMD_WIDTH,
+          PROCESS_REP, PROCESS_REPS, PROCESS_ROWS, UNPACK_REPS>
+          ::_store(outArray, outRows);
+      TransposeRcRep<Unpack, T, SIMD_WIDTH,
+          PROCESS_REP + 1, PROCESS_REPS, PROCESS_ROWS, UNPACK_REPS, UNPACK_ODD>
+      ::_transpose(inArray, outArray);
+    }
+  };
+
+  // partial specialisation to end iteration PROCESS_REP
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH,
+      int PROCESS_REPS, int PROCESS_ROWS, int UNPACK_REPS,
+      int UNPACK_ODD>
+  class TransposeRcRep <Unpack,
+      T, SIMD_WIDTH,
+      PROCESS_REPS, PROCESS_REPS, PROCESS_ROWS, UNPACK_REPS, UNPACK_ODD>
+  {
+
+  public:
+    static SIMD_INLINE void
+    _transpose(const T *const inArray, T *const outArray)
+    {
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+
+  // primary template: main entrance
+  template <template <int, int, typename, int> class Unpack,
+      typename T, int SIMD_WIDTH>
+  class TransposeRc
+  {
+    enum { SIMD_REGS = NATIVE_SIMD_REG_COUNT / 2 };
+    enum { NUM_ROWS = SIMD_WIDTH / sizeof(T) };
+    enum { PROCESS_REPS = (int) NUM_ROWS > (int) SIMD_REGS
+           ? SIMD_WIDTH / 16
+           : 1 };
+    enum { PROCESS_ROWS = NUM_ROWS / PROCESS_REPS };
+    enum { UNPACK_REPS = PROCESS_REPS == 1
+           ? floorlog2(PROCESS_ROWS)
+           : floorlog2(16 / sizeof(T)) };
+    enum { UNPACK_ODD = (UNPACK_REPS & 0x01) };
+
+  public:
+    static SIMD_INLINE void
+    _transpose(const T *const inArray, T *const outArray)
+    {
+      // printf("TransposeRc Process Rows: %d \n", PROCESS_ROWS);
+      TransposeRcRep<Unpack, T, SIMD_WIDTH,
+          0, PROCESS_REPS, PROCESS_ROWS, UNPACK_REPS, UNPACK_ODD>
+          ::_transpose(inArray, outArray);
+      // printf("%s","\n");
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+
+  // function template: full transpose
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose6(const T *const inArray, T *const outArray)
+  {
+    TransposeRc<Unpack16,T,SIMD_WIDTH>::_transpose(inArray, outArray);
+  }
+
+  // function template: full transpose for tests
+  template<typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  transpose6_t(const SIMDVec<T, SIMD_WIDTH> *const inRows,
+               SIMDVec<T, SIMD_WIDTH> *const outRows)
+  {
+    const int n = SIMDVec<T, SIMD_WIDTH>::elements;
+    T *inArray;
+    T *outArray;
+    assert(!posix_memalign((void **) &inArray, SIMD_WIDTH, n * n * sizeof(T)));
+    assert(!posix_memalign((void **) &outArray, SIMD_WIDTH, n * n * sizeof(T)));
+    store(inArray, inRows, n);
+    transpose6<T, SIMD_WIDTH>(inArray, outArray);
+    load(outArray, outRows, n);
+  }
+
   // ===========================================================================
   // unswizzle2 (interleave)
   // ===========================================================================

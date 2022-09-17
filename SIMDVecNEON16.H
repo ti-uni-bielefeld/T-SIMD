@@ -2134,6 +2134,100 @@ namespace ns_simd {
   SIMDVEC_NEON_REVERSE(SIMDInt,s32)
   SIMDVEC_NEON_REVERSE(SIMDFloat,f32)
   
+
+  // ---------------------------------------------------------------------------
+  // movemask
+  // ---------------------------------------------------------------------------
+
+  // 17. Sep 22 (Jonas Keller): added movemask functions
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDByte, 16> &a)
+  {
+    // from: https://stackoverflow.com/a/58381188/8461272
+
+    // Example input (half scale):
+    // 0x89 FF 1D C0 00 10 99 33
+
+    // Shift out everything but the sign bits
+    // 0x01 01 00 01 00 00 01 00
+    uint8x16_t high_bits = vshrq_n_u8(a, 7);
+
+    // Merge the even lanes together with vsra. The '??' bytes are garbage.
+    // vsri could also be used, but it is slightly slower on aarch64.
+    // 0x??03 ??02 ??00 ??01
+    uint16x8_t paired16 = vsraq_n_u16(vreinterpretq_u16_u8(high_bits),
+                                      vreinterpretq_u16_u8(high_bits), 7);
+    // Repeat with wider lanes.
+    // 0x??????0B ??????04
+    uint32x4_t paired32 = vsraq_n_u32(vreinterpretq_u32_u16(paired16),
+                                      vreinterpretq_u32_u16(paired16), 14);
+    // 0x??????????????4B
+    uint64x2_t paired64 = vsraq_n_u64(vreinterpretq_u64_u32(paired32),
+                                      vreinterpretq_u64_u32(paired32), 28);
+    // Extract the low 8 bits from each lane and join.
+    // 0x4B
+    return vgetq_lane_u8(vreinterpretq_u8_u64(paired64), 0) |
+           ((int)vgetq_lane_u8(vreinterpretq_u8_u64(paired64), 8) << 8);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDSignedByte,16> &a)
+  {
+    // the same as movemask(SIMDVec<SIMDByte,16>)
+    return movemask(reinterpret<SIMDByte>(a));
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDWord,16> &a)
+  {
+    // analogous to movemask(SIMDVec<SIMDByte,16>)
+    // idea from: https://stackoverflow.com/a/58381188/8461272
+
+    // Shift out everything but the sign bits
+    uint16x8_t high_bits = vshrq_n_u16(a, 15);
+
+    // Merge the even lanes together with vsra. The '??' bytes are garbage.
+    uint32x4_t paired32 = vsraq_n_u32(vreinterpretq_u32_u16(high_bits),
+                                      vreinterpretq_u32_u16(high_bits), 15);
+    // Repeat with wider lanes.
+    uint64x2_t paired64 = vsraq_n_u64(vreinterpretq_u64_u32(paired32),
+                                      vreinterpretq_u64_u32(paired32), 30);
+    // Extract the low 4 bits from each lane and join.
+    return (vgetq_lane_u8(vreinterpretq_u8_u64(paired64), 0) & 0xf) |
+           (vgetq_lane_u8(vreinterpretq_u8_u64(paired64), 8) << 4);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDShort,16> &a)
+  {
+    // the same as movemask(SIMDVec<SIMDWord,16>)
+    return movemask(reinterpret<SIMDWord>(a));
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDInt,16> &a)
+  {
+    // analogous to movemask(SIMDVec<SIMDByte,16>)
+    // idea from: https://stackoverflow.com/a/58381188/8461272
+
+    // Shift out everything but the sign bits
+    uint32x4_t high_bits = vshrq_n_u32(vreinterpretq_u32_s32(a), 31);
+
+    // Merge the even lanes together with vsra. The '??' bytes are garbage.
+    uint64x2_t paired64 = vsraq_n_u64(vreinterpretq_u64_u32(high_bits),
+                                      vreinterpretq_u64_u32(high_bits), 31);
+    // Extract the low 2 bits from each lane and join.
+    return (vgetq_lane_u8(vreinterpretq_u8_u64(paired64), 0) & 0x3) |
+           ((vgetq_lane_u8(vreinterpretq_u8_u64(paired64), 8) & 0x3) << 2);
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDFloat,16> &a)
+  {
+    // the same as movemask(SIMDVec<SIMDInt,16>)
+    return movemask(reinterpret<SIMDInt>(a));
+  }
 } // namespace ns_simd
 
 #endif // _SIMD_VEC_NEON_16_H_

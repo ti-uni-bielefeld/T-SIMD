@@ -41,6 +41,7 @@
 
 #include "SIMDSerialVec.H"
 #include "SIMDVecWrapper.H"
+#include <inttypes.h>
 
 namespace ns_simd {
 
@@ -641,6 +642,43 @@ namespace ns_simd {
 	    template <typename, int> class FCT>
   struct UnaryScalarInt : public UnaryScalar<int,T,SIMD_WIDTH,FCT> 
   {
+  };
+
+  // 17. Sep 22 (Jonas Keller): added UnaryScalarUInt64
+  template <typename T, int SIMD_WIDTH,
+	    template <typename, int> class FCT>
+  struct UnaryScalarUInt64
+  {
+    static void
+    test(int repeats, const std::string &pattern)
+    {
+      std::string args = "v";
+      SIMDSerialVec<T,SIMD_WIDTH> a;
+      uint64_t cs, cp;
+      const char *fmt = SIMDTypeInfo<T>::defaultFormat();
+      const char *fmtRes = "%" PRIu64;
+      std::string name = FCT<T,SIMD_WIDTH>::name();
+      if (name.find(pattern) != std::string::npos) {
+	printInfo(name, args);
+	int errors = 0, trials = 0;
+	for (int i = 0; i < repeats; i++, trials++) {
+	  FCT<T,SIMD_WIDTH>::randomizeInput(a);
+	  cs = FCT<T,SIMD_WIDTH>::apply(a);
+	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec());
+	  if (!sameScalar(cs, cp) /*cs != cp*/) {
+	    errors++;
+	    if (errors <= PRINT_ERRORS) {
+	      printError(name, args);
+	      PRINT(fmt,a);
+	      PRINTVAL(fmtRes,cs);
+	      PRINTVAL(fmtRes,cp);
+	    }
+	    EXIT;
+	  }
+	}
+	printErrorStats(errors, trials);
+      }
+    }
   };
 
   // ===========================================================================

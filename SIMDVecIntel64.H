@@ -5376,29 +5376,25 @@ namespace ns_simd {
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDByte,64> &a)
   {
-    const __m512i mask = _mm512_set1_epi8(uint8_t(0x80));
-    return _cvtmask64_u64(_mm512_test_epi8_mask(a, mask));
+    return _cvtmask64_u64(_mm512_movepi8_mask(a));
   }
 
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDSignedByte,64> &a)
   {
-    const __m512i mask = _mm512_set1_epi8(uint8_t(0x80));
-    return _cvtmask64_u64(_mm512_test_epi8_mask(a, mask));
+    return _cvtmask64_u64(_mm512_movepi8_mask(a));
   }
 
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDShort,64> &a)
   {
-    const __m512i mask = _mm512_set1_epi16(uint16_t(0x8000));
-    return _cvtmask32_u32(_mm512_test_epi16_mask(a, mask));
+    return _cvtmask32_u32(_mm512_movepi16_mask(a));
   }
 
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDWord,64> &a)
   {
-    const __m512i mask = _mm512_set1_epi16(uint16_t(0x8000));
-    return _cvtmask32_u32(_mm512_test_epi16_mask(a, mask));
+    return _cvtmask32_u32(_mm512_movepi16_mask(a));
   }
 #endif // __AVX512BW__
 

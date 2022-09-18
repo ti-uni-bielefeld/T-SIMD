@@ -5398,6 +5398,21 @@ namespace ns_simd {
   }
 #endif // __AVX512BW__
 
+#ifdef __AVX512DQ__
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDInt,64> &a)
+  {
+    return _cvtmask16_u32(_mm512_movepi32_mask(a));
+  }
+
+  static SIMD_INLINE uint64_t
+  movemask(const SIMDVec<SIMDFloat,64> &a)
+  {
+    return _cvtmask16_u32(_mm512_movepi32_mask(_mm512_castps_si512(a)));
+  }
+#else // __AVX512DQ__
+  // workaround for movemask for 32 bits if AVX512DQ is not available
+
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDInt,64> &a)
   {
@@ -5411,6 +5426,7 @@ namespace ns_simd {
     const __m512i mask = _mm512_set1_epi32(0x80000000);
     return _cvtmask16_u32(_mm512_test_epi32_mask(_mm512_castps_si512(a), mask));
   }
+#endif // __AVX512DQ__
 }
 
 #endif // __AVX__

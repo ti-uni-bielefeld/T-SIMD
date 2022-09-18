@@ -5169,13 +5169,15 @@ namespace ns_simd {
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDByte,32> &a)
   {
-    return _mm256_movemask_epi8(a);
+    // casting to uint32_t to prevent sign extension
+    return (uint32_t)_mm256_movemask_epi8(a);
   }
 
   static SIMD_INLINE uint64_t
   movemask(const SIMDVec<SIMDSignedByte,32> &a)
   {
-    return _mm256_movemask_epi8(a);
+    // casting to uint32_t to prevent sign extension
+    return (uint32_t)_mm256_movemask_epi8(a);
   }
 
   static SIMD_INLINE uint64_t

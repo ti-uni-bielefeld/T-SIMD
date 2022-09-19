@@ -148,26 +148,10 @@ main(int argc, char *argv[])
   TestIntTI<UnaryTemplateIntMinToMax,SW,Slli>::test(repeats1, pattern);
   UnaryTemplateType<SIMDInt,SIMDFloat,SW,Cvts>::test(repeats1, pattern);
   UnaryTemplateType<SIMDFloat,SIMDInt,SW,Cvts>::test(repeats1, pattern);
-#ifdef _SIMD_VEC_64_AVAIL_
   TestAll<Binary,SW,Hadd>::test(repeats1, pattern);
   TestAll<Binary,SW,Hadds>::test(repeats1, pattern);
   TestAll<Binary,SW,Hsub>::test(repeats1, pattern);
   TestAll<Binary,SW,Hsubs>::test(repeats1, pattern);
-#else
-  Binary<SIMDWord,SW,Hadd>::test(repeats1, pattern);
-  Binary<SIMDShort,SW,Hadd>::test(repeats1, pattern);
-  Binary<SIMDInt,SW,Hadd>::test(repeats1, pattern);
-  Binary<SIMDFloat,SW,Hadd>::test(repeats1, pattern);
-  Binary<SIMDShort,SW,Hadds>::test(repeats1, pattern);
-  Binary<SIMDInt,SW,Hadds>::test(repeats1, pattern);
-  Binary<SIMDFloat,SW,Hadds>::test(repeats1, pattern);
-  Binary<SIMDShort,SW,Hsub>::test(repeats1, pattern);
-  Binary<SIMDInt,SW,Hsub>::test(repeats1, pattern);
-  Binary<SIMDFloat,SW,Hsub>::test(repeats1, pattern);
-  Binary<SIMDShort,SW,Hsubs>::test(repeats1, pattern);
-  Binary<SIMDInt,SW,Hsubs>::test(repeats1, pattern);
-  Binary<SIMDFloat,SW,Hsubs>::test(repeats1, pattern);
-#endif
   TestAllTI<UnaryTemplateIntMinToMax,SW,Srle>::test(repeats1, pattern);
   TestAllTI<UnaryTemplateIntMinToMax,SW,Slle>::test(repeats1, pattern);
   TestAll<UnaryScalarT,SW,Elem0>::test(repeats1, pattern);

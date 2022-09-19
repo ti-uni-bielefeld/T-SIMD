@@ -112,7 +112,6 @@ int main(int argc, char *argv[]) {
   TestListTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_slli, SIMDWord, SIMDShort,
              SIMDInt>::test(repeats1, pattern);
 
-#ifdef _SIMD_VEC_64_AVAIL_
   TestAll<TesterMaskBinary, SW, Mask_hadd>::test(repeats1, pattern);
   TestAll<TesterMaskZBinary, SW, MaskZ_hadd>::test(repeats1, pattern);
   TestAll<TesterMaskBinary, SW, Mask_hadds>::test(repeats1, pattern);
@@ -121,24 +120,6 @@ int main(int argc, char *argv[]) {
   TestAll<TesterMaskZBinary, SW, MaskZ_hsub>::test(repeats1, pattern);
   TestAll<TesterMaskBinary, SW, Mask_hsubs>::test(repeats1, pattern);
   TestAll<TesterMaskZBinary, SW, MaskZ_hsubs>::test(repeats1, pattern);
-#else
-  TestList<TesterMaskBinary, SW, Mask_hadd, SIMDWord, SIMDShort, SIMDInt,
-           SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskZBinary, SW, MaskZ_hadd, SIMDWord, SIMDShort, SIMDInt,
-           SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskBinary, SW, Mask_hadds, SIMDShort, SIMDInt,
-           SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskZBinary, SW, MaskZ_hadds, SIMDShort, SIMDInt,
-           SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskBinary, SW, Mask_hsub, SIMDShort, SIMDInt,
-           SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskZBinary, SW, MaskZ_hsub, SIMDShort, SIMDInt,
-           SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskBinary, SW, Mask_hsubs, SIMDShort, SIMDInt,
-           SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskZBinary, SW, MaskZ_hsubs, SIMDShort, SIMDInt,
-           SIMDFloat>::test(repeats1, pattern);
-#endif
 
   TestAll<TesterMaskCmp, SW, Mask_cmplt>::test(repeats1, pattern);
   TestAll<TesterMaskCmp, SW, Mask_cmple>::test(repeats1, pattern);

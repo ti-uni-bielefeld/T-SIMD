@@ -1288,7 +1288,7 @@ namespace ns_simd {
   unpack16(const SIMDVec<T, 16> &a,
 	 const SIMDVec<T, 16> &b)
   {
-    return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
+    return unpack(a, b, Part<PART>(), Elements<NUM_ELEMS>());
   }
 
   // ---------------------------------------------------------------------------

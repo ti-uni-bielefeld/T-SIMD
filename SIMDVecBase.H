@@ -71,7 +71,7 @@
 #include "SIMDMaskNEON16.H"
 #include "SIMDMaskEmu.H"
 
-#endif // SIMDVEC_INTEL_ENABLE
+#endif // SIMDVEC_NEON_ENABLE
 
 #endif // else SIMDVEC_SANDBOX
 

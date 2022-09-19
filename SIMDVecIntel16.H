@@ -1863,6 +1863,17 @@ namespace ns_simd {
   }
 
   // ---------------------------------------------------------------------------
+  // extract 128-bit lane as SIMDVec<T, 16>, does nothing for 16 bytes
+  // ---------------------------------------------------------------------------
+
+  template <int IMM, typename T>
+  static SIMD_INLINE SIMDVec<T, 16>
+  extractLane(const SIMDVec<T, 16> &a)
+  {
+    return a;
+  }
+
+  // ---------------------------------------------------------------------------
   // zip (two unpacks similar to ARM NEON vzip, but for different NUM_ELEMS)
   // ---------------------------------------------------------------------------
 

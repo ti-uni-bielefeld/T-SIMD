@@ -1279,11 +1279,50 @@ namespace ns_simd {
 
   SIMDVEC_NEON_UNPACK_ALL()
 
+  // 16-byte-lane oriented unpack: for 16 bytes same as generalized unpack
+  // unpack blocks of NUM_ELEMS elements of type T
+  // PART=0: low half of input vectors,
+  // PART=1: high half of input vectors
+  template <int PART, int NUM_ELEMS, typename T>
+  static SIMD_INLINE SIMDVec<T, 16>
+  unpack16(const SIMDVec<T, 16> &a,
+	 const SIMDVec<T, 16> &b)
+  {
+    return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
+  }
+
+  // ---------------------------------------------------------------------------
+  // extract 128-bit lane as SIMDVec<T, 16>, does nothing for 16 bytes
+  // ---------------------------------------------------------------------------
+
+  template <int IMM, typename T>
+  static SIMD_INLINE SIMDVec<T, 16>
+  extractLane(const SIMDVec<T, 16> &a)
+  {
+    return a;
+  }
+
   // -------------------------------------------------------------------------
   // zip
   // -------------------------------------------------------------------------
 
   SIMDVEC_NEON_ZIP_ALL()
+
+  // ---------------------------------------------------------------------------
+  // zip16 hub  (16-byte-lane oriented zip): for 16 bytes same as zip
+  // ---------------------------------------------------------------------------
+
+  // a, b are passed by-value to avoid problems with identical input/output args.
+
+  template <int NUM_ELEMS, typename T>
+  static SIMD_INLINE void
+  zip16(const SIMDVec<T, 16> a,
+        const SIMDVec<T, 16> b,
+        SIMDVec<T, 16> &l,
+        SIMDVec<T, 16> &h)
+  {
+    zip<NUM_ELEMS, T>(a, b, l, h);
+  }
 
   // -------------------------------------------------------------------------
   // unzip

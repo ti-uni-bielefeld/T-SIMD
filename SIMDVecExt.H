@@ -2573,14 +2573,19 @@ namespace ns_simd {
   transpose6_t(const SIMDVec<T, SIMD_WIDTH> *const inRows,
                SIMDVec<T, SIMD_WIDTH> *const outRows)
   {
+    // 20. Sep 2 (Jonas Keller):
+    // use simd_aligned_malloc for inArray and outArray
+    // and free them at the end of the function
     const int n = SIMDVec<T, SIMD_WIDTH>::elements;
-    T *inArray;
-    T *outArray;
-    assert(!posix_memalign((void **) &inArray, SIMD_WIDTH, n * n * sizeof(T)));
-    assert(!posix_memalign((void **) &outArray, SIMD_WIDTH, n * n * sizeof(T)));
+    T *inArray = (T*) simd_aligned_malloc(SIMD_WIDTH,  n * n * sizeof(T));
+    T *outArray = (T*) simd_aligned_malloc(SIMD_WIDTH,  n * n * sizeof(T));
+    assert(inArray != NULL);
+    assert(outArray != NULL);
     store(inArray, inRows, n);
     transpose6<T, SIMD_WIDTH>(inArray, outArray);
     load(outArray, outRows, n);
+    simd_aligned_free(inArray);
+    simd_aligned_free(outArray);
   }
 
   // ===========================================================================

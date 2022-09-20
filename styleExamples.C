@@ -37,6 +37,12 @@
 // vectorSum* functions for short input Vector (avoid input.size -
 // s.elements < 0 for size_t)
 
+// 20. Sep 22 (Jonas Keller): on Windows ssize_t is not defined, so we
+// define it here
+#ifdef _WIN32
+typedef int64_t ssize_t;
+#endif
+
 // ===========================================================================
 
 // for classic style and modern style:
@@ -66,7 +72,10 @@ public:
   {
     data = (T*) simd_aligned_malloc(alignment, size * sizeof(T));
     assert(data != NULL);
-    bzero(data, size * sizeof(T));
+    // 20. Sep 22 (Jonas Keller): use memset instead of bzero, since bzero
+    // is not available on Windows
+    // bzero(data, size * sizeof(T));
+    memset(data, 0, size * sizeof(T));
   }
   ~Vector()
   {
@@ -164,11 +173,16 @@ main(int argc, char *argv[])
   ssize_t size = atol(argv[1]);
 
   // random input vector
-  srand48(time(NULL));
+  // 20. Sep 22 (Jonas Keller): use srand and rand instead of srand48 and
+  // drand48, since srand48 and drand48 are not available on Windows
+  // srand48(time(NULL));
+  srand(time(NULL));
   Vector<float> input(size, ALIGN);
   float s = 0;
   for (ssize_t i = 0; i < input.size; i++) {
-    float x = drand48();
+    // float x = drand48();
+    // + 1.0f since drand48 returns values in [0,1)
+    float x = (float)rand() / (RAND_MAX + 1.0f);
     s += x;
     input.data[i] = x;
   }

@@ -3149,19 +3149,19 @@ namespace ns_simd {
   static SIMD_INLINE void
   bitonicSortTransposed(SIMDVec<T, SIMD_WIDTH> *const transVecs)
   {
-    SIMD_CONSTEXPR uint numVecs = SIMDVec<T, SIMD_WIDTH>::elements;
+    SIMD_CONSTEXPR unsigned int numVecs = SIMDVec<T, SIMD_WIDTH>::elements;
     /* Dependent Loops */
-    for (uint blkSize = 2; blkSize <= numVecs; blkSize *= 2) {
+    for (unsigned int blkSize = 2; blkSize <= numVecs; blkSize *= 2) {
       /*
        * Bitonic Core
        * Independent Loops
        */
-      for (uint blkStart = 0; blkStart < numVecs; blkStart += blkSize) {
-	uint halfBlk = blkSize / 2;
-	uint leftCounter = blkStart;
-	uint rightCounter = blkStart + (blkSize - 1);
+      for (unsigned int blkStart = 0; blkStart < numVecs; blkStart += blkSize) {
+	unsigned int halfBlk = blkSize / 2;
+	unsigned int leftCounter = blkStart;
+	unsigned int rightCounter = blkStart + (blkSize - 1);
 	/* Independent Loops */
-	for (uint i = 0; i < halfBlk; i++) {
+	for (unsigned int i = 0; i < halfBlk; i++) {
 	  Cas<SLOPE,T,SIMD_WIDTH>::compareAndSwap
 	    (transVecs[leftCounter], transVecs[rightCounter]);
 	  leftCounter++;
@@ -3173,13 +3173,13 @@ namespace ns_simd {
 	 *
 	 * Dependent Loops
 	 */
-	for (uint step = blkSize / 4; step > 0; step /= 2) {
+	for (unsigned int step = blkSize / 4; step > 0; step /= 2) {
 	  /* Independent Loops */
-	  for (uint jump = 0; jump < blkSize; jump += step * 2) {
+	  for (unsigned int jump = 0; jump < blkSize; jump += step * 2) {
 	    leftCounter = blkStart + jump;
 	    rightCounter = blkStart + jump + step;	    
 	    /* Independent Loops */
-	    for (uint k = 0; k < step; k++) {
+	    for (unsigned int k = 0; k < step; k++) {
 	      Cas<SLOPE,T,SIMD_WIDTH>::compareAndSwap
 		(transVecs[leftCounter], transVecs[rightCounter]);
 	      leftCounter++;
@@ -3205,14 +3205,14 @@ namespace ns_simd {
   static SIMD_INLINE void
   bitonicSortReducedTransposed(SIMDVec<T, SIMD_WIDTH> *const transVecs)
   {
-    SIMD_CONSTEXPR uint numVecs = SIMDVec<T, SIMD_WIDTH>::elements;
-    for (uint step = numVecs / 2; step > 0; step /= 2) {
+    SIMD_CONSTEXPR unsigned int numVecs = SIMDVec<T, SIMD_WIDTH>::elements;
+    for (unsigned int step = numVecs / 2; step > 0; step /= 2) {
       /* Independent Loops */
-      for (uint jump = 0; jump < numVecs; jump += step * 2) {
-	uint leftCounter = jump;
-	uint rightCounter = jump + step;	
+      for (unsigned int jump = 0; jump < numVecs; jump += step * 2) {
+	unsigned int leftCounter = jump;
+	unsigned int rightCounter = jump + step;	
 	/* Independent Loops */
-	for (uint k = 0; k < step; k++) {
+	for (unsigned int k = 0; k < step; k++) {
 	  Cas<SLOPE,T,SIMD_WIDTH>::compareAndSwap
 	    (transVecs[leftCounter], transVecs[rightCounter]);
 	  leftCounter++;

@@ -61,6 +61,7 @@
 
 // 30. Aug 22 (Jonas Keller): added simd_aligned_malloc and simd_aligned_free
 #ifdef _WIN32
+#include <malloc.h>
 void *simd_aligned_malloc(size_t alignment, size_t size) {
   return _aligned_malloc(size, alignment);
 }

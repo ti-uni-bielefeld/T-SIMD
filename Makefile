@@ -108,6 +108,13 @@ flags_archspec = $(userdefs_avx512) -pthread
 # dependencies
 depend = Makefile.depend
 
+# use del instead of rm on Windows
+ifeq ($(OS),Windows_NT) 
+RM = del /Q /F
+else
+RM = rm -f
+endif
+
 # C++ files (for dependencies)
 all_cpp_files      = $(addsuffix .C,$(all_binaries))
 archspec_cpp_files = $(addsuffix .C,$(archspec_binaries))
@@ -166,7 +173,7 @@ clean:
 		all binaries $(all_binaries),\
 		backup files, \
 		dependency file $(depend)
-	@rm -f $(all_objects) $(all_binaries) $(autotest_binaries) *~ $(depend)
+	@$(RM) $(all_objects) $(all_binaries) $(autotest_binaries) *~ $(depend)
 
 # (ARM: remove second compiler invocation for archspec_cpp_files)
 dep: 

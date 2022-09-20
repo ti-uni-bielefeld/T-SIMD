@@ -49,7 +49,8 @@
 // from https://stackoverflow.com/a/26085827/8461272
 #ifdef _WIN32
 #include <Windows.h>
-int gettimeofday(struct timeval *tp, struct timezone *tzp) {
+// note: ignores timezone (second argument)
+int gettimeofday(struct timeval *tp, struct timezone *) {
   // Note: some broken versions only have 8 trailing zero's, the correct epoch
   // has 9 trailing zero's This magic number is the number of 100 nanosecond
   // intervals since January 1, 1601 (UTC) until 00:00:00 January 1, 1970

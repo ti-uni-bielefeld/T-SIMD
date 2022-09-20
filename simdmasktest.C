@@ -33,12 +33,18 @@
 // TODO: - TEST_TEMPLATE_SHIFT: compiler complains that shifts are larger
 // TODO:   than width of type
 
+// 20. Sep 22 (Jonas Keller): defined PRIutest to be PRIu32 or PRIu64 from
+// inttypes.h depending on whether uinttest_t is 32 or 64 bit and used it in
+// the printf statements.
+// fixes printf format warnings on 32 bit ARM and on Windows
+
 #include <float.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <inttypes.h>
 // 30. aug 22 (Jonas Keller): add workaround for gettimeofday on windows
 // from https://stackoverflow.com/a/26085827/8461272
 #ifdef _WIN32
@@ -104,8 +110,10 @@ bool vectorsEqual(const SIMDVec<SIMDFloat, 16> &a,
   return vectorsEqual(reinterpret<SIMDInt>(a), reinterpret<SIMDInt>(b));
 }
 typedef uint32_t uinttest_t;
+#define PRIutest PRIu32
 #else
 typedef uint64_t uinttest_t;
+#define PRIutest PRIu64
 #endif
 
 #ifdef __SSE__
@@ -331,7 +339,7 @@ uinttest_t random_continuous(uint8_t size) {
         for (i = 0; i < SIMD_WIDTH / sizeof(TYPE); i++) {                      \
           printf(FORMAT, result2[i]);                                          \
         }                                                                      \
-        printf(" mask=%lx=%lx\n", mask, (uinttest_t)rand_mask);                \
+        printf(" mask=%" PRIutest "=%" PRIutest "\n", mask, (uinttest_t)rand_mask);                \
       } else {                                                                 \
         if (PRINT_PASS)                                                        \
           printf("Pass test 2 %s for %s \n", #NAME, #TYPE);                    \
@@ -358,7 +366,7 @@ uinttest_t random_continuous(uint8_t size) {
       printf("Problem with %s for %s test 2, csr=%x, csr0=%x \na=", #NAME,     \
              #TYPE, getcsr(), csr0);                                           \
       print("%e ", a);                                                         \
-      printf("\nres1=%lx", (uinttest_t)res1);                                  \
+      printf("\nres1=%" PRIutest, (uinttest_t)res1);                                  \
       printf("\n");                                                            \
     }                                                                          \
     setcsr(csr0);                                                              \
@@ -384,8 +392,8 @@ uinttest_t random_continuous(uint8_t size) {
         }                                                                      \
       }                                                                        \
       if (result1 != result2) {                                                \
-        printf("Problem with %s for %s test 3, result 1=%lx, result2=%lx  "    \
-               "mask=%lx=%lx\narg1=",                                          \
+        printf("Problem with %s for %s test 3, result 1=%" PRIutest ", result2=%" PRIutest "  "    \
+               "mask=%" PRIutest "=%" PRIutest "\narg1=",                                          \
                #NAME, #TYPE, result1, result2, mask, (uinttest_t)rand_mask);   \
         for (i = 0; i < SIMD_WIDTH / sizeof(TYPE); i++) {                      \
           printf(FORMAT, arg1[i]);                                             \
@@ -481,7 +489,7 @@ uinttest_t random_continuous(uint8_t size) {
     #NAME, #TYPE, csr1, csr2); for(i=0; i<SIMD_WIDTH/sizeof(TYPE); i++) {                                    \
     printf(FORMAT, result1[i]); } printf(" result2="); for(i=0;                                                                      \
     i<SIMD_WIDTH/sizeof(TYPE); i++) { printf(FORMAT, result2[i]); } printf("   \
-    mask=%lx=%lx\n", mask, (uinttest_t) rand_mask); }                          \
+    mask=%" PRIutest "=%" PRIutest "\n", mask, (uinttest_t) rand_mask); }                          \
     }*/                                                                        \
     setcsr(csr0);                                                              \
   }
@@ -511,7 +519,7 @@ uinttest_t random_continuous(uint8_t size) {
       printf("Problem with mask_test_all_ %s for %s test 3, result 1=%i, "     \
              "result 2=%i",                                                    \
              #NAME, #TYPE, result1, result2);                                  \
-      printf(" mask=%lx=%lx\n arg=", mask, (uinttest_t)rand_mask);             \
+      printf(" mask=%" PRIutest "=%" PRIutest "\n arg=", mask, (uinttest_t)rand_mask);             \
       for (i = 0; i < SIMD_WIDTH / sizeof(TYPE); i++) {                        \
         printf(FORMAT, arg[i]);                                                \
       }                                                                        \
@@ -810,7 +818,7 @@ template <typename T, int SIMD_WIDTH> void benchmark() {
 #define TEST_TEMPLATE_SHIFT(R_OR_L, I, OP)                                     \
   kshift##R_OR_L##i_mask = ones & (a OP I);                                    \
   if (!(kshift##R_OR_L##i_mask == kshift##R_OR_L##i<I>(a_mask))) {             \
-    printf("ERROR: template kshift %s i, i=%i, should be: %lx, is: %lx\n",     \
+    printf("ERROR: template kshift %s i, i=%i, should be: %" PRIutest ", is: %" PRIutest "\n",     \
            #R_OR_L, I, (uinttest_t)kshift##R_OR_L##i_mask,                     \
            (uinttest_t)kshift##R_OR_L##i<I>(a_mask));                          \
   }
@@ -824,74 +832,74 @@ template <typename T, int SIMD_WIDTH> void test_mask_functions() {
   uinttest_t ones =
       (SIMD_WIDTH / sizeof(T) == 64
            ? -1
-           : ((1ul << (SIMD_WIDTH / sizeof(T))) -
+           : ((uinttest_t(1) << (SIMD_WIDTH / sizeof(T))) -
               1)); // Conditional operator removes compiler warning
   uinttest_t a = ones & random64(), b = ones & random64();
   a_mask = a;
   b_mask = b;
   if (a != ((uinttest_t)a_mask) || b != ((uinttest_t)b_mask)) {
-    printf("ERROR: mask conversion: a=%lx %lx, b=%lx %lx, ones=%lx, "
-           "SIMD_WIDTH/sizeof(T)=%lu, %s\n",
+    printf("ERROR: mask conversion: a=%" PRIutest " %" PRIutest ", b=%" PRIutest " %" PRIutest ", ones=%" PRIutest ", "
+           "SIMD_WIDTH/sizeof(T)=%u, %s\n",
            a, (uinttest_t)a_mask, b, (uinttest_t)b_mask, ones,
-           SIMD_WIDTH / sizeof(T), __PRETTY_FUNCTION__);
+           SIMD_WIDTH / (int)sizeof(T), __PRETTY_FUNCTION__);
   }
   for (i = 0; i < 64; i++) {
     if ((a_mask[i]) != (((a >> i) & 1) == 1)) {
       printf("ERROR: operator[], %s\n", __PRETTY_FUNCTION__);
     }
   }
-  // printf("a=%lx %lx, b=%lx %lx, ones=%lx, SIMD_WIDTH/sizeof(T)=%lu\n", a,
-  // (uinttest_t) a_mask, b, (uinttest_t) b_mask, ones, SIMD_WIDTH/sizeof(T));
+  // printf("a=%" PRIutest " %" PRIutest ", b=%" PRIutest " %" PRIutest ", ones=%" PRIutest ", SIMD_WIDTH/sizeof(T)=%u\n", a,
+  // (uinttest_t) a_mask, b, (uinttest_t) b_mask, ones, SIMD_WIDTH/(int)sizeof(T));
   // SIMDVec<T, SIMD_WIDTH> vec((__m512i) a_mask);
   // print("%x ", vec); puts("");
   kand_mask = ones & (a & b);
   if (!(kand_mask == kand(a_mask, b_mask)) ||
       (ones & (a & b)) != (kand(a_mask, b_mask))) {
-    printf("ERROR: kand %lx %lx\n", (uinttest_t)kand_mask,
+    printf("ERROR: kand %" PRIutest " %" PRIutest "\n", (uinttest_t)kand_mask,
            (uinttest_t)kand(a_mask, b_mask));
   }
   kandn_mask = ones & ((~a) & b);
   if (!(kandn_mask == kandn(a_mask, b_mask)) ||
       (ones & ((~a) & b)) != (kandn(a_mask, b_mask))) {
-    printf("ERROR: kandn %lx %lx\n", (uinttest_t)kandn_mask,
+    printf("ERROR: kandn %" PRIutest " %" PRIutest "\n", (uinttest_t)kandn_mask,
            (uinttest_t)kandn(a_mask, b_mask));
   }
   kor_mask = ones & (a | b);
   if (!(kor_mask == kor(a_mask, b_mask))) {
-    printf("ERROR: kor %lx %lx\n", (uinttest_t)kor_mask,
+    printf("ERROR: kor %" PRIutest " %" PRIutest "\n", (uinttest_t)kor_mask,
            (uinttest_t)kor(a_mask, b_mask));
   }
   kxor_mask = ones & (a ^ b);
   if (!(kxor_mask == kxor(a_mask, b_mask))) {
-    printf("ERROR: kxor %lx %lx\n", (uinttest_t)kxor_mask,
+    printf("ERROR: kxor %" PRIutest " %" PRIutest "\n", (uinttest_t)kxor_mask,
            (uinttest_t)kxor(a_mask, b_mask));
   }
   kxnor_mask = ones & (~(a ^ b));
   if (!(kxnor_mask == kxnor(a_mask, b_mask))) {
-    printf("ERROR: kxnor %lx %lx\n", (uinttest_t)kxnor_mask,
+    printf("ERROR: kxnor %" PRIutest " %" PRIutest "\n", (uinttest_t)kxnor_mask,
            (uinttest_t)kxnor(a_mask, b_mask));
   }
   kadd_mask = ones & (a + b);
   if (!(kadd_mask == kadd(a_mask, b_mask))) {
-    printf("ERROR: kadd %lx %lx\n", (uinttest_t)kadd_mask,
+    printf("ERROR: kadd %" PRIutest " %" PRIutest "\n", (uinttest_t)kadd_mask,
            (uinttest_t)kadd(a_mask, b_mask));
   }
   knot_mask = ones & (~a);
   if (!(knot_mask == knot(a_mask))) {
-    printf("ERROR: knot %lx %lx\n", (uinttest_t)knot_mask,
+    printf("ERROR: knot %" PRIutest " %" PRIutest "\n", (uinttest_t)knot_mask,
            (uinttest_t)knot(a_mask));
   }
   for (i = 0; i < 64; i++) {
     kshiftli_mask = ones & (a << i);
     if (!(kshiftli_mask == kshiftli(a_mask, i))) {
-      printf("ERROR: kshiftli, i=%lu, should be: %lx, is: %lx\n", i,
+      printf("ERROR: kshiftli, i=%" PRIutest ", should be: %" PRIutest ", is: %" PRIutest "\n", i,
              (uinttest_t)kshiftli_mask, (uinttest_t)kshiftli(a_mask, i));
     }
   }
   for (i = 0; i < 64; i++) {
     kshiftri_mask = ones & (a >> i);
     if (!(kshiftri_mask == kshiftri(a_mask, i))) {
-      printf("ERROR: kshiftri, i=%lu, should be: %lx, is: %lx\n", i,
+      printf("ERROR: kshiftri, i=%" PRIutest ", should be: %" PRIutest ", is: %" PRIutest "\n", i,
              (uinttest_t)kshiftri_mask, (uinttest_t)kshiftri(a_mask, i));
     }
   }
@@ -1099,7 +1107,7 @@ int main() {
   srand(time(NULL));
   /*SIMDVec<SIMDShort, 64> a=getRandomVector<SIMDShort, 64>(),
   b=getRandomVector<SIMDShort, 64>(); uinttest_t mask=random64();
-  printf("%lx\n", mask);
+  printf("%" PRIutest "\n", mask);
   SIMDMask<SIMDShort, 64> k=mask;
   print("%u ", SIMDVec<SIMDShort, 64>(_mm512_maskz_sub_epi16(mask, a, b)));
   puts(""); print("%u ", mask_ifelsezero(k, sub (a, b))); puts("");*/

@@ -316,21 +316,9 @@ namespace ns_simd {
     {
       char fieldWidthStr[16], precisionStr[16];
       if (fieldWidth >= 0) sprintf(fieldWidthStr, "%d", fieldWidth);
-      // 30. Aug 22 (Jonas Keller): clang++ on windows warns that
-      // strcpy is deprecated and suggests to use strcpy_s instead
-#ifdef _WIN32
-      else strcpy_s(fieldWidthStr, "");
-#else
       else strcpy(fieldWidthStr, "");
-#endif
       if (precision >= 0) sprintf(precisionStr, ".%d", precision);
-      // 30. Aug 22 (Jonas Keller): clang++ on windows warns that
-      // strcpy is deprecated and suggests to use strcpy_s instead
-#ifdef _WIN32
-      else strcpy_s(precisionStr, "");
-#else
       else strcpy(precisionStr, "");
-#endif
       if (SIMDTypeInfo<T>::isInteger)
 	// integer format, precision is ignored
 	sprintf(format, "%%%s%s", 

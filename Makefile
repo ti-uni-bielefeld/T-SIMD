@@ -97,9 +97,14 @@ userdefs_avx512 = -mavx512f -mavx512bw -mavx512dq -mavx512vl -mpopcnt
 userdefs_c      = -Wall -Wextra -Wpedantic -mfpmath=sse -ggdb -fno-var-tracking
 userdefs_cpp    = -fno-operator-names -std=c++17
 
+# 20. Sep 22 (Jonas Keller): use secure template overloads on Windows
+# see: https://learn.microsoft.com/en-us/cpp/c-runtime-library/security-features-in-the-crt
+crt_sec_features_flags = -D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1
+
 # all flags (split into c and cpp (c++)) to avoid preprocessor warnings
 flags_c        = $(userdefs_c) $(optflags) $(EXTRA_DEFINES)
-flags_cpp      = $(userdefs_c) $(userdefs_cpp) $(optflags) $(EXTRA_DEFINES)
+flags_cpp      = $(userdefs_c) $(userdefs_cpp) $(optflags) $(EXTRA_DEFINES) \
+	$(crt_sec_features_flags)
 flags_arch     = $(userdefs_arch)
 # use flags_avx512 on a non-avx512 machine (just to compile, won't run
 # on this machine), and flags_arch on a avx512 machine

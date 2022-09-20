@@ -33,6 +33,128 @@
 // 20. Apr 18 (rm): thanks to Benedikt Volkmer
 #include <assert.h>
 
+// 20. Sep 22 (Jonas Keller): add clock_gettime replacement implementation for Windows
+// TODO: doesn't differentiate between CLOCK_REALTIME, CLOCK_MONOTONIC and CLOCK_PROCESS_CPUTIME_ID
+// from: https://github.com/Alexpux/mingw-w64/blob/master/mingw-w64-libraries/winpthreads/src/clock.c
+#ifdef _WIN32
+#include <errno.h>
+#include <stdint.h>
+// windows.h typedefs PATTERN, which causes a redifinition error in
+// TiltSearchDemo.C
+#define PATTERN something_not_named_PATTERN
+#include <windows.h>
+#undef PATTERN
+// max and min are defined as macros in Windows.h, which causes problems
+#undef max
+#undef min
+
+#define POW10_7 10000000
+#define POW10_9 1000000000
+
+typedef int clockid_t;
+
+#define CLOCK_REALTIME 0
+#define CLOCK_MONOTONIC 1
+#define CLOCK_PROCESS_CPUTIME_ID 2
+#define CLOCK_THREAD_CPUTIME_ID 3
+
+/* Number of 100ns-seconds between the beginning of the Windows epoch
+ * (Jan. 1, 1601) and the Unix epoch (Jan. 1, 1970)
+ */
+#define DELTA_EPOCH_IN_100NS INT64_C(116444736000000000)
+
+static int lc_set_errno(int result) {
+  if (result != 0) {
+    errno = result;
+    return -1;
+  }
+  return 0;
+}
+
+/**
+ * Get the time of the specified clock clock_id and stores it in the struct
+ * timespec pointed to by tp.
+ * @param  clock_id The clock_id argument is the identifier of the particular
+ *         clock on which to act. The following clocks are supported:
+ * <pre>
+ *     CLOCK_REALTIME  System-wide real-time clock. Setting this clock
+ *                 requires appropriate privileges.
+ *     CLOCK_MONOTONIC Clock that cannot be set and represents monotonic
+ *                 time since some unspecified starting point.
+ *     CLOCK_PROCESS_CPUTIME_ID High-resolution per-process timer from the CPU.
+ *     CLOCK_THREAD_CPUTIME_ID  Thread-specific CPU-time clock.
+ * </pre>
+ * @param  tp The pointer to a timespec structure to receive the time.
+ * @return If the function succeeds, the return value is 0.
+ *         If the function fails, the return value is -1,
+ *         with errno set to indicate the error.
+ */
+int clock_gettime(clockid_t clock_id, struct timespec *tp) {
+  unsigned __int64 t;
+  LARGE_INTEGER pf, pc;
+  union {
+    unsigned __int64 u64;
+    FILETIME ft;
+  } ct, et, kt, ut;
+
+  switch (clock_id) {
+  case CLOCK_REALTIME: {
+    GetSystemTimeAsFileTime(&ct.ft);
+    t = ct.u64 - DELTA_EPOCH_IN_100NS;
+    tp->tv_sec = t / POW10_7;
+    tp->tv_nsec = ((int)(t % POW10_7)) * 100;
+
+    return 0;
+  }
+
+  case CLOCK_MONOTONIC: {
+    if (QueryPerformanceFrequency(&pf) == 0)
+      return lc_set_errno(EINVAL);
+
+    if (QueryPerformanceCounter(&pc) == 0)
+      return lc_set_errno(EINVAL);
+
+    tp->tv_sec = pc.QuadPart / pf.QuadPart;
+    tp->tv_nsec =
+        (int)(((pc.QuadPart % pf.QuadPart) * POW10_9 + (pf.QuadPart >> 1)) /
+              pf.QuadPart);
+    if (tp->tv_nsec >= POW10_9) {
+      tp->tv_sec++;
+      tp->tv_nsec -= POW10_9;
+    }
+
+    return 0;
+  }
+
+  case CLOCK_PROCESS_CPUTIME_ID: {
+    if (0 ==
+        GetProcessTimes(GetCurrentProcess(), &ct.ft, &et.ft, &kt.ft, &ut.ft))
+      return lc_set_errno(EINVAL);
+    t = kt.u64 + ut.u64;
+    tp->tv_sec = t / POW10_7;
+    tp->tv_nsec = ((int)(t % POW10_7)) * 100;
+
+    return 0;
+  }
+
+  case CLOCK_THREAD_CPUTIME_ID: {
+    if (0 == GetThreadTimes(GetCurrentThread(), &ct.ft, &et.ft, &kt.ft, &ut.ft))
+      return lc_set_errno(EINVAL);
+    t = kt.u64 + ut.u64;
+    tp->tv_sec = t / POW10_7;
+    tp->tv_nsec = ((int)(t % POW10_7)) * 100;
+
+    return 0;
+  }
+
+  default:
+    break;
+  }
+
+  return lc_set_errno(EINVAL);
+}
+#endif
+
 namespace ns_simd {
 
   /* long long not supported everywhere

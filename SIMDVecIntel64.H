@@ -5365,35 +5365,35 @@ namespace ns_simd {
 
 
   // ---------------------------------------------------------------------------
-  // movemask
+  // msb2int
   // ---------------------------------------------------------------------------
 
-  // 27. Aug 22 (Jonas Keller): added movemask functions
+  // 27. Aug 22 (Jonas Keller): added msb2int functions
 
 #ifdef __AVX512DQ__
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDInt,64> &a)
+  msb2int(const SIMDVec<SIMDInt,64> &a)
   {
     return _cvtmask16_u32(_mm512_movepi32_mask(a));
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDFloat,64> &a)
+  msb2int(const SIMDVec<SIMDFloat,64> &a)
   {
     return _cvtmask16_u32(_mm512_movepi32_mask(_mm512_castps_si512(a)));
   }
 #else // __AVX512DQ__
-  // workaround for movemask for 32 bits if AVX512DQ is not available
+  // workaround for msb2int for 32 bits if AVX512DQ is not available
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDInt,64> &a)
+  msb2int(const SIMDVec<SIMDInt,64> &a)
   {
     const __m512i mask = _mm512_set1_epi32(uint32_t(0x80000000));
     return _cvtmask16_u32(_mm512_test_epi32_mask(a, mask));
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDFloat,64> &a)
+  msb2int(const SIMDVec<SIMDFloat,64> &a)
   {
     const __m512i mask = _mm512_set1_epi32(0x80000000);
     return _cvtmask16_u32(_mm512_test_epi32_mask(_mm512_castps_si512(a), mask));
@@ -5402,30 +5402,30 @@ namespace ns_simd {
 
 #ifdef __AVX512BW__
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDByte,64> &a)
+  msb2int(const SIMDVec<SIMDByte,64> &a)
   {
     return _cvtmask64_u64(_mm512_movepi8_mask(a));
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDSignedByte,64> &a)
+  msb2int(const SIMDVec<SIMDSignedByte,64> &a)
   {
     return _cvtmask64_u64(_mm512_movepi8_mask(a));
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDShort,64> &a)
+  msb2int(const SIMDVec<SIMDShort,64> &a)
   {
     return _cvtmask32_u32(_mm512_movepi16_mask(a));
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDWord,64> &a)
+  msb2int(const SIMDVec<SIMDWord,64> &a)
   {
     return _cvtmask32_u32(_mm512_movepi16_mask(a));
   }
 #else // __AVX512BW__
-  // workaround for movemask for 8 and 16 bits if AVX512BW is not available
+  // workaround for msb2int for 8 and 16 bits if AVX512BW is not available
 
   // from: https://lemire.me/blog/2018/01/08/how-fast-can-you-bit-interleave-32-bit-integers/
   static SIMD_INLINE uint64_t
@@ -5440,12 +5440,12 @@ namespace ns_simd {
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDByte,64> &a)
+  msb2int(const SIMDVec<SIMDByte,64> &a)
   {
-    const uint64_t part3 = movemask(reinterpret<SIMDInt>(a));
-    const uint64_t part2 = movemask(reinterpret<SIMDInt>(slle<1>(a)));
-    const uint64_t part1 = movemask(reinterpret<SIMDInt>(slle<2>(a)));
-    const uint64_t part0 = movemask(reinterpret<SIMDInt>(slle<3>(a)));
+    const uint64_t part3 = msb2int(reinterpret<SIMDInt>(a));
+    const uint64_t part2 = msb2int(reinterpret<SIMDInt>(slle<1>(a)));
+    const uint64_t part1 = msb2int(reinterpret<SIMDInt>(slle<2>(a)));
+    const uint64_t part0 = msb2int(reinterpret<SIMDInt>(slle<3>(a)));
     // TODO: is there a more efficient way to interleave with 3 zeros instead of
     // interleaving with 1 zero twice?
     const uint64_t part3_with_zeros =
@@ -5461,12 +5461,12 @@ namespace ns_simd {
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDSignedByte,64> &a)
+  msb2int(const SIMDVec<SIMDSignedByte,64> &a)
   {
-    const uint64_t part3 = movemask(reinterpret<SIMDInt>(a));
-    const uint64_t part2 = movemask(reinterpret<SIMDInt>(slle<1>(a)));
-    const uint64_t part1 = movemask(reinterpret<SIMDInt>(slle<2>(a)));
-    const uint64_t part0 = movemask(reinterpret<SIMDInt>(slle<3>(a)));
+    const uint64_t part3 = msb2int(reinterpret<SIMDInt>(a));
+    const uint64_t part2 = msb2int(reinterpret<SIMDInt>(slle<1>(a)));
+    const uint64_t part1 = msb2int(reinterpret<SIMDInt>(slle<2>(a)));
+    const uint64_t part0 = msb2int(reinterpret<SIMDInt>(slle<3>(a)));
     // TODO: is there a more efficient way to interleave with 3 zeros instead of
     // interleaving with 1 zero twice?
     const uint64_t part3_with_zeros =
@@ -5482,19 +5482,19 @@ namespace ns_simd {
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDShort,64> &a)
+  msb2int(const SIMDVec<SIMDShort,64> &a)
   {
-    const uint64_t odd = movemask(reinterpret<SIMDInt>(a));
-    const uint64_t even = movemask(reinterpret<SIMDInt>(slle<1>(a)));
+    const uint64_t odd = msb2int(reinterpret<SIMDInt>(a));
+    const uint64_t even = msb2int(reinterpret<SIMDInt>(slle<1>(a)));
     return interleave_uint32_with_zeros(even) |
            (interleave_uint32_with_zeros(odd) << 1);
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDWord,64> &a)
+  msb2int(const SIMDVec<SIMDWord,64> &a)
   {
-    const uint64_t odd = movemask(reinterpret<SIMDInt>(a));
-    const uint64_t even = movemask(reinterpret<SIMDInt>(slle<1>(a)));
+    const uint64_t odd = msb2int(reinterpret<SIMDInt>(a));
+    const uint64_t even = msb2int(reinterpret<SIMDInt>(slle<1>(a)));
     return interleave_uint32_with_zeros(even) |
            (interleave_uint32_with_zeros(odd) << 1);
   }

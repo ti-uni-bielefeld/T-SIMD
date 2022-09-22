@@ -2035,13 +2035,13 @@ namespace ns_simd {
     }
   };
 
-  // 27. Aug 22 (Jonas Keller): added movemask
+  // 27. Aug 22 (Jonas Keller): added msb2int
 
   template <typename T, int SIMD_WIDTH>
-  struct Movemask
+  struct Msb2int
   {
     static SIMD_INLINE std::string name() 
-    { return t2s<T,SIMD_WIDTH>("movemask"); }
+    { return t2s<T,SIMD_WIDTH>("msb2int"); }
     
     static SIMD_INLINE void
     randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
@@ -2051,7 +2051,7 @@ namespace ns_simd {
     static SIMD_INLINE uint64_t
     apply(const VEC<T,SIMD_WIDTH> &a)
     {
-      return movemask(a);
+      return msb2int(a);
     }
   };
 

@@ -709,12 +709,12 @@ namespace ns_simd {
     return SIMDVec<T,SIMD_WIDTH>();
   }
 
-  // 27. Aug 22 (Jonas Keller): added movemask
+  // 27. Aug 22 (Jonas Keller): added msb2int
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<T, SIMD_WIDTH> &)
+  msb2int(const SIMDVec<T, SIMD_WIDTH> &)
   {
-    printf("movemask<%s,%d>(V)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    printf("msb2int<%s,%d>(V)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return 0;
   }
 

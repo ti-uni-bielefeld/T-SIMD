@@ -5256,33 +5256,36 @@ namespace ns_simd {
 
 
   // ---------------------------------------------------------------------------
-  // movemask
+  // msb2int
   // ---------------------------------------------------------------------------
 
-  // 26. Aug 22 (Jonas Keller): added movemask functions
+  // 26. Aug 22 (Jonas Keller): added msb2int functions
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDByte,32> &a)
+  msb2int(const SIMDVec<SIMDByte,32> &a)
   {
+    // TODO: workaround for AVX, _mm256_movemask_epi8 is AVX2 only
     // casting to uint32_t to prevent sign extension
     return (uint32_t)_mm256_movemask_epi8(a);
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDSignedByte,32> &a)
+  msb2int(const SIMDVec<SIMDSignedByte,32> &a)
   {
+    // TODO: workaround for AVX, _mm256_movemask_epi8 is AVX2 only
     // casting to uint32_t to prevent sign extension
     return (uint32_t)_mm256_movemask_epi8(a);
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDShort,32> &a)
+  msb2int(const SIMDVec<SIMDShort,32> &a)
   {
     // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
     // and discard the even bits
     // discarding the even bytes in a with a shuffle does not work,
     // since shuffle shuffles within 128 bit lanes
     // TODO: better way to do this?
+    // TODO: workaround for AVX, _mm256_movemask_epi8 is AVX2 only
     uint64_t x = _mm256_movemask_epi8(a);
     // idea from: https://stackoverflow.com/a/45695465/8461272
     // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.
@@ -5308,13 +5311,14 @@ namespace ns_simd {
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDWord,32> &a)
+  msb2int(const SIMDVec<SIMDWord,32> &a)
   {
     // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
     // and discard the even bits
     // discarding the even bytes in a with a shuffle does not work,
     // since shuffle shuffles within 128 bit lanes
     // TODO: better way to do this?
+    // TODO: workaround for AVX, _mm256_movemask_epi8 is AVX2 only
     uint64_t x = _mm256_movemask_epi8(a);
     // idea from: https://stackoverflow.com/a/45695465/8461272
     // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.
@@ -5340,13 +5344,13 @@ namespace ns_simd {
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDInt,32> &a)
+  msb2int(const SIMDVec<SIMDInt,32> &a)
   {
     return _mm256_movemask_ps(_mm256_castsi256_ps(a));
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDFloat,32> &a)
+  msb2int(const SIMDVec<SIMDFloat,32> &a)
   {
     return _mm256_movemask_ps(a);
   }

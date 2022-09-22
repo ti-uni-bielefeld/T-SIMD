@@ -3919,25 +3919,25 @@ namespace ns_simd {
   
 
   // ---------------------------------------------------------------------------
-  // movemask
+  // msb2int
   // ---------------------------------------------------------------------------
 
-  // 26. Aug 22 (Jonas Keller): added movemask functions
+  // 26. Aug 22 (Jonas Keller): added msb2int functions
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDByte,16> &a)
+  msb2int(const SIMDVec<SIMDByte,16> &a)
   {
     return _mm_movemask_epi8(a);
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDSignedByte,16> &a)
+  msb2int(const SIMDVec<SIMDSignedByte,16> &a)
   {
     return _mm_movemask_epi8(a);
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDShort,16> &a)
+  msb2int(const SIMDVec<SIMDShort,16> &a)
   {
     // move the upper bytes of the 8 shorts to the lower 8 bytes of the vector
     // and set the upper 8 bytes of to 0, so that _mm_movemask_epi8
@@ -3951,7 +3951,7 @@ namespace ns_simd {
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDWord,16> &a)
+  msb2int(const SIMDVec<SIMDWord,16> &a)
   {
     // move the upper bytes of the 8 words to the lower 8 bytes of the vector
     // and set the upper 8 bytes of to 0, so that _mm_movemask_epi8
@@ -3965,13 +3965,13 @@ namespace ns_simd {
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDInt,16> &a)
+  msb2int(const SIMDVec<SIMDInt,16> &a)
   {
     return _mm_movemask_ps(_mm_castsi128_ps(a));
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDFloat,16> &a)
+  msb2int(const SIMDVec<SIMDFloat,16> &a)
   {
     return _mm_movemask_ps(a);
   }

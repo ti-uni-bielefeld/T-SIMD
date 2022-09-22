@@ -2175,13 +2175,13 @@ namespace ns_simd {
   
 
   // ---------------------------------------------------------------------------
-  // movemask
+  // msb2int
   // ---------------------------------------------------------------------------
 
-  // 17. Sep 22 (Jonas Keller): added movemask functions
+  // 17. Sep 22 (Jonas Keller): added msb2int functions
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDByte, 16> &a)
+  msb2int(const SIMDVec<SIMDByte, 16> &a)
   {
     // from: https://stackoverflow.com/a/58381188/8461272
 
@@ -2211,16 +2211,16 @@ namespace ns_simd {
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDSignedByte,16> &a)
+  msb2int(const SIMDVec<SIMDSignedByte,16> &a)
   {
-    // the same as movemask(SIMDVec<SIMDByte,16>)
-    return movemask(reinterpret<SIMDByte>(a));
+    // the same as msb2int(SIMDVec<SIMDByte,16>)
+    return msb2int(reinterpret<SIMDByte>(a));
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDWord,16> &a)
+  msb2int(const SIMDVec<SIMDWord,16> &a)
   {
-    // analogous to movemask(SIMDVec<SIMDByte,16>)
+    // analogous to msb2int(SIMDVec<SIMDByte,16>)
     // idea from: https://stackoverflow.com/a/58381188/8461272
 
     // Shift out everything but the sign bits
@@ -2238,16 +2238,16 @@ namespace ns_simd {
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDShort,16> &a)
+  msb2int(const SIMDVec<SIMDShort,16> &a)
   {
-    // the same as movemask(SIMDVec<SIMDWord,16>)
-    return movemask(reinterpret<SIMDWord>(a));
+    // the same as msb2int(SIMDVec<SIMDWord,16>)
+    return msb2int(reinterpret<SIMDWord>(a));
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDInt,16> &a)
+  msb2int(const SIMDVec<SIMDInt,16> &a)
   {
-    // analogous to movemask(SIMDVec<SIMDByte,16>)
+    // analogous to msb2int(SIMDVec<SIMDByte,16>)
     // idea from: https://stackoverflow.com/a/58381188/8461272
 
     // Shift out everything but the sign bits
@@ -2262,10 +2262,10 @@ namespace ns_simd {
   }
 
   static SIMD_INLINE uint64_t
-  movemask(const SIMDVec<SIMDFloat,16> &a)
+  msb2int(const SIMDVec<SIMDFloat,16> &a)
   {
-    // the same as movemask(SIMDVec<SIMDInt,16>)
-    return movemask(reinterpret<SIMDInt>(a));
+    // the same as msb2int(SIMDVec<SIMDInt,16>)
+    return msb2int(reinterpret<SIMDInt>(a));
   }
 } // namespace ns_simd
 

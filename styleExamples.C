@@ -182,7 +182,7 @@ main(int argc, char *argv[])
   for (ssize_t i = 0; i < input.size; i++) {
     // float x = drand48();
     // + 1.0f since drand48 returns values in [0,1)
-    float x = (float)rand() / (RAND_MAX + 1.0f);
+    float x = (float)rand() / ((float)RAND_MAX + 1.0f);
     s += x;
     input.data[i] = x;
   }

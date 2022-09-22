@@ -1,0 +1,2 @@
+CompileFlags:
+  Add: [-march=native, -std=c++11, -Wall, -Wextra, -Wpedantic, -fno-operator-names]

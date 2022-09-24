@@ -29,188 +29,205 @@ set sandbox_test = 1
 set opt_test = 1
 set opt_arch_test = 1
 set comparison = 1
-set autotest_errors = 1
+set errors = 1
 set cppstd_test = 1
 set default_compilation = 1
 
 set VMK_JOBS = 16
 
 if ($useGccClang) then
-    # g++, clang++
-    # set compiler = g++
-    # set compiler = clang++-10
-    set arch_info_list = (\
-	 "sse2,-msse2" \
-	 "sse3,-msse3" \
-	 "ssse3,-mssse3" \
-	 "sse4.1,-msse4.1" \
-	 "sse4.2,-msse4.2" \
-	 "avx,-mavx" \
-	 "avx2,-mavx2" \
-	 "AVX512F,-mavx512f" \
-	 "AVX512DQ,-mavx512dq" \
-	 "AVX512BW,-mavx512bw" \
-	 "AVX512BWDQ,-mavx512bw,-mavx512dq" \
-	 "AVX512VBMI2,-mavx512bw,-mavx512dq,-mavx512vbmi,-mavx512vbmi2" \
-	 "native,-march=native" \
-    )
+  # g++, clang++
+  # set compiler = g++
+  # set compiler = clang++-10
+  set arch_info_list = (\
+    "sse2,-msse2" \
+    "sse3,-msse3" \
+    "ssse3,-mssse3" \
+    "sse4.1,-msse4.1" \
+    "sse4.2,-msse4.2" \
+    "avx,-mavx" \
+    "avx2,-mavx2" \
+    "AVX512F,-mavx512f" \
+    "AVX512DQ,-mavx512dq" \
+    "AVX512BW,-mavx512bw" \
+    "AVX512BWDQ,-mavx512bw,-mavx512dq" \
+    "AVX512VBMI2,-mavx512bw,-mavx512dq,-mavx512vbmi,-mavx512vbmi2" \
+    "native,-march=native" \
+  )
 endif
 
 if ($useICC) then
-    # icc
-    # 29. Jul 18 (rm): couldn't find option such that only AVX512F or
-    # AVX512F+BW are available
-    # TODO: vbmi2 version is still missing
-    # set compiler = icc
-    set arch_info_list = (\
-		      "sse2,-msse2" \
-		      "sse3,-msse3" \
-		      "ssse3,-mssse3" \
-		      "sse4.1,-msse4.1" \
-		      "sse4.2,-msse4.2" \
-		      "avx,-mavx" \
-		      "avx2,-march=skylake" \
-		      "AVX512BWDQ,-march=skylake-avx512" \
-		      "native,-march=native")
+  # icc
+  # 29. Jul 18 (rm): couldn't find option such that only AVX512F or
+  # AVX512F+BW are available
+  # TODO: vbmi2 version is still missing
+  # set compiler = icc
+  set arch_info_list = (\
+        "sse2,-msse2" \
+        "sse3,-msse3" \
+        "ssse3,-mssse3" \
+        "sse4.1,-msse4.1" \
+        "sse4.2,-msse4.2" \
+        "avx,-mavx" \
+        "avx2,-march=skylake" \
+        "AVX512BWDQ,-march=skylake-avx512" \
+        "native,-march=native")
 endif
 
-vset
-make platform_dirs
+if ($doitAlsoCompileAutoTest) then
+  set autotest_target = "autotest"
+else
+  set autotest_target = ""
+endif
+
+# vset # TODO: what is this?
+
+# make platform_dirs
 
 mkdir -p COMPILE_AND_TEST
 
 if ($sandbox_test) then
+  mkdir -p COMPILE_AND_TEST/sandbox
   foreach sandbox_defines ("" "-DSIMDVEC_SANDBOX")
-    echo "================= SANDBOX_DEFINES $sandbox_defines ================="
+    echo "================= sandbox_defines $sandbox_defines ================="
     if ($doitCompile) then
-	make clean
-	make dep
-	# make SANDBOX_DEFINES="$sandbox_defines" conf-info
-	make -j ${VMK_JOBS} SANDBOX_DEFINES="$sandbox_defines" all
-	if ($doitAlsoCompileAutoTest) then
-	    make -j 1 SANDBOX_DEFINES="$sandbox_defines" autotest
-	endif
+      make clean
+      make dep
+      # make sandbox_defines="$sandbox_defines" conf-info
+      make -j ${VMK_JOBS} sandbox_defines="$sandbox_defines" all $autotest_target >& COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log
     endif
     if ($doitRun) then
-	rehash
-	simdvectest > COMPILE_AND_TEST/sandbox_vec
-	# can't be used in sandbox mode at the moment
-	# simdmasktest > COMPILE_AND_TEST/sandbox_mask
+      rehash
+      ./simdvectest >& "COMPILE_AND_TEST/sandbox/run_simdvectest_$sandbox_defines.log" &
+      # can't be used in sandbox mode at the moment
+      ./simdmasktest >& "COMPILE_AND_TEST/sandbox/run_simdmasktest_$sandbox_defines.log" &
+      wait
     endif
   end
 endif
 
 if ($opt_test) then
-  foreach opt_flags ("-O0" "-O3 -funroll-loops")
-    echo "==================== OPT_FLAGS $opt_flags ===================="
+  mkdir -p COMPILE_AND_TEST/opt
+  foreach opt_flags ("-O3 -funroll-loops")# "-O0"
+    echo "==================== optflags $opt_flags ===================="
     if ($doitCompile) then
-	make clean
-	make dep
-	# make OPT_FLAGS="$opt_flags" conf-info
-	make -j ${VMK_JOBS} OPT_FLAGS="$opt_flags" all
-	if ($doitAlsoCompileAutoTest) then
-	    make -j 1 OPT_FLAGS="$opt_flags" autotest
-	endif
-	rehash
+      make clean
+      make dep
+      # make optflags="$opt_flags" conf-info
+      make -j ${VMK_JOBS} optflags="$opt_flags" all $autotest_target >& COMPILE_AND_TEST/opt/compile_${opt_flags}.log
+      rehash
     endif
   end
 endif
 
 if ($opt_arch_test) then
+  mkdir -p COMPILE_AND_TEST/opt_arch
   # uppercase letters for AVX512 to simplify comparison below
   foreach arch_info ($arch_info_list)
     # https://stackoverflow.com/questions/7735160/how-do-i-split-a-string-in-csh
     set arch_list = ($arch_info:as/,/ /)
     set arch = $arch_list[1]
     set arch_defines = "$arch_list[2-]"
+    mkdir -p COMPILE_AND_TEST/opt_arch/$arch
     # echo "arch_info = $arch_info"
     # echo "arch = $arch"
     # echo "arch_defines = $arch_defines"
-    foreach opt_flags ("-O0" "-O3 -funroll-loops")
-      echo "======== ARCH_DEFINES $arch_defines OPT_FLAGS $opt_flags ========"
+    foreach opt_flags ("-O3 -funroll-loops") #"-O0"
+      echo "======== flags_arch $arch_defines optflags $opt_flags ========"
       if ($doitCompile) then
-	make clean
-	make dep
-	# make ARCH_DEFINES="$arch_defines" conf-info
-	make -j ${VMK_JOBS} \
-	    ARCH_DEFINES="$arch_defines" OPT_FLAGS="$opt_flags" all
-	if ($doitAlsoCompileAutoTest) then
-	    make -j 1 \
-		ARCH_DEFINES="$arch_defines" OPT_FLAGS="$opt_flags" autotest
-	endif
+        make clean
+        make dep
+        # make flags_arch="$arch_defines" conf-info
+        make -j ${VMK_JOBS} \
+          flags_arch="$arch_defines" optflags="$opt_flags" all $autotest_target \
+          >& "COMPILE_AND_TEST/opt_arch/$arch/compile_$opt_flags.log"
       endif
     end
     # tests only for last compilation above
     echo "running tests for $arch"
     if ($doitRun) then
       rehash
-      make -j 1 flags-info ARCH_DEFINES="$arch_defines" > \
-	    COMPILE_AND_TEST/flags.$arch
-      simdvectest > COMPILE_AND_TEST/simdvectest.$arch
-      simdmasktest > COMPILE_AND_TEST/simdmasktest.$arch
+      make -j ${VMK_JOBS} flags-info flags_arch="$arch_defines" >& \
+	      COMPILE_AND_TEST/opt_arch/$arch/flags_info.log
+      ./simdvectest >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvectest.log &
+      ./simdmasktest >& COMPILE_AND_TEST/opt_arch/$arch/run_simdmasktest.log &
       if ($doitAlsoRunAutoTest) then
-	  simdvecautotest0 > COMPILE_AND_TEST/simdvecautotest.$arch
-	  simdvecautotest1 >> COMPILE_AND_TEST/simdvecautotest.$arch
+        ./simdvecautotest0 "" 10000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest0.log &
+        ./simdvecautotest1 "" 1000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest1.log &
+        ./simdvecautotestM "" 10000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotestM.log &
       endif
-      nativetest > COMPILE_AND_TEST/nativetest.$arch
+      ./nativetest >& COMPILE_AND_TEST/opt_arch/$arch/run_nativetest.log &
+      wait
     endif
   end
 endif
 
 if ($comparison) then
   echo "==================== comparison simdvectest ===================="
-  cd COMPILE_AND_TEST
-  foreach basearch ("sse" "avx" "AVX512")
-    foreach simdvectest1 (`ls -1 simdvectest.${basearch}*`)
-      foreach simdvectest2 (`ls -1 simdvectest.${basearch}*`)
-        if ($doitRun) then
-	    set diffres = `diff $simdvectest1 $simdvectest2`
-	    if ( $%diffres != 0 ) then
-		echo "$simdvectest1 $simdvectest2 differ"		
-	    endif
-	endif
-      end
+  mkdir -p COMPILE_AND_TEST/comparison
+  cd COMPILE_AND_TEST/opt_arch
+  foreach simdvectest1 (`ls -1d *`)
+    foreach simdvectest2 (`ls -1d *`)
+      if ($doitRun) then
+        set diffres = `diff $simdvectest1/run_simdvectest.log $simdvectest2/run_simdvectest.log`
+        if ( $%diffres != 0 ) then
+          echo "$simdvectest1/run_simdvectest.log and $simdvectest2/run_simdvectest.log differ" \
+            >> ../comparison/diff_simdvectest.log
+        endif
+      endif
     end
   end
-  cd ..
-endif
-
-if ($autotest_errors) then
-    echo "================= autotest errors ================"
-    if ($doitRun && $doitAlsoRunAutoTest) then
-	grep complete COMPILE_AND_TEST/simdvecautotest.*
-	echo "----------------------------------------------"
-	grep error COMPILE_AND_TEST/simdvecautotest.*
-    endif
+  cd ../..
 endif
 
 if ($cppstd_test) then
+  mkdir -p COMPILE_AND_TEST/cppstd
   foreach cppstd ("c++98" "c++11")
     set cppstd_defines = "-std=$cppstd"
-    echo "================= CPPSTD_DEFINES $cppstd_defines ================="
+    echo "================= flags_cppstd $cppstd_defines ================="
     if ($doitCompile) then
-	make clean
-	make dep
-	# make CPPSTD_DEFINES="$cppstd_defines" conf-info
-	make -j ${VMK_JOBS} CPPSTD_DEFINES="$cppstd_defines" all-std-indep
-	if ($doitAlsoCompileAutoTest) then
-	    make -j ${VMK_JOBS} CPPSTD_DEFINES="$cppstd_defines" autotest
-	endif
-	rehash
+      make clean
+      make dep
+      # make flags_cppstd="$cppstd_defines" conf-info
+      make -j ${VMK_JOBS} flags_cppstd="$cppstd_defines" all $autotest_target >& COMPILE_AND_TEST/cppstd/compile_${cppstd}.log
+      rehash
     endif
   end
 endif
 
 if ($default_compilation) then
-    echo "================== default compilation ================="
-    if ($doitCompile) then
-	make clean
-	make dep
-	make -j ${VMK_JOBS} all
-	if ($doitAlsoCompileAutoTest) then
-	    make -j 1 autotest
-	endif
-    endif
+  mkdir -p COMPILE_AND_TEST/default
+  echo "================== default compilation ================="
+  if ($doitCompile) then
+    make clean
+    make dep
+    make -j ${VMK_JOBS} all $autotest_target >& COMPILE_AND_TEST/default/compile.log
+  endif
 endif
 
+set where_there_errors = 0
+
+if ($errors) then
+  echo "================= errors ================"
+  grep -nri --exclude={errors,warnings,problems}.log error COMPILE_AND_TEST >& COMPILE_AND_TEST/errors.log
+  if ( -s COMPILE_AND_TEST/errors.log ) then
+    echo "There are errors! See COMPILE_AND_TEST/errors.log"
+    set where_there_errors = 1
+  endif
+  grep -nri --exclude={errors,warnings,problems}.log warning COMPILE_AND_TEST >& COMPILE_AND_TEST/warnings.log
+  if ( -s COMPILE_AND_TEST/warnings.log ) then
+    echo "There are warnings! See COMPILE_AND_TEST/warnings.log"
+    set where_there_errors = 1
+  endif
+  grep -nri --exclude={errors,warnings,problems}.log problem COMPILE_AND_TEST >& COMPILE_AND_TEST/problems.log
+  if ( -s COMPILE_AND_TEST/problems.log ) then
+    echo "There are problems! See COMPILE_AND_TEST/problems.log"
+    set where_there_errors = 1
+  endif
+endif
+
+make clean
+
 date
+
+exit $where_there_errors

@@ -76,7 +76,10 @@ libraries = -lm -lrt
 
 # optimization flags
 # -funroll-loops is faster in both min-warping phases
-optflags = -O3 -funroll-loops
+optflags ?= -O3 -funroll-loops
+
+# play in template sandbox only: -DSIMDVEC_SANDBOX
+sandbox_defines ?= # -DSIMDVEC_SANDBOX
 
 # user defines
 # - needed if we use constants in stdint.h: -D__STDC_LIMIT_MACROS
@@ -85,17 +88,17 @@ optflags = -O3 -funroll-loops
 # - valgrind: -mssse3 instead of -march=native for valgrind --tool=callgrind
 # - test different vector sets: -msse2, -msse3, -mssse3 -march=native
 # - activate SIMDVec load/store alignment check: -DSIMD_ALIGN_CHK
-# - play in template sandbox only: -DSIMDVEC_SANDBOX
 # - use -mfpu=neon for NEON version (instead of -pfmath=sse)
 # - use -mcpu=cortex-a15 for specific ARM CPU (better use -march=native though)
 # - use -std=c++98 or -std=c++11 (tsimdtest requires c++11)
 # - for tilt-search programs, -std=c++17 is required, now used
 
 # (ARM: remove -mfpmath=sse)
-userdefs_arch   = -march=native
+userdefs_arch   = -march=native -mfpmath=sse
 userdefs_avx512 = -mavx512f -mavx512bw -mavx512dq -mavx512vl -mpopcnt
-userdefs_c      = -Wall -Wextra -Wpedantic -mfpmath=sse -ggdb -fno-var-tracking
-userdefs_cpp    = -fno-operator-names -std=c++17
+userdefs_c      = -Wall -Wextra -Wpedantic -ggdb -fno-var-tracking
+userdefs_cppstd = -std=c++17
+userdefs_cpp    = -fno-operator-names
 
 # 20. Sep 22 (Jonas Keller): use secure template overloads on Windows and disable
 # warnings about unsafe functions
@@ -105,9 +108,9 @@ crt_sec_features_flags = -D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1 \
 
 # all flags (split into c and cpp (c++)) to avoid preprocessor warnings
 flags_c        = $(userdefs_c) $(optflags) $(EXTRA_DEFINES)
-flags_cpp      = $(userdefs_c) $(userdefs_cpp) $(optflags) $(EXTRA_DEFINES) \
-	$(crt_sec_features_flags)
-flags_arch     = $(userdefs_arch)
+flags_cppstd  ?= $(userdefs_cppstd)
+flags_cpp      = $(flags_c) $(userdefs_cpp) $(flags_cppstd) $(crt_sec_features_flags)
+flags_arch    ?= $(userdefs_arch)
 # use flags_avx512 on a non-avx512 machine (just to compile, won't run
 # on this machine), and flags_arch on a avx512 machine
 flags_archspec = $(userdefs_avx512) -pthread
@@ -218,6 +221,13 @@ info:
 	@echo "default_objects    " $(default_objects)
 	@echo "all_objects:       " $(all_objects)
 	@echo "all_cpp_files:     " $(all_cpp_files)
+
+# for compileAndTest
+.PHONY: flags-info
+flags-info:
+	@echo | $(compiler) -dM -E - $(flags_arch) \
+		$(optflags) $(EXTRA_DEFINES) \
+		| grep -e SSE -e AVX -e POPCNT | sort
 
 ifeq ($(depend),$(wildcard $(depend)))
 include $(depend)

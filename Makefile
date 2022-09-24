@@ -99,7 +99,8 @@ userdefs_cpp    = -fno-operator-names -std=c++17
 
 # 20. Sep 22 (Jonas Keller): use secure template overloads on Windows
 # see: https://learn.microsoft.com/en-us/cpp/c-runtime-library/security-features-in-the-crt
-crt_sec_features_flags = -D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1
+crt_sec_features_flags = -D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1 \
+	-D_CRT_SECURE_NO_WARNINGS
 
 # all flags (split into c and cpp (c++)) to avoid preprocessor warnings
 flags_c        = $(userdefs_c) $(optflags) $(EXTRA_DEFINES)

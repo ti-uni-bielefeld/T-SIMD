@@ -613,8 +613,8 @@ namespace ns_simd {
    const SIMDVec<TYPE,16> &,						\
    Range<true,false,SIMDVec<TYPE,16>::elements,2*SIMDVec<TYPE,16>::elements>) \
   {									\
-    return vextq_ ## NEON_SUF (h, vmovq_n_ ## NEON_SUF (TYPE(0)),	\
-			       IMM - SIMDVec<TYPE,16>::elements);	\
+    const int imm = IMM - SIMDVec<TYPE,16>::elements;				\
+    return vextq_ ## NEON_SUF (h, vmovq_n_ ## NEON_SUF (TYPE(0)),	imm);	\
   }
   
 #define SIMDVEC_NEON_ALIGNRE_OTHER(TYPE,NEON_SUF)			\

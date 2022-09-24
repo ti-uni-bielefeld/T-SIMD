@@ -92,7 +92,6 @@ if ($sandbox_test) then
     echo "================= sandbox_defines $sandbox_defines ================="
     if ($doitCompile) then
       make clean
-      make dep
       # make sandbox_defines="$sandbox_defines" conf-info
       make -j ${VMK_JOBS} sandbox_defines="$sandbox_defines" all $autotest_target >& COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log
     endif
@@ -112,7 +111,6 @@ if ($opt_test) then
     echo "==================== optflags $opt_flags ===================="
     if ($doitCompile) then
       make clean
-      make dep
       # make optflags="$opt_flags" conf-info
       make -j ${VMK_JOBS} optflags="$opt_flags" all $autotest_target >& COMPILE_AND_TEST/opt/compile_${opt_flags}.log
       rehash
@@ -136,7 +134,6 @@ if ($opt_arch_test) then
       echo "======== flags_arch $arch_defines optflags $opt_flags ========"
       if ($doitCompile) then
         make clean
-        make dep
         # make flags_arch="$arch_defines" conf-info
         make -j ${VMK_JOBS} \
           flags_arch="$arch_defines" optflags="$opt_flags" all $autotest_target \
@@ -187,7 +184,6 @@ if ($cppstd_test) then
     echo "================= flags_cppstd $cppstd_defines ================="
     if ($doitCompile) then
       make clean
-      make dep
       # make flags_cppstd="$cppstd_defines" conf-info
       make -j ${VMK_JOBS} flags_cppstd="$cppstd_defines" all $autotest_target >& COMPILE_AND_TEST/cppstd/compile_${cppstd}.log
       rehash
@@ -200,7 +196,6 @@ if ($default_compilation) then
   echo "================== default compilation ================="
   if ($doitCompile) then
     make clean
-    make dep
     make -j ${VMK_JOBS} all $autotest_target >& COMPILE_AND_TEST/default/compile.log
   endif
 endif

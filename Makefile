@@ -55,6 +55,9 @@ default_binaries = $(binaries) $(autotest_binaries)
 # (ARM: remove $(archspec_binaries))
 all_binaries = $(default_binaries) $(archspec_binaries)
 
+# dependency files
+depend_files = $(addsuffix .d,$(all_binaries))
+
 #===========================================================================
 # object files
 #===========================================================================
@@ -111,12 +114,10 @@ flags_c        = $(userdefs_c) $(optflags) $(EXTRA_DEFINES)
 flags_cppstd  ?= $(userdefs_cppstd)
 flags_cpp      = $(flags_c) $(userdefs_cpp) $(flags_cppstd) $(crt_sec_features_flags)
 flags_arch    ?= $(userdefs_arch)
+flags_depends  = -MMD -MP
 # use flags_avx512 on a non-avx512 machine (just to compile, won't run
 # on this machine), and flags_arch on a avx512 machine
 flags_archspec = $(userdefs_avx512) -pthread
-
-# dependencies
-depend = Makefile.depend
 
 # os dependent definitions
 ifeq ($(OS),Windows_NT) 
@@ -154,12 +155,12 @@ archspec: $(archspec_binaries)
 
 $(default_objects): %.o: %.C
 	@echo compiling default $@ from $<
-	@$(compiler) $(flags_arch) $(flags_cpp) -c $< -o $@
+	@$(compiler) $(flags_depends) $(flags_arch) $(flags_cpp) -c $< -o $@
 
 $(archspec_objects): %.o: %.C
 	@echo compiling archspec $@ from $<
 	@echo please select flags_archspec for your machine
-	@$(compiler) $(flags_archspec) $(flags_cpp) -c $< -o $@
+	@$(compiler) $(flags_depends) $(flags_archspec) $(flags_cpp) -c $< -o $@
 
 #===========================================================================
 # linker
@@ -185,19 +186,11 @@ $(archspec_binaries): %: %.o
 
 .PHONY: clean
 clean:
-	@echo deleting all binaries, all objects, all .exe files, all .ilk files, all .pdb files, backup files and dependency file $(depend)
-	@$(RM) $(all_objects) $(all_binaries) $(addsuffix .exe,$(all_binaries)) \
+	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files and backup files
+	@$(RM) $(all_objects) $(all_binaries) $(depend_files) \
+		$(addsuffix .exe,$(all_binaries)) \
 		$(addsuffix .ilk,$(all_binaries)) $(addsuffix .pdb,$(all_binaries)) \
-		*~ $(depend) >$(NULL) 2>&1
-
-# (ARM: remove second compiler invocation for archspec_cpp_files)
-.PHONY: dep
-dep: 
-	@echo generating dependency file $(depend)
-	@$(compiler) -M $(flags_arch) $(flags_cpp) $(default_cpp_files) \
-		> $(depend)
-	@$(compiler) -M $(flags_archspec) $(flags_cpp) $(archspec_cpp_files) \
-		>> $(depend)
+		*~ >$(NULL) 2>&1
 
 .PHONY: info
 info:
@@ -229,8 +222,4 @@ flags-info:
 		$(optflags) $(EXTRA_DEFINES) \
 		| grep -e SSE -e AVX -e POPCNT | sort
 
-ifeq ($(depend),$(wildcard $(depend)))
-include $(depend)
-else
-$(info warping: missing $(depend), make dep)
-endif
+-include $(depend_files)

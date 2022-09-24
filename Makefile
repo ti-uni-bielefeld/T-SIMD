@@ -125,6 +125,7 @@ all_cpp_files      = $(addsuffix .C,$(all_binaries))
 archspec_cpp_files = $(addsuffix .C,$(archspec_binaries))
 default_cpp_files  = $(addsuffix .C,$(default_binaries))
 
+.PHONY: all
 all: $(binaries)
 	@echo "use 'make autotest' to compile $(autotest_binaries)"
 	@echo "  requires long compilation time and may run out of memory,"
@@ -132,8 +133,10 @@ all: $(binaries)
 	@echo "use 'make archspec' to compile $(archspec_binaries)"
 	@echo "  please select flags_archspec for your machine"
 
+.PHONY: autotest
 autotest: $(autotest_binaries)
 
+.PHONY: archspec
 archspec: $(archspec_binaries)
 
 #===========================================================================
@@ -173,6 +176,7 @@ $(archspec_binaries): %: %.o
 # other rules
 #===========================================================================
 
+.PHONY: clean
 clean:
 	@echo deleting all objects $(all_objects), \
 		all binaries $(all_binaries),\
@@ -181,6 +185,7 @@ clean:
 	@$(RM) $(all_objects) $(all_binaries) $(autotest_binaries) *~ $(depend)
 
 # (ARM: remove second compiler invocation for archspec_cpp_files)
+.PHONY: dep
 dep: 
 	@echo generating dependency file $(depend)
 	@$(compiler) -M $(flags_arch) $(flags_cpp) $(default_cpp_files) \
@@ -188,6 +193,7 @@ dep:
 	@$(compiler) -M $(flags_archspec) $(flags_cpp) $(archspec_cpp_files) \
 		>> $(depend)
 
+.PHONY: info
 info:
 	@echo "vector extensions default"
 	@echo | $(compiler) -dM -E - $(flags_arch) $(flags_c) \

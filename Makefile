@@ -178,11 +178,10 @@ $(archspec_binaries): %: %.o
 
 .PHONY: clean
 clean:
-	@echo deleting all objects $(all_objects), \
-		all binaries $(all_binaries),\
-		backup files, \
-		dependency file $(depend)
-	@$(RM) $(all_objects) $(all_binaries) $(autotest_binaries) *~ $(depend)
+	@echo deleting all binaries, all objects, all .exe files, all .ilk files, all .pdb files, backup files and dependency file $(depend)
+	@$(RM) $(all_objects) $(all_binaries) $(addsuffix .exe,$(all_binaries)) \
+		$(addsuffix .ilk,$(all_binaries)) $(addsuffix .pdb,$(all_binaries)) \
+		*~ $(depend) >nul 2>&1
 
 # (ARM: remove second compiler invocation for archspec_cpp_files)
 .PHONY: dep

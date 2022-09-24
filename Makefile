@@ -97,7 +97,8 @@ userdefs_avx512 = -mavx512f -mavx512bw -mavx512dq -mavx512vl -mpopcnt
 userdefs_c      = -Wall -Wextra -Wpedantic -mfpmath=sse -ggdb -fno-var-tracking
 userdefs_cpp    = -fno-operator-names -std=c++17
 
-# 20. Sep 22 (Jonas Keller): use secure template overloads on Windows
+# 20. Sep 22 (Jonas Keller): use secure template overloads on Windows and disable
+# warnings about unsafe functions
 # see: https://learn.microsoft.com/en-us/cpp/c-runtime-library/security-features-in-the-crt
 crt_sec_features_flags = -D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1 \
 	-D_CRT_SECURE_NO_WARNINGS

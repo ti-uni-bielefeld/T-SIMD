@@ -63,7 +63,7 @@ namespace ns_simd {
       const SIMDMask<SIMDFloat, SIMD_WIDTH> &k, \
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a) \
   { \
-    return mask_ifelse(k, maskz_ ## OP (k, a), src); \
+    return mask_ifelse(k, OP (a), src); \
   }
 
   #define EMULATE_SOP(OP) EMULATE_SOP_INT(OP) EMULATE_SOP_FLOAT(OP)

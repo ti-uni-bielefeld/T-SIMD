@@ -1585,8 +1585,13 @@ namespace ns_simd {
   SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(slli,SIMDShort,vshlq_n,s16,16)  
   SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(slli,SIMDInt,vshlq_n,s32,32)  
 
+
+  // 26. Sep 22 (Jonas Keller):
+  // added SIMDByte and SIMDSignedByte versions of hadd, hadds, hsub and hsubs
+  // added SIMDWord version of hadds and hsubs
+
   // -------------------------------------------------------------------------
-  // hadd (16/32 only)
+  // hadd
   // -------------------------------------------------------------------------
 
 #define SIMDVEC_NEON_HADD(TYPE,NEON_SUF)				\
@@ -1601,14 +1606,43 @@ namespace ns_simd {
 			   vget_high_ ## NEON_SUF (b)));		\
   }
   
+  SIMDVEC_NEON_HADD(SIMDByte, u8)
+  SIMDVEC_NEON_HADD(SIMDSignedByte, s8)
   SIMDVEC_NEON_HADD(SIMDWord,u16)
   SIMDVEC_NEON_HADD(SIMDShort,s16)
   SIMDVEC_NEON_HADD(SIMDInt,s32)
   SIMDVEC_NEON_HADD(SIMDFloat,f32)
 
   // -------------------------------------------------------------------------
-  // hadds (signed 16/32 only)
+  // hadds
   // -------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDByte,16>
+  hadds(const SIMDVec<SIMDByte,16> &a,
+       const SIMDVec<SIMDByte,16> &b)
+  {
+    SIMDVec<SIMDByte, 16> x, y;
+    unzip<1>(a, b, x, y);
+    return adds(x, y);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  hadds(const SIMDVec<SIMDSignedByte,16> &a,
+       const SIMDVec<SIMDSignedByte,16> &b)
+  {
+    SIMDVec<SIMDSignedByte, 16> x, y;
+    unzip<1>(a, b, x, y);
+    return adds(x, y);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,16>
+  hadds(const SIMDVec<SIMDWord,16> &a,
+        const SIMDVec<SIMDWord,16> &b)
+  {
+    SIMDVec<SIMDWord, 16> x, y;
+    unzip<1>(a, b, x, y);
+    return adds(x, y);
+  }
 
   static SIMD_INLINE SIMDVec<SIMDShort,16>
   hadds(const SIMDVec<SIMDShort,16> &a,
@@ -1638,7 +1672,7 @@ namespace ns_simd {
 #endif
 
   // -------------------------------------------------------------------------
-  // hsub (16/32 only)
+  // hsub
   // -------------------------------------------------------------------------
 
   // via vuzp (unzip)
@@ -1652,14 +1686,43 @@ namespace ns_simd {
     return NEON_FCT ## _ ## NEON_SUF (unzip.val[0], unzip.val[1]);	\
   }
   
+  SIMDVEC_NEON_HOR_VIA_UZP(hsub,SIMDByte,vsubq,u8)
+  SIMDVEC_NEON_HOR_VIA_UZP(hsub,SIMDSignedByte,vsubq,s8)
   SIMDVEC_NEON_HOR_VIA_UZP(hsub,SIMDWord,vsubq,u16)
   SIMDVEC_NEON_HOR_VIA_UZP(hsub,SIMDShort,vsubq,s16)
   SIMDVEC_NEON_HOR_VIA_UZP(hsub,SIMDInt,vsubq,s32)
   SIMDVEC_NEON_HOR_VIA_UZP(hsub,SIMDFloat,vsubq,f32)
 
   // -------------------------------------------------------------------------
-  // hsubs (signed 16/32 only)
+  // hsubs
   // -------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDByte,16>
+  hsubs(const SIMDVec<SIMDByte,16> &a,
+        const SIMDVec<SIMDByte,16> &b)
+  {
+    SIMDVec<SIMDByte, 16> x, y;
+    unzip<1>(a, b, x, y);
+    return subs(x, y);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  hsubs(const SIMDVec<SIMDSignedByte,16> &a,
+        const SIMDVec<SIMDSignedByte,16> &b)
+  {
+    SIMDVec<SIMDSignedByte, 16> x, y;
+    unzip<1>(a, b, x, y);
+    return subs(x, y);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,16>
+  hsubs(const SIMDVec<SIMDWord,16> &a,
+        const SIMDVec<SIMDWord,16> &b)
+  {
+    SIMDVec<SIMDWord, 16> x, y;
+    unzip<1>(a, b, x, y);
+    return subs(x, y);
+  }
 
   SIMDVEC_NEON_HOR_VIA_UZP(hsubs,SIMDShort,vqsubq,s16)
   SIMDVEC_NEON_HOR_VIA_UZP(hsubs,SIMDInt,vqsubq,s32)

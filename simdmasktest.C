@@ -88,6 +88,9 @@ int main() {
 
 using namespace ns_simd;
 
+typedef uint64_t uinttest_t;
+#define PRIutest PRIu64
+
 #ifdef __SSE__
 unsigned int getcsr() { return _mm_getcsr(); }
 void setcsr(unsigned int a) { _mm_setcsr(a); }
@@ -110,11 +113,6 @@ bool vectorsEqual(const SIMDVec<SIMDFloat, 16> &a,
                   const SIMDVec<SIMDFloat, 16> &b) {
   return vectorsEqual(reinterpret<SIMDInt>(a), reinterpret<SIMDInt>(b));
 }
-typedef uint32_t uinttest_t;
-#define PRIutest PRIu32
-#else
-typedef uint64_t uinttest_t;
-#define PRIutest PRIu64
 #endif
 
 #ifdef __SSE__

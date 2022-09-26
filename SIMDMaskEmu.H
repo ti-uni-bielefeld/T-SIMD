@@ -55,7 +55,7 @@ namespace ns_simd {
   maskz_ ## OP (const SIMDMask<SIMDFloat, SIMD_WIDTH> &k, \
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a) \
   { \
-    return OP (mask_ifelse(k, a, setzero<SIMDFloat,SIMD_WIDTH>())); \
+    return mask_ifelse(k, OP (a), setzero<SIMDFloat,SIMD_WIDTH>()); \
   } \
   template <int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH> \

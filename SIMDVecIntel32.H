@@ -5261,20 +5261,28 @@ namespace ns_simd {
 
   // 26. Aug 22 (Jonas Keller): added msb2int functions
 
+  static SIMD_INLINE int x_mm256_movemask_epi8(__m256i a) {
+#ifdef __AVX2__
+    return _mm256_movemask_epi8(a);
+#else
+    const __m128i a0 = _mm256_extractf128_si256(a, 0);
+    const __m128i a1 = _mm256_extractf128_si256(a, 1);
+    return _mm_movemask_epi8(a0) | (_mm_movemask_epi8(a1) << 16);
+#endif
+  }
+
   static SIMD_INLINE uint64_t
   msb2int(const SIMDVec<SIMDByte,32> &a)
   {
-    // TODO: workaround for AVX, _mm256_movemask_epi8 is AVX2 only
     // casting to uint32_t to prevent sign extension
-    return (uint32_t)_mm256_movemask_epi8(a);
+    return (uint32_t)x_mm256_movemask_epi8(a);
   }
 
   static SIMD_INLINE uint64_t
   msb2int(const SIMDVec<SIMDSignedByte,32> &a)
   {
-    // TODO: workaround for AVX, _mm256_movemask_epi8 is AVX2 only
     // casting to uint32_t to prevent sign extension
-    return (uint32_t)_mm256_movemask_epi8(a);
+    return (uint32_t)x_mm256_movemask_epi8(a);
   }
 
   static SIMD_INLINE uint64_t
@@ -5285,8 +5293,7 @@ namespace ns_simd {
     // discarding the even bytes in a with a shuffle does not work,
     // since shuffle shuffles within 128 bit lanes
     // TODO: better way to do this?
-    // TODO: workaround for AVX, _mm256_movemask_epi8 is AVX2 only
-    uint64_t x = _mm256_movemask_epi8(a);
+    uint64_t x = x_mm256_movemask_epi8(a);
     // idea from: https://stackoverflow.com/a/45695465/8461272
     // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.
     // where a,b,c,d,... are the bits we care about and . represents
@@ -5318,8 +5325,7 @@ namespace ns_simd {
     // discarding the even bytes in a with a shuffle does not work,
     // since shuffle shuffles within 128 bit lanes
     // TODO: better way to do this?
-    // TODO: workaround for AVX, _mm256_movemask_epi8 is AVX2 only
-    uint64_t x = _mm256_movemask_epi8(a);
+    uint64_t x = x_mm256_movemask_epi8(a);
     // idea from: https://stackoverflow.com/a/45695465/8461272
     // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.
     // where a,b,c,d,... are the bits we care about and . represents

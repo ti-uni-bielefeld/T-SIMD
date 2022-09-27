@@ -32,16 +32,9 @@
 #ifdef __AVX__
 
 #include "SIMDMaskIntel16.H"
+#include "SIMDVecIntel32.H"
 
 namespace ns_simd {
-  static SIMD_INLINE uint64_t
-  x_mm256_movemask_epi8(__m256i a) {
-#ifdef __AVX2__
-    return ((unsigned int) _mm256_movemask_epi8(a)); // Cast to avoid sign extension
-#else
-    return ((unsigned int) ((_mm_movemask_epi8(_mm256_extractf128_si256(a, 1))<<16) | (_mm_movemask_epi8(_mm256_extractf128_si256(a, 0)))));
-#endif
-  }
 
   template <>
   class SIMDMask<SIMDByte, 32>
@@ -54,7 +47,7 @@ namespace ns_simd {
     SIMDMask& operator=(const __m256i &x) { k = x; return *this; }
     SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
     operator __m256i() const { return k; }
-    operator uint64_t() const { return x_mm256_movemask_epi8(k); }
+    operator uint64_t() const { return msb2int(SIMDVec<SIMDByte, 32>(k)); }
 #ifdef __AVX2__
     bool operator[](const uint8_t i) const { if(i>=32) { return false; } return ((1<<i)&_mm256_movemask_epi8(k))!=0; }
 #else
@@ -93,7 +86,7 @@ namespace ns_simd {
     SIMDMask& operator=(const __m256i &x) { k = x; return *this; }
     SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
     operator __m256i() const { return k; }
-    operator uint64_t() const { return x_mm256_movemask_epi8(k); }
+    operator uint64_t() const { return msb2int(SIMDVec<SIMDSignedByte, 32>(k)); }
 #ifdef __AVX2__
     bool operator[](const uint8_t i) const { if(i>=32) { return false; } return ((1<<i)&_mm256_movemask_epi8(k))!=0; }
 #else
@@ -132,17 +125,7 @@ namespace ns_simd {
     SIMDMask& operator=(const __m256i &x) { k = x; return *this; }
     SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
     operator __m256i() const { return k; }
-    operator uint64_t() const {
-        uint64_t a=x_mm256_movemask_epi8(k);
-        // Every second bit of a is needed, in a compact 16 bit number. Found on stackoverflow (https://stackoverflow.com/a/45385051)
-        a = a & 0x55555555;
-        // or for the alternate bits: a = (a >> 1) & 0x5555555555555555
-        a = (a | (a >>  1)) & 0x33333333;
-        a = (a | (a >>  2)) & 0x0f0f0f0f;
-        a = (a | (a >>  4)) & 0x00ff00ff;
-        a = (a | (a >>  8)) & 0x0000ffff;
-        return a;
-    }
+    operator uint64_t() const { return msb2int(SIMDVec<SIMDWord, 32>(k)); }
 #ifdef __AVX2__
     bool operator[](const uint8_t i) const { if(i>=16) { return false; } return ((3<<(2*i))&_mm256_movemask_epi8(k))!=0; }
 #else
@@ -181,17 +164,7 @@ namespace ns_simd {
     SIMDMask& operator=(const __m256i &x) { k = x; return *this; }
     SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
     operator __m256i() const { return k; }
-    operator uint64_t() const {
-        uint64_t a=x_mm256_movemask_epi8(k);
-        // Every second bit of a is needed, in a compact 16 bit number. Found on stackoverflow (https://stackoverflow.com/a/45385051)
-        a = a & 0x55555555;
-        // or for the alternate bits: a = (a >> 1) & 0x5555555555555555
-        a = (a | (a >>  1)) & 0x33333333;
-        a = (a | (a >>  2)) & 0x0f0f0f0f;
-        a = (a | (a >>  4)) & 0x00ff00ff;
-        a = (a | (a >>  8)) & 0x0000ffff;
-        return a;
-    }
+    operator uint64_t() const { return msb2int(SIMDVec<SIMDShort, 32>(k)); }
 #ifdef __AVX2__
     bool operator[](const uint8_t i) const { if(i>=16) { return false; } return ((3<<(2*i))&_mm256_movemask_epi8(k))!=0; }
 #else
@@ -230,7 +203,7 @@ namespace ns_simd {
     SIMDMask& operator=(const __m256i &x) { k = x; return *this; }
     SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
     operator __m256i() const { return k; }
-    operator uint64_t() const { return _mm256_movemask_ps(_mm256_castsi256_ps(k)); }
+    operator uint64_t() const { return msb2int(SIMDVec<SIMDInt, 32>(k)); }
     bool operator[](const uint8_t i) const { if(i>=8) { return false; } return ((1<<i)&_mm256_movemask_ps(_mm256_castsi256_ps(k)))!=0; }
 #ifdef __AVX2__
     bool operator==(const SIMDMask<SIMDInt, 32> &x) {
@@ -258,7 +231,7 @@ namespace ns_simd {
     SIMDMask& operator=(const __m256 &x) { k = x; return *this; }
     SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
     operator __m256() const { return k; }
-    operator uint64_t() const { return _mm256_movemask_ps(k); }
+    operator uint64_t() const { return msb2int(SIMDVec<SIMDFloat, 32>(k)); }
     bool operator[](const uint8_t i) const { if(i>=8) { return false; } return ((1<<i)&_mm256_movemask_ps(k))!=0; }
 #ifdef __AVX2__
     bool operator==(const SIMDMask<SIMDFloat, 32> &x) {

@@ -213,9 +213,10 @@ namespace ns_simd {
   }
 
   // inRows passed by-value to allow in-place transpose
+  // 30. Sep 22 (rm): was called transpose1, moved back to transpose
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
-  transpose1(const SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> inRows,
+  transpose(const SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> inRows,
 	    SIMDVecs<(SIMD_WIDTH/sizeof(T)),T,SIMD_WIDTH> &outRows)
   {
     transpose(inRows.vec, outRows.vec);

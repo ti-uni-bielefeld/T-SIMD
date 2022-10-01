@@ -639,9 +639,6 @@ struct TesterMaskUnaryTI<T, SIMD_WIDTH, IMAX, IMAX, FCT> {
 };
 
 template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT>
-// using TesterMaskUnaryTIMinToMax =
-//     TesterMaskUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-//                       FCT<0, T, SIMD_WIDTH>::maxI, FCT>;
 struct TesterMaskUnaryTIMinToMax {
   static void test(int repeats, const std::string &pattern) {
     TesterMaskUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
@@ -701,9 +698,6 @@ struct TesterMaskZUnaryTI<T, SIMD_WIDTH, IMAX, IMAX, FCT> {
 };
 
 template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT>
-//using TesterMaskZUnaryTIMinToMax =
-//    TesterMaskZUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-//                       FCT<0, T, SIMD_WIDTH>::maxI, FCT>;
 struct TesterMaskZUnaryTIMinToMax {
   static void test(int repeats, const std::string &pattern) {
     TesterMaskZUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
@@ -759,9 +753,6 @@ struct TesterUnaryKTI<T, SIMD_WIDTH, IMAX, IMAX, FCT> {
 };
 
 template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT>
-//using TesterUnaryKTIMinToMax =
-//    TesterUnaryKTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-//                   FCT<0, T, SIMD_WIDTH>::maxI, FCT>;
 struct TesterUnaryKTIMinToMax {
   static void test(int repeats, const std::string &pattern) {
     TesterUnaryKTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,

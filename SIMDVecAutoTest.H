@@ -88,31 +88,6 @@ namespace ns_simd {
   // tests for different type combinations: no additional template argument
   // ===========================================================================
 
-  template <template <typename, int, template <typename, int> class>
-            class Tester,
-            int SIMD_WIDTH, template <typename, int> class FCT, typename... Ts>
-  struct TestList;
-
-  template <template <typename, int, template <typename, int> class>
-            class Tester,
-            int SIMD_WIDTH, template <typename, int> class FCT, typename T>
-  struct TestList<Tester, SIMD_WIDTH, FCT, T> {
-    static void test(int repeats, const std::string &pattern) {
-      Tester<T, SIMD_WIDTH, FCT>::test(repeats, pattern);
-    }
-  };
-
-  template <template <typename, int, template <typename, int> class>
-            class Tester,
-            int SIMD_WIDTH, template <typename, int> class FCT, typename T,
-            typename... Ts>
-  struct TestList<Tester, SIMD_WIDTH, FCT, T, Ts...> {
-    static void test(int repeats, const std::string &pattern) {
-      Tester<T, SIMD_WIDTH, FCT>::test(repeats, pattern);
-      TestList<Tester, SIMD_WIDTH, FCT, Ts...>::test(repeats, pattern);
-    }
-  };
-
   template <template <typename, int, 
 		      template <typename, int> class> class Tester,
 	    int SIMD_WIDTH,
@@ -197,35 +172,26 @@ namespace ns_simd {
     }
   };
 
+  template <template <typename, int, 
+		      template <typename, int> class> class Tester,
+	    int SIMD_WIDTH, 
+	    template <typename, int> class FCT>
+  struct TestAllExceptSignedByte
+  {
+    static void
+    test(int repeats, const std::string &pattern)
+    {
+      Tester<SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
+    }
+  };
+
   // ===========================================================================
   // tests for different type combinations: one additional int template argument
   // ===========================================================================
-
-  template <template <typename, int, template <int, typename, int> class>
-            class Tester,
-            int SIMD_WIDTH, template <int, typename, int> class FCT,
-            typename... Ts>
-  struct TestListTI;
-
-  template <template <typename, int, template <int, typename, int> class>
-            class Tester,
-            int SIMD_WIDTH, template <int, typename, int> class FCT, typename T>
-  struct TestListTI<Tester, SIMD_WIDTH, FCT, T> {
-    static void test(int repeats, const std::string &pattern) {
-      Tester<T, SIMD_WIDTH, FCT>::test(repeats, pattern);
-    }
-  };
-
-  template <template <typename, int, template <int, typename, int> class>
-            class Tester,
-            int SIMD_WIDTH, template <int, typename, int> class FCT, typename T,
-            typename... Ts>
-  struct TestListTI<Tester, SIMD_WIDTH, FCT, T, Ts...> {
-    static void test(int repeats, const std::string &pattern) {
-      Tester<T, SIMD_WIDTH, FCT>::test(repeats, pattern);
-      TestListTI<Tester, SIMD_WIDTH, FCT, Ts...>::test(repeats, pattern);
-    }
-  };
 
   template <template <typename, int, 
 		      template <int, typename, int> class> class Tester,
@@ -282,6 +248,21 @@ namespace ns_simd {
       TestUnsignedIntTI<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
     }
   };
+  
+  template <template <typename, int, 
+		      template <int, typename, int> class> class Tester,
+	    int SIMD_WIDTH, 
+	    template <int, typename, int> class FCT>
+  struct TestIntExcept8BitTI
+  {
+    static void
+    test(int repeats, const std::string &pattern)
+    {
+      Tester<SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
+    }
+  };
       
   template <template <typename, int, 
 		      template <int, typename, int> class> class Tester,
@@ -311,35 +292,26 @@ namespace ns_simd {
     }
   };
 
+  template <template <typename, int, 
+		      template <int, typename, int> class> class Tester,
+	    int SIMD_WIDTH, 
+	    template <int, typename, int> class FCT>
+  struct TestAllExceptSignedByteTI
+  {
+    static void
+    test(int repeats, const std::string &pattern)
+    {
+      Tester<SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
+    }
+  };
+
   // ===========================================================================
   // tests for different type combinations: two additional int template args.
   // ===========================================================================
-
-  template <template <typename, int, template <int,int, typename, int> class>
-            class Tester,
-            int SIMD_WIDTH, template <int, int, typename, int> class FCT,
-            typename... Ts>
-  struct TestListTII;
-
-  template <template <typename, int, template <int,int, typename, int> class>
-            class Tester,
-            int SIMD_WIDTH, template <int, int, typename, int> class FCT, typename T>
-  struct TestListTII<Tester, SIMD_WIDTH, FCT, T> {
-    static void test(int repeats, const std::string &pattern) {
-      Tester<T, SIMD_WIDTH, FCT>::test(repeats, pattern);
-    }
-  };
-
-  template <template <typename, int, template <int,int, typename, int> class>
-            class Tester,
-            int SIMD_WIDTH, template <int, int, typename, int> class FCT, typename T,
-            typename... Ts>
-  struct TestListTII<Tester, SIMD_WIDTH, FCT, T, Ts...> {
-    static void test(int repeats, const std::string &pattern) {
-      Tester<T, SIMD_WIDTH, FCT>::test(repeats, pattern);
-      TestListTII<Tester, SIMD_WIDTH, FCT, Ts...>::test(repeats, pattern);
-    }
-  };
 
   template <template <typename, int, 
 		      template <int, int, typename, int> class> class Tester,

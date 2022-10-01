@@ -218,7 +218,7 @@ namespace ns_simd {
   maskz_set1 (const SIMDMask<T, SIMD_WIDTH> &k,
       const T a)
   {
-    return mask_ifelse(k, set1(a), setzero<T, SIMD_WIDTH>());
+    return mask_ifelse(k, set1<T, SIMD_WIDTH>(a), setzero<T, SIMD_WIDTH>());
   }
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -226,7 +226,7 @@ namespace ns_simd {
       const SIMDMask<T, SIMD_WIDTH> &k,
       const T a)
   {
-    return mask_ifelse(k, set1(a), src);
+    return mask_ifelse(k, set1<T, SIMD_WIDTH>(a), src);
   }
 
   EMULATE_DOP(add)

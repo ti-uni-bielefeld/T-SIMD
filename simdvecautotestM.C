@@ -90,27 +90,17 @@ int main(int argc, char *argv[]) {
   TestAll<TesterMaskZBinary, SW, MaskZ_max>::test(repeats1, pattern);
 
   // TODO: masked div2r0 and div2rd are not implemented for SIMDSignedByte
-  TestList<TesterMaskUnary, SW, Mask_div2r0, SIMDByte, SIMDWord, SIMDShort,
-           SIMDInt, SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskZUnary, SW, MaskZ_div2r0, SIMDByte, SIMDWord, SIMDShort,
-           SIMDInt, SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskUnary, SW, Mask_div2rd, SIMDByte, SIMDWord, SIMDShort,
-           SIMDInt, SIMDFloat>::test(repeats1, pattern);
-  TestList<TesterMaskZUnary, SW, MaskZ_div2rd, SIMDByte, SIMDWord, SIMDShort,
-           SIMDInt, SIMDFloat>::test(repeats1, pattern);
+  TestAllExceptSignedByte<TesterMaskUnary, SW, Mask_div2r0>::test(repeats1, pattern);
+  TestAllExceptSignedByte<TesterMaskZUnary, SW, MaskZ_div2r0>::test(repeats1, pattern);
+  TestAllExceptSignedByte<TesterMaskUnary, SW, Mask_div2rd>::test(repeats1, pattern);
+  TestAllExceptSignedByte<TesterMaskZUnary, SW, MaskZ_div2rd>::test(repeats1, pattern);
 
-  TestListTI<TesterMaskUnaryTIMinToMax, SW, Mask_srai, SIMDWord, SIMDShort,
-             SIMDInt>::test(repeats1, pattern);
-  TestListTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_srai, SIMDWord, SIMDShort,
-             SIMDInt>::test(repeats1, pattern);
-  TestListTI<TesterMaskUnaryTIMinToMax, SW, Mask_srli, SIMDWord, SIMDShort,
-             SIMDInt>::test(repeats1, pattern);
-  TestListTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_srli, SIMDWord, SIMDShort,
-             SIMDInt>::test(repeats1, pattern);
-  TestListTI<TesterMaskUnaryTIMinToMax, SW, Mask_slli, SIMDWord, SIMDShort,
-             SIMDInt>::test(repeats1, pattern);
-  TestListTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_slli, SIMDWord, SIMDShort,
-             SIMDInt>::test(repeats1, pattern);
+  TestIntExcept8BitTI<TesterMaskUnaryTIMinToMax, SW, Mask_srai>::test(repeats1, pattern);
+  TestIntExcept8BitTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_srai>::test(repeats1, pattern);
+  TestIntExcept8BitTI<TesterMaskUnaryTIMinToMax, SW, Mask_srli>::test(repeats1, pattern);
+  TestIntExcept8BitTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_srli>::test(repeats1, pattern);
+  TestIntExcept8BitTI<TesterMaskUnaryTIMinToMax, SW, Mask_slli>::test(repeats1, pattern);
+  TestIntExcept8BitTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_slli>::test(repeats1, pattern);
 
   TestAll<TesterMaskBinary, SW, Mask_hadd>::test(repeats1, pattern);
   TestAll<TesterMaskZBinary, SW, MaskZ_hadd>::test(repeats1, pattern);

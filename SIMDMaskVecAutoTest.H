@@ -11,11 +11,11 @@
 namespace ns_simd {
 
 #define PRINT_VEC(T, VEC) PRINT(SIMDTypeInfo<T>::defaultFormat(), VEC)
-#define PRINT_SERIAL_MASK(MASK)                                                \
+#define PRINT_SERIAL_MASK(T, SIMD_WIDTH, MASK)                                                \
   {                                                                            \
     printf(#MASK "\t= ");                                                      \
     fflush(stdout);                                                            \
-    std::string s = std::bitset<MASK.bits>(MASK).to_string();                  \
+    std::string s = std::bitset<SIMDSerialMask<T, SIMD_WIDTH>::bits>(MASK).to_string();                  \
     std::cout << std::string(s.rbegin(), s.rend()) << std::endl << std::flush; \
   }
 #define PRINT_SCALAR(T, SCALAR)                                                \
@@ -51,7 +51,7 @@ struct TesterMaskUnary {
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
           PRINT_VEC(T, src);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(T, cs);
           PRINT_VEC(T, cp);
@@ -90,7 +90,7 @@ struct TesterMaskZUnary {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(T, cs);
           PRINT_VEC(T, cp);
@@ -133,7 +133,7 @@ struct TesterMaskBinary {
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
           PRINT_VEC(T, src);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(T, b);
           PRINT_VEC(T, cs);
@@ -174,7 +174,7 @@ struct TesterMaskZBinary {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(T, b);
           PRINT_VEC(T, cs);
@@ -215,7 +215,7 @@ struct TesterMaskConditionBinary {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(T, b);
           PRINT_VEC(T, cs);
@@ -255,7 +255,7 @@ struct TesterMaskConditionUnary {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(T, cs);
           PRINT_VEC(T, cp);
@@ -300,7 +300,7 @@ struct TesterMaskUnaryTemplateType {
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
           PRINT_VEC(Tout, src);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(Tout, cs);
           PRINT_VEC(Tout, cp);
@@ -341,7 +341,7 @@ struct TesterMaskZUnaryTemplateType {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(Tout, cs);
           PRINT_VEC(Tout, cp);
@@ -382,7 +382,7 @@ struct TesterMaskScalar {
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
           PRINT_VEC(T, src);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_SCALAR(T, a);
           PRINT_VEC(T, cs);
           PRINT_VEC(T, cp);
@@ -420,7 +420,7 @@ struct TesterMaskZScalar {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_SCALAR(T, a);
           PRINT_VEC(T, cs);
           PRINT_VEC(T, cp);
@@ -461,11 +461,11 @@ struct TesterMaskCmp {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(T, b);
-          PRINT_SERIAL_MASK(cs);
-          PRINT_SERIAL_MASK(cp);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cs);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cp);
         }
         EXIT;
       }
@@ -499,7 +499,7 @@ struct TesterMaskUnaryInt {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_SCALAR(int, cs);
           PRINT_SCALAR(int, cp);
@@ -536,9 +536,9 @@ struct TesterUnaryK {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
-          PRINT_SERIAL_MASK(cs);
-          PRINT_SERIAL_MASK(cp);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cs);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cp);
         }
         EXIT;
       }
@@ -573,10 +573,10 @@ struct TesterBinaryK {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
-          PRINT_SERIAL_MASK(l);
-          PRINT_SERIAL_MASK(cs);
-          PRINT_SERIAL_MASK(cp);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, l);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cs);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cp);
         }
         EXIT;
       }
@@ -616,7 +616,7 @@ struct TesterMaskUnaryTI {
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
           PRINT_VEC(T, src);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(T, cs);
           PRINT_VEC(T, cp);
@@ -639,9 +639,15 @@ struct TesterMaskUnaryTI<T, SIMD_WIDTH, IMAX, IMAX, FCT> {
 };
 
 template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT>
-using TesterMaskUnaryTIMinToMax =
+// using TesterMaskUnaryTIMinToMax =
+//     TesterMaskUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
+//                       FCT<0, T, SIMD_WIDTH>::maxI, FCT>;
+struct TesterMaskUnaryTIMinToMax {
+  static void test(int repeats, const std::string &pattern) {
     TesterMaskUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-                      FCT<0, T, SIMD_WIDTH>::maxI, FCT>;
+                      FCT<0, T, SIMD_WIDTH>::maxI, FCT>::test(repeats, pattern);
+  }
+};
 
 // =============================================================================
 // test for masked functions with a mask and one vector argument
@@ -672,7 +678,7 @@ struct TesterMaskZUnaryTI {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
           PRINT_VEC(T, a);
           PRINT_VEC(T, cs);
           PRINT_VEC(T, cp);
@@ -695,9 +701,15 @@ struct TesterMaskZUnaryTI<T, SIMD_WIDTH, IMAX, IMAX, FCT> {
 };
 
 template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT>
-using TesterMaskZUnaryTIMinToMax =
+//using TesterMaskZUnaryTIMinToMax =
+//    TesterMaskZUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
+//                       FCT<0, T, SIMD_WIDTH>::maxI, FCT>;
+struct TesterMaskZUnaryTIMinToMax {
+  static void test(int repeats, const std::string &pattern) {
     TesterMaskZUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-                       FCT<0, T, SIMD_WIDTH>::maxI, FCT>;
+                       FCT<0, T, SIMD_WIDTH>::maxI, FCT>::test(repeats, pattern);
+  }
+};
 
 // =============================================================================
 // test for unary mask functions with one int template parameter
@@ -725,9 +737,9 @@ struct TesterUnaryKTI {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
-          PRINT_SERIAL_MASK(k);
-          PRINT_SERIAL_MASK(cs);
-          PRINT_SERIAL_MASK(cp);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cs);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cp);
         }
         EXIT;
       }
@@ -747,9 +759,15 @@ struct TesterUnaryKTI<T, SIMD_WIDTH, IMAX, IMAX, FCT> {
 };
 
 template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT>
-using TesterUnaryKTIMinToMax =
+//using TesterUnaryKTIMinToMax =
+//    TesterUnaryKTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
+//                   FCT<0, T, SIMD_WIDTH>::maxI, FCT>;
+struct TesterUnaryKTIMinToMax {
+  static void test(int repeats, const std::string &pattern) {
     TesterUnaryKTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-                   FCT<0, T, SIMD_WIDTH>::maxI, FCT>;
+                   FCT<0, T, SIMD_WIDTH>::maxI, FCT>::test(repeats, pattern);
+  }
+};
 
 } // namespace ns_simd
 

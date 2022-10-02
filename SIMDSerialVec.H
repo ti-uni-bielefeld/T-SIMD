@@ -499,6 +499,11 @@ namespace ns_simd {
   // daz: treat denormal as zero
   // =========================================================================
 
+  // 02. Oct 22 (Jonas Keller):
+  // renamed daz to daz_neon and added daz
+  // daz now always flushes denormals to zero, while daz_neon only does so
+  // on ARM NEON platforms
+
   // NOTE: there are differences in the behavior of fwaddmul and
   // fmuladd depending on the architecture flags; -mavx2 works,
   // -march=native on an avx2 shows differences between serial and
@@ -507,32 +512,44 @@ namespace ns_simd {
   // fused-multiply-add (on avx this flag is not different and we see
   // no differences)
 
+  // no daz for integer types
+  template <typename T>
+  static SIMD_INLINE T
+  daz(T x)
+  {
+    return x;
+  }
+
+  // daz for float
+  static SIMD_INLINE SIMDFloat
+  daz(SIMDFloat x)
+  {
+    if (std::isnormal(x) || std::isnan(x) || !std::isfinite(x)) return x;
+    // x is now either +0.0f, -0.0f or denormal
+    // return 0.0f with the same sign as x
+    uint32_t sign = (*(uint32_t*)&x) & 0x80000000;
+    if (sign) return -0.0f;
+    else      return  0.0f;
+  }
+
   // no daz for integer on all architectures
   template <typename T>
   static SIMD_INLINE T
-  daz(T a)
+  daz_neon(T a)
   {
     return a;
   }
 
-  // no daz for SIMDFloat on Intel
-#if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
   static SIMD_INLINE SIMDFloat
-  daz(SIMDFloat a)
+  daz_neon(SIMDFloat a)
   {
-    return a;
-  }
-#endif
-
-  // use daz for ARM NEON
 #ifdef SIMDVEC_NEON_ENABLE
-  static SIMD_INLINE SIMDFloat
-  daz(SIMDFloat a)
-  {
-    if (std::isnormal(a) || std::isnan(a) || !std::isfinite(a)) return a;
-    return 0.0f;
-  }
+    // use daz for ARM NEON
+    return daz(a);
+#else
+    return a;
 #endif
+  }
 
   // =========================================================================
   // auxiliary functions
@@ -546,7 +563,7 @@ namespace ns_simd {
   static SIMD_INLINE T
   _add(T a, T b)
   {
-    return daz(daz(a) + daz(b));
+    return daz_neon(daz_neon(a) + daz_neon(b));
   }
 
   // -------------------------------------------------------------------------
@@ -593,7 +610,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDFloat
   _adds(SIMDFloat a, SIMDFloat b)
   {
-    return daz(daz(a) + daz(b));
+    return daz_neon(daz_neon(a) + daz_neon(b));
   }
   
   // -------------------------------------------------------------------------
@@ -604,7 +621,7 @@ namespace ns_simd {
   static SIMD_INLINE T
   _sub(T a, T b)
   {
-    return daz(daz(a) - daz(b));
+    return daz_neon(daz_neon(a) - daz_neon(b));
   }
 
   // -------------------------------------------------------------------------
@@ -651,7 +668,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDFloat
   _subs(SIMDFloat a, SIMDFloat b)
   {
-    return daz(daz(a) - daz(b));
+    return daz_neon(daz_neon(a) - daz_neon(b));
   }
 
 #if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
@@ -686,13 +703,13 @@ namespace ns_simd {
   static SIMD_INLINE SIMDFloat
   _mul(SIMDFloat a, SIMDFloat b)
   {
-    return daz(daz(a) * daz(b));
+    return daz_neon(daz_neon(a) * daz_neon(b));
   }
 
   static SIMD_INLINE SIMDFloat
   _div(SIMDFloat a, SIMDFloat b)
   {
-    return daz(daz(a) / daz(b));
+    return daz_neon(daz_neon(a) / daz_neon(b));
   }
 
   // -------------------------------------------------------------------------
@@ -709,7 +726,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDFloat
   _min(SIMDFloat a, SIMDFloat b)
   {
-    return daz(fmin(daz(a), daz(b)));
+    return daz_neon(fmin(daz_neon(a), daz_neon(b)));
   }
 
   template <typename T>
@@ -722,7 +739,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDFloat
   _max(SIMDFloat a, SIMDFloat b)
   {
-    return daz(fmax(daz(a), daz(b)));
+    return daz_neon(fmax(daz_neon(a), daz_neon(b)));
   }
 
   // -------------------------------------------------------------------------
@@ -1264,7 +1281,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = std::ceil(daz(a[i]));
+      c[i] = std::ceil(daz_neon(a[i]));
     return c;
   }
 
@@ -1274,7 +1291,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = std::floor(daz(a[i]));
+      c[i] = std::floor(daz_neon(a[i]));
     return c;
   }
 
@@ -1294,7 +1311,7 @@ namespace ns_simd {
 #ifdef SIMDVEC_NEON_ENABLE
   // I'm not sure about this one, this is at least the NEON
   // implementation of the workaround if vrndq is missing;
-  // also not sure whether daz() is required
+  // also not sure whether daz_neon() is required
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
   round(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a)
@@ -1302,7 +1319,7 @@ namespace ns_simd {
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
       // std::round has different behavior
-      c[i] = std::floor(daz(a[i]) + 0.5f);
+      c[i] = std::floor(daz_neon(a[i]) + 0.5f);
     return c;
   }
 #endif
@@ -1313,12 +1330,51 @@ namespace ns_simd {
   {
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = ::truncf(daz(a[i]));
+      c[i] = ::truncf(daz_neon(a[i]));
     return c;
   }
 
-  // TODO: rcp (not possible since hardware implementation is not known)
-  // TODO: rsqrt (not possible since hardware implementation is not known)
+  // 02. Oct 22 (Jonas Keller): added rcp and rsqrt
+
+  // NOTE: hardware implementation is not known
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
+  rcp(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a)
+  {
+    SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
+    for (int i = 0; i < c.elements; i++)
+#if defined(SIMDVEC_INTEL_ENABLE) &&                                           \
+    (defined(__SSE__) || defined(__AVX__) || defined(__AVX2__)) &&             \
+    !defined(__AVX512F__)
+      // sse and avx version of rcp treats denormals as zero, in the input
+      // and output
+      c[i] = daz(1.0f / daz(a[i]));
+#else
+      // TODO: is daz_neon() required here?
+      c[i] = daz_neon(1.0f / daz_neon(a[i]));
+#endif
+    return c;
+  }
+
+  // NOTE: hardware implementation is not known
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
+  rsqrt(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a)
+  {
+    SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
+    for (int i = 0; i < c.elements; i++)
+#if defined(SIMDVEC_INTEL_ENABLE) &&                                           \
+    (defined(__SSE__) || defined(__AVX__) || defined(__AVX2__)) &&             \
+    !defined(__AVX512F__)
+      // sse and avx version of rsqrt treats denormals as zero, in the input
+      // and output
+      c[i] = daz(1.0f / std::sqrt(daz(a[i])));
+#else
+      // TODO: is daz_neon() required here?
+      c[i] = daz_neon(1.0f / std::sqrt(daz_neon(a[i])));
+#endif
+    return c;
+  }
   
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
@@ -1326,7 +1382,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = daz(std::sqrt(daz(a[i])));
+      c[i] = daz_neon(std::sqrt(daz_neon(a[i])));
     return c;
   }
 
@@ -1753,7 +1809,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = (daz(a[i]) < daz(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
+      c[i] = (daz_neon(a[i]) < daz_neon(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
     return c;
   }
 
@@ -1764,7 +1820,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = (daz(a[i]) <= daz(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
+      c[i] = (daz_neon(a[i]) <= daz_neon(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
     return c;
   }
 
@@ -1775,7 +1831,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = (daz(a[i]) == daz(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
+      c[i] = (daz_neon(a[i]) == daz_neon(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
     return c;
   }
 
@@ -1786,7 +1842,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = (daz(a[i]) >= daz(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
+      c[i] = (daz_neon(a[i]) >= daz_neon(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
     return c;
   }
 
@@ -1797,7 +1853,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = (daz(a[i]) > daz(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
+      c[i] = (daz_neon(a[i]) > daz_neon(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
     return c;
   }
 
@@ -1808,7 +1864,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = (daz(a[i]) != daz(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
+      c[i] = (daz_neon(a[i]) != daz_neon(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
     return c;
   }
 
@@ -1942,7 +1998,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = daz(0.5f * (daz(a[i]) + daz(b[i])));
+      c[i] = daz_neon(0.5f * (daz_neon(a[i]) + daz_neon(b[i])));
     return c;
   }
 
@@ -2433,7 +2489,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = daz(0.5f * (daz(a[i]) + daz(b[i])));
+      c[i] = daz_neon(0.5f * (daz_neon(a[i]) + daz_neon(b[i])));
     return c;
   }
 
@@ -2470,7 +2526,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = daz(daz(a[i]) / 2.0f);
+      c[i] = daz_neon(daz_neon(a[i]) / 2.0f);
     return c;
   }
   
@@ -2492,7 +2548,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = daz(daz(a[i]) / 2.0f);
+      c[i] = daz_neon(daz_neon(a[i]) / 2.0f);
     return c;
   }
 

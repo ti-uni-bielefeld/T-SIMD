@@ -58,8 +58,6 @@ int main(int argc, char *argv[]) {
   TestAll<TesterMaskZBinary, SW, MaskZ_subs>::test(repeats1, pattern);
   TestFloat<TesterMaskBinary, SW, Mask_mul>::test(repeats1, pattern);
   TestFloat<TesterMaskZBinary, SW, MaskZ_mul>::test(repeats1, pattern);
-  TestFloat<TesterMaskBinary, SW, Mask_div>::test(repeats1, pattern);
-  TestFloat<TesterMaskZBinary, SW, MaskZ_div>::test(repeats1, pattern);
   TestFloat<TesterMaskUnary, SW, Mask_ceil>::test(repeats1, pattern);
   TestFloat<TesterMaskZUnary, SW, MaskZ_ceil>::test(repeats1, pattern);
   TestFloat<TesterMaskUnary, SW, Mask_floor>::test(repeats1, pattern);
@@ -68,8 +66,33 @@ int main(int argc, char *argv[]) {
   TestFloat<TesterMaskZUnary, SW, MaskZ_round>::test(repeats1, pattern);
   TestFloat<TesterMaskUnary, SW, Mask_truncate>::test(repeats1, pattern);
   TestFloat<TesterMaskZUnary, SW, MaskZ_truncate>::test(repeats1, pattern);
+  // TODO: div and sqrt are approximations on NEON, figure out max relative error
+  TestFloat<TesterMaskBinary, SW, Mask_div>::test(repeats1, pattern);
+  TestFloat<TesterMaskZBinary, SW, MaskZ_div>::test(repeats1, pattern);
   TestFloat<TesterMaskUnary, SW, Mask_sqrt>::test(repeats1, pattern);
   TestFloat<TesterMaskZUnary, SW, MaskZ_sqrt>::test(repeats1, pattern);
+  // 02. Oct 22 (Jonas Keller): added consideration of relative error for rcp and rsqrt
+#if SIMDVEC_INTEL_ENABLE
+#if (defined(__SSE__) || defined(__AVX__)) && !defined(__AVX512F__)
+  // for sse and avx the relative error is 1.5*2^-12
+  TestFloat<TesterMaskUnary, SW, Mask_rcp,CmpRelError<15, -1, -12> >::test(repeats1, pattern);
+  TestFloat<TesterMaskZUnary, SW, MaskZ_rcp,CmpRelError<15, -1, -12> >::test(repeats1, pattern);
+  TestFloat<TesterMaskUnary, SW, Mask_rsqrt,CmpRelError<15, -1, -12> >::test(repeats1, pattern);
+  TestFloat<TesterMaskZUnary, SW, MaskZ_rsqrt,CmpRelError<15, -1, -12> >::test(repeats1, pattern);
+#elif defined(__AVX512F__)
+  // for avx512 the relative error is 2^-14
+  TestFloat<TesterMaskUnary, SW, Mask_rcp,CmpRelError<1, 0, -14> >::test(repeats1, pattern);
+  TestFloat<TesterMaskZUnary, SW, MaskZ_rcp,CmpRelError<1, 0, -14> >::test(repeats1, pattern);
+  TestFloat<TesterMaskUnary, SW, Mask_rsqrt,CmpRelError<1, 0, -14> >::test(repeats1, pattern);
+  TestFloat<TesterMaskZUnary, SW, MaskZ_rsqrt,CmpRelError<1, 0, -14> >::test(repeats1, pattern);
+#endif
+#else
+  // TODO: rcp and rsqrt are approximations on NEON, figure out max relative error
+  TestFloat<TesterMaskUnary, SW, Mask_rcp>::test(repeats1, pattern);
+  TestFloat<TesterMaskZUnary, SW, MaskZ_rcp>::test(repeats1, pattern);
+  TestFloat<TesterMaskUnary, SW, Mask_rsqrt>::test(repeats1, pattern);
+  TestFloat<TesterMaskZUnary, SW, MaskZ_rsqrt>::test(repeats1, pattern);
+#endif
   TestSigned<TesterMaskUnary, SW, Mask_abs>::test(repeats1, pattern);
   TestSigned<TesterMaskZUnary, SW, MaskZ_abs>::test(repeats1, pattern);
   TestAll<TesterMaskBinary, SW, Mask_and>::test(repeats1, pattern);

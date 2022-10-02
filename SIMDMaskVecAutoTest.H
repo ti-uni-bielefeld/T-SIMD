@@ -8,14 +8,17 @@
 #include <iostream>
 #include <string>
 
+// 02. Oct 22 (Jonas Keller): added support for different comparators
+
 namespace ns_simd {
 
 #define PRINT_VEC(T, VEC) PRINT(SIMDTypeInfo<T>::defaultFormat(), VEC)
-#define PRINT_SERIAL_MASK(T, SIMD_WIDTH, MASK)                                                \
+#define PRINT_SERIAL_MASK(T, SIMD_WIDTH, MASK)                                 \
   {                                                                            \
     printf(#MASK "\t= ");                                                      \
     fflush(stdout);                                                            \
-    std::string s = std::bitset<SIMDSerialMask<T, SIMD_WIDTH>::bits>(MASK).to_string();                  \
+    std::string s =                                                            \
+        std::bitset<SIMDSerialMask<T, SIMD_WIDTH>::bits>(MASK).to_string();    \
     std::cout << std::string(s.rbegin(), s.rend()) << std::endl << std::flush; \
   }
 #define PRINT_SCALAR(T, SCALAR)                                                \
@@ -26,7 +29,8 @@ namespace ns_simd {
 // argument
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskUnary {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -46,7 +50,7 @@ struct TesterMaskUnary {
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -67,7 +71,8 @@ struct TesterMaskUnary {
 // test for masked functions with a mask and one regular vector argument
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskZUnary {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -86,7 +91,7 @@ struct TesterMaskZUnary {
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -107,7 +112,8 @@ struct TesterMaskZUnary {
 // arguments
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskBinary {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -128,7 +134,7 @@ struct TesterMaskBinary {
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a, b);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a, b);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -150,7 +156,8 @@ struct TesterMaskBinary {
 // test for masked functions with a mask and two regular vector arguments
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskZBinary {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -170,7 +177,7 @@ struct TesterMaskZBinary {
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a, b);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -191,7 +198,8 @@ struct TesterMaskZBinary {
 // test for masked functions with one mask and two vector arguments
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskConditionBinary {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -211,7 +219,7 @@ struct TesterMaskConditionBinary {
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a, b);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -232,7 +240,8 @@ struct TesterMaskConditionBinary {
 // test for masked functions with one mask and one vector argument
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskConditionUnary {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -251,7 +260,7 @@ struct TesterMaskConditionUnary {
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -273,7 +282,8 @@ struct TesterMaskConditionUnary {
 // =============================================================================
 
 template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT>
+          template <typename, typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskUnaryTemplateType {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
@@ -295,7 +305,7 @@ struct TesterMaskUnaryTemplateType {
       SIMDSerialVec<Tout, SIMD_WIDTH> cp =
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k,
                                                                       a);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -318,7 +328,8 @@ struct TesterMaskUnaryTemplateType {
 // =============================================================================
 
 template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT>
+          template <typename, typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskZUnaryTemplateType {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
@@ -337,7 +348,7 @@ struct TesterMaskZUnaryTemplateType {
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       SIMDSerialVec<Tout, SIMD_WIDTH> cp =
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -357,7 +368,8 @@ struct TesterMaskZUnaryTemplateType {
 // test for masked functions with a vector src, a mask and one scalar argument
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskScalar {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -377,7 +389,7 @@ struct TesterMaskScalar {
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -398,7 +410,8 @@ struct TesterMaskScalar {
 // test for masked functions with a mask and one scalar argument
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskZScalar {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -416,7 +429,7 @@ struct TesterMaskZScalar {
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -437,7 +450,8 @@ struct TesterMaskZScalar {
 // a mask
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskCmp {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -478,7 +492,8 @@ struct TesterMaskCmp {
 // an int
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskUnaryInt {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -495,7 +510,7 @@ struct TesterMaskUnaryInt {
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
       int cs = FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       int cp = FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
-      if (cs != cp) {
+      if (!CMP::cmpScalar(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -515,7 +530,8 @@ struct TesterMaskUnaryInt {
 // test for unary mask functions
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterUnaryK {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -551,7 +567,8 @@ struct TesterUnaryK {
 // test for binary mask functions
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterBinaryK {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -591,7 +608,8 @@ struct TesterBinaryK {
 // =============================================================================
 
 template <typename T, int SIMD_WIDTH, int I, int IMAX,
-          template <int, typename, int> class FCT>
+          template <int, typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskUnaryTI {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
@@ -611,7 +629,7 @@ struct TesterMaskUnaryTI {
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -633,12 +651,13 @@ struct TesterMaskUnaryTI {
 
 // end of recursion at I = IMAX
 template <typename T, int SIMD_WIDTH, int IMAX,
-          template <int, typename, int> class FCT>
-struct TesterMaskUnaryTI<T, SIMD_WIDTH, IMAX, IMAX, FCT> {
+          template <int, typename, int> class FCT, class CMP>
+struct TesterMaskUnaryTI<T, SIMD_WIDTH, IMAX, IMAX, FCT, CMP> {
   static void test(int, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskUnaryTIMinToMax {
   static void test(int repeats, const std::string &pattern) {
     TesterMaskUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
@@ -652,7 +671,8 @@ struct TesterMaskUnaryTIMinToMax {
 // =============================================================================
 
 template <typename T, int SIMD_WIDTH, int I, int IMAX,
-          template <int, typename, int> class FCT>
+          template <int, typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskZUnaryTI {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
@@ -671,7 +691,7 @@ struct TesterMaskZUnaryTI {
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
-      if (cs != cp) {
+      if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
           printError(name, args);
@@ -692,16 +712,18 @@ struct TesterMaskZUnaryTI {
 
 // end of recursion at I = IMAX
 template <typename T, int SIMD_WIDTH, int IMAX,
-          template <int, typename, int> class FCT>
-struct TesterMaskZUnaryTI<T, SIMD_WIDTH, IMAX, IMAX, FCT> {
+          template <int, typename, int> class FCT, class CMP>
+struct TesterMaskZUnaryTI<T, SIMD_WIDTH, IMAX, IMAX, FCT, CMP> {
   static void test(int, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterMaskZUnaryTIMinToMax {
   static void test(int repeats, const std::string &pattern) {
     TesterMaskZUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-                       FCT<0, T, SIMD_WIDTH>::maxI, FCT>::test(repeats, pattern);
+                       FCT<0, T, SIMD_WIDTH>::maxI, FCT>::test(repeats,
+                                                               pattern);
   }
 };
 
@@ -710,7 +732,8 @@ struct TesterMaskZUnaryTIMinToMax {
 // =============================================================================
 
 template <typename T, int SIMD_WIDTH, int I, int IMAX,
-          template <int, typename, int> class FCT>
+          template <int, typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterUnaryKTI {
   static void test(int repeats, const std::string &pattern) {
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
@@ -747,12 +770,13 @@ struct TesterUnaryKTI {
 
 // end of recursion at I = IMAX
 template <typename T, int SIMD_WIDTH, int IMAX,
-          template <int, typename, int> class FCT>
-struct TesterUnaryKTI<T, SIMD_WIDTH, IMAX, IMAX, FCT> {
+          template <int, typename, int> class FCT, class CMP>
+struct TesterUnaryKTI<T, SIMD_WIDTH, IMAX, IMAX, FCT, CMP> {
   static void test(int, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT>
+template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
+          class CMP = CmpEqual>
 struct TesterUnaryKTIMinToMax {
   static void test(int repeats, const std::string &pattern) {
     TesterUnaryKTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,

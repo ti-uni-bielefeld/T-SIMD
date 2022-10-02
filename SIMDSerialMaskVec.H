@@ -288,8 +288,9 @@ GENERATE_SERIAL_MASK_MASKZ_UNARY(floor)
 GENERATE_SERIAL_MASK_MASKZ_UNARY(round)
 GENERATE_SERIAL_MASK_MASKZ_UNARY(truncate)
 
-// TODO: rcp (not possible since hardware implementation is not known)
-// TODO: rsqrt (not possible since hardware implementation is not known)
+// 02. Oct 22 (Jonas Keller): added rcp and rsqrt
+GENERATE_SERIAL_MASK_MASKZ_UNARY(rcp)
+GENERATE_SERIAL_MASK_MASKZ_UNARY(rsqrt)
 
 GENERATE_SERIAL_MASK_MASKZ_UNARY(sqrt)
 GENERATE_SERIAL_MASK_MASKZ_UNARY(abs)

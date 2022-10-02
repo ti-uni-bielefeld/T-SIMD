@@ -36,6 +36,8 @@
 // factor of at least 6 with clang and there is no reason to inline the test
 // functions
 
+// 02. Oct 22 (Jonas Keller): added support for different comparators
+
 #ifndef _SIMD_VEC_AUTO_TEST_H_
 #define _SIMD_VEC_AUTO_TEST_H_
 
@@ -85,107 +87,188 @@ namespace ns_simd {
   }
 
   // ===========================================================================
+  // comparators to provide different comparison methods
+  // ===========================================================================
+
+  struct CmpEqual {
+    // compare bit patterns for all integers
+    template <typename T>
+    static bool cmpScalar(T expected, T actual) {
+      return memcmp(&expected, &actual, sizeof(T)) == 0;
+    }
+
+    // compare floats while making sure that -0.0f == +0.0f
+    static bool cmpScalar(float expected, float actual) {
+      // if the bits are equal, the floats are equal
+      if (memcmp(&expected, &actual, sizeof(float)) == 0) {
+        return true;
+      }
+      // if the floats are both +-0, they are equal
+      return (fabs(expected) == 0.0f) && (fabs(actual) == 0.0f);
+    }
+
+    template <typename T, int SIMD_WIDTH>
+    static bool cmpVec(SIMDSerialVec<T, SIMD_WIDTH> &expected,
+                       SIMDSerialVec<T, SIMD_WIDTH> &actual) {
+      if (memcmp(&expected, &actual,
+                 sizeof(SIMDSerialVec<T, SIMD_WIDTH>)) == 0) {
+        return true;
+      }
+      for (int i = 0; i < SIMDSerialVec<T, SIMD_WIDTH>::elems; ++i) {
+        if (!cmpScalar(expected[i], actual[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
+  // allows a relative error of COEFF * 10^EXP_10 * 2^EXP_2 for floats
+  // a maximum relative error of 1.5*2^-12 for example can be specified
+  // with CmpRelErr<15, -1, -12>
+  // (because 15 * 10^-1 * 2^-12 = 1.5 * 2^-12)
+  template <int64_t COEFF, int64_t EXP_10, int64_t EXP_2>
+  struct CmpRelError {
+    // for integers, just use the equal comparator
+    template <typename T> static bool cmpScalar(T expected, T actual) {
+      return CmpEqual::cmpScalar(expected, actual);
+    }
+
+    // for floats, compare the relative error, if the floats are not the same
+    static bool cmpScalar(float expected, float actual) {
+      if (CmpEqual::cmpScalar(expected, actual)) {
+        return true;
+      }
+      float maxRelErr = COEFF * pow(10, EXP_10) * pow(2, EXP_2);
+      float relErr = fabs(expected - actual) / fabs(expected);
+      return relErr <= maxRelErr;
+    }
+
+    template <typename T, int SIMD_WIDTH>
+    static bool cmpVec(SIMDSerialVec<T, SIMD_WIDTH> &expected,
+                       SIMDSerialVec<T, SIMD_WIDTH> &actual) {
+      if (memcmp((void *)&expected, (void *)&actual,
+                 sizeof(SIMDSerialVec<T, SIMD_WIDTH>)) == 0) {
+        return true;
+      }
+      for (int i = 0; i < SIMDSerialVec<T, SIMD_WIDTH>::elems; ++i) {
+        if (!cmpScalar(expected[i], actual[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
+  // ===========================================================================
   // tests for different type combinations: no additional template argument
   // ===========================================================================
 
   template <template <typename, int, 
-		      template <typename, int> class> class Tester,
+		      template <typename, int> class, class> class Tester,
 	    int SIMD_WIDTH,
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestSignedInt
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <typename, int> class> class Tester,
+		      template <typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestUnsignedInt
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <typename, int> class> class Tester,
+		      template <typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestFloat
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
   
   template <template <typename, int, 
-		      template <typename, int> class> class Tester,
+		      template <typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestInt
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      TestSignedInt<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      TestUnsignedInt<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      TestSignedInt<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      TestUnsignedInt<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
       
   template <template <typename, int, 
-		      template <typename, int> class> class Tester,
+		      template <typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestSigned
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      TestSignedInt<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      TestFloat<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      TestSignedInt<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      TestFloat<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <typename, int> class> class Tester,
+		      template <typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestAll
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      TestInt<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      TestFloat<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      TestInt<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      TestFloat<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <typename, int> class> class Tester,
+		      template <typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestAllExceptSignedByte
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
@@ -194,118 +277,126 @@ namespace ns_simd {
   // ===========================================================================
 
   template <template <typename, int, 
-		      template <int, typename, int> class> class Tester,
+		      template <int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestSignedIntTI
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <int, typename, int> class> class Tester,
+		      template <int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestUnsignedIntTI
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <int, typename, int> class> class Tester,
+		      template <int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestFloatTI
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
   
   template <template <typename, int, 
-		      template <int, typename, int> class> class Tester,
+		      template <int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestIntTI
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      TestSignedIntTI<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      TestUnsignedIntTI<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      TestSignedIntTI<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      TestUnsignedIntTI<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
   
   template <template <typename, int, 
-		      template <int, typename, int> class> class Tester,
+		      template <int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestIntExcept8BitTI
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
       
   template <template <typename, int, 
-		      template <int, typename, int> class> class Tester,
+		      template <int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestSignedTI
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      TestSignedIntTI<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      TestFloatTI<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      TestSignedIntTI<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      TestFloatTI<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <int, typename, int> class> class Tester,
+		      template <int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestAllTI
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      TestIntTI<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      TestFloatTI<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      TestIntTI<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      TestFloatTI<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <int, typename, int> class> class Tester,
+		      template <int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestAllExceptSignedByteTI
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
@@ -314,86 +405,92 @@ namespace ns_simd {
   // ===========================================================================
 
   template <template <typename, int, 
-		      template <int, int, typename, int> class> class Tester,
+		      template <int, int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH,
-	    template <int, int, typename, int> class FCT>
+	    template <int, int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestSignedIntTII
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <int, int, typename, int> class> class Tester,
+		      template <int, int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, int, typename, int> class FCT>
+	    template <int, int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestUnsignedIntTII
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <int, int, typename, int> class> class Tester,
+		      template <int, int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, int, typename, int> class FCT>
+	    template <int, int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestFloatTII
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
   
   template <template <typename, int, 
-		      template <int, int, typename, int> class> class Tester,
+		      template <int, int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, int, typename, int> class FCT>
+	    template <int, int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestIntTII
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      TestSignedIntTII<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      TestUnsignedIntTII<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      TestSignedIntTII<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      TestUnsignedIntTII<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
       
   template <template <typename, int, 
-		      template <int, int, typename, int> class> class Tester,
+		      template <int, int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, int, typename, int> class FCT>
+	    template <int, int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestSignedTII
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      TestSignedIntTII<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      TestFloatTII<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      TestSignedIntTII<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      TestFloatTII<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <template <typename, int, 
-		      template <int, int, typename, int> class> class Tester,
+		      template <int, int, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH, 
-	    template <int, int, typename, int> class FCT>
+	    template <int, int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestAllTII
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      TestIntTII<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      TestFloatTII<Tester,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      TestIntTII<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      TestFloatTII<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
@@ -402,50 +499,51 @@ namespace ns_simd {
   // ===========================================================================
 
   template <template <typename, typename, int,
-		      template <typename, typename, int> class> class Tester,
+		      template <typename, typename, int> class, class> class Tester,
 	    int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TestAllTT
   {
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDByte,SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDByte,SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDSignedByte,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDByte,SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDWord,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDByte,SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDShort,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDByte,SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDInt,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDByte,SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDFloat,SIMD_WIDTH,FCT>::test(repeats, pattern);
+      Tester<SIMDByte,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDByte,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDByte,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDByte,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDByte,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDByte,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 
@@ -454,7 +552,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH,
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct Nullary
   {
     static void
@@ -471,7 +570,7 @@ namespace ns_simd {
 	for (int i = 0; i < repeats; i++, trials++) {
 	  cs = FCT<T,SIMD_WIDTH>::template apply<SIMDSerialVec>();
 	  cp = FCT<T,SIMD_WIDTH>::template apply<SIMDVec>();
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -491,7 +590,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH,
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct Unary
   {
     static void
@@ -508,7 +608,7 @@ namespace ns_simd {
 	  FCT<T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<T,SIMD_WIDTH>::apply(a);
 	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec());
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -529,7 +629,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH,
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct Scalar
   {
     static void
@@ -547,7 +648,7 @@ namespace ns_simd {
 	  a = FCT<T,SIMD_WIDTH>::randomizeInputScalar();
 	  cs = FCT<T,SIMD_WIDTH>::template apply<SIMDSerialVec>(a);
 	  cp = FCT<T,SIMD_WIDTH>::template apply<SIMDVec>(a);
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -569,7 +670,8 @@ namespace ns_simd {
 
   // vector if type T, scalar result of type TRES
   template <typename TRES, typename T, int SIMD_WIDTH,
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct UnaryScalar
   {
     static void
@@ -588,7 +690,7 @@ namespace ns_simd {
 	  FCT<T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<T,SIMD_WIDTH>::apply(a);
 	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec());
-	  if (!sameScalar(cs, cp) /*cs != cp*/) {
+	  if (!CMP::cmpScalar(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -605,20 +707,23 @@ namespace ns_simd {
   };
 
   template <typename T, int SIMD_WIDTH,
-	    template <typename, int> class FCT>
-  struct UnaryScalarT : public UnaryScalar<T,T,SIMD_WIDTH,FCT> 
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
+  struct UnaryScalarT : public UnaryScalar<T,T,SIMD_WIDTH,FCT,CMP> 
   {
   };
 
   template <typename T, int SIMD_WIDTH,
-	    template <typename, int> class FCT>
-  struct UnaryScalarInt : public UnaryScalar<int,T,SIMD_WIDTH,FCT> 
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
+  struct UnaryScalarInt : public UnaryScalar<int,T,SIMD_WIDTH,FCT,CMP> 
   {
   };
 
   // 17. Sep 22 (Jonas Keller): added UnaryScalarUInt64
   template <typename T, int SIMD_WIDTH,
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct UnaryScalarUInt64
   {
     static void
@@ -637,7 +742,7 @@ namespace ns_simd {
 	  FCT<T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<T,SIMD_WIDTH>::apply(a);
 	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec());
-	  if (!sameScalar(cs, cp) /*cs != cp*/) {
+	  if (!CMP::cmpScalar(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -658,7 +763,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename Tout, typename T, int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct UnaryTemplateType
   {
     static void
@@ -677,7 +783,7 @@ namespace ns_simd {
 	  FCT<Tout,T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<Tout,T,SIMD_WIDTH>::apply(a);
 	  cp = FCT<Tout,T,SIMD_WIDTH>::apply(a.getSIMDVec());
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -698,7 +804,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH, int I, int N,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct UnaryTemplateIntScalar
   {
     static void
@@ -716,7 +823,7 @@ namespace ns_simd {
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<I,T,SIMD_WIDTH>::apply(a);
 	  cp = FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec());
-	  if (!sameScalar(cs, cp) /*cs != cp*/) {
+	  if (!CMP::cmpScalar(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -737,8 +844,9 @@ namespace ns_simd {
 
   // end of recursion at I = maxI
   template <typename T, int SIMD_WIDTH, int N,
-	    template <int, typename, int> class FCT>
-  struct UnaryTemplateIntScalar<T,SIMD_WIDTH,N,N,FCT>
+	    template <int, typename, int> class FCT,
+      class CMP>
+  struct UnaryTemplateIntScalar<T,SIMD_WIDTH,N,N,FCT,CMP>
   {
     static void
     test(int, const std::string&)
@@ -747,7 +855,8 @@ namespace ns_simd {
   };
 
   template <typename T, int SIMD_WIDTH,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct UnaryTemplateIntScalarMinToMax
   {
     static void
@@ -756,7 +865,7 @@ namespace ns_simd {
       UnaryTemplateIntScalar<T, SIMD_WIDTH, 
 			     FCT<0,T,SIMD_WIDTH>::minI, 
 			     FCT<0,T,SIMD_WIDTH>::maxI, 
-			     FCT>::test(repeats, pattern);
+			     FCT,CMP>::test(repeats, pattern);
     }
   };
 
@@ -765,7 +874,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH, int I, int N,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct UnaryTemplateInt
   {
     static void
@@ -782,7 +892,7 @@ namespace ns_simd {
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<I,T,SIMD_WIDTH>::apply(a);
 	  cp = FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec());
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -803,8 +913,9 @@ namespace ns_simd {
 
   // end of recursion at I = maxI
   template <typename T, int SIMD_WIDTH, int N,
-	    template <int, typename, int> class FCT>
-  struct UnaryTemplateInt<T,SIMD_WIDTH,N,N,FCT>
+	    template <int, typename, int> class FCT,
+      class CMP>
+  struct UnaryTemplateInt<T,SIMD_WIDTH,N,N,FCT,CMP>
   {
     static void
     test(int, const std::string&)
@@ -813,7 +924,8 @@ namespace ns_simd {
   };
 
   template <typename T, int SIMD_WIDTH,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct UnaryTemplateIntMinToMax
   {
     static void
@@ -822,7 +934,7 @@ namespace ns_simd {
       UnaryTemplateInt<T, SIMD_WIDTH,
 		       FCT<0,T,SIMD_WIDTH>::minI, 
 		       FCT<0,T,SIMD_WIDTH>::maxI, 
-		       FCT>::test(repeats, pattern);
+		       FCT,CMP>::test(repeats, pattern);
     }
   };
 
@@ -831,7 +943,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH,
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct Binary
   {
     static void
@@ -849,7 +962,7 @@ namespace ns_simd {
 	  FCT<T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<T,SIMD_WIDTH>::apply(a, b);
 	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -871,7 +984,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename Tout, typename T, int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct BinaryTemplateType
   {
     static void
@@ -891,7 +1005,7 @@ namespace ns_simd {
 	  FCT<Tout,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<Tout,T,SIMD_WIDTH>::apply(a, b);
 	  cp = FCT<Tout,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -913,7 +1027,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename Tout, typename T, int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct UnaryArrayTemplateType
   {
     static void
@@ -937,7 +1052,7 @@ namespace ns_simd {
 	  bool foundError = false;
 	  for (int io = 0; io < nOutVecs; io++) {
 	    cp[io] = _cp[io];
-	    if (cs[io] != cp[io])
+	    if (!CMP::cmpVec(cs[io], cp[io]))
 	      foundError = true;
 	  }
 	  if (foundError) {
@@ -963,7 +1078,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH,
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct Array
   {
     static void
@@ -986,7 +1102,7 @@ namespace ns_simd {
 	  }
 	  cs = FCT<T,SIMD_WIDTH>::apply(a);
 	  cp = FCT<T,SIMD_WIDTH>::apply(_a);
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -1008,7 +1124,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename Tout, typename T, int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct ArrayTemplateType
   {
     static void
@@ -1032,7 +1149,7 @@ namespace ns_simd {
 	  }
 	  cs = FCT<Tout,T,SIMD_WIDTH>::apply(a);
 	  cp = FCT<Tout,T,SIMD_WIDTH>::apply(_a);
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -1054,7 +1171,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH,
-	    template <typename, int> class FCT>
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
   struct ArrayArrayVoid
   {
     static void
@@ -1082,7 +1200,7 @@ namespace ns_simd {
 	  for (int j = 0; j < n; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
 	    cp[j] = _cp[j];
-	    if (cs[j] != cp[j])	    
+	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
 	  if (!equal) {
@@ -1111,7 +1229,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename Tout, typename T, int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct ArrayArrayVoidTemplateType
   {
     static void
@@ -1143,7 +1262,7 @@ namespace ns_simd {
 	  for (int j = 0; j < numOutVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
 	    cp[j] = _cp[j];
-	    if (cs[j] != cp[j])	    
+	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
 	  if (!equal) {
@@ -1172,7 +1291,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename Tout, typename T, int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct ArrayDoubleArrayVoidTemplateType
   {
     static void
@@ -1205,7 +1325,7 @@ namespace ns_simd {
 	  for (int j = 0; j < numOutVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
 	    cp[j] = _cp[j];
-	    if (cs[j] != cp[j])	    
+	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
 	  if (!equal) {
@@ -1235,7 +1355,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename Tout, typename T, int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct ArrayDoubleDoubleArrayVoidTemplateType
   {
     static void
@@ -1269,7 +1390,7 @@ namespace ns_simd {
 	  for (int j = 0; j < numOutVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
 	    cp[j] = _cp[j];
-	    if (cs[j] != cp[j])	    
+	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
 	  if (!equal) {
@@ -1299,7 +1420,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename Tout, typename T, int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct ArrayArrayDoubleArrayVoidTemplateType
   {
     static void
@@ -1334,7 +1456,7 @@ namespace ns_simd {
 	  for (int j = 0; j < numOutVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
 	    cp[j] = _cp[j];
-	    if (cs[j] != cp[j])	    
+	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
 	  if (!equal) {
@@ -1366,7 +1488,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename Tout, typename T, int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct ArrayArrayDoubleDoubleArrayVoidTemplateType
   {
     static void
@@ -1402,7 +1525,7 @@ namespace ns_simd {
 	  for (int j = 0; j < numOutVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
 	    cp[j] = _cp[j];
-	    if (cs[j] != cp[j])	    
+	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
 	  if (!equal) {
@@ -1434,7 +1557,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH, int I, int N,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct ArrayVoidTemplateInt
   {
     static void
@@ -1464,7 +1588,7 @@ namespace ns_simd {
 	  for (int j = 0; j < numVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
 	    ap[j] = _ap[j];
-	    if (as[j] != ap[j])	    
+	    if (!CMP::cmpVec(as[j], ap[j]))
 	      equal = false;
 	  }
 	  if (!equal) {
@@ -1487,13 +1611,14 @@ namespace ns_simd {
       }
       ArrayVoidTemplateInt<T, SIMD_WIDTH,
 			   FCT<I,T,SIMD_WIDTH>::nextI,
-			   N, FCT>::test(repeats, pattern);
+			   N,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   template <typename T, int SIMD_WIDTH, int N,
-	    template <int, typename, int> class FCT>
-  struct ArrayVoidTemplateInt<T,SIMD_WIDTH,N,N,FCT>
+	    template <int, typename, int> class FCT,
+      class CMP>
+  struct ArrayVoidTemplateInt<T,SIMD_WIDTH,N,N,FCT,CMP>
   {
     static void
     test(int, const std::string&)
@@ -1502,7 +1627,8 @@ namespace ns_simd {
   };
 
   template <typename T, int SIMD_WIDTH,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct ArrayVoidTemplateIntMinToMax
   {
     static void
@@ -1511,7 +1637,7 @@ namespace ns_simd {
       ArrayVoidTemplateInt<T, SIMD_WIDTH,
 			   FCT<0,T,SIMD_WIDTH>::minI,
 			   FCT<0,T,SIMD_WIDTH>::maxI,
-			   FCT>::test(repeats, pattern);
+			   FCT,CMP>::test(repeats, pattern);
     }
   };
 
@@ -1520,7 +1646,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH, int I, int N,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct BinaryTemplateInt
   {
     static void
@@ -1538,7 +1665,7 @@ namespace ns_simd {
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<I,T,SIMD_WIDTH>::apply(a, b);
 	  cp = FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -1554,14 +1681,15 @@ namespace ns_simd {
       }
       BinaryTemplateInt<T, SIMD_WIDTH,
 			FCT<I,T,SIMD_WIDTH>::nextI, 
-			N, FCT>::test(repeats, pattern);
+			N,FCT,CMP>::test(repeats, pattern);
     }
   };
 
   // end of recursion at I = maxI
   template <typename T, int SIMD_WIDTH, int N,
-	    template <int, typename, int> class FCT>
-  struct BinaryTemplateInt<T,SIMD_WIDTH,N,N,FCT>
+	    template <int, typename, int> class FCT,
+      class CMP>
+  struct BinaryTemplateInt<T,SIMD_WIDTH,N,N,FCT,CMP>
   {
     static void
     test(int, const std::string&)
@@ -1570,7 +1698,8 @@ namespace ns_simd {
   };
 
   template <typename T, int SIMD_WIDTH,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct BinaryTemplateIntMinToMax
   {
     static void
@@ -1579,7 +1708,7 @@ namespace ns_simd {
       BinaryTemplateInt<T, SIMD_WIDTH, 
 			FCT<0,T,SIMD_WIDTH>::minI, 
 			FCT<0,T,SIMD_WIDTH>::maxI, 
-			FCT>::test(repeats, pattern);
+			FCT,CMP>::test(repeats, pattern);
     }
   };
 
@@ -1589,7 +1718,8 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH,
 	    int I, int IMAX,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct BinaryBinaryTemplateInt
   {
     static void
@@ -1610,7 +1740,7 @@ namespace ns_simd {
 	  FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec(), _cp, _dp);
 	  cp = _cp;
 	  dp = _dp;
-	  if ((cs != cp) || (ds != dp)) {
+    if (!CMP::cmpVec(cs, cp) || !CMP::cmpVec(ds, dp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -1628,14 +1758,15 @@ namespace ns_simd {
       }
       BinaryBinaryTemplateInt<T, SIMD_WIDTH,
 			      FCT<I,T,SIMD_WIDTH>::nextI, IMAX,
-			      FCT>::test(repeats, pattern);
+			      FCT,CMP>::test(repeats, pattern);
     }
   };
 
   // end of recursion at I = IMAX
   template <typename T, int SIMD_WIDTH, int IMAX,
-	    template <int, typename, int> class FCT>
-  struct BinaryBinaryTemplateInt<T,SIMD_WIDTH,IMAX,IMAX,FCT>
+	    template <int, typename, int> class FCT,
+      class CMP>
+  struct BinaryBinaryTemplateInt<T,SIMD_WIDTH,IMAX,IMAX,FCT,CMP>
   {
     static void
     test(int, const std::string&)
@@ -1644,7 +1775,8 @@ namespace ns_simd {
   };
 
   template <typename T, int SIMD_WIDTH,
-	    template <int, typename, int> class FCT>
+	    template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct BinaryBinaryTemplateIntMinToMax
   {
     static void
@@ -1653,7 +1785,7 @@ namespace ns_simd {
       BinaryBinaryTemplateInt<T, SIMD_WIDTH, 
 			      FCT<0,T,SIMD_WIDTH>::minI, 
 			      FCT<0,T,SIMD_WIDTH>::maxI, 
-			      FCT>::test(repeats, pattern);
+			      FCT,CMP>::test(repeats, pattern);
     }
   };
 
@@ -1664,7 +1796,8 @@ namespace ns_simd {
   template <typename T, int SIMD_WIDTH, 
 	    int I, int IMAX,
 	    int J, int JMAX,
-	    template <int, int, typename, int> class FCT>
+	    template <int, int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct BinaryTemplateIntInt
   {
     static void
@@ -1682,7 +1815,7 @@ namespace ns_simd {
 	  FCT<I,J,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<I,J,T,SIMD_WIDTH>::apply(a, b);
 	  cp = FCT<I,J,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -1699,15 +1832,16 @@ namespace ns_simd {
       BinaryTemplateIntInt<T, SIMD_WIDTH,
 			   FCT<I,J,T,SIMD_WIDTH>::nextI, IMAX, 
 			   FCT<I,J,T,SIMD_WIDTH>::nextJ, JMAX,
-			   FCT>::test(repeats, pattern);
+			   FCT,CMP>::test(repeats, pattern);
     }
   };
 
   // end of recursion at J = JMAX for arbitrary I
   // assumes that I changes fastest and J changes slowest
   template <typename T, int SIMD_WIDTH, int I, int IMAX, int JMAX,
-	    template <int, int, typename, int> class FCT>
-  struct BinaryTemplateIntInt<T,SIMD_WIDTH,I,IMAX,JMAX,JMAX,FCT>
+	    template <int, int, typename, int> class FCT,
+      class CMP>
+  struct BinaryTemplateIntInt<T,SIMD_WIDTH,I,IMAX,JMAX,JMAX,FCT,CMP>
   {
     static void
     test(int, const std::string&)
@@ -1716,7 +1850,8 @@ namespace ns_simd {
   };
 
   template <typename T, int SIMD_WIDTH,
-	    template <int, int, typename, int> class FCT>
+	    template <int, int, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct BinaryTemplateIntIntMinToMax
   {
     static void
@@ -1727,7 +1862,7 @@ namespace ns_simd {
 			   FCT<0,0,T,SIMD_WIDTH>::maxI, 
 			   FCT<0,0,T,SIMD_WIDTH>::minJ,
 			   FCT<0,0,T,SIMD_WIDTH>::maxJ,
-			   FCT>::test(repeats, pattern);
+			   FCT,CMP>::test(repeats, pattern);
     }
   };
 
@@ -1736,7 +1871,8 @@ namespace ns_simd {
   // ===========================================================================
 
   template <typename Tcond, typename T, int SIMD_WIDTH,
-	    template <typename, typename, int> class FCT>
+	    template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
   struct TernaryConditionTemplateType
   {
     static void
@@ -1759,7 +1895,7 @@ namespace ns_simd {
 	  cs = FCT<Tcond,T,SIMD_WIDTH>::apply(cond, a, b);
 	  cp = FCT<Tcond,T,SIMD_WIDTH>::apply(cond.getSIMDVec(), 
 					      a.getSIMDVec(), b.getSIMDVec());
-	  if (cs != cp) {
+	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
 	      printError(name, args);
@@ -1776,7 +1912,6 @@ namespace ns_simd {
       }
     }
   };
-
 } // namespace
 
 #endif

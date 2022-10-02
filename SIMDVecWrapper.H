@@ -363,6 +363,44 @@ namespace ns_simd {
     }
   };
 
+  // 02. Oct 22 (Jonas Keller): added Rcp and Rsqrt
+
+  template <typename T, int SIMD_WIDTH>
+  struct Rcp
+  {
+    static SIMD_INLINE std::string name() 
+    { return t2s<T,SIMD_WIDTH>("rcp"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE VEC<T,SIMD_WIDTH>
+    apply(const VEC<T,SIMD_WIDTH> &a)
+    {
+      return rcp(a);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  struct Rsqrt
+  {
+    static SIMD_INLINE std::string name() 
+    { return t2s<T,SIMD_WIDTH>("rsqrt"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE VEC<T,SIMD_WIDTH>
+    apply(const VEC<T,SIMD_WIDTH> &a)
+    {
+      return rsqrt(a);
+    }
+  };
+
   template <typename T, int SIMD_WIDTH>
   struct Sqrt
   {

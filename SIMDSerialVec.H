@@ -527,7 +527,9 @@ namespace ns_simd {
     if (std::isnormal(x) || std::isnan(x) || !std::isfinite(x)) return x;
     // x is now either +0.0f, -0.0f or denormal
     // return 0.0f with the same sign as x
-    uint32_t sign = (*(uint32_t*)&x) & 0x80000000;
+    uint32_t asInt;
+    memcpy(&asInt, &x, sizeof(float));
+    uint32_t sign = asInt & 0x80000000;
     if (sign) return -0.0f;
     else      return  0.0f;
   }

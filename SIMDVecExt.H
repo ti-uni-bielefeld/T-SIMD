@@ -32,15 +32,6 @@
 #include <string.h>
 #include <cmath>
 
-// ===========================================================================
-// NOTES:
-//
-// - conflicting reports: transpose2 sometimes about the same speed as
-//   transpose, sometimes transpose2 is much slower?
-// 
-// ===========================================================================
-
-
 namespace ns_simd {
 
   // ===========================================================================
@@ -1832,6 +1823,8 @@ namespace ns_simd {
   // swizzle3 (deinterleave)
   // ===========================================================================
 
+  // contributed by Adam Marschall
+  
   // generalized from Marat Dukhan's solution referred to at
   // https://stackoverflow.com/a/15377386/3852630
   // takes 2*N input elements
@@ -1883,6 +1876,8 @@ namespace ns_simd {
   // transpose3
   // ===========================================================================
 
+  // contributed by Adam Marschall
+
   // called transpose3 as it is based on swizzle2, but expects same
   // number of vectors as transpose (not twice the number)
   template<typename T, int SIMD_WIDTH>
@@ -1899,6 +1894,8 @@ namespace ns_simd {
   // ===========================================================================
   // Swizzle3 meta template
   // ===========================================================================
+
+  // contributed by Adam Marschall
 
   // -------------------- different zip functions ------------------------------
 
@@ -2051,6 +2048,8 @@ namespace ns_simd {
   // transpose4 Swizzle3<Zip>
   // ===========================================================================
 
+  // contributed by Adam Marschall
+
   // called transpose4 as it is based on swizzle3, but expects same
   // number of vectors as transpose (not twice the number)
   template<typename T, int SIMD_WIDTH>
@@ -2068,6 +2067,8 @@ namespace ns_simd {
   // transpose5: Swizzle3<Zip16> + Swizzle post-process
   // ===========================================================================
 
+  // contributed by Adam Marschall
+  
   // ------------------------ swizzle post-process 16 once ---------------------
 
   // primary template
@@ -2213,6 +2214,8 @@ namespace ns_simd {
   // ===========================================================================
   // transpose6: register-count based transpose
   // ===========================================================================
+
+  // contributed by Adam Marschall
 
   // primary template: unpack repetition
   template <template <int, int, typename, int> class Unpack,

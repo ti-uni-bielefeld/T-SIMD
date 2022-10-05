@@ -2526,184 +2526,186 @@ namespace ns_simd {
   // 16-byte-lane oriented unpacklo
   // ---------------------------------------------------------------------------
 
+  // contributed by Adam Marschall
+
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-   const SIMDVec<T, 32> &b,
-   Part<0>,
-   Bytes<1>)
+	   const SIMDVec<T, 32> &b,
+	   Part<0>,
+	   Bytes<1>)
   {
     return x_mm256_unpacklo_epi8(a, b);
   }
-
+  
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-   const SIMDVec<T, 32> &b,
-   Part<0>,
-   Bytes<2>)
+	   const SIMDVec<T, 32> &b,
+	   Part<0>,
+	   Bytes<2>)
   {
     return x_mm256_unpacklo_epi16(a, b);
   }
-
+  
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-   const SIMDVec<T, 32> &b,
-   Part<0>,
-   Bytes<4>)
+	   const SIMDVec<T, 32> &b,
+	   Part<0>,
+	   Bytes<4>)
   {
     return x_mm256_unpacklo_epi32(a, b);
   }
-
+  
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-   const SIMDVec<T, 32> &b,
-   Part<0>,
-   Bytes<8>)
+	   const SIMDVec<T, 32> &b,
+	   Part<0>,
+	   Bytes<8>)
   {
     return x_mm256_unpacklo_epi64(a, b);
   }
-
+  
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-   const SIMDVec<T, 32> &b,
-   Part<0>,
-   Bytes<16>)
+	   const SIMDVec<T, 32> &b,
+	   Part<0>,
+	   Bytes<16>)
   {
     return x_mm256_permute2x128_si256<_MM_SHUFFLE(0,2,0,0)>(a, b);
   }
-
+  
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,32>
   unpack16(const SIMDVec<SIMDFloat,32> &a,
-   const SIMDVec<SIMDFloat,32> &b,
-   Part<0>,
-   Bytes<4>)
+	   const SIMDVec<SIMDFloat,32> &b,
+	   Part<0>,
+	   Bytes<4>)
   {
     return _mm256_unpacklo_ps(a, b);
   }
-
+  
   // float versions
   static SIMD_INLINE SIMDVec<SIMDFloat,32>
   unpack16(const SIMDVec<SIMDFloat,32> &a,
-   const SIMDVec<SIMDFloat,32> &b,
-   Part<0>,
-   Bytes<8>)
+	   const SIMDVec<SIMDFloat,32> &b,
+	   Part<0>,
+	   Bytes<8>)
   {
     return x_mm256_unpacklo_2ps(a, b);
   }
-
+  
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,32>
   unpack16(const SIMDVec<SIMDFloat,32> &a,
-   const SIMDVec<SIMDFloat,32> &b,
-   Part<0>,
-   Bytes<16>)
+	   const SIMDVec<SIMDFloat,32> &b,
+	   Part<0>,
+	   Bytes<16>)
   {
     return x_mm256_permute2x128_ps<_MM_SHUFFLE(0,2,0,0)>(a, b);
   }
-
+  
   // ---------------------------------------------------------------------------
   // 128-bit-lane oriented unpackhi
   // ---------------------------------------------------------------------------
-
+  
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-   const SIMDVec<T, 32> &b,
-   Part<1>,
-   Bytes<1>)
+	   const SIMDVec<T, 32> &b,
+	   Part<1>,
+	   Bytes<1>)
   {
     return x_mm256_unpackhi_epi8(a, b);
   }
-
+  
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-   const SIMDVec<T, 32> &b,
-   Part<1>,
-   Bytes<2>)
+	   const SIMDVec<T, 32> &b,
+	   Part<1>,
+	   Bytes<2>)
   {
     return x_mm256_unpackhi_epi16(a, b);
   }
-
+  
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-   const SIMDVec<T, 32> &b,
-   Part<1>,
-   Bytes<4>)
+	   const SIMDVec<T, 32> &b,
+	   Part<1>,
+	   Bytes<4>)
   {
     return x_mm256_unpackhi_epi32(a, b);
   }
-
+  
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-         const SIMDVec<T, 32> &b,
-   Part<1>,
-   Bytes<8>)
+	   const SIMDVec<T, 32> &b,
+	   Part<1>,
+	   Bytes<8>)
   {
     return x_mm256_unpackhi_epi64(a, b);
   }
-
+  
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-   const SIMDVec<T, 32> &b,
-   Part<1>,
-   Bytes<16>)
+	   const SIMDVec<T, 32> &b,
+	   Part<1>,
+	   Bytes<16>)
   {
     return x_mm256_permute2x128_si256<_MM_SHUFFLE(0,3,0,1)>(a, b);
   }
-
+  
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,32>
   unpack16(const SIMDVec<SIMDFloat,32> &a,
-   const SIMDVec<SIMDFloat,32> &b,
-   Part<1>,
-   Bytes<4>)
+	   const SIMDVec<SIMDFloat,32> &b,
+	   Part<1>,
+	   Bytes<4>)
   {
     return _mm256_unpackhi_ps(a, b);
   }
-
+  
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,32>
   unpack16(const SIMDVec<SIMDFloat,32> &a,
-   const SIMDVec<SIMDFloat,32> &b,
-   Part<1>,
-   Bytes<8>)
+	   const SIMDVec<SIMDFloat,32> &b,
+	   Part<1>,
+	   Bytes<8>)
   {
     return x_mm256_unpackhi_2ps(a, b);
   }
-
+  
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,32>
   unpack16(const SIMDVec<SIMDFloat,32> &a,
-   const SIMDVec<SIMDFloat,32> &b,
-   Part<1>,
-   Bytes<16>)
+	   const SIMDVec<SIMDFloat,32> &b,
+	   Part<1>,
+	   Bytes<16>)
   {
     return x_mm256_permute2x128_ps<_MM_SHUFFLE(0,3,0,1)>(a, b);
   }
-
+  
   // ---------------------------------------------------------------------------
   // 128-bit-lane oriented unpack hub
   // ---------------------------------------------------------------------------
-
+  
   // generalized 128-bit-lane oriented unpack
   // unpack blocks of NUM_ELEMS elements of type T
   // PART=0: low half of 128-bit lanes of input vectors,
@@ -2711,14 +2713,16 @@ namespace ns_simd {
   template <int PART, int NUM_ELEMS, typename T>
   static SIMD_INLINE SIMDVec<T, 32>
   unpack16(const SIMDVec<T, 32> &a,
-   const SIMDVec<T, 32> &b)
+	   const SIMDVec<T, 32> &b)
   {
     return unpack16(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
   }
-
+  
   // ---------------------------------------------------------------------------
   // extract 128-bit-lane as SIMDVec<T, 16>
   // ---------------------------------------------------------------------------
+
+  // contributed by Adam Marschall
 
   // all integer versions
   template <typename T>
@@ -2903,6 +2907,8 @@ namespace ns_simd {
   // zip16 hub (16-byte-lane oriented zip)
   // ---------------------------------------------------------------------------
 
+  // contributed by Adam Marschall
+  
   // zips blocks of NUM_ELEMS elements of type T
   template <int NUM_ELEMS, typename T>
   static SIMD_INLINE void

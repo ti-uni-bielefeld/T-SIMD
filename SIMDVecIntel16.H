@@ -1850,6 +1850,8 @@ namespace ns_simd {
     return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
   }
 
+  // contributed by Adam Marschall
+
   // 16-byte-lane oriented unpack: for 16 bytes same as generalized unpack
   // unpack blocks of NUM_ELEMS elements of type T
   // PART=0: low half of input vectors,
@@ -1857,7 +1859,7 @@ namespace ns_simd {
   template <int PART, int NUM_ELEMS, typename T>
   static SIMD_INLINE SIMDVec<T, 16>
   unpack16(const SIMDVec<T, 16> &a,
-	 const SIMDVec<T, 16> &b)
+	   const SIMDVec<T, 16> &b)
   {
     return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
   }
@@ -1865,6 +1867,8 @@ namespace ns_simd {
   // ---------------------------------------------------------------------------
   // extract 128-bit lane as SIMDVec<T, 16>, does nothing for 16 bytes
   // ---------------------------------------------------------------------------
+
+  // contributed by Adam Marschall
 
   template <int IMM, typename T>
   static SIMD_INLINE SIMDVec<T, 16>
@@ -1895,7 +1899,10 @@ namespace ns_simd {
   // zip16 hub  (16-byte-lane oriented zip): for 16 bytes same as zip
   // ---------------------------------------------------------------------------
 
-  // a, b are passed by-value to avoid problems with identical input/output args.
+  // contributed by Adam Marschall
+
+  // a, b are passed by-value to avoid problems with identical
+  // input/output args.
 
   template <int NUM_ELEMS, typename T>
   static SIMD_INLINE void

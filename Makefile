@@ -222,4 +222,9 @@ flags-info:
 		$(optflags) $(EXTRA_DEFINES) \
 		| grep -e SSE -e AVX -e POPCNT | sort
 
+# for compileAndTest to be compatible with PROG system
+.PHONY: platform_dirs dep
+platform_dirs: ;
+dep: ;
+
 -include $(depend_files)

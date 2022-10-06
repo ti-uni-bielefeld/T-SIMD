@@ -14,6 +14,8 @@
 #
 # ===========================================================================
 
+# NOTE: when using compileAndTest in PROG system execute "vset" first
+
 date
 
 set doitCompile = 1
@@ -28,12 +30,11 @@ set useICC = 0
 set sandbox_test = 1
 set opt_test = 1
 set opt_arch_test = 1
-set comparison = 1
 set errors = 1
 set cppstd_test = 1
 set default_compilation = 1
 
-set VMK_JOBS = 16
+set COMPILE_AND_TEST_JOBS = 16
 
 if ($useGccClang) then
   # g++, clang++
@@ -80,9 +81,7 @@ else
   set autotest_target = ""
 endif
 
-# vset # TODO: what is this?
-
-# make platform_dirs
+make platform_dirs # only does something when run in PROG system
 
 mkdir -p COMPILE_AND_TEST
 
@@ -92,15 +91,8 @@ if ($sandbox_test) then
     echo "================= sandbox_defines $sandbox_defines ================="
     if ($doitCompile) then
       make clean
-      # make sandbox_defines="$sandbox_defines" conf-info
-      make -j ${VMK_JOBS} sandbox_defines="$sandbox_defines" all $autotest_target >& COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log
-    endif
-    if ($doitRun) then
-      rehash
-      ./simdvectest >& "COMPILE_AND_TEST/sandbox/run_simdvectest_$sandbox_defines.log" &
-      # can't be used in sandbox mode at the moment
-      ./simdmasktest >& "COMPILE_AND_TEST/sandbox/run_simdmasktest_$sandbox_defines.log" &
-      wait
+      make dep # only does something when run in PROG system
+      make -j ${COMPILE_AND_TEST_JOBS} sandbox_defines="$sandbox_defines" all $autotest_target >& COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log
     endif
   end
 endif
@@ -111,8 +103,8 @@ if ($opt_test) then
     echo "==================== optflags $opt_flags ===================="
     if ($doitCompile) then
       make clean
-      # make optflags="$opt_flags" conf-info
-      make -j ${VMK_JOBS} optflags="$opt_flags" all $autotest_target >& COMPILE_AND_TEST/opt/compile_${opt_flags}.log
+      make dep # only does something when run in PROG system
+      make -j ${COMPILE_AND_TEST_JOBS} optflags="$opt_flags" all $autotest_target >& COMPILE_AND_TEST/opt/compile_${opt_flags}.log
       rehash
     endif
   end
@@ -134,8 +126,8 @@ if ($opt_arch_test) then
       echo "======== flags_arch $arch_defines optflags $opt_flags ========"
       if ($doitCompile) then
         make clean
-        # make flags_arch="$arch_defines" conf-info
-        make -j ${VMK_JOBS} \
+        make dep # only does something when run in PROG system
+        make -j ${COMPILE_AND_TEST_JOBS} \
           flags_arch="$arch_defines" optflags="$opt_flags" all $autotest_target \
           >& "COMPILE_AND_TEST/opt_arch/$arch/compile_$opt_flags.log"
       endif
@@ -144,37 +136,16 @@ if ($opt_arch_test) then
     echo "running tests for $arch"
     if ($doitRun) then
       rehash
-      make -j ${VMK_JOBS} flags-info flags_arch="$arch_defines" >& \
+      make -j ${COMPILE_AND_TEST_JOBS} flags-info flags_arch="$arch_defines" >& \
 	      COMPILE_AND_TEST/opt_arch/$arch/flags_info.log
-      ./simdvectest >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvectest.log &
-      ./simdmasktest >& COMPILE_AND_TEST/opt_arch/$arch/run_simdmasktest.log &
       if ($doitAlsoRunAutoTest) then
         ./simdvecautotest0 "" 10000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest0.log &
         ./simdvecautotest1 "" 1000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest1.log &
         ./simdvecautotestM "" 10000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotestM.log &
       endif
-      ./nativetest >& COMPILE_AND_TEST/opt_arch/$arch/run_nativetest.log &
       wait
     endif
   end
-endif
-
-if ($comparison) then
-  echo "==================== comparison simdvectest ===================="
-  mkdir -p COMPILE_AND_TEST/comparison
-  cd COMPILE_AND_TEST/opt_arch
-  foreach simdvectest1 (`ls -1d *`)
-    foreach simdvectest2 (`ls -1d *`)
-      if ($doitRun) then
-        set diffres = `diff $simdvectest1/run_simdvectest.log $simdvectest2/run_simdvectest.log`
-        if ( $%diffres != 0 ) then
-          echo "$simdvectest1/run_simdvectest.log and $simdvectest2/run_simdvectest.log differ" \
-            >> ../comparison/diff_simdvectest.log
-        endif
-      endif
-    end
-  end
-  cd ../..
 endif
 
 if ($cppstd_test) then
@@ -184,8 +155,8 @@ if ($cppstd_test) then
     echo "================= flags_cppstd $cppstd_defines ================="
     if ($doitCompile) then
       make clean
-      # make flags_cppstd="$cppstd_defines" conf-info
-      make -j ${VMK_JOBS} flags_cppstd="$cppstd_defines" all $autotest_target >& COMPILE_AND_TEST/cppstd/compile_${cppstd}.log
+      make dep # only does something when run in PROG system
+      make -j ${COMPILE_AND_TEST_JOBS} flags_cppstd="$cppstd_defines" all $autotest_target >& COMPILE_AND_TEST/cppstd/compile_${cppstd}.log
       rehash
     endif
   end
@@ -196,7 +167,8 @@ if ($default_compilation) then
   echo "================== default compilation ================="
   if ($doitCompile) then
     make clean
-    make -j ${VMK_JOBS} all $autotest_target >& COMPILE_AND_TEST/default/compile.log
+    make dep # only does something when run in PROG system
+    make -j ${COMPILE_AND_TEST_JOBS} all $autotest_target >& COMPILE_AND_TEST/default/compile.log
   endif
 endif
 

@@ -978,48 +978,57 @@ namespace ns_simd {
   // arguments, so we have to use this additional layer
 
   // primary template
-  template <typename T, int SIMD_WIDTH, template <typename, int> class VEC>
+  template <template <typename, int> class VEC>
   struct Deductor;
 
   // -------------------------------------------------------------------------
   // for SIMDVec, we access the template functions
   // -------------------------------------------------------------------------
 
-  template <typename T, int SIMD_WIDTH>
-  struct Deductor<T, SIMD_WIDTH, SIMDVec>
+  template <>
+  struct Deductor<SIMDVec>
   {
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _setzero() 
     { 
       return setzero<T,SIMD_WIDTH>(); 
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _setones() 
     { 
       return setones<T,SIMD_WIDTH>(); 
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _setmin() 
     { 
       return setmin<T,SIMD_WIDTH>(); 
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _setmax() 
     { 
       return setmax<T,SIMD_WIDTH>(); 
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _setnegunity() 
     { 
       return setnegunity<T,SIMD_WIDTH>(); 
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _setunity() 
     { 
       return setunity<T,SIMD_WIDTH>(); 
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _set1(T a)
     {
       return set1<T,SIMD_WIDTH>(a);
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _load(const T *const p)
     {
       return load<SIMD_WIDTH,T>(p);
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _loadu(const T *const p)
     {
       return loadu<SIMD_WIDTH,T>(p);
@@ -1030,15 +1039,17 @@ namespace ns_simd {
   // for SIMDSerialVec, we directly implement the functions
   // -------------------------------------------------------------------------
 
-  template <typename T, int SIMD_WIDTH>
-  struct Deductor<T, SIMD_WIDTH, SIMDSerialVec>
+  template <>
+  struct Deductor<SIMDSerialVec>
   {
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _setzero()
     {
       SIMDSerialVec<T,SIMD_WIDTH> v;
       memset(v.vec, 0x00, SIMD_WIDTH);
       return v;
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _setones()
     {
       SIMDSerialVec<T,SIMD_WIDTH> v;
@@ -1046,6 +1057,7 @@ namespace ns_simd {
 	v[i] = SIMDTypeInfo<T>::trueval();
       return v;
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _setmin()
     {
       SIMDSerialVec<T,SIMD_WIDTH> v;
@@ -1053,6 +1065,7 @@ namespace ns_simd {
 	v[i] = SIMDTypeInfo<T>::min();
       return v;
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _setmax()
     {
       SIMDSerialVec<T,SIMD_WIDTH> v;
@@ -1060,6 +1073,7 @@ namespace ns_simd {
 	v[i] = SIMDTypeInfo<T>::max();
       return v;
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _setnegunity()
     {
       SIMDSerialVec<T,SIMD_WIDTH> v;
@@ -1067,6 +1081,7 @@ namespace ns_simd {
 	v[i] = T(-1);
       return v;
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _setunity()
     {
       SIMDSerialVec<T,SIMD_WIDTH> v;
@@ -1074,6 +1089,7 @@ namespace ns_simd {
 	v[i] = T(1);
       return v;
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _set1(T a)
     {
       SIMDSerialVec<T,SIMD_WIDTH> v;
@@ -1081,12 +1097,14 @@ namespace ns_simd {
 	v[i] = a;
       return v;
     }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _load(const T *const p)
     {
       SIMDSerialVec<T,SIMD_WIDTH> v;
       memcpy(v.vec, p, SIMD_WIDTH);
       return v;
-    }    
+    }
+    template <typename T, int SIMD_WIDTH>
     static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _loadu(const T *const p)
     {
       SIMDSerialVec<T,SIMD_WIDTH> v;

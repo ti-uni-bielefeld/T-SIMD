@@ -121,7 +121,7 @@ namespace ns_simd {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply()
     {
-      return Deductor<T,SIMD_WIDTH,VEC>::_setzero();
+      return Deductor<VEC>::template _setzero<T,SIMD_WIDTH>();
     }
   };
 
@@ -139,7 +139,7 @@ namespace ns_simd {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply(T a)
     {
-      return Deductor<T,SIMD_WIDTH,VEC>::_set1(a);
+      return Deductor<VEC>::template _set1<T,SIMD_WIDTH>(a);
     }
   };
 
@@ -1915,7 +1915,7 @@ namespace ns_simd {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply()
     {
-      return Deductor<T,SIMD_WIDTH,VEC>::_setones();
+      return Deductor<VEC>::template _setones<T,SIMD_WIDTH>();
     }
   };
 
@@ -1933,7 +1933,7 @@ namespace ns_simd {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply()
     {
-      return Deductor<T,SIMD_WIDTH,VEC>::_setmin();
+      return Deductor<VEC>::template _setmin<T,SIMD_WIDTH>();
     }
   };
 
@@ -1951,7 +1951,7 @@ namespace ns_simd {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply()
     {
-      return Deductor<T,SIMD_WIDTH,VEC>::_setmax();
+      return Deductor<VEC>::template _setmax<T,SIMD_WIDTH>();
     }
   };
 
@@ -1969,7 +1969,7 @@ namespace ns_simd {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply()
     {
-      return Deductor<T,SIMD_WIDTH,VEC>::_setnegunity();
+      return Deductor<VEC>::template _setnegunity<T,SIMD_WIDTH>();
     }
   };
 
@@ -1987,7 +1987,7 @@ namespace ns_simd {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply()
     {
-      return Deductor<T,SIMD_WIDTH,VEC>::_setunity();
+      return Deductor<VEC>::template _setunity<T,SIMD_WIDTH>();
     }
   };
 

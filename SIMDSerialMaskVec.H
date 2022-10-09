@@ -138,7 +138,7 @@ static SIMDSerialVec<T, SIMD_WIDTH>
 mask_ifelsezero(const SIMDSerialMask<T, SIMD_WIDTH> &cond,
                 const SIMDSerialVec<T, SIMD_WIDTH> &trueVal) {
   return mask_ifelse(cond, trueVal,
-                     Deductor<T, SIMD_WIDTH, SIMDSerialVec>::_setzero());
+                     Deductor<SIMDSerialVec>::_setzero<T, SIMD_WIDTH>());
 }
 
 template <int SIMD_WIDTH>
@@ -153,7 +153,7 @@ template <int SIMD_WIDTH>
 static SIMDSerialVec<SIMDInt, SIMD_WIDTH>
 maskz_cvts(const SIMDSerialMask<SIMDFloat, SIMD_WIDTH> &k,
            const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a) {
-  return mask_cvts(Deductor<SIMDInt, SIMD_WIDTH, SIMDSerialVec>::_setzero(), k,
+  return mask_cvts(Deductor<SIMDSerialVec>::_setzero<SIMDInt, SIMD_WIDTH>(), k,
                    a);
 }
 
@@ -170,7 +170,7 @@ template <int SIMD_WIDTH>
 static SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
 maskz_cvts(const SIMDSerialMask<SIMDInt, SIMD_WIDTH> &k,
            const SIMDSerialVec<SIMDInt, SIMD_WIDTH> &a) {
-  return mask_cvts(Deductor<SIMDFloat, SIMD_WIDTH, SIMDSerialVec>::_setzero(),
+  return mask_cvts(Deductor<SIMDSerialVec>::_setzero<SIMDFloat, SIMD_WIDTH>(),
                    k, a);
 }
 
@@ -178,13 +178,13 @@ template <typename T, int SIMD_WIDTH>
 static SIMDSerialVec<T, SIMD_WIDTH>
 mask_set1(const SIMDSerialVec<T, SIMD_WIDTH> &src,
           const SIMDSerialMask<T, SIMD_WIDTH> &k, const T a) {
-  return mask_ifelse(k, Deductor<T, SIMD_WIDTH, SIMDSerialVec>::_set1(a), src);
+  return mask_ifelse(k, Deductor<SIMDSerialVec>::_set1<T, SIMD_WIDTH>(a), src);
 }
 
 template <typename T, int SIMD_WIDTH>
 static SIMDSerialVec<T, SIMD_WIDTH>
 maskz_set1(const SIMDSerialMask<T, SIMD_WIDTH> &k, const T a) {
-  return mask_set1(Deductor<T, SIMD_WIDTH, SIMDSerialVec>::_setzero(), k, a);
+  return mask_set1(Deductor<SIMDSerialVec>::_setzero<T, SIMD_WIDTH>(), k, a);
 }
 
 template <typename T, int SIMD_WIDTH>
@@ -201,7 +201,7 @@ mask_loadu(const SIMDSerialVec<T, SIMD_WIDTH> &src,
 template <typename T, int SIMD_WIDTH>
 static SIMDSerialVec<T, SIMD_WIDTH>
 maskz_loadu(const SIMDSerialMask<T, SIMD_WIDTH> &k, const T *p) {
-  return mask_loadu(Deductor<T, SIMD_WIDTH, SIMDSerialVec>::_setzero(), k, p);
+  return mask_loadu(Deductor<SIMDSerialVec>::_setzero<T, SIMD_WIDTH>(), k, p);
 }
 
 template <typename T, int SIMD_WIDTH>

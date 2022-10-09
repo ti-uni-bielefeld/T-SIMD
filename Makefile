@@ -141,6 +141,14 @@ all: $(binaries)
 	@echo "use 'make archspec' to compile $(archspec_binaries)"
 	@echo "  please select flags_archspec for your machine"
 
+.PHONY: all_tsimd
+all_tsimd: $(tsimd_binaries)
+
+# all_tsimd except styleExamples and tsimdtest,
+# since those require at least C++11
+.PHONY: all_tsimd_cpp98
+all_tsimd_cpp98: $(filter-out styleExamples tsimdtest,$(tsimd_binaries))
+
 .PHONY: autotest
 autotest: $(autotest_binaries)
 

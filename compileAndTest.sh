@@ -92,7 +92,7 @@ if ($sandbox_test) then
     if ($doitCompile) then
       make clean
       make dep # only does something when run in PROG system
-      make -j ${COMPILE_AND_TEST_JOBS} sandbox_defines="$sandbox_defines" all $autotest_target >& COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log
+      make -j ${COMPILE_AND_TEST_JOBS} sandbox_defines="$sandbox_defines" all_tsimd $autotest_target >& COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log
     endif
   end
 endif
@@ -104,7 +104,7 @@ if ($opt_test) then
     if ($doitCompile) then
       make clean
       make dep # only does something when run in PROG system
-      make -j ${COMPILE_AND_TEST_JOBS} optflags="$opt_flags" all $autotest_target >& COMPILE_AND_TEST/opt/compile_${opt_flags}.log
+      make -j ${COMPILE_AND_TEST_JOBS} optflags="$opt_flags" all_tsimd $autotest_target >& COMPILE_AND_TEST/opt/compile_${opt_flags}.log
       rehash
     endif
   end
@@ -128,7 +128,7 @@ if ($opt_arch_test) then
         make clean
         make dep # only does something when run in PROG system
         make -j ${COMPILE_AND_TEST_JOBS} \
-          flags_arch="$arch_defines" optflags="$opt_flags" all $autotest_target \
+          flags_arch="$arch_defines" optflags="$opt_flags" all_tsimd $autotest_target \
           >& "COMPILE_AND_TEST/opt_arch/$arch/compile_$opt_flags.log"
       endif
     end
@@ -156,7 +156,12 @@ if ($cppstd_test) then
     if ($doitCompile) then
       make clean
       make dep # only does something when run in PROG system
-      make -j ${COMPILE_AND_TEST_JOBS} flags_cppstd="$cppstd_defines" all $autotest_target >& COMPILE_AND_TEST/cppstd/compile_${cppstd}.log
+      if ($cppstd == "c++98") then
+        set all_tsimd = "all_tsimd_cpp98"
+      else
+        set all_tsimd = "all_tsimd"
+      endif
+      make -j ${COMPILE_AND_TEST_JOBS} flags_cppstd="$cppstd_defines" $all_tsimd $autotest_target >& COMPILE_AND_TEST/cppstd/compile_${cppstd}.log
       rehash
     endif
   end
@@ -168,7 +173,7 @@ if ($default_compilation) then
   if ($doitCompile) then
     make clean
     make dep # only does something when run in PROG system
-    make -j ${COMPILE_AND_TEST_JOBS} all $autotest_target >& COMPILE_AND_TEST/default/compile.log
+    make -j ${COMPILE_AND_TEST_JOBS} all_tsimd $autotest_target >& COMPILE_AND_TEST/default/compile.log
   endif
 endif
 
@@ -176,20 +181,18 @@ set where_there_errors = 0
 
 if ($errors) then
   echo "================= errors ================"
-  grep -nri --exclude={errors,warnings,problems}.log error COMPILE_AND_TEST >& COMPILE_AND_TEST/errors.log
+  grep -nri --exclude={errors,warnings}.log error COMPILE_AND_TEST >& COMPILE_AND_TEST/errors.log
   if ( -s COMPILE_AND_TEST/errors.log ) then
     echo "There are errors! See COMPILE_AND_TEST/errors.log"
     set where_there_errors = 1
   endif
-  grep -nri --exclude={errors,warnings,problems}.log warning COMPILE_AND_TEST >& COMPILE_AND_TEST/warnings.log
+  grep -nri --exclude={errors,warnings}.log warning COMPILE_AND_TEST >& COMPILE_AND_TEST/warnings.log
   if ( -s COMPILE_AND_TEST/warnings.log ) then
     echo "There are warnings! See COMPILE_AND_TEST/warnings.log"
     set where_there_errors = 1
   endif
-  grep -nri --exclude={errors,warnings,problems}.log problem COMPILE_AND_TEST >& COMPILE_AND_TEST/problems.log
-  if ( -s COMPILE_AND_TEST/problems.log ) then
-    echo "There are problems! See COMPILE_AND_TEST/problems.log"
-    set where_there_errors = 1
+  if ( $where_there_errors == 0 ) then
+    echo "No errors or warnings found!"
   endif
 endif
 

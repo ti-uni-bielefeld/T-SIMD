@@ -1131,6 +1131,24 @@ namespace ns_simd {
   }
 
   // ---------------------------------------------------------------------------
+  // and for integer vectors
+  // ---------------------------------------------------------------------------
+
+  // 08. Oct 22 (Jonas Keller): added x_mm256_and_si256
+
+  static SIMD_INLINE
+  __m256i x_mm256_and_si256(__m256i a, __m256i b)
+  {
+#ifdef __AVX2__
+    return _mm256_and_si256(a, b);
+#else
+    // non-avx2 workaround
+    return _mm256_castps_si256
+      (_mm256_and_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(b)));
+#endif
+  }
+
+  // ---------------------------------------------------------------------------
   // transpose4x64
   // ---------------------------------------------------------------------------
 
@@ -5360,6 +5378,107 @@ namespace ns_simd {
   msb2int(const SIMDVec<SIMDFloat,32> &a)
   {
     return _mm256_movemask_ps(a);
+  }
+
+  // ---------------------------------------------------------------------------
+  // int2msb
+  // ---------------------------------------------------------------------------
+
+  // 06. Oct 22 (Jonas Keller): added int2msb functions
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDByte,32>
+  int2msb(const uint64_t a)
+  {
+#ifdef __AVX2__
+    __m256i shuffleIndeces = _mm256_set_epi64x(
+        0x0303030303030303, 0x0202020202020202, 0x0101010101010101, 0);
+    __m256i aVec = _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
+    __m256i sel = _mm256_set1_epi64x(0x8040201008040201);
+    __m256i selected = x_mm256_and_si256(aVec, sel);
+    __m256i result = _mm256_cmpeq_epi8(selected, sel);
+#else
+    __m128i shuffleIndeces = _mm_set_epi64x(0x0101010101010101, 0);
+    __m128i aVecLo = _mm_shuffle_epi8(_mm_cvtsi32_si128(a), shuffleIndeces);
+    __m128i aVecHi =
+        _mm_shuffle_epi8(_mm_cvtsi32_si128(a >> 16), shuffleIndeces);
+    __m128i sel = _mm_set1_epi64x(0x8040201008040201);
+    __m128i selectedLo = _mm_and_si128(aVecLo, sel);
+    __m128i selectedHi = _mm_and_si128(aVecHi, sel);
+    __m128i resultLo = _mm_cmpeq_epi8(selectedLo, sel);
+    __m128i resultHi = _mm_cmpeq_epi8(selectedHi, sel);
+    __m256i result = x_mm256_combine_si128(resultLo, resultHi);
+#endif
+    return x_mm256_and_si256(result, _mm256_set1_epi8(0x80));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDSignedByte,32>
+  int2msb(const uint64_t a)
+  {
+    return reinterpret<SIMDSignedByte>(int2msb<SIMDByte, 32>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDShort,32>
+  int2msb(const uint64_t a)
+  {
+#ifdef __AVX2__
+    __m256i aVec = _mm256_set1_epi16(a);
+    __m256i sel = _mm256_set_epi16(
+        0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
+        0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
+    __m256i selected = x_mm256_and_si256(aVec, sel);
+    __m256i result = _mm256_cmpeq_epi16(selected, sel);
+#else
+    __m128i aVec = _mm_set1_epi16(a);
+    __m128i selLo = _mm_set_epi16(
+        0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
+    __m128i selHi = _mm_set_epi16(
+        0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100);
+    __m128i selectedLo = _mm_and_si128(aVec, selLo);
+    __m128i selectedHi = _mm_and_si128(aVec, selHi);
+    __m128i resultLo = _mm_cmpeq_epi16(selectedLo, selLo);
+    __m128i resultHi = _mm_cmpeq_epi16(selectedHi, selHi);
+    __m256i result = x_mm256_combine_si128(resultLo, resultHi);
+#endif
+    return x_mm256_and_si256(result, _mm256_set1_epi16(0x8000));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDWord,32>
+  int2msb(const uint64_t a)
+  {
+    return reinterpret<SIMDWord>(int2msb<SIMDShort, 32>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDInt,32>
+  int2msb(const uint64_t a)
+  {
+#ifdef __AVX2__
+    __m256i aVec = _mm256_set1_epi32(a);
+    __m256i sel =
+        _mm256_set_epi32(0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01);
+    __m256i selected = x_mm256_and_si256(aVec, sel);
+    __m256i result = _mm256_cmpeq_epi32(selected, sel);
+#else
+    __m128i aVec = _mm_set1_epi32(a);
+    __m128i selLo = _mm_set_epi32(0x08, 0x04, 0x02, 0x01);
+    __m128i selHi = _mm_set_epi32(0x80, 0x40, 0x20, 0x10);
+    __m128i selectedLo = _mm_and_si128(aVec, selLo);
+    __m128i selectedHi = _mm_and_si128(aVec, selHi);
+    __m256i result = x_mm256_combine_si128(_mm_cmpeq_epi32(selectedLo, selLo),
+                                           _mm_cmpeq_epi32(selectedHi, selHi));
+#endif
+    return x_mm256_and_si256(result, _mm256_set1_epi32(0x80000000));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDFloat,32>
+  int2msb(const uint64_t a)
+  {
+    return reinterpret<SIMDFloat>(int2msb<SIMDInt, 32>(a));
   }
 }
 

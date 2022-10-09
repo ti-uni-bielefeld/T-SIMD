@@ -140,6 +140,11 @@ namespace ns_simd {
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
   mask_all_ones();
 
+  // 06. Oct 22 (Jonas Keller): added int2msb
+  template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  int2msb(const uint64_t a);
+
 #else
   
   // NATIVE_SIMD_WIDTH is undefined or no C++11 available
@@ -171,6 +176,11 @@ namespace ns_simd {
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
   mask_all_ones();
+
+  // 06. Oct 22 (Jonas Keller): added int2msb
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  int2msb(const uint64_t a);
 
 #endif
   

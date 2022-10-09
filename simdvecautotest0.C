@@ -193,6 +193,8 @@ main(int argc, char *argv[])
   TestAll<Unary,SW,Reverse>::test(repeats1, pattern);
   // 27. Aug 22 (Jonas Keller): added msb2int
   TestAll<UnaryScalarUInt64,SW,Msb2int>::test(repeats1, pattern);
+  // 06. Oct 22 (Jonas Keller): added int2msb
+  TestAll<ScalarUInt64,SW,Int2msb>::test(repeats1, pattern);
   printf("simdvecautotest0 complete\n");
   return 0;
 }

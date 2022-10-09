@@ -138,6 +138,19 @@ namespace ns_simd {
     return f;
   }
 
+  // 09. Oct 22 (Jonas Keller): added getRandom for uint64_t
+  template <>
+  SIMD_INLINE uint64_t
+  getRandom<uint64_t>()
+  {
+    uint64_t i;
+    SIMDInt s[2];
+    s[0] = getRandom<SIMDInt>();
+    s[1] = getRandom<SIMDInt>();
+    memcpy(&i, s, 8);
+    return i;
+  }
+
   // =========================================================================
   // random numbers in different ranges
   // =========================================================================
@@ -1033,6 +1046,12 @@ namespace ns_simd {
     {
       return loadu<SIMD_WIDTH,T>(p);
     }
+    // 06. Oct 22 (Jonas Keller): added int2msb
+    template <typename T, int SIMD_WIDTH>
+    static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _int2msb(const uint64_t a)
+    {
+      return int2msb<T,SIMD_WIDTH>(a);
+    }
   };
 
   // -------------------------------------------------------------------------
@@ -1110,8 +1129,33 @@ namespace ns_simd {
       SIMDSerialVec<T,SIMD_WIDTH> v;
       memcpy(v.vec, p, SIMD_WIDTH);
       return v;
-    }   
-    
+    }
+    // 08. Oct 22 (Jonas Keller): added int2msb
+    template <typename T, int SIMD_WIDTH>
+    static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _int2msb(const uint64_t a)
+    {
+      return _int2msb<SIMD_WIDTH>(a, T());
+    }
+  private:
+    // int2msb
+    // integer types
+    template <int SIMD_WIDTH, typename T>
+    static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH>
+    _int2msb(const uint64_t a, T)
+    {
+      T highestBit = T(T(1) << (sizeof(T) * 8 - 1));
+      SIMDSerialVec<T,SIMD_WIDTH> result;
+      for (int i = 0; i < result.elements; i++)
+        result[i] = (a & (uint64_t(1) << i)) ? highestBit : 0;
+      return result;
+    }
+    // SIMDFloat
+    template <int SIMD_WIDTH>
+    static SIMD_INLINE SIMDSerialVec<SIMDFloat,SIMD_WIDTH>
+    _int2msb(const uint64_t a, SIMDFloat)
+    {
+      return reinterpret<SIMDFloat>(_int2msb<SIMD_WIDTH>(a, SIMDInt()));
+    }
   };
 
   // =========================================================================

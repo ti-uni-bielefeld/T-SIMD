@@ -665,6 +665,48 @@ namespace ns_simd {
   };
 
   // ===========================================================================
+  // test of commands with uint64_t input and vector result
+  // ===========================================================================
+
+  // 09. Oct 22 (Jonas Keller): added ScalarUInt64
+
+  template <typename T, int SIMD_WIDTH,
+	    template <typename, int> class FCT,
+      class CMP = CmpEqual>
+  struct ScalarUInt64
+  {
+    static void
+    test(int repeats, const std::string &pattern)
+    {
+      std::string args = "s";
+      uint64_t a;
+      SIMDSerialVec<T,SIMD_WIDTH> cs, cp;
+      const char *fmt = SIMDTypeInfo<T>::defaultFormat();
+      std::string name = FCT<T,SIMD_WIDTH>::name();
+      if (name.find(pattern) != std::string::npos) {
+  printInfo(name, args);
+  int errors = 0, trials = 0;
+  for (int i = 0; i < repeats; i++, trials++) {
+    a = FCT<T,SIMD_WIDTH>::randomizeInputScalar();
+    cs = FCT<T,SIMD_WIDTH>::template apply<SIMDSerialVec>(a);
+    cp = FCT<T,SIMD_WIDTH>::template apply<SIMDVec>(a);
+    if (!CMP::cmpVec(cs, cp)) {
+      errors++;
+      if (errors <= PRINT_ERRORS) {
+        printError(name, args);
+        PRINTVAL(fmt,a);
+        PRINT(fmt,cs);
+        PRINT(fmt,cp);
+      }
+      EXIT;
+    }
+  }
+  printErrorStats(errors, trials);
+      }
+    }
+  };
+
+  // ===========================================================================
   // test of unary commands with scalar result
   // ===========================================================================
 

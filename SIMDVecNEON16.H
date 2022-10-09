@@ -2330,6 +2330,68 @@ namespace ns_simd {
     // the same as msb2int(SIMDVec<SIMDInt,16>)
     return msb2int(reinterpret<SIMDInt>(a));
   }
+
+  // ---------------------------------------------------------------------------
+  // int2msb
+  // ---------------------------------------------------------------------------
+
+  // 06. Oct 22 (Jonas Keller): added int2msb functions
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDByte,16>
+  int2msb(const uint64_t a)
+  {
+    uint8x8_t aVecLo = vdup_n_u8(a & 0xff);
+    uint8x8_t aVecHi = vdup_n_u8((a >> 8) & 0xff);
+    uint8x16_t aVec = vcombine_u8(aVecLo, aVecHi);
+    // shift the bits to the msb
+    int8x16_t shiftAmounts = {7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0};
+    uint8x16_t shifted = vshlq_u8(aVec, shiftAmounts);
+    return vandq_u8(shifted, vdupq_n_u8(0x80));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  int2msb(const uint64_t a)
+  {
+    return reinterpret<SIMDSignedByte>(int2msb<SIMDByte, 16>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDWord,16>
+  int2msb(const uint64_t a)
+  {
+    uint16x8_t aVec = vdupq_n_u16(a & 0xff);
+    // shift the bits to the msb
+    int16x8_t shiftAmounts = {15, 14, 13, 12, 11, 10, 9, 8};
+    uint16x8_t shifted = vshlq_u16(aVec, shiftAmounts);
+    return vandq_u16(shifted, vdupq_n_u16(0x8000));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDShort,16>
+  int2msb(const uint64_t a)
+  {
+    return reinterpret<SIMDShort>(int2msb<SIMDWord, 16>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDInt,16>
+  int2msb(const uint64_t a)
+  {
+    int32x4_t aVec = vdupq_n_s32(a & 0xf);
+    // shift the bits to the msb
+    int32x4_t shiftAmounts = {31, 30, 29, 28};
+    int32x4_t shifted = vshlq_s32(aVec, shiftAmounts);
+    return vandq_s32(shifted, vdupq_n_s32(0x80000000));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDFloat,16>
+  int2msb(const uint64_t a)
+  {
+    return reinterpret<SIMDFloat>(int2msb<SIMDInt, 16>(a));
+  }
 } // namespace ns_simd
 
 #endif // _SIMD_VEC_NEON_16_H_

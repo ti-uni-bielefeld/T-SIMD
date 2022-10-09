@@ -718,6 +718,15 @@ namespace ns_simd {
     return 0;
   }
 
+  // 09. Oct 22 (Jonas Keller): added int2msb
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  int2msb(const uint64_t)
+  {
+    printf("int2msb<%s,%d>(U64)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDVec<T,SIMD_WIDTH>();
+  }
+
   // ===========================================================================
   // masked functions
   // ===========================================================================

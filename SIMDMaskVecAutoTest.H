@@ -23,12 +23,16 @@
 // 
 // ===========================================================================
 
+// 09. Oct 22 (Jonas Keller):
+// added time measurement for SIMD versions of all tested functions
+
 #ifndef _SIMD_MASK_VEC_AUTO_TEST_H_
 #define _SIMD_MASK_VEC_AUTO_TEST_H_
 
 #include "SIMDMaskVecWrapper.H"
 #include "SIMDSerialMaskVec.H"
 #include "SIMDVecAutoTest.H"
+#include "TimeMeasurement.H"
 #include <bitset>
 #include <iostream>
 #include <string>
@@ -65,6 +69,8 @@ struct TesterMaskUnary {
     std::string args = "v,m,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<T, SIMD_WIDTH> src, a;
       SIMDSerialMask<T, SIMD_WIDTH> k;
@@ -73,8 +79,11 @@ struct TesterMaskUnary {
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
+      start = getTimeSpec();
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -89,6 +98,7 @@ struct TesterMaskUnary {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -107,6 +117,8 @@ struct TesterMaskZUnary {
     std::string args = "m,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<T, SIMD_WIDTH> a;
       SIMDSerialMask<T, SIMD_WIDTH> k;
@@ -114,8 +126,11 @@ struct TesterMaskZUnary {
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
+      start = getTimeSpec();
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -129,6 +144,7 @@ struct TesterMaskZUnary {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -148,6 +164,8 @@ struct TesterMaskBinary {
     std::string args = "v,m,v,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<T, SIMD_WIDTH> src, a, b;
       SIMDSerialMask<T, SIMD_WIDTH> k;
@@ -157,8 +175,11 @@ struct TesterMaskBinary {
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a, b);
+      start = getTimeSpec();
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a, b);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -174,6 +195,7 @@ struct TesterMaskBinary {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -192,6 +214,8 @@ struct TesterMaskZBinary {
     std::string args = "m,v,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<T, SIMD_WIDTH> a, b;
       SIMDSerialMask<T, SIMD_WIDTH> k;
@@ -200,8 +224,11 @@ struct TesterMaskZBinary {
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a, b);
+      start = getTimeSpec();
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -216,6 +243,7 @@ struct TesterMaskZBinary {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -234,6 +262,8 @@ struct TesterMaskConditionBinary {
     std::string args = "m,v,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<T, SIMD_WIDTH> a, b;
       SIMDSerialMask<T, SIMD_WIDTH> k;
@@ -242,8 +272,11 @@ struct TesterMaskConditionBinary {
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a, b);
+      start = getTimeSpec();
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -258,6 +291,7 @@ struct TesterMaskConditionBinary {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -276,6 +310,8 @@ struct TesterMaskConditionUnary {
     std::string args = "m,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<T, SIMD_WIDTH> a;
       SIMDSerialMask<T, SIMD_WIDTH> k;
@@ -283,8 +319,11 @@ struct TesterMaskConditionUnary {
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
+      start = getTimeSpec();
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -298,6 +337,7 @@ struct TesterMaskConditionUnary {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -318,6 +358,8 @@ struct TesterMaskUnaryTemplateType {
     std::string args = "v,m,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<Tout, SIMD_WIDTH> src;
       SIMDSerialVec<T, SIMD_WIDTH> a;
@@ -327,9 +369,12 @@ struct TesterMaskUnaryTemplateType {
       FCT<Tout, T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialVec<Tout, SIMD_WIDTH> cs =
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
+      start = getTimeSpec();
       SIMDSerialVec<Tout, SIMD_WIDTH> cp =
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k,
                                                                       a);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -344,6 +389,7 @@ struct TesterMaskUnaryTemplateType {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -364,6 +410,8 @@ struct TesterMaskZUnaryTemplateType {
     std::string args = "m,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<T, SIMD_WIDTH> a;
       SIMDSerialMask<T, SIMD_WIDTH> k;
@@ -371,8 +419,11 @@ struct TesterMaskZUnaryTemplateType {
       FCT<Tout, T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialVec<Tout, SIMD_WIDTH> cs =
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
+      start = getTimeSpec();
       SIMDSerialVec<Tout, SIMD_WIDTH> cp =
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -386,6 +437,7 @@ struct TesterMaskZUnaryTemplateType {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -404,6 +456,8 @@ struct TesterMaskScalar {
     std::string args = "v,m,s";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<T, SIMD_WIDTH> src;
       SIMDSerialMask<T, SIMD_WIDTH> k;
@@ -412,8 +466,11 @@ struct TesterMaskScalar {
       T a = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
+      start = getTimeSpec();
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -428,6 +485,7 @@ struct TesterMaskScalar {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -446,14 +504,19 @@ struct TesterMaskZScalar {
     std::string args = "m,s";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       T a = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
+      start = getTimeSpec();
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -467,6 +530,7 @@ struct TesterMaskZScalar {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -486,6 +550,8 @@ struct TesterMaskCmp {
     std::string args = "m,v,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialMask<T, SIMD_WIDTH> k;
       SIMDSerialVec<T, SIMD_WIDTH> a, b;
@@ -494,8 +560,11 @@ struct TesterMaskCmp {
       FCT<T, SIMD_WIDTH>::randomizeInput(b);
       SIMDSerialMask<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a, b);
+      start = getTimeSpec();
       SIMDSerialMask<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -509,6 +578,8 @@ struct TesterMaskCmp {
         EXIT;
       }
     }
+    printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -528,13 +599,18 @@ struct TesterMaskUnaryInt {
     std::string args = "m,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialMask<T, SIMD_WIDTH> k;
       SIMDSerialVec<T, SIMD_WIDTH> a;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
       int cs = FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
+      start = getTimeSpec();
       int cp = FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpScalar(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -548,6 +624,7 @@ struct TesterMaskUnaryInt {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -566,13 +643,18 @@ struct TesterUnaryK {
     std::string args = "m";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialMask<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialMask>(k);
+      start = getTimeSpec();
       SIMDSerialMask<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(k);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -585,6 +667,7 @@ struct TesterUnaryK {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -603,14 +686,19 @@ struct TesterBinaryK {
     std::string args = "m,m";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialMask<T, SIMD_WIDTH> k, l;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       FCT<T, SIMD_WIDTH>::randomizeInput(l);
       SIMDSerialMask<T, SIMD_WIDTH> cs =
           FCT<T, SIMD_WIDTH>::template apply<SIMDSerialMask>(k, l);
+      start = getTimeSpec();
       SIMDSerialMask<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(k, l);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -624,6 +712,7 @@ struct TesterBinaryK {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
   }
 };
 
@@ -644,6 +733,8 @@ struct TesterMaskUnaryTI {
     std::string args = "v,m,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<T, SIMD_WIDTH> src, a;
       SIMDSerialMask<T, SIMD_WIDTH> k;
@@ -652,8 +743,11 @@ struct TesterMaskUnaryTI {
       FCT<I, T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(src, k, a);
+      start = getTimeSpec();
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -668,6 +762,7 @@ struct TesterMaskUnaryTI {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
 
     TesterMaskUnaryTI<T, SIMD_WIDTH, FCT<I, T, SIMD_WIDTH>::nextI, IMAX,
                       FCT>::test(repeats, pattern);
@@ -707,6 +802,8 @@ struct TesterMaskZUnaryTI {
     std::string args = "m,v";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialVec<T, SIMD_WIDTH> a;
       SIMDSerialMask<T, SIMD_WIDTH> k;
@@ -714,8 +811,11 @@ struct TesterMaskZUnaryTI {
       FCT<I, T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialVec<T, SIMD_WIDTH> cs =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDSerialVec>(k, a);
+      start = getTimeSpec();
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -729,6 +829,7 @@ struct TesterMaskZUnaryTI {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
 
     TesterMaskZUnaryTI<T, SIMD_WIDTH, FCT<I, T, SIMD_WIDTH>::nextI, IMAX,
                        FCT>::test(repeats, pattern);
@@ -768,13 +869,18 @@ struct TesterUnaryKTI {
     std::string args = "m";
     printInfo(name, args);
     int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
     for (int i = 0; i < repeats; i++, trials++) {
       SIMDSerialMask<T, SIMD_WIDTH> k;
       FCT<I, T, SIMD_WIDTH>::randomizeInput(k);
       SIMDSerialMask<T, SIMD_WIDTH> cs =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDSerialMask>(k);
+      start = getTimeSpec();
       SIMDSerialMask<T, SIMD_WIDTH> cp =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDMask>(k);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(start, end);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -787,6 +893,7 @@ struct TesterUnaryKTI {
       }
     }
     printErrorStats(errors, trials);
+    printTimeStats(time, trials);
 
     TesterUnaryKTI<T, SIMD_WIDTH, FCT<I, T, SIMD_WIDTH>::nextI, IMAX,
                    FCT>::test(repeats, pattern);

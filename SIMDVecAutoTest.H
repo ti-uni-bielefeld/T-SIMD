@@ -38,11 +38,15 @@
 
 // 02. Oct 22 (Jonas Keller): added support for different comparators
 
+// 09. Oct 22 (Jonas Keller):
+// added time measurement for SIMD versions of all tested functions
+
 #ifndef _SIMD_VEC_AUTO_TEST_H_
 #define _SIMD_VEC_AUTO_TEST_H_
 
 #include "SIMDSerialVec.H"
 #include "SIMDVecWrapper.H"
+#include "TimeMeasurement.H"
 #include <inttypes.h>
 
 namespace ns_simd {
@@ -68,6 +72,12 @@ namespace ns_simd {
   {
     if (errors > 0) printf("---------- %d errors / %d trials ----------\n",  
 			   errors, trials);
+  }
+
+  void printTimeStats(long int time, int trials)
+  {
+    double avg = (double)time / (double)trials;
+    printf("---------- avg. time: %f ns (%d trials) ----------\n", avg, trials);
   }
 
   // #define EXIT break
@@ -566,10 +576,14 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
-	// repeats don't make sense here
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  cs = FCT<T,SIMD_WIDTH>::template apply<SIMDSerialVec>();
+    start = getTimeSpec();
 	  cp = FCT<T,SIMD_WIDTH>::template apply<SIMDVec>();
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -581,6 +595,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -604,10 +619,15 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<T,SIMD_WIDTH>::apply(a);
+    start = getTimeSpec();
 	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -620,6 +640,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -644,10 +665,15 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  a = FCT<T,SIMD_WIDTH>::randomizeInputScalar();
 	  cs = FCT<T,SIMD_WIDTH>::template apply<SIMDSerialVec>(a);
+    start = getTimeSpec();
 	  cp = FCT<T,SIMD_WIDTH>::template apply<SIMDVec>(a);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -660,6 +686,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -686,10 +713,15 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
   printInfo(name, args);
   int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
   for (int i = 0; i < repeats; i++, trials++) {
     a = FCT<T,SIMD_WIDTH>::randomizeInputScalar();
     cs = FCT<T,SIMD_WIDTH>::template apply<SIMDSerialVec>(a);
+    start = getTimeSpec();
     cp = FCT<T,SIMD_WIDTH>::template apply<SIMDVec>(a);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
     if (!CMP::cmpVec(cs, cp)) {
       errors++;
       if (errors <= PRINT_ERRORS) {
@@ -702,6 +734,7 @@ namespace ns_simd {
     }
   }
   printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -728,10 +761,15 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<T,SIMD_WIDTH>::apply(a);
+    start = getTimeSpec();
 	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpScalar(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -744,6 +782,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -780,10 +819,15 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<T,SIMD_WIDTH>::apply(a);
+    start = getTimeSpec();
 	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpScalar(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -796,6 +840,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -821,10 +866,15 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<Tout,T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<Tout,T,SIMD_WIDTH>::apply(a);
+    start = getTimeSpec();
 	  cp = FCT<Tout,T,SIMD_WIDTH>::apply(a.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -837,6 +887,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -861,10 +912,15 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<I,T,SIMD_WIDTH>::apply(a);
+    start = getTimeSpec();
 	  cp = FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpScalar(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -877,6 +933,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
       UnaryTemplateIntScalar<T, SIMD_WIDTH, 
 			     FCT<I,T,SIMD_WIDTH>::nextI, 
@@ -930,10 +987,15 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<I,T,SIMD_WIDTH>::apply(a);
+    start = getTimeSpec();
 	  cp = FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -946,6 +1008,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
       UnaryTemplateInt<T, SIMD_WIDTH, 
 		       FCT<I,T,SIMD_WIDTH>::nextI, 
@@ -999,11 +1062,16 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<T,SIMD_WIDTH>::apply(a, b);
+    start = getTimeSpec();
 	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1017,6 +1085,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1042,11 +1111,16 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<Tout,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<Tout,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<Tout,T,SIMD_WIDTH>::apply(a, b);
+    start = getTimeSpec();
 	  cp = FCT<Tout,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1060,6 +1134,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1087,10 +1162,15 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<Tout,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<Tout,T,SIMD_WIDTH>::apply(a, cs);
+    start = getTimeSpec();
 	  FCT<Tout,T,SIMD_WIDTH>::apply(a.getSIMDVec(), _cp);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  bool foundError = false;
 	  for (int io = 0; io < nOutVecs; io++) {
 	    cp[io] = _cp[io];
@@ -1111,6 +1191,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1137,13 +1218,18 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  for (int j = 0; j < nInVecs; j++) {
 	    FCT<T,SIMD_WIDTH>::randomizeInput(a[j]);
 	    _a[j] = a[j].getSIMDVec();
 	  }
 	  cs = FCT<T,SIMD_WIDTH>::apply(a);
+    start = getTimeSpec();
 	  cp = FCT<T,SIMD_WIDTH>::apply(_a);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1157,6 +1243,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1184,13 +1271,18 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  for (int j = 0; j < nInVecs; j++) {
 	    FCT<Tout,T,SIMD_WIDTH>::randomizeInput(a[j]);
 	    _a[j] = a[j].getSIMDVec();
 	  }
 	  cs = FCT<Tout,T,SIMD_WIDTH>::apply(a);
+    start = getTimeSpec();
 	  cp = FCT<Tout,T,SIMD_WIDTH>::apply(_a);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1204,6 +1296,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1229,6 +1322,8 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  for (int j = 0; j < n; j++) {
 	    FCT<T,SIMD_WIDTH>::randomizeInput(as[j]);
@@ -1236,7 +1331,10 @@ namespace ns_simd {
 	  }
 	  // apply function
 	  FCT<T,SIMD_WIDTH>::apply(as, cs);
+    start = getTimeSpec();
 	  FCT<T,SIMD_WIDTH>::apply(_ap, _cp);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  // compare results
 	  bool equal = true;
 	  for (int j = 0; j < n; j++) {
@@ -1262,6 +1360,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1291,6 +1390,8 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  for (int j = 0; j < numInVecs; j++) {
 	    FCT<Tout,T,SIMD_WIDTH>::randomizeInput(as[j]);
@@ -1298,7 +1399,10 @@ namespace ns_simd {
 	  }
 	  // apply function
 	  FCT<Tout,T,SIMD_WIDTH>::apply(as, cs);
+    start = getTimeSpec();
 	  FCT<Tout,T,SIMD_WIDTH>::apply(_ap, _cp);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  // compare results
 	  bool equal = true;
 	  for (int j = 0; j < numOutVecs; j++) {
@@ -1324,6 +1428,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1353,6 +1458,8 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  double d = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
 	  for (int j = 0; j < numInVecs; j++) {
@@ -1361,7 +1468,10 @@ namespace ns_simd {
 	  }
 	  // apply function
 	  FCT<Tout,T,SIMD_WIDTH>::apply(as, d, cs);
+    start = getTimeSpec();
 	  FCT<Tout,T,SIMD_WIDTH>::apply(_ap, d, _cp);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  // compare results
 	  bool equal = true;
 	  for (int j = 0; j < numOutVecs; j++) {
@@ -1388,6 +1498,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1417,6 +1528,8 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  double d1 = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
 	  double d2 = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
@@ -1426,7 +1539,10 @@ namespace ns_simd {
 	  }
 	  // apply function
 	  FCT<Tout,T,SIMD_WIDTH>::apply(as, d1, d2, cs);
+    start = getTimeSpec();
 	  FCT<Tout,T,SIMD_WIDTH>::apply(_ap, d1, d2, _cp);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  // compare results
 	  bool equal = true;
 	  for (int j = 0; j < numOutVecs; j++) {
@@ -1453,6 +1569,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1482,6 +1599,8 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  double d = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
 	  for (int j = 0; j < numInVecs; j++) {
@@ -1492,7 +1611,10 @@ namespace ns_simd {
 	  }
 	  // apply function
 	  FCT<Tout,T,SIMD_WIDTH>::apply(as, bs, d, cs);
+    start = getTimeSpec();
 	  FCT<Tout,T,SIMD_WIDTH>::apply(_ap, _bp, d, _cp);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  // compare results
 	  bool equal = true;
 	  for (int j = 0; j < numOutVecs; j++) {
@@ -1521,6 +1643,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1550,6 +1673,8 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  double d1 = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
 	  double d2 = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
@@ -1561,7 +1686,10 @@ namespace ns_simd {
 	  }
 	  // apply function
 	  FCT<Tout,T,SIMD_WIDTH>::apply(as, bs, d1, d2, cs);
+    start = getTimeSpec();
 	  FCT<Tout,T,SIMD_WIDTH>::apply(_ap, _bp, d1, d2, _cp);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  // compare results
 	  bool equal = true;
 	  for (int j = 0; j < numOutVecs; j++) {
@@ -1590,6 +1718,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };
@@ -1615,6 +1744,8 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  for (int j = 0; j < numVecs; j++) {
 	    FCT<N,T,SIMD_WIDTH>::randomizeInput(as[j]);
@@ -1624,7 +1755,10 @@ namespace ns_simd {
 	  }
 	  // apply function (overwrites results)
 	  FCT<I,T,SIMD_WIDTH>::apply(as);
+    start = getTimeSpec();
 	  FCT<I,T,SIMD_WIDTH>::apply(_ap);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  // compare results
 	  bool equal = true;
 	  for (int j = 0; j < numVecs; j++) {
@@ -1650,6 +1784,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
       ArrayVoidTemplateInt<T, SIMD_WIDTH,
 			   FCT<I,T,SIMD_WIDTH>::nextI,
@@ -1702,11 +1837,16 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<I,T,SIMD_WIDTH>::apply(a, b);
+    start = getTimeSpec();
 	  cp = FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1720,6 +1860,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
       BinaryTemplateInt<T, SIMD_WIDTH,
 			FCT<I,T,SIMD_WIDTH>::nextI, 
@@ -1775,11 +1916,16 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(b);
 	  FCT<I,T,SIMD_WIDTH>::apply(a, b, cs, ds);
+    start = getTimeSpec();
 	  FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec(), _cp, _dp);
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  cp = _cp;
 	  dp = _dp;
     if (!CMP::cmpVec(cs, cp) || !CMP::cmpVec(ds, dp)) {
@@ -1797,6 +1943,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
       BinaryBinaryTemplateInt<T, SIMD_WIDTH,
 			      FCT<I,T,SIMD_WIDTH>::nextI, IMAX,
@@ -1852,11 +1999,16 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<I,J,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<I,J,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<I,J,T,SIMD_WIDTH>::apply(a, b);
+    start = getTimeSpec();
 	  cp = FCT<I,J,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1870,6 +2022,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
       BinaryTemplateIntInt<T, SIMD_WIDTH,
 			   FCT<I,J,T,SIMD_WIDTH>::nextI, IMAX, 
@@ -1930,13 +2083,18 @@ namespace ns_simd {
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
 	int errors = 0, trials = 0;
+  long int time = 0;
+  struct timespec start, end;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<Tcond,T,SIMD_WIDTH>::randomizeCond(cond);
 	  FCT<Tcond,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<Tcond,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<Tcond,T,SIMD_WIDTH>::apply(cond, a, b);
+    start = getTimeSpec();
 	  cp = FCT<Tcond,T,SIMD_WIDTH>::apply(cond.getSIMDVec(), 
 					      a.getSIMDVec(), b.getSIMDVec());
+    end = getTimeSpec();
+    time += timeSpecDiffNsec(end, start);
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1951,6 +2109,7 @@ namespace ns_simd {
 	  }
 	}
 	printErrorStats(errors, trials);
+  printTimeStats(time, trials);
       }
     }
   };

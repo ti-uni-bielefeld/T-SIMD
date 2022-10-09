@@ -226,6 +226,19 @@ namespace ns_simd {
     timespec_subtract(x, y, diff);
     return timespec_usec(diff);
   }
+
+  // 09. Oct 22 (Jonas Keller): added timeSpecDiffNsec
+
+  // warning: may overflow if the difference is more than 2 seconds on platforms
+  // where long is 32 bits
+  long int
+  timeSpecDiffNsec(const struct timespec &x,
+       const struct timespec &y)
+  {
+    struct timespec diff;
+    timespec_subtract(x, y, diff);
+    return 1000000000L * diff.tv_sec + diff.tv_nsec;
+  }
   
 } // namespace
 

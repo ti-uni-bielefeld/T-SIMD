@@ -4006,7 +4006,7 @@ namespace ns_simd {
     __m128i sel = _mm_set1_epi64x(0x8040201008040201);
     __m128i selected = _mm_and_si128(aVec, sel);
     __m128i result = _mm_cmpeq_epi8(selected, sel);
-    return _mm_and_si128(result, _mm_set1_epi8(0x80));
+    return _mm_and_si128(result, _mm_set1_epi8((int8_t)0x80));
   }
 
   template <>
@@ -4025,7 +4025,7 @@ namespace ns_simd {
                                 0x0008, 0x0004, 0x0002, 0x0001);
     __m128i selected = _mm_and_si128(aVec, sel);
     __m128i result = _mm_cmpeq_epi16(selected, sel);
-    return _mm_and_si128(result, _mm_set1_epi16(0x8000));
+    return _mm_and_si128(result, _mm_set1_epi16((int16_t)0x8000));
   }
 
   template <>

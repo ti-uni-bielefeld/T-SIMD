@@ -5517,7 +5517,7 @@ namespace ns_simd {
   int2msb(const uint64_t a)
   {
 #ifdef __AVX512BW__
-    return _mm512_maskz_set1_epi8(_cvtu64_mask64(a), 0x80);
+    return _mm512_maskz_set1_epi8(_cvtu64_mask64(a), (int8_t)0x80);
 #else
     __m256i shuffleIndeces = _mm256_set_epi64x(
         0x0303030303030303, 0x0202020202020202, 0x0101010101010101, 0);
@@ -5546,10 +5546,10 @@ namespace ns_simd {
   int2msb(const uint64_t a)
   {
 #ifdef __AVX512BW__
-    return _mm512_maskz_set1_epi16(_cvtu32_mask32(a), 0x8000);
+    return _mm512_maskz_set1_epi16(_cvtu32_mask32(a), (int16_t)0x8000);
 #else
     __m256i sel = _mm256_set_epi16(
-        0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
+        (int16_t)0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
         0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
     __m256i aVecLo = _mm256_set1_epi16(a);
     __m256i aVecHi = _mm256_set1_epi16(a >> 16);

@@ -5409,7 +5409,7 @@ namespace ns_simd {
     __m128i resultHi = _mm_cmpeq_epi8(selectedHi, sel);
     __m256i result = x_mm256_combine_si128(resultLo, resultHi);
 #endif
-    return x_mm256_and_si256(result, _mm256_set1_epi8(0x80));
+    return x_mm256_and_si256(result, _mm256_set1_epi8((int8_t)0x80));
   }
 
   template <>
@@ -5426,7 +5426,7 @@ namespace ns_simd {
 #ifdef __AVX2__
     __m256i aVec = _mm256_set1_epi16(a);
     __m256i sel = _mm256_set_epi16(
-        0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
+        (int16_t)0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
         0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
     __m256i selected = x_mm256_and_si256(aVec, sel);
     __m256i result = _mm256_cmpeq_epi16(selected, sel);
@@ -5434,15 +5434,15 @@ namespace ns_simd {
     __m128i aVec = _mm_set1_epi16(a);
     __m128i selLo = _mm_set_epi16(
         0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
-    __m128i selHi = _mm_set_epi16(
-        0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100);
+    __m128i selHi = _mm_set_epi16((int16_t)0x8000, 0x4000, 0x2000, 0x1000,
+                                  0x0800, 0x0400, 0x0200, 0x0100);
     __m128i selectedLo = _mm_and_si128(aVec, selLo);
     __m128i selectedHi = _mm_and_si128(aVec, selHi);
     __m128i resultLo = _mm_cmpeq_epi16(selectedLo, selLo);
     __m128i resultHi = _mm_cmpeq_epi16(selectedHi, selHi);
     __m256i result = x_mm256_combine_si128(resultLo, resultHi);
 #endif
-    return x_mm256_and_si256(result, _mm256_set1_epi16(0x8000));
+    return x_mm256_and_si256(result, _mm256_set1_epi16((int16_t)0x8000));
   }
 
   template <>

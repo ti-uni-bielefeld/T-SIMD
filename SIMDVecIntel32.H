@@ -109,7 +109,7 @@ namespace ns_simd {
     operator __m256i() const { return ymm; }
     // for avx2 emulation
     SIMDVec(const SIMDVec<T,16> &lo, const SIMDVec<T,16> &hi)
-    { ymm = _mm256_insertf128_si256(_mm256_castsi128_si256(lo), hi, 1); }
+    { ymm = x_mm256_combine_si128(lo, hi); }
     SIMD_INLINE SIMDVec<T,16> lo() const 
     { return _mm256_castsi256_si128(ymm); }
     SIMD_INLINE SIMDVec<T,16> hi() const 
@@ -135,7 +135,7 @@ namespace ns_simd {
     operator __m256() const { return ymm; }
     // for avx2 emulation
     SIMDVec(const SIMDVec<SIMDFloat,16> &lo, const SIMDVec<SIMDFloat,16> &hi)
-    { ymm = _mm256_insertf128_ps(_mm256_castps128_ps256(lo), hi, 1); }
+    { ymm = _mm256_setr_m128(lo, hi); }
     SIMD_INLINE SIMDVec<SIMDFloat,16> lo() const 
     { return _mm256_castps256_ps128(ymm); }
     SIMD_INLINE SIMDVec<SIMDFloat,16> hi() const 
@@ -179,7 +179,7 @@ namespace ns_simd {
   static SIMD_INLINE __m256i
   x_mm256_combine_si128(__m128i lo, __m128i hi)
   {
-    return _mm256_insertf128_si256(_mm256_castsi128_si256(lo), hi, 1);
+    return _mm256_setr_m128i(lo, hi);
   }
 
   // ---------------------------------------------------------------------------
@@ -1103,12 +1103,7 @@ namespace ns_simd {
   static SIMD_INLINE __m256i
   x_mm256_duplicate_si128(__m128i a)
   {
-#ifdef __AVX2__
-    return _mm256_inserti128_si256(_mm256_castsi128_si256(a), a, 1);
-#else
-    // non-avx2 workaround
-    return _mm256_insertf128_si256(_mm256_castsi128_si256(a), a, 1);
-#endif
+    return x_mm256_combine_si128(a, a);
   }
 
   // ---------------------------------------------------------------------------

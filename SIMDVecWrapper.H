@@ -2113,6 +2113,26 @@ namespace ns_simd {
     }
   };
 
+  // 09. Oct 22 (Jonas Keller): added int2bits
+
+  template <typename T, int SIMD_WIDTH>
+  struct Int2bits
+  {
+    static SIMD_INLINE std::string name() 
+    { return t2s<T,SIMD_WIDTH>("int2bits"); }
+    
+    static SIMD_INLINE uint64_t
+    randomizeInputScalar()
+    { return getRandom<uint64_t>(); }
+    
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE VEC<T,SIMD_WIDTH>
+    apply(const uint64_t &a)
+    {
+      return Deductor<VEC>::template _int2bits<T,SIMD_WIDTH>(a);
+    }
+  };
+
 } // namespace
 
 #endif

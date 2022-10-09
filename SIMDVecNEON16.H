@@ -2392,6 +2392,63 @@ namespace ns_simd {
   {
     return reinterpret<SIMDFloat>(int2msb<SIMDInt, 16>(a));
   }
+
+  // ---------------------------------------------------------------------------
+  // int2bits
+  // ---------------------------------------------------------------------------
+
+  // 09. Oct 22 (Jonas Keller): added int2bits functions
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDByte,16>
+  int2bits(const uint64_t a)
+  {
+    uint8x8_t aVecLo = vdup_n_u8(a & 0xff);
+    uint8x8_t aVecHi = vdup_n_u8((a >> 8) & 0xff);
+    uint8x16_t aVec = vcombine_u8(aVecLo, aVecHi);
+    uint8x16_t sel = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
+                      0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+    return vtstq_u8(aVec, sel);
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDSignedByte>(int2bits<SIMDByte, 16>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDWord,16>
+  int2bits(const uint64_t a)
+  {
+    uint16x8_t aVec = vdupq_n_u16(a & 0xff);
+    uint16x8_t sel = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+    return vtstq_u16(aVec, sel);
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDShort,16>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDShort>(int2bits<SIMDWord, 16>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDInt,16>
+  int2bits(const uint64_t a)
+  {
+    int32x4_t aVec = vdupq_n_s32(a & 0xf);
+    int32x4_t sel = {0x01, 0x02, 0x04, 0x08};
+    return vreinterpretq_s32_u32(vtstq_s32(aVec, sel));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDFloat,16>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDFloat>(int2bits<SIMDInt, 16>(a));
+  }
 } // namespace ns_simd
 
 #endif // _SIMD_VEC_NEON_16_H_

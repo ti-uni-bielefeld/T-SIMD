@@ -1052,6 +1052,12 @@ namespace ns_simd {
     {
       return int2msb<T,SIMD_WIDTH>(a);
     }
+    // 09. Oct 22 (Jonas Keller): added int2bits
+    template <typename T, int SIMD_WIDTH>
+    static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _int2bits(const uint64_t a)
+    {
+      return int2bits<T,SIMD_WIDTH>(a);
+    }
   };
 
   // -------------------------------------------------------------------------
@@ -1135,6 +1141,15 @@ namespace ns_simd {
     static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _int2msb(const uint64_t a)
     {
       return _int2msb<SIMD_WIDTH>(a, T());
+    }
+    // 09. Oct 22 (Jonas Keller): added int2bits
+    template <typename T, int SIMD_WIDTH>
+    static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _int2bits(const uint64_t a)
+    {
+      SIMDSerialVec<T,SIMD_WIDTH> v;
+      for (int i = 0; i < v.elements; i++)
+  v[i] = (a >> i) & 1 ? SIMDTypeInfo<T>::trueval() : T(0);
+      return v;
     }
   private:
     // int2msb

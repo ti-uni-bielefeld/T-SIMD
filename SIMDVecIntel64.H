@@ -5582,6 +5582,81 @@ namespace ns_simd {
   {
     return reinterpret<SIMDFloat>(int2msb<SIMDInt, 64>(a));
   }
+
+  // ---------------------------------------------------------------------------
+  // int2bits
+  // ---------------------------------------------------------------------------
+
+  // 09. Oct 22 (Jonas Keller): added int2bits functions
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDByte,64>
+  int2bits(const uint64_t a)
+  {
+#ifdef __AVX512BW__
+    return _mm512_maskz_set1_epi8(_cvtu64_mask64(a), (int8_t)0xff);
+#else
+    __m256i shuffleIndeces = _mm256_set_epi64x(
+        0x0303030303030303, 0x0202020202020202, 0x0101010101010101, 0);
+    __m256i aVecLo = _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
+    __m256i aVecHi =
+        _mm256_shuffle_epi8(_mm256_set1_epi32(a >> 32), shuffleIndeces);
+    __m256i sel = _mm256_set1_epi64x(0x8040201008040201);
+    __m256i selectedLo = x_mm256_and_si256(aVecLo, sel);
+    __m256i selectedHi = x_mm256_and_si256(aVecHi, sel);
+    __m256i resultLo = _mm256_cmpeq_epi8(selectedLo, sel);
+    __m256i resultHi = _mm256_cmpeq_epi8(selectedHi, sel);
+    return x_mm512_combine_si256(resultLo, resultHi);
+#endif
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDSignedByte,64>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDSignedByte>(int2bits<SIMDByte, 64>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDShort,64>
+  int2bits(const uint64_t a)
+  {
+#ifdef __AVX512BW__
+    return _mm512_maskz_set1_epi16(_cvtu32_mask32(a), (int16_t)0xffff);
+#else
+    __m256i sel = _mm256_set_epi16(
+        (int16_t)0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
+        0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
+    __m256i aVecLo = _mm256_set1_epi16(a);
+    __m256i aVecHi = _mm256_set1_epi16(a >> 16);
+    __m256i selectedLo = x_mm256_and_si256(aVecLo, sel);
+    __m256i selectedHi = x_mm256_and_si256(aVecHi, sel);
+    __m256i resultLo = _mm256_cmpeq_epi16(selectedLo, sel);
+    __m256i resultHi = _mm256_cmpeq_epi16(selectedHi, sel);
+    return x_mm512_combine_si256(resultLo, resultHi);
+#endif
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDWord,64>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDWord>(int2bits<SIMDShort, 64>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDInt,64>
+  int2bits(const uint64_t a)
+  {
+    return _mm512_maskz_set1_epi32(_cvtu32_mask16(a), 0xffffffff);
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDFloat,64>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDFloat>(int2bits<SIMDInt, 64>(a));
+  }
 }
 
 #endif // __AVX__

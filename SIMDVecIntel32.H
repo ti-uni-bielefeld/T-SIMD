@@ -5480,6 +5480,83 @@ namespace ns_simd {
   {
     return reinterpret<SIMDFloat>(int2msb<SIMDInt, 32>(a));
   }
+
+  // ---------------------------------------------------------------------------
+  // int2bits
+  // ---------------------------------------------------------------------------
+
+  // 09. Oct 22 (Jonas Keller): added int2bits
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDByte,32>
+  int2bits(const uint64_t a)
+  {
+#ifdef __AVX2__
+    __m256i shuffleIndeces = _mm256_set_epi64x(
+        0x0303030303030303, 0x0202020202020202, 0x0101010101010101, 0);
+    __m256i aVec = _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
+    __m256i sel = _mm256_set1_epi64x(0x8040201008040201);
+    __m256i selected = x_mm256_and_si256(aVec, sel);
+    return _mm256_cmpeq_epi8(selected, sel);
+#else
+    return x_mm256_combine_si128(int2bits<SIMDByte, 16>(a),
+                                           int2bits<SIMDByte, 16>(a >> 16));
+#endif
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDSignedByte,32>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDSignedByte>(int2bits<SIMDByte, 32>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDShort,32>
+  int2bits(const uint64_t a)
+  {
+#ifdef __AVX2__
+    __m256i aVec = _mm256_set1_epi16(a);
+    __m256i sel = _mm256_set_epi16(
+        (int16_t)0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
+        0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
+    __m256i selected = x_mm256_and_si256(aVec, sel);
+    return _mm256_cmpeq_epi16(selected, sel);
+#else
+    return x_mm256_combine_si128(int2bits<SIMDShort, 16>(a),
+                                 int2bits<SIMDShort, 16>(a >> 8));
+#endif
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDWord,32>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDWord>(int2bits<SIMDShort, 32>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDInt,32>
+  int2bits(const uint64_t a)
+  {
+#ifdef __AVX2__
+    __m256i aVec = _mm256_set1_epi32(a);
+    __m256i sel =
+        _mm256_set_epi32(0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01);
+    __m256i selected = x_mm256_and_si256(aVec, sel);
+    return _mm256_cmpeq_epi32(selected, sel);
+#else
+    return x_mm256_combine_si128(int2bits<SIMDInt, 16>(a),
+                                           int2bits<SIMDInt, 16>(a >> 4));
+#endif
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDFloat,32>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDFloat>(int2bits<SIMDInt, 32>(a));
+  }
 }
 
 

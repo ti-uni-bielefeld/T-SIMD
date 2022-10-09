@@ -4052,6 +4052,73 @@ namespace ns_simd {
   {
     return reinterpret<SIMDFloat>(int2msb<SIMDInt, 16>(a));
   }
+
+  // ---------------------------------------------------------------------------
+  // int2bits
+  // ---------------------------------------------------------------------------
+
+  // 09. Oct 22 (Jonas Keller): added int2bits functions
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDByte,16>
+  int2bits(const uint64_t a)
+  {
+    // ssse3 version from https://stackoverflow.com/a/72899629
+#ifdef __SSSE3__
+    __m128i shuffleIndeces = _mm_set_epi64x(0x0101010101010101, 0);
+    __m128i aVec = _mm_shuffle_epi8(_mm_cvtsi32_si128(a), shuffleIndeces);
+#else
+    __m128i maskLo = _mm_set_epi64x(0, 0xffffffffffffffff);
+    __m128i aLo = _mm_and_si128(maskLo, _mm_set1_epi8(a)) ;
+    __m128i aHi = _mm_andnot_si128(maskLo, _mm_set1_epi8(a >> 8));
+    __m128i aVec = _mm_or_si128(aLo, aHi);
+#endif
+    __m128i sel = _mm_set1_epi64x(0x8040201008040201);
+    __m128i selected = _mm_and_si128(aVec, sel);
+    return _mm_cmpeq_epi8(selected, sel);
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDSignedByte>(int2bits<SIMDByte, 16>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDShort,16>
+  int2bits(const uint64_t a)
+  {
+    __m128i aVec = _mm_set1_epi16(a);
+    __m128i sel = _mm_set_epi16(0x0080, 0x0040, 0x0020, 0x0010,
+                                0x0008, 0x0004, 0x0002, 0x0001);
+    __m128i selected = _mm_and_si128(aVec, sel);
+    return _mm_cmpeq_epi16(selected, sel);
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDWord,16>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDWord>(int2bits<SIMDShort, 16>(a));
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDInt,16>
+  int2bits(const uint64_t a)
+  {
+    __m128i aVec = _mm_set1_epi32(a);
+    __m128i sel = _mm_set_epi32(0x00000008, 0x00000004, 0x00000002, 0x00000001);
+    __m128i selected = _mm_and_si128(aVec, sel);
+    return _mm_cmpeq_epi32(selected, sel);
+  }
+
+  template <>
+  SIMD_INLINE SIMDVec<SIMDFloat,16>
+  int2bits(const uint64_t a)
+  {
+    return reinterpret<SIMDFloat>(int2bits<SIMDInt, 16>(a));
+  }
 }
 
 #endif // __SSE2__

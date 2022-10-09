@@ -83,7 +83,7 @@ struct TesterMaskUnary {
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -130,7 +130,7 @@ struct TesterMaskZUnary {
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -179,7 +179,7 @@ struct TesterMaskBinary {
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a, b);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -228,7 +228,7 @@ struct TesterMaskZBinary {
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -276,7 +276,7 @@ struct TesterMaskConditionBinary {
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -323,7 +323,7 @@ struct TesterMaskConditionUnary {
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -374,7 +374,7 @@ struct TesterMaskUnaryTemplateType {
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k,
                                                                       a);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -423,7 +423,7 @@ struct TesterMaskZUnaryTemplateType {
       SIMDSerialVec<Tout, SIMD_WIDTH> cp =
           FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -470,7 +470,7 @@ struct TesterMaskScalar {
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -516,7 +516,7 @@ struct TesterMaskZScalar {
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -564,7 +564,7 @@ struct TesterMaskCmp {
       SIMDSerialMask<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a, b);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -610,7 +610,7 @@ struct TesterMaskUnaryInt {
       start = getTimeSpec();
       int cp = FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpScalar(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -654,7 +654,7 @@ struct TesterUnaryK {
       SIMDSerialMask<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(k);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -698,7 +698,7 @@ struct TesterBinaryK {
       SIMDSerialMask<T, SIMD_WIDTH> cp =
           FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(k, l);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -747,7 +747,7 @@ struct TesterMaskUnaryTI {
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(src, k, a);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -815,7 +815,7 @@ struct TesterMaskZUnaryTI {
       SIMDSerialVec<T, SIMD_WIDTH> cp =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(k, a);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -880,7 +880,7 @@ struct TesterUnaryKTI {
       SIMDSerialMask<T, SIMD_WIDTH> cp =
           FCT<I, T, SIMD_WIDTH>::template apply<SIMDMask>(k);
       end = getTimeSpec();
-      time += timeSpecDiffNsec(start, end);
+      time += timeSpecDiffNsec(end, start);
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {

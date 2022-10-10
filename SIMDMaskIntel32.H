@@ -35,188 +35,41 @@
 #include "SIMDVecIntel32.H"
 
 namespace ns_simd {
-
-  template <>
-  class SIMDMask<SIMDByte, 32>
+  // 10. Oct 22 (Jonas Keller):
+  // Combined all integer mask classes into one generic one and used the
+  // int2bits and msb2int functions for conversion from/to an integer.
+  template <typename T>
+  class SIMDMask<T, 32>
   {
   public:
     __m256i k;
-    SIMDMask() { k=_mm256_setzero_si256(); }
+    SIMDMask() { k = _mm256_setzero_si256(); }
     SIMDMask(const __m256i &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m256i &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
+    SIMDMask(const uint64_t x) { k = int2bits<T, 32>(x); }
+    SIMDMask &operator=(const __m256i &x) {
+      k = x;
+      return *this;
+    }
+    SIMDMask &operator=(const uint64_t x) {
+      k = int2bits<T, 32>(x);
+      return *this;
+    }
     operator __m256i() const { return k; }
-    operator uint64_t() const { return msb2int(SIMDVec<SIMDByte, 32>(k)); }
-#ifdef __AVX2__
-    bool operator[](const uint8_t i) const { if(i>=32) { return false; } return ((1<<i)&_mm256_movemask_epi8(k))!=0; }
-#else
+    operator uint64_t() const { return msb2int(SIMDVec<T, 32>(k)); }
     bool operator[](const uint8_t i) const {
-        if(i>=32) { return false; }
-        if(i>=16) {
-            return ((1<<(i-16))&(_mm_movemask_epi8(_mm256_extractf128_si256(k, 1))))!=0;
-        } else {
-            return ((1<<i)&(_mm_movemask_epi8(_mm256_extractf128_si256(k, 0))))!=0;
-        }
+      if (i >= 32) {
+        return false;
+      }
+      return ((1 << i) & msb2int(SIMDVec<T, 32>(k))) != 0;
     }
-#endif
+    bool operator==(const SIMDMask<T, 32> &x) {
 #ifdef __AVX2__
-    bool operator==(const SIMDMask<SIMDByte, 32> &x) {
-      return ((unsigned int) _mm256_movemask_epi8(_mm256_cmpeq_epi8(k, x)))==0xffffffff;
-    }
+      return ((unsigned int)_mm256_movemask_epi8(_mm256_cmpeq_epi8(k, x))) ==
+             0xffffffff;
 #else
-    bool operator==(const SIMDMask<SIMDByte, 32> &x) {
-      return test_all_ones(cmpeq(SIMDVec<SIMDByte,32>(k), SIMDVec<SIMDByte,32>(x)));
-    }
+      return test_all_ones(
+          cmpeq(SIMDVec<SIMDByte, 32>(k), SIMDVec<SIMDByte, 32>(x)));
 #endif
-    static SIMD_INLINE __m256i
-    mask_from_int(const uint64_t x) {
-      return _mm256_setr_epi8(((x&0x1)?0xFF:0x0), ((x&0x2)?0xFF:0x0), ((x&0x4)?0xFF:0x0), ((x&0x8)?0xFF:0x0), ((x&0x10)?0xFF:0x0), ((x&0x20)?0xFF:0x0), ((x&0x40)?0xFF:0x0), ((x&0x80)?0xFF:0x0), ((x&0x100)?0xFF:0x0), ((x&0x200)?0xFF:0x0), ((x&0x400)?0xFF:0x0), ((x&0x800)?0xFF:0x0), ((x&0x1000)?0xFF:0x0), ((x&0x2000)?0xFF:0x0), ((x&0x4000)?0xFF:0x0), ((x&0x8000)?0xFF:0x0), ((x&0x10000)?0xFF:0x0), ((x&0x20000)?0xFF:0x0), ((x&0x40000)?0xFF:0x0), ((x&0x80000)?0xFF:0x0), ((x&0x100000)?0xFF:0x0), ((x&0x200000)?0xFF:0x0), ((x&0x400000)?0xFF:0x0), ((x&0x800000)?0xFF:0x0), ((x&0x1000000)?0xFF:0x0), ((x&0x2000000)?0xFF:0x0), ((x&0x4000000)?0xFF:0x0), ((x&0x8000000)?0xFF:0x0), ((x&0x10000000)?0xFF:0x0), ((x&0x20000000)?0xFF:0x0), ((x&0x40000000)?0xFF:0x0), ((x&0x80000000)?0xFF:0x0));
-    }
-  };
-  
-  template <>
-  class SIMDMask<SIMDSignedByte, 32>
-  {
-  public:
-    __m256i k;
-    SIMDMask() { k=_mm256_setzero_si256(); }
-    SIMDMask(const __m256i &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m256i &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
-    operator __m256i() const { return k; }
-    operator uint64_t() const { return msb2int(SIMDVec<SIMDSignedByte, 32>(k)); }
-#ifdef __AVX2__
-    bool operator[](const uint8_t i) const { if(i>=32) { return false; } return ((1<<i)&_mm256_movemask_epi8(k))!=0; }
-#else
-    bool operator[](const uint8_t i) const {
-        if(i>=32) { return false; }
-        if(i>=16) {
-            return ((1<<(i-16))&(_mm_movemask_epi8(_mm256_extractf128_si256(k, 1))))!=0;
-        } else {
-            return ((1<<i)&(_mm_movemask_epi8(_mm256_extractf128_si256(k, 0))))!=0;
-        }
-    }
-#endif
-#ifdef __AVX2__
-    bool operator==(const SIMDMask<SIMDSignedByte, 32> &x) {
-      return ((unsigned int) _mm256_movemask_epi8(_mm256_cmpeq_epi8(k, x)))==0xffffffff;
-    }
-#else
-    bool operator==(const SIMDMask<SIMDSignedByte, 32> &x) {
-      return test_all_ones(cmpeq(SIMDVec<SIMDByte,32>(k), SIMDVec<SIMDByte,32>(x)));
-    }
-#endif
-    static SIMD_INLINE __m256i
-    mask_from_int(const uint64_t x) {
-      return _mm256_setr_epi8(((x&0x1)?0xFF:0x0), ((x&0x2)?0xFF:0x0), ((x&0x4)?0xFF:0x0), ((x&0x8)?0xFF:0x0), ((x&0x10)?0xFF:0x0), ((x&0x20)?0xFF:0x0), ((x&0x40)?0xFF:0x0), ((x&0x80)?0xFF:0x0), ((x&0x100)?0xFF:0x0), ((x&0x200)?0xFF:0x0), ((x&0x400)?0xFF:0x0), ((x&0x800)?0xFF:0x0), ((x&0x1000)?0xFF:0x0), ((x&0x2000)?0xFF:0x0), ((x&0x4000)?0xFF:0x0), ((x&0x8000)?0xFF:0x0), ((x&0x10000)?0xFF:0x0), ((x&0x20000)?0xFF:0x0), ((x&0x40000)?0xFF:0x0), ((x&0x80000)?0xFF:0x0), ((x&0x100000)?0xFF:0x0), ((x&0x200000)?0xFF:0x0), ((x&0x400000)?0xFF:0x0), ((x&0x800000)?0xFF:0x0), ((x&0x1000000)?0xFF:0x0), ((x&0x2000000)?0xFF:0x0), ((x&0x4000000)?0xFF:0x0), ((x&0x8000000)?0xFF:0x0), ((x&0x10000000)?0xFF:0x0), ((x&0x20000000)?0xFF:0x0), ((x&0x40000000)?0xFF:0x0), ((x&0x80000000)?0xFF:0x0));
-    }
-  };
-
-  template <>
-  class SIMDMask<SIMDWord, 32>
-  {
-  public:
-    __m256i k;
-    SIMDMask() { k=_mm256_setzero_si256(); }
-    SIMDMask(const __m256i &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m256i &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
-    operator __m256i() const { return k; }
-    operator uint64_t() const { return msb2int(SIMDVec<SIMDWord, 32>(k)); }
-#ifdef __AVX2__
-    bool operator[](const uint8_t i) const { if(i>=16) { return false; } return ((3<<(2*i))&_mm256_movemask_epi8(k))!=0; }
-#else
-    bool operator[](const uint8_t i) const {
-        if(i>=16) { return false; }
-        if(i>=8) {
-            return ((3<<(2*(i-8)))&(_mm_movemask_epi8(_mm256_extractf128_si256(k, 1))))!=0;
-        } else {
-            return ((3<<(2*i))&(_mm_movemask_epi8(_mm256_extractf128_si256(k, 0))))!=0;
-        }
-    }
-#endif
-#ifdef __AVX2__
-    bool operator==(const SIMDMask<SIMDWord, 32> &x) {
-      return ((unsigned int) _mm256_movemask_epi8(_mm256_cmpeq_epi8(k, x)))==0xffffffff;
-    }
-#else
-    bool operator==(const SIMDMask<SIMDWord, 32> &x) {
-      return test_all_ones(cmpeq(SIMDVec<SIMDByte,32>(k), SIMDVec<SIMDByte,32>(x)));
-    }
-#endif
-    static SIMD_INLINE __m256i
-    mask_from_int(const uint64_t x) {
-      return _mm256_setr_epi16(((x&0x1)?0xFFFF:0x0), ((x&0x2)?0xFFFF:0x0), ((x&0x4)?0xFFFF:0x0), ((x&0x8)?0xFFFF:0x0), ((x&0x10)?0xFFFF:0x0), ((x&0x20)?0xFFFF:0x0), ((x&0x40)?0xFFFF:0x0), ((x&0x80)?0xFFFF:0x0), ((x&0x100)?0xFFFF:0x0), ((x&0x200)?0xFFFF:0x0), ((x&0x400)?0xFFFF:0x0), ((x&0x800)?0xFFFF:0x0), ((x&0x1000)?0xFFFF:0x0), ((x&0x2000)?0xFFFF:0x0), ((x&0x4000)?0xFFFF:0x0), ((x&0x8000)?0xFFFF:0x0));
-    }
-  };
-  
-  template <>
-  class SIMDMask<SIMDShort, 32>
-  {
-  public:
-    __m256i k;
-    SIMDMask() { k=_mm256_setzero_si256(); }
-    SIMDMask(const __m256i &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m256i &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
-    operator __m256i() const { return k; }
-    operator uint64_t() const { return msb2int(SIMDVec<SIMDShort, 32>(k)); }
-#ifdef __AVX2__
-    bool operator[](const uint8_t i) const { if(i>=16) { return false; } return ((3<<(2*i))&_mm256_movemask_epi8(k))!=0; }
-#else
-    bool operator[](const uint8_t i) const {
-        if(i>=16) { return false; }
-        if(i>=8) {
-            return ((3<<(2*(i-8)))&(_mm_movemask_epi8(_mm256_extractf128_si256(k, 1))))!=0;
-        } else {
-            return ((3<<(2*i))&(_mm_movemask_epi8(_mm256_extractf128_si256(k, 0))))!=0;
-        }
-    }
-#endif
-#ifdef __AVX2__
-    bool operator==(const SIMDMask<SIMDShort, 32> &x) {
-      return ((unsigned int) _mm256_movemask_epi8(_mm256_cmpeq_epi8(k, x)))==0xffffffff;
-    }
-#else
-    bool operator==(const SIMDMask<SIMDShort, 32> &x) {
-      return test_all_ones(cmpeq(SIMDVec<SIMDByte,32>(k), SIMDVec<SIMDByte,32>(x)));
-    }
-#endif
-    static SIMD_INLINE __m256i
-    mask_from_int(const uint64_t x) {
-      return _mm256_setr_epi16(((x&0x1)?0xFFFF:0x0), ((x&0x2)?0xFFFF:0x0), ((x&0x4)?0xFFFF:0x0), ((x&0x8)?0xFFFF:0x0), ((x&0x10)?0xFFFF:0x0), ((x&0x20)?0xFFFF:0x0), ((x&0x40)?0xFFFF:0x0), ((x&0x80)?0xFFFF:0x0), ((x&0x100)?0xFFFF:0x0), ((x&0x200)?0xFFFF:0x0), ((x&0x400)?0xFFFF:0x0), ((x&0x800)?0xFFFF:0x0), ((x&0x1000)?0xFFFF:0x0), ((x&0x2000)?0xFFFF:0x0), ((x&0x4000)?0xFFFF:0x0), ((x&0x8000)?0xFFFF:0x0));
-    }
-  };
-  
-  template <>
-  class SIMDMask<SIMDInt, 32>
-  {
-  public:
-    __m256i k;
-    SIMDMask() { k=_mm256_setzero_si256(); }
-    SIMDMask(const __m256i &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m256i &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
-    operator __m256i() const { return k; }
-    operator uint64_t() const { return msb2int(SIMDVec<SIMDInt, 32>(k)); }
-    bool operator[](const uint8_t i) const { if(i>=8) { return false; } return ((1<<i)&_mm256_movemask_ps(_mm256_castsi256_ps(k)))!=0; }
-#ifdef __AVX2__
-    bool operator==(const SIMDMask<SIMDInt, 32> &x) {
-      return ((unsigned int) _mm256_movemask_epi8(_mm256_cmpeq_epi8(k, x)))==0xffffffff;
-    }
-#else
-    bool operator==(const SIMDMask<SIMDInt, 32> &x) {
-      return test_all_ones(cmpeq(SIMDVec<SIMDByte,32>(k), SIMDVec<SIMDByte,32>(x)));
-    }
-#endif
-    static SIMD_INLINE __m256i
-    mask_from_int(const uint64_t x) {
-      return _mm256_setr_epi32(((x&0x1)?0xFFFFFFFF:0x0), ((x&0x2)?0xFFFFFFFF:0x0), ((x&0x4)?0xFFFFFFFF:0x0), ((x&0x8)?0xFFFFFFFF:0x0), ((x&0x10)?0xFFFFFFFF:0x0), ((x&0x20)?0xFFFFFFFF:0x0), ((x&0x40)?0xFFFFFFFF:0x0), ((x&0x80)?0xFFFFFFFF:0x0));
     }
   };
 
@@ -225,27 +78,38 @@ namespace ns_simd {
   {
   public:
     __m256 k;
-    SIMDMask() { k=_mm256_setzero_ps(); }
+    SIMDMask() { k = _mm256_setzero_ps(); }
     SIMDMask(const __m256 &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m256 &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
+    SIMDMask(const uint64_t x) { k = int2bits<SIMDFloat, 32>(x); }
+    SIMDMask &operator=(const __m256 &x) {
+      k = x;
+      return *this;
+    }
+    SIMDMask &operator=(const uint64_t x) {
+      k = int2bits<SIMDFloat, 32>(x);
+      return *this;
+    }
     operator __m256() const { return k; }
     operator uint64_t() const { return msb2int(SIMDVec<SIMDFloat, 32>(k)); }
-    bool operator[](const uint8_t i) const { if(i>=8) { return false; } return ((1<<i)&_mm256_movemask_ps(k))!=0; }
+    bool operator[](const uint8_t i) const {
+      if (i >= 8) {
+        return false;
+      }
+      return ((1 << i) & msb2int(SIMDVec<SIMDFloat, 32>(k))) != 0;
+    }
 #ifdef __AVX2__
     bool operator==(const SIMDMask<SIMDFloat, 32> &x) {
-      return ((unsigned int) _mm256_movemask_epi8(_mm256_cmpeq_epi8(_mm256_castps_si256(k), _mm256_castps_si256(x))))==0xffffffff;
+      return ((unsigned int)_mm256_movemask_epi8(_mm256_cmpeq_epi8(
+                 _mm256_castps_si256(k), _mm256_castps_si256(x)))) ==
+             0xffffffff;
     }
 #else
     bool operator==(const SIMDMask<SIMDFloat, 32> &x) {
-      return test_all_ones(cmpeq(SIMDVec<SIMDByte,32>(_mm256_castps_si256(k)), SIMDVec<SIMDByte,32>(_mm256_castps_si256(x))));
+      return test_all_ones(
+          cmpeq(SIMDVec<SIMDByte, 32>(_mm256_castps_si256(k)),
+                SIMDVec<SIMDByte, 32>(_mm256_castps_si256(x))));
     }
 #endif
-    static SIMD_INLINE __m256
-    mask_from_int(const uint64_t x) {
-      return _mm256_castsi256_ps(_mm256_setr_epi32(((x&0x1)?0xFFFFFFFF:0x0), ((x&0x2)?0xFFFFFFFF:0x0), ((x&0x4)?0xFFFFFFFF:0x0), ((x&0x8)?0xFFFFFFFF:0x0), ((x&0x10)?0xFFFFFFFF:0x0), ((x&0x20)?0xFFFFFFFF:0x0), ((x&0x40)?0xFFFFFFFF:0x0), ((x&0x80)?0xFFFFFFFF:0x0)));
-    }
   };
   
   template <>

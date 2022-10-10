@@ -30,134 +30,39 @@
 #define _SIMDMASKINTEL16_H_
 
 #ifdef __SSE2__
+#include "SIMDVecIntel16.H"
 #include <emmintrin.h> //SSE2
 
 namespace ns_simd {
-  template <>
-  class SIMDMask<SIMDByte, 16>
+  // 10. Oct 22 (Jonas Keller):
+  // Combined all integer mask classes into one generic one and used the
+  // int2bits and msb2int functions for conversion from/to an integer.
+  template <typename T>
+  class SIMDMask<T, 16>
   {
   public:
     __m128i k;
-    SIMDMask() { k=_mm_setzero_si128(); }
+    SIMDMask() { k = _mm_setzero_si128(); }
     SIMDMask(const __m128i &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m128i &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
+    SIMDMask(const uint64_t x) { k = int2bits<T, 16>(x); }
+    SIMDMask &operator=(const __m128i &x) {
+      k = x;
+      return *this;
+    }
+    SIMDMask &operator=(const uint64_t x) {
+      k = int2bits<T, 16>(x);
+      return *this;
+    }
     operator __m128i() const { return k; }
-    operator uint64_t() const { return _mm_movemask_epi8(k); }
-    bool operator[](const uint8_t i) const { if(i>=16) { return false; } return ((1<<i)&_mm_movemask_epi8(k))!=0; }
-    bool operator==(const SIMDMask<SIMDByte, 16> &x) {
-      return _mm_movemask_epi8(_mm_cmpeq_epi8(k, x))==0xffff;
+    operator uint64_t() const { return msb2int(SIMDVec<T, 16>(k)); }
+    bool operator[](const uint8_t i) const {
+      if (i >= 16) {
+        return false;
+      }
+      return ((1 << i) & msb2int(SIMDVec<T, 16>(k))) != 0;
     }
-    static SIMD_INLINE __m128i
-    mask_from_int(const uint64_t x) {
-      return _mm_setr_epi8(((x&0x1)?0xFF:0x0), ((x&0x2)?0xFF:0x0), ((x&0x4)?0xFF:0x0), ((x&0x8)?0xFF:0x0), ((x&0x10)?0xFF:0x0), ((x&0x20)?0xFF:0x0), ((x&0x40)?0xFF:0x0), ((x&0x80)?0xFF:0x0), ((x&0x100)?0xFF:0x0), ((x&0x200)?0xFF:0x0), ((x&0x400)?0xFF:0x0), ((x&0x800)?0xFF:0x0), ((x&0x1000)?0xFF:0x0), ((x&0x2000)?0xFF:0x0), ((x&0x4000)?0xFF:0x0), ((x&0x8000)?0xFF:0x0));
-    }
-  };
-  
-  template <>
-  class SIMDMask<SIMDSignedByte, 16>
-  {
-  public:
-    __m128i k;
-    SIMDMask() { k=_mm_setzero_si128(); }
-    SIMDMask(const __m128i &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m128i &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
-    operator __m128i() const { return k; }
-    operator uint64_t() const { return _mm_movemask_epi8(k); }
-    bool operator[](const uint8_t i) const { if(i>=16) { return false; } return ((1<<i)&_mm_movemask_epi8(k))!=0; }
-    bool operator==(const SIMDMask<SIMDSignedByte, 16> &x) {
-      return _mm_movemask_epi8(_mm_cmpeq_epi8(k, x))==0xffff;
-    }
-    static SIMD_INLINE __m128i
-    mask_from_int(const uint64_t x) {
-      return _mm_setr_epi8(((x&0x1)?0xFF:0x0), ((x&0x2)?0xFF:0x0), ((x&0x4)?0xFF:0x0), ((x&0x8)?0xFF:0x0), ((x&0x10)?0xFF:0x0), ((x&0x20)?0xFF:0x0), ((x&0x40)?0xFF:0x0), ((x&0x80)?0xFF:0x0), ((x&0x100)?0xFF:0x0), ((x&0x200)?0xFF:0x0), ((x&0x400)?0xFF:0x0), ((x&0x800)?0xFF:0x0), ((x&0x1000)?0xFF:0x0), ((x&0x2000)?0xFF:0x0), ((x&0x4000)?0xFF:0x0), ((x&0x8000)?0xFF:0x0));
-    }
-  };
-
-  template <>
-  class SIMDMask<SIMDWord, 16>
-  {
-  public:
-    __m128i k;
-    SIMDMask() { k=_mm_setzero_si128(); }
-    SIMDMask(const __m128i &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m128i &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
-    operator __m128i() const { return k; }
-    operator uint64_t() const {
-        uint64_t a=_mm_movemask_epi8(k);
-        // Every second bit of a is needed, in a compact 8 bit number. Found on stackoverflow (https://stackoverflow.com/a/45385051)
-        a = a & 0x5555;
-        // or for the alternate bits: a = (a >> 1) & 0x5555
-        a = (a | (a >>  1)) & 0x3333;
-        a = (a | (a >>  2)) & 0x0f0f;
-        a = (a | (a >>  4)) & 0x00ff;
-        return a;
-    }
-    bool operator[](const uint8_t i) const { if(i>=8) { return false; } return ((3<<(2*i))&_mm_movemask_epi8(k))!=0; }
-    bool operator==(const SIMDMask<SIMDWord, 16> &x) {
-      return _mm_movemask_epi8(_mm_cmpeq_epi8(k, x))==0xffff;
-    }
-    static SIMD_INLINE __m128i
-    mask_from_int(const uint64_t x) {
-      return _mm_setr_epi16(((x&0x1)?0xFFFF:0x0), ((x&0x2)?0xFFFF:0x0), ((x&0x4)?0xFFFF:0x0), ((x&0x8)?0xFFFF:0x0), ((x&0x10)?0xFFFF:0x0), ((x&0x20)?0xFFFF:0x0), ((x&0x40)?0xFFFF:0x0), ((x&0x80)?0xFFFF:0x0));
-    }
-  };
-  
-  template <>
-  class SIMDMask<SIMDShort, 16>
-  {
-  public:
-    __m128i k;
-    SIMDMask() { k=_mm_setzero_si128(); }
-    SIMDMask(const __m128i &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m128i &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
-    operator __m128i() const { return k; }
-    operator uint64_t() const {
-        uint64_t a=_mm_movemask_epi8(k);
-        // Every second bit of a is needed, in a compact 8 bit number. Found on stackoverflow (https://stackoverflow.com/a/45385051)
-        a = a & 0x5555;
-        // or for the alternate bits: a = (a >> 1) & 0x5555
-        a = (a | (a >>  1)) & 0x3333;
-        a = (a | (a >>  2)) & 0x0f0f;
-        a = (a | (a >>  4)) & 0x00ff;
-        return a;
-    }
-    bool operator[](const uint8_t i) const { if(i>=8) { return false; } return ((3<<(2*i))&_mm_movemask_epi8(k))!=0; }
-    bool operator==(const SIMDMask<SIMDShort, 16> &x) {
-      return _mm_movemask_epi8(_mm_cmpeq_epi8(k, x))==0xffff;
-    }
-    static SIMD_INLINE __m128i
-    mask_from_int(const uint64_t x) {
-      return _mm_setr_epi16(((x&0x1)?0xFFFF:0x0), ((x&0x2)?0xFFFF:0x0), ((x&0x4)?0xFFFF:0x0), ((x&0x8)?0xFFFF:0x0), ((x&0x10)?0xFFFF:0x0), ((x&0x20)?0xFFFF:0x0), ((x&0x40)?0xFFFF:0x0), ((x&0x80)?0xFFFF:0x0));
-    }
-  };
-  
-  template <>
-  class SIMDMask<SIMDInt, 16>
-  {
-  public:
-    __m128i k;
-    SIMDMask() { k=_mm_setzero_si128(); }
-    SIMDMask(const __m128i &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m128i &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
-    operator __m128i() const { return k; }
-    operator uint64_t() const { return _mm_movemask_ps(_mm_castsi128_ps(k)); }
-    bool operator[](const uint8_t i) const { if(i>=4) { return false; } return ((1<<i)&_mm_movemask_ps(_mm_castsi128_ps(k)))!=0; }
-    bool operator==(const SIMDMask<SIMDInt, 16> &x) {
-      return _mm_movemask_epi8(_mm_cmpeq_epi8(k, x))==0xffff;
-    }
-    static SIMD_INLINE __m128i
-    mask_from_int(const uint64_t x) {
-      return _mm_setr_epi32(((x&0x1)?0xFFFFFFFF:0x0), ((x&0x2)?0xFFFFFFFF:0x0), ((x&0x4)?0xFFFFFFFF:0x0), ((x&0x8)?0xFFFFFFFF:0x0));
+    bool operator==(const SIMDMask<T, 16> &x) {
+      return _mm_movemask_epi8(_mm_cmpeq_epi8(k, x)) == 0xffff;
     }
   };
 
@@ -166,20 +71,28 @@ namespace ns_simd {
   {
   public:
     __m128 k;
-    SIMDMask() { k=_mm_setzero_ps(); }
+    SIMDMask() { k = _mm_setzero_ps(); }
     SIMDMask(const __m128 &x) { k = x; }
-    SIMDMask(const uint64_t x) { k=mask_from_int(x); }
-    SIMDMask& operator=(const __m128 &x) { k = x; return *this; }
-    SIMDMask& operator=(const uint64_t x) { k=mask_from_int(x); return *this; }
-    operator __m128() const { return k; }
-    operator uint64_t() const { return _mm_movemask_ps(k); }
-    bool operator[](const uint8_t i) const { if(i>=4) { return false; } return ((1<<i)&_mm_movemask_ps(k))!=0; }
-    bool operator==(const SIMDMask<SIMDFloat, 16> &x) {
-      return _mm_movemask_epi8(_mm_cmpeq_epi8(_mm_castps_si128(k), _mm_castps_si128(x)))==0xffff;
+    SIMDMask(const uint64_t x) { k = int2bits<SIMDFloat, 16>(x); }
+    SIMDMask &operator=(const __m128 &x) {
+      k = x;
+      return *this;
     }
-    static SIMD_INLINE __m128
-    mask_from_int(const uint64_t x) {
-      return _mm_castsi128_ps(_mm_setr_epi32(((x&0x1)?0xFFFFFFFF:0x0), ((x&0x2)?0xFFFFFFFF:0x0), ((x&0x4)?0xFFFFFFFF:0x0), ((x&0x8)?0xFFFFFFFF:0x0)));
+    SIMDMask &operator=(const uint64_t x) {
+      k = int2bits<SIMDFloat, 16>(x);
+      return *this;
+    }
+    operator __m128() const { return k; }
+    operator uint64_t() const { return msb2int(SIMDVec<SIMDFloat, 16>(k)); }
+    bool operator[](const uint8_t i) const {
+      if (i >= 16) {
+        return false;
+      }
+      return ((1 << i) & msb2int(SIMDVec<SIMDFloat, 16>(k))) != 0;
+    }
+    bool operator==(const SIMDMask<SIMDFloat, 16> &x) {
+      return _mm_movemask_epi8(_mm_cmpeq_epi8(_mm_castps_si128(k),
+                                              _mm_castps_si128(x))) == 0xffff;
     }
   };
   

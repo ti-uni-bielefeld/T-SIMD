@@ -135,7 +135,7 @@ namespace ns_simd {
     operator __m256() const { return ymm; }
     // for avx2 emulation
     SIMDVec(const SIMDVec<SIMDFloat,16> &lo, const SIMDVec<SIMDFloat,16> &hi)
-    { ymm = _mm256_setr_m128(lo, hi); }
+    { ymm = _mm256_set_m128(hi, lo); }
     SIMD_INLINE SIMDVec<SIMDFloat,16> lo() const 
     { return _mm256_castps256_ps128(ymm); }
     SIMD_INLINE SIMDVec<SIMDFloat,16> hi() const 
@@ -179,7 +179,7 @@ namespace ns_simd {
   static SIMD_INLINE __m256i
   x_mm256_combine_si128(__m128i lo, __m128i hi)
   {
-    return _mm256_setr_m128i(lo, hi);
+    return _mm256_set_m128i(hi, lo);
   }
 
   // ---------------------------------------------------------------------------

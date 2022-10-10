@@ -74,8 +74,9 @@ archspec_objects = $(addsuffix .o,$(archspec_binaries))
 compiler = g++
 
 # - rt library is needed for clock_gettime
+# - pthread may be needed on some systems
 # (you may have to remove -lrt on Mac)
-libraries = -lm -lrt
+libraries = -lm -lrt # -lpthread
 
 # optimization flags
 # -funroll-loops is faster in both min-warping phases
@@ -91,12 +92,17 @@ sandbox_defines ?= # -DSIMDVEC_SANDBOX
 # - valgrind: -mssse3 instead of -march=native for valgrind --tool=callgrind
 # - test different vector sets: -msse2, -msse3, -mssse3 -march=native
 # - activate SIMDVec load/store alignment check: -DSIMD_ALIGN_CHK
-# - use -mfpu=neon for NEON version (instead of -pfmath=sse)
-# - use -mcpu=cortex-a15 for specific ARM CPU (better use -march=native though)
 # - use -std=c++98 or -std=c++11 (tsimdtest requires c++11)
 # - for tilt-search programs, -std=c++17 is required, now used
+# for compilation on/for ARM:
+# - keep -march=native or use a specific architecture, e.g. -march=armv7-a
+#   or use specific CPU, e.g. -mcpu=cortex-a15
+# - replace -mfpmath=sse with -mfpu=neon or remove it, some compilers/architectures
+#   require it, some don't
+# - crosscompilation and emulation may require -static in userdefs_c, if dynamic
+#   libraries are not available
+# - may require -lpthread in libraries above
 
-# (ARM: remove -mfpmath=sse)
 userdefs_arch   = -march=native -mfpmath=sse
 userdefs_avx512 = -mavx512f -mavx512bw -mavx512dq -mavx512vl -mpopcnt
 userdefs_c      = -Wall -Wextra -Wpedantic -ggdb -fno-var-tracking

@@ -5095,7 +5095,10 @@ namespace ns_simd {
   {
     // 2nd argument: generates vector full of ones (epiX: X irrelevant)
 #ifdef __AVX2__
-    return _mm256_testz_si256(a, _mm256_cmpeq_epi8(a, a));
+    // 10. Oct 22 (Jonas Keller):
+    // replaced unnecessary "_mm256_cmpeq_epi8(a, a)" with "a"
+    // return _mm256_testz_si256(a, _mm256_cmpeq_epi8(a, a));
+    return _mm256_testz_si256(a, a);
 #else
     // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
     return _mm256_testz_si256
@@ -5112,9 +5115,12 @@ namespace ns_simd {
   test_all_zeros(const SIMDVec<SIMDFloat,32> &a)
   {
     // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
-    return _mm256_testz_si256
-      (_mm256_castps_si256(a), 
-       _mm256_castps_si256(_mm256_cmp_ps(a, a, _CMP_EQ_UQ)));
+    // 10. Oct 22 (Jonas Keller):
+    // replaced unnecessary "_mm256_cmp_ps(a, a, _CMP_EQ_UQ)" with "a"
+    // return _mm256_testz_si256
+    //   (_mm256_castps_si256(a), 
+    //    _mm256_castps_si256(_mm256_cmp_ps(a, a, _CMP_EQ_UQ)));
+    return _mm256_testz_si256(_mm256_castps_si256(a), _mm256_castps_si256(a));
   }
   
   // ---------------------------------------------------------------------------

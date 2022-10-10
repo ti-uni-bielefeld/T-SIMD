@@ -669,7 +669,10 @@ namespace ns_simd {
   static SIMD_INLINE int 
   x_mm_test_all_zeros(__m128i a)
   {
-    return _mm_test_all_zeros(a, _mm_cmpeq_epi8(a, a));
+    // 10. Oct 22 (Jonas Keller):
+    // replaced unnecessary "_mm_cmpeq_epi8(a, a)" with "a"
+    // return _mm_test_all_zeros(a, _mm_cmpeq_epi8(a, a));
+    return _mm_test_all_zeros(a, a);
   }
 #else
   static SIMD_INLINE int 

@@ -1044,6 +1044,85 @@ namespace ns_simd {
   };
 
   // ===========================================================================
+  // test of unary commands w. single int template param. and 16 byte vec result
+  // ===========================================================================
+
+  // 10. Oct 22 (Jonas Keller):
+  // added UnaryTemplateInt16 and UnaryTemplateInt16MinToMax
+
+  template <typename T, int SIMD_WIDTH, int I, int N,
+      template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
+  struct UnaryTemplateInt16
+  {
+    static void
+    test(int repeats, const std::string &pattern)
+    {
+      std::string args = "v";
+      SIMDSerialVec<T,SIMD_WIDTH> a;
+      SIMDSerialVec<T,16> cp, cs;
+      const char *fmt = SIMDTypeInfo<T>::defaultFormat();
+      std::string name = FCT<I,T,SIMD_WIDTH>::name();
+      if (name.find(pattern) != std::string::npos) {
+        printInfo(name, args);
+        int errors = 0, trials = 0;
+        long int time = 0;
+        struct timespec start, end;
+        for (int i = 0; i < repeats; i++, trials++) {
+          FCT<I,T,SIMD_WIDTH>::randomizeInput(a);
+          cs = FCT<I,T,SIMD_WIDTH>::apply(a);
+          start = getTimeSpec();
+          cp = FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec());
+          end = getTimeSpec();
+          time += timeSpecDiffNsec(end, start);
+          if (!CMP::cmpVec(cs, cp)) {
+            errors++;
+            if (errors <= PRINT_ERRORS) {
+              printError(name, args);
+              PRINT(fmt,a);
+              PRINTVAL(fmt,cs);
+              PRINTVAL(fmt,cp);
+            }
+            EXIT;
+          }
+        }
+        printErrorStats(errors, trials);
+        printTimeStats(time, trials);
+      }
+      UnaryTemplateInt16<T, SIMD_WIDTH,
+          FCT<I,T,SIMD_WIDTH>::nextI,
+          N, FCT>::test(repeats, pattern);
+    }
+  };
+
+  // end of recursion at I = maxI
+  template <typename T, int SIMD_WIDTH, int N,
+      template <int, typename, int> class FCT,
+      class CMP>
+  struct UnaryTemplateInt16<T,SIMD_WIDTH,N,N,FCT,CMP>
+  {
+    static void
+    test(int, const std::string&)
+    {
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH,
+      template <int, typename, int> class FCT,
+      class CMP = CmpEqual>
+  struct UnaryTemplateInt16MinToMax
+  {
+    static void
+    test(int repeats, const std::string &pattern)
+    {
+      UnaryTemplateInt16<T, SIMD_WIDTH,
+          FCT<0,T,SIMD_WIDTH>::minI,
+          FCT<0,T,SIMD_WIDTH>::maxI,
+          FCT,CMP>::test(repeats, pattern);
+    }
+  };
+
+  // ===========================================================================
   // test of binary commands
   // ===========================================================================
 

@@ -127,7 +127,13 @@ main(int argc, char *argv[])
   TestAll<Binary,SW,Max>::test(repeats1, pattern);
   TestSignedInt<Unary,SW,Abs>::test(repeats1, pattern);
   TestAllTII<BinaryTemplateIntIntMinToMax,SW,Unpack_>::test(repeats1, pattern);
+  // 10. Oct 22 (Jonas Keller): added test for Unpack16_
+  TestAllTII<BinaryTemplateIntIntMinToMax,SW,Unpack16_>::test(repeats1, pattern);
+  // 10. Oct 22 (Jonas Keller): added test for ExtractLane
+  TestAllTI<UnaryTemplateInt16MinToMax,SW,ExtractLane>::test(repeats1, pattern);
   TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Zip_>::test(repeats1, pattern);
+  // 10. Oct 22 (Jonas Keller): added test for Zip16_
+  TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Zip16_>::test(repeats1, pattern);
   TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Unzip>::test(repeats1, pattern);
   BinaryTemplateType<SIMDSignedByte,SIMDShort,SW,Packs>::test(repeats1, pattern);
   BinaryTemplateType<SIMDShort,SIMDInt,SW,Packs>::test(repeats1, pattern);

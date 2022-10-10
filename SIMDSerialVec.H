@@ -1605,6 +1605,45 @@ namespace ns_simd {
     return c;
   }
 
+  // 10. Oct 22 (Jonas Keller): added unpack16
+  // 128-bit-lane oriented unpack
+  template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH>
+  unpack16(const SIMDSerialVec<T, SIMD_WIDTH> &a,
+     const SIMDSerialVec<T, SIMD_WIDTH> &b)
+  {
+    SIMD_CONSTEXPR int NUM_LANES = SIMD_WIDTH / 16;
+    SIMDSerialVec<T, 16> lanesA[NUM_LANES];
+    SIMDSerialVec<T, 16> lanesB[NUM_LANES];
+    SIMDSerialVec<T, 16> lanesC[NUM_LANES];
+    // copy a and b into lanesA and lanesB
+    for (int i = 0; i < NUM_LANES; i++) {
+      memcpy(lanesA[i].vec, &a.vec[i * (16 / sizeof(T))], 16);
+      memcpy(lanesB[i].vec, &b.vec[i * (16 / sizeof(T))], 16);
+    }
+    // apply normal unpack to each lane
+    for (int i = 0; i < NUM_LANES; i++) {
+      lanesC[i] = unpack<PART, NUM_ELEMS>(lanesA[i], lanesB[i]);
+    }
+    // copy lanesC into c
+    SIMDSerialVec<T, SIMD_WIDTH> c;
+    for (int i = 0; i < NUM_LANES; i++) {
+      memcpy(&c.vec[i * (16 / sizeof(T))], lanesC[i].vec, 16);
+    }
+    return c;
+  }
+
+  // 10. Oct 22 (Jonas Keller): added extractLane
+  // extract a 128-bit lane
+  template <int IMM, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDSerialVec<T, 16>
+  extractLane(const SIMDSerialVec<T, SIMD_WIDTH> &a)
+  {
+    SIMDSerialVec<T, 16> c;
+    memcpy(c.vec, &a.vec[IMM * (16 / sizeof(T))], 16);
+    return c;
+  }
+
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   zip(const SIMDSerialVec<T, SIMD_WIDTH> a,
@@ -1614,6 +1653,19 @@ namespace ns_simd {
   {
     c = unpack<0, NUM_ELEMS>(a, b);
     d = unpack<1, NUM_ELEMS>(a, b);
+  }
+
+  // 10. Oct 22 (Jonas Keller): added zip16
+  // 128-bit-lane oriented zip
+  template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  zip16(const SIMDSerialVec<T, SIMD_WIDTH> a,
+      const SIMDSerialVec<T, SIMD_WIDTH> b,
+      SIMDSerialVec<T, SIMD_WIDTH> &c,
+      SIMDSerialVec<T, SIMD_WIDTH> &d)
+  {
+    c = unpack16<0, NUM_ELEMS>(a, b);
+    d = unpack16<1, NUM_ELEMS>(a, b);
   }
 
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>

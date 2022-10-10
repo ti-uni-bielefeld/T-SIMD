@@ -538,6 +538,60 @@ namespace ns_simd {
     }
   };
 
+  // 10. Oct 22 (Jonas Keller): added Unpack16
+  // SIMDVecExt.H has a template class Unpack16, so we add an underscore
+  template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+  struct Unpack16_
+  {
+    static SIMD_INLINE std::string name()
+    { return tii2s<PART,NUM_ELEMS,T,SIMD_WIDTH>("unpack16"); }
+
+    // PART (I) switches between 0 and 1
+    static SIMD_CONSTEXPR int minI = 0;
+    static SIMD_CONSTEXPR int maxI = 1;
+    static SIMD_CONSTEXPR int nextI = 1 - PART;
+    // NUM_ELEMS (J) is doubled if PART == 1
+    static SIMD_CONSTEXPR int minJ = 1;
+    static SIMD_CONSTEXPR int maxJ = 16 / sizeof(T);
+    static SIMD_CONSTEXPR int nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
+    
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE VEC<T, SIMD_WIDTH>
+    apply(const VEC<T,SIMD_WIDTH> &a,
+    const VEC<T,SIMD_WIDTH> &b)
+    {
+      return unpack16<PART,NUM_ELEMS>(a, b);
+    }
+  };
+
+  // 10. Oct 22 (Jonas Keller): added ExtractLane
+  // extracts a 128-bit lane
+  template <int IMM, typename T, int SIMD_WIDTH>
+  struct ExtractLane
+  {
+    static SIMD_INLINE std::string name()
+    { return ti2s<IMM,T,SIMD_WIDTH>("extractLane"); }
+
+    static SIMD_CONSTEXPR int minI = 0;
+    static SIMD_CONSTEXPR int maxI = SIMD_WIDTH / 16 - 1;
+    static SIMD_CONSTEXPR int nextI = IMM + 1;
+    
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE VEC<T, 16>
+    apply(const VEC<T,SIMD_WIDTH> &a)
+    {
+      return extractLane<IMM>(a);
+    }
+  };
+
   // SIMDVecExt.H has a template class Zip, so we add an underscore
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
   struct Zip_
@@ -561,6 +615,33 @@ namespace ns_simd {
 	  VEC<T,SIMD_WIDTH> &d)
     {
       zip<NUM_ELEMS>(a, b, c, d);
+    }
+  };
+
+  // 10. Oct 22 (Jonas Keller): added Zip16
+  // SIMDVecExt.H has a template class Zip16, so we add an underscore
+  template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+  struct Zip16_
+  {
+    static SIMD_INLINE std::string name()
+    { return ti2s<NUM_ELEMS,T,SIMD_WIDTH>("zip16"); }
+
+    static SIMD_CONSTEXPR int minI = 1;
+    static SIMD_CONSTEXPR int maxI = 16 / sizeof(T);
+    static SIMD_CONSTEXPR int nextI = NUM_ELEMS * 2;
+    
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(const VEC<T,SIMD_WIDTH> a,
+    const VEC<T,SIMD_WIDTH> b,
+    VEC<T,SIMD_WIDTH> &c,
+    VEC<T,SIMD_WIDTH> &d)
+    {
+      zip16<NUM_ELEMS>(a, b, c, d);
     }
   };
 

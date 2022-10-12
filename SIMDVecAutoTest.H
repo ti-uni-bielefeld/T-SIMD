@@ -1080,8 +1080,8 @@ namespace ns_simd {
             if (errors <= PRINT_ERRORS) {
               printError(name, args);
               PRINT(fmt,a);
-              PRINTVAL(fmt,cs);
-              PRINTVAL(fmt,cp);
+              PRINT(fmt,cs);
+              PRINT(fmt,cp);
             }
             EXIT;
           }

@@ -2755,7 +2755,7 @@ namespace ns_simd {
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat, 16>
-  extractLane(SIMDVec<SIMDFloat, 32> &a, Part<0>)
+  extractLane(const SIMDVec<SIMDFloat, 32> &a, Part<0>)
   {
     return x_mm256_extractf128<0>(a);
   }

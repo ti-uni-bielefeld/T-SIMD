@@ -2047,6 +2047,19 @@ namespace ns_simd {
   };
 
   // ===========================================================================
+  // swizzle4 wrapper function
+  // ===========================================================================
+
+  // 15. Oct 22 (Jonas Keller): added swizzle4 wrapper function
+
+  template <int N, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  swizzle4(SIMDVec<T, SIMD_WIDTH> *const v)
+  {
+    Swizzle4<Zip, T, SIMD_WIDTH, N, SIMDVec<T, SIMD_WIDTH>::elements>::_swizzle(v);
+  }
+
+  // ===========================================================================
   // transpose4 Swizzle4<Zip>
   // ===========================================================================
 

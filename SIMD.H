@@ -28,7 +28,7 @@
 
 // TODO: - may be a bit confusing: SIMD.H is included from SIMDVecAll.H since
 // TODO:   we need the *ENABLE variables to select the right SIMDVec*.H 
-// TOOD:   include files, but it is also included from SIMDVec*.H since we
+// TODO:   include files, but it is also included from SIMDVec*.H since we
 // TODO:   need the include files included here depending on the architecture
 
 #if defined(__i386__) || defined(__x86_64__)

@@ -1186,21 +1186,8 @@ namespace ns_simd {
     swizzle(t, v);
   }
 
-  // _swizzle2 wrapper for SIMDVec
-  template <int N, typename T, int SIMD_WIDTH>
-  static SIMD_INLINE void
-  _swizzle2(SIMDVec<T, SIMD_WIDTH> *const v)
-  {
-    swizzle2<N>(v);
-  }
-
-  // _unswizzle2 wrapper for SIMDVec
-  template <int N, typename T, int SIMD_WIDTH>
-  static SIMD_INLINE void
-  _unswizzle2(SIMDVec<T, SIMD_WIDTH> *const v)
-  {
-    unswizzle2<N>(v);
-  }
+  // 15. Oct 22 (Jonas Keller): removed wrappers _swizzle2 and _unswizzle2, they
+  // are not needed
 
   // =========================================================================
   // template functions
@@ -1880,9 +1867,10 @@ namespace ns_simd {
     }
   }
 
+  // 15. Oct 22 (Jonas Keller): renamed _swizzle2 to swizzle2
   template <int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
-  _swizzle2(SIMDSerialVec<T, SIMD_WIDTH> *const v)
+  swizzle2(SIMDSerialVec<T, SIMD_WIDTH> *const v)
   {
     const int n = SIMDSerialVec<T, SIMD_WIDTH>::elements, n2 = 2 * n;
     SIMDSerialVec<T, SIMD_WIDTH> u[2*N];
@@ -1895,9 +1883,10 @@ namespace ns_simd {
     }
   }
 
+  // 15. Oct 22 (Jonas Keller): renamed _unswizzle2 to unswizzle2
   template <int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
-  _unswizzle2(SIMDSerialVec<T, SIMD_WIDTH> *const v)
+  unswizzle2(SIMDSerialVec<T, SIMD_WIDTH> *const v)
   {
     const int n = SIMDSerialVec<T, SIMD_WIDTH>::elements, n2 = 2 * n;
     SIMDSerialVec<T, SIMD_WIDTH> u[2*N];

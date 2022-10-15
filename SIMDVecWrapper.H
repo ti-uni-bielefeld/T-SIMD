@@ -991,7 +991,7 @@ namespace ns_simd {
     static SIMD_INLINE void
     apply(VEC<T,SIMD_WIDTH> *const v)
     {
-      _swizzle2<I>(v);
+      swizzle2<I>(v);
     }    
   };
 
@@ -1015,7 +1015,7 @@ namespace ns_simd {
     static SIMD_INLINE void
     apply(VEC<T,SIMD_WIDTH> *const v)
     {
-      _unswizzle2<I>(v);
+      unswizzle2<I>(v);
     }    
   };
 

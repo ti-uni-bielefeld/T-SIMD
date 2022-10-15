@@ -1899,6 +1899,24 @@ namespace ns_simd {
     }
   }
 
+  // 15. Oct 22 (Jonas Keller): added swizzle4
+  template <int N, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  swizzle4(SIMDSerialVec<T, SIMD_WIDTH> *const v)
+  {
+    // does the same thing as swizzle2
+    swizzle2<N>(v);
+  }
+
+  // 15. Oct 22 (Jonas Keller): added unswizzle4
+  template <int N, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  unswizzle4(SIMDSerialVec<T, SIMD_WIDTH> *const v)
+  {
+    // does the same thing as unswizzle2
+    unswizzle2<N>(v);
+  }
+
   template <typename Tcond, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH>
   ifelse(const SIMDSerialVec<Tcond,SIMD_WIDTH> &cond,

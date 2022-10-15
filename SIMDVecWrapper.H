@@ -1019,6 +1019,56 @@ namespace ns_simd {
     }    
   };
 
+  // 15. Oct 22 (Jonas Keller): added _Swizzle4
+  template <int I, typename T, int SIMD_WIDTH>
+  struct _Swizzle4
+  {
+    static SIMD_INLINE std::string name()
+    { return ti2s<I,T,SIMD_WIDTH>("swizzle4"); }
+
+    static SIMD_CONSTEXPR int minI = 1;
+    // TODO: is there an upper limit for maxI in swizzle4?
+    static SIMD_CONSTEXPR int maxI = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
+    static SIMD_CONSTEXPR int nextI = I + 1;
+    static SIMD_CONSTEXPR int numVecs = 2 * I;
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(VEC<T,SIMD_WIDTH> *const v)
+    {
+      swizzle4<I>(v);
+    }
+  };
+
+  // 15. Oct 22 (Jonas Keller): added _Unswizzle4
+  template <int I, typename T, int SIMD_WIDTH>
+  struct _Unswizzle4
+  {
+    static SIMD_INLINE std::string name()
+    { return ti2s<I,T,SIMD_WIDTH>("unswizzle4"); }
+
+    static SIMD_CONSTEXPR int minI = 1;
+    // TODO: is there an upper limit for maxI in unswizzle4?
+    static SIMD_CONSTEXPR int maxI = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
+    static SIMD_CONSTEXPR int nextI = I + 1;
+    static SIMD_CONSTEXPR int numVecs = 2 * I;
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE void
+    apply(VEC<T,SIMD_WIDTH> *const v)
+    {
+      unswizzle4<I>(v);
+    }
+  };
+
   template <typename T, int SIMD_WIDTH>
   struct Cmplt
   {

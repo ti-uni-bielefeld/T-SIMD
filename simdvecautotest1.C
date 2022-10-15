@@ -175,6 +175,9 @@ main(int argc, char *argv[])
   //
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Swizzle2>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Unswizzle2>::test(repeats1, pattern);
+  // 15. Oct 22 (Jonas Keller): added test for swizzle4 and unswizzle4
+  TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Swizzle4>::test(repeats1, pattern);
+  TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Unswizzle4>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSort>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSort2>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSortSortedPairs>::test(repeats1, pattern);

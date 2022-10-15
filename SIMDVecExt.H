@@ -1892,8 +1892,10 @@ namespace ns_simd {
   }
 
   // ===========================================================================
-  // Swizzle3 meta template
+  // Swizzle4 meta template
   // ===========================================================================
+
+  // 12. Oct 22 (Jonas Keller): renamed Swizzle3* classes to Swizzle4*
 
   // contributed by Adam Marschall
 
@@ -1933,7 +1935,7 @@ namespace ns_simd {
   template <template <int, typename, int> class Zip,
       typename T, int SIMD_WIDTH,
       int N, int SRC, int DST>
-  class Swizzle3Once
+  class Swizzle4Once
   {
     enum { SRC2 = SRC + N, DST2 = DST + 1 };
 
@@ -1944,7 +1946,7 @@ namespace ns_simd {
       // printf("%s\n", "SwizzleOnce");
       // printf("  SRC=%d, SRC2=%d, DST=%d, DS2T=%d\n", SRC, SRC2, DST, DST2);
       Zip<1,T,SIMD_WIDTH>::_zip(v[SRC], v[SRC2], v2[DST], v2[DST2]);
-      Swizzle3Once<Zip, T, SIMD_WIDTH, N, SRC + 1, DST + 2>::_swizzle(v, v2);
+      Swizzle4Once<Zip, T, SIMD_WIDTH, N, SRC + 1, DST + 2>::_swizzle(v, v2);
     }
   };
 
@@ -1952,7 +1954,7 @@ namespace ns_simd {
   template <template <int, typename, int> class Zip,
       typename T, int SIMD_WIDTH,
       int N, int DST>
-  class Swizzle3Once<Zip, T, SIMD_WIDTH, N, N, DST>
+  class Swizzle4Once<Zip, T, SIMD_WIDTH, N, N, DST>
   {
   public:
     static SIMD_INLINE void
@@ -1971,7 +1973,7 @@ namespace ns_simd {
   template <template <int, typename, int> class Zip,
       typename T, int SIMD_WIDTH,
       int N, int REP, int FINAL_REPS, int ODD>
-  class Swizzle3Multiple
+  class Swizzle4Multiple
   {
 
   public:
@@ -1980,9 +1982,9 @@ namespace ns_simd {
     {
       // printf("%s\n", "SwizzleMultiple");
       // printf("  REP=%d, FINAL_REPS=%d\n", REP, FINAL_REPS);
-      Swizzle3Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v, v2);
-      Swizzle3Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v2, v);
-      Swizzle3Multiple<Zip, T, SIMD_WIDTH, N,
+      Swizzle4Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v, v2);
+      Swizzle4Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v2, v);
+      Swizzle4Multiple<Zip, T, SIMD_WIDTH, N,
           REP + 1, FINAL_REPS, ODD>::_swizzle(v, v2);
     }
   };
@@ -1991,7 +1993,7 @@ namespace ns_simd {
   template <template <int, typename, int> class Zip,
       typename T, int SIMD_WIDTH,
       int N, int FINAL_REPS, int ODD>
-  class Swizzle3Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
+  class Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
   {
   public:
     static SIMD_INLINE void
@@ -2004,7 +2006,7 @@ namespace ns_simd {
   template <template <int, typename, int> class Zip,
       typename T, int SIMD_WIDTH,
       int N, int FINAL_REPS>
-  class Swizzle3Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
+  class Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
   {
     enum { ROW_STOP = 2 * N };
   public:
@@ -2012,7 +2014,7 @@ namespace ns_simd {
     _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
     {
       // printf("%s\n", "SwizzlePostamble");
-      Swizzle3Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v, v2);
+      Swizzle4Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v, v2);
       CopyMatrix<T, SIMD_WIDTH, 0, ROW_STOP>::_copy(v2, v);
     }
   };
@@ -2026,7 +2028,7 @@ namespace ns_simd {
   // primary template
   template <template <int, typename, int> class Zip,
       typename T, int SIMD_WIDTH, int N, int FINALBLKSIZE>
-  class Swizzle3
+  class Swizzle4
   {
     enum { ORIG_REPS = (int) floorlog2<FINALBLKSIZE>::value + 1 };
     enum { FINAL_REPS = ORIG_REPS / 2 };
@@ -2039,13 +2041,13 @@ namespace ns_simd {
       // printf("%s\n", "Swizzle");
       // printf("  N=%d, FINALBLKSIZE=%d\n", N, FINALBLKSIZE);
       // printf("  ORIG_REPS=%d, FINAL_REPS=%d, ODD=%d\n", ORIG_REPS, FINAL_REPS, ODD);
-      Swizzle3Multiple<Zip, T, SIMD_WIDTH, N,
+      Swizzle4Multiple<Zip, T, SIMD_WIDTH, N,
           0, FINAL_REPS, ODD>::_swizzle(v, v2);
     }
   };
 
   // ===========================================================================
-  // transpose4 Swizzle3<Zip>
+  // transpose4 Swizzle4<Zip>
   // ===========================================================================
 
   // contributed by Adam Marschall
@@ -2060,11 +2062,11 @@ namespace ns_simd {
     const int n = SIMDVec<T, SIMD_WIDTH>::elements, N = n / 2;
     for (int i = 0; i < n; i++)
       outRows[i] = inRows[i];
-    Swizzle3<Zip, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
+    Swizzle4<Zip, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
   }
 
   // ===========================================================================
-  // transpose5: Swizzle3<Zip16> + Swizzle post-process
+  // transpose5: Swizzle4<Zip16> + Swizzle post-process
   // ===========================================================================
 
   // contributed by Adam Marschall
@@ -2074,7 +2076,7 @@ namespace ns_simd {
   // primary template
   template <typename T, int SIMD_WIDTH,
       int N, int SRC, int DST, int LANE_ELEMS>
-  class Swizzle3Postprocess16Once
+  class Swizzle4Postprocess16Once
   {
     enum { SRC2 = SRC + 1, DST2 = DST + N };
 
@@ -2086,7 +2088,7 @@ namespace ns_simd {
       // printf("  SRC=%d, SRC2=%d, DST=%d, DS2T=%d\n", SRC, SRC2, DST, DST2);
       Zip16<LANE_ELEMS,T,SIMD_WIDTH>
           ::_zip(v[SRC], v[SRC2], v2[DST], v2[DST2]);
-      Swizzle3Postprocess16Once<T, SIMD_WIDTH,
+      Swizzle4Postprocess16Once<T, SIMD_WIDTH,
           N, SRC + 2, DST + 1, LANE_ELEMS>::_swizzle(v, v2);
     }
   };
@@ -2094,7 +2096,7 @@ namespace ns_simd {
   // partial specialization to end the iteration
   template <typename T, int SIMD_WIDTH,
       int N, int SRC, int LANE_ELEMS>
-  class Swizzle3Postprocess16Once<T, SIMD_WIDTH, N, SRC, N, LANE_ELEMS>
+  class Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, SRC, N, LANE_ELEMS>
   {
   public:
     static SIMD_INLINE void
@@ -2112,7 +2114,7 @@ namespace ns_simd {
   // primary template
   template <typename T, int SIMD_WIDTH,
       int N, int LANE_ELEMS, int REP, int FINAL_REPS, int ODD>
-  class Swizzle3Postprocess16
+  class Swizzle4Postprocess16
   {
 
   public:
@@ -2121,11 +2123,11 @@ namespace ns_simd {
     {
       // printf("%s\n", "SwizzlePostprocess16");
       // printf("  REP=%d, FINAL_REPS=%d, LANE_ELEMS=%d\n", REP, FINAL_REPS, LANE_ELEMS);
-      Swizzle3Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS>
+      Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS>
           ::_swizzle(v, v2);
-      Swizzle3Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS * 2>
+      Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS * 2>
           ::_swizzle(v2, v);
-      Swizzle3Postprocess16<T, SIMD_WIDTH, N,
+      Swizzle4Postprocess16<T, SIMD_WIDTH, N,
           LANE_ELEMS * 4, REP + 1, FINAL_REPS, ODD>::_swizzle(v, v2);
     }
   };
@@ -2133,7 +2135,7 @@ namespace ns_simd {
   // partial specialization to end the iteration without post-process post-amble
   template <typename T, int SIMD_WIDTH,
       int N, int LANE_ELEMS, int FINAL_REPS, int ODD>
-  class Swizzle3Postprocess16<T, SIMD_WIDTH,
+  class Swizzle4Postprocess16<T, SIMD_WIDTH,
       N, LANE_ELEMS, FINAL_REPS, FINAL_REPS, ODD>
   {
 
@@ -2147,7 +2149,7 @@ namespace ns_simd {
   // partial specialization to end the iteration with post-process post-amble
   template <typename T, int SIMD_WIDTH,
       int N, int LANE_ELEMS, int FINAL_REPS>
-  class Swizzle3Postprocess16<T, SIMD_WIDTH,
+  class Swizzle4Postprocess16<T, SIMD_WIDTH,
       N, LANE_ELEMS, FINAL_REPS, FINAL_REPS, 1>
   {
     enum { ROW_STOP = 2 * N };
@@ -2156,7 +2158,7 @@ namespace ns_simd {
     static SIMD_INLINE void
     _swizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
     {
-      Swizzle3Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS>
+      Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS>
           ::_swizzle(v, v2);
       CopyMatrix<T, SIMD_WIDTH, 0, ROW_STOP>::_copy(v2, v);
     }
@@ -2167,7 +2169,7 @@ namespace ns_simd {
   // primary template
   template <template <int, typename, int> class Zip,
       typename T, int SIMD_WIDTH, int N>
-  class Swizzle3Postprocess
+  class Swizzle4Postprocess
   {
 
   public:
@@ -2179,7 +2181,7 @@ namespace ns_simd {
 
   // partial specialization to post-process Swizzle<Zip16>
   template <typename T, int SIMD_WIDTH, int N>
-  class Swizzle3Postprocess<Zip16, T, SIMD_WIDTH, N>
+  class Swizzle4Postprocess<Zip16, T, SIMD_WIDTH, N>
   {
     enum { ORIG_REPS = (int) floorlog2<SIMD_WIDTH>::value - 4 };
     enum { FINAL_REPS = ORIG_REPS / 2 };
@@ -2191,7 +2193,7 @@ namespace ns_simd {
     _swizzle(SIMDVec<T, SIMD_WIDTH> *v)
     {
       SIMDVec<T, SIMD_WIDTH> v2[2 * N];
-      Swizzle3Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, 0, FINAL_REPS, ODD>
+      Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, 0, FINAL_REPS, ODD>
           ::_swizzle(v, v2);
     }
   };
@@ -2207,8 +2209,8 @@ namespace ns_simd {
     const int n = SIMDVec<T, SIMD_WIDTH>::elements, N = n / 2;
     for (int i = 0; i < n; i++)
       outRows[i] = inRows[i];
-    Swizzle3<Zip16, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
-    Swizzle3Postprocess<Zip16, T, SIMD_WIDTH, N>::_swizzle(outRows);
+    Swizzle4<Zip16, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
+    Swizzle4Postprocess<Zip16, T, SIMD_WIDTH, N>::_swizzle(outRows);
   }
 
   // ===========================================================================

@@ -172,7 +172,8 @@ main(int argc, char *argv[])
   TestAll<ArrayArrayVoid,SW,Transpose5_>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid,SW,Transpose1_16_>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid,SW,Transpose6_>::test(repeats1, pattern);
-  //
+  // 15. Oct 22 (Jonas Keller): added test for _Swizzle
+  TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Swizzle>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Swizzle2>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Unswizzle2>::test(repeats1, pattern);
   // 15. Oct 22 (Jonas Keller): added test for swizzle4 and unswizzle4

@@ -2060,6 +2060,106 @@ namespace ns_simd {
   }
 
   // ===========================================================================
+  // Unswizzle4
+  // ===========================================================================
+
+  // 15. Oct 22 (Jonas Keller): added Unswizzle4 classes
+
+  template <typename T, int SIMD_WIDTH, int N, int SRC, int DST>
+  class Unswizzle4Once
+  {
+  public:
+    static SIMD_INLINE void
+    _unswizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      unzip<1,T>(v[SRC], v[SRC + 1], v2[DST], v2[DST + N]);
+      Unswizzle4Once<T, SIMD_WIDTH, N, SRC + 2, DST + 1>::_unswizzle(v, v2);
+    }
+  };
+
+  // partial specialization to end the iteration
+  template <typename T, int SIMD_WIDTH, int N, int SRC>
+  class Unswizzle4Once<T, SIMD_WIDTH, N, SRC, N>
+  {
+  public:
+    static SIMD_INLINE void
+    _unswizzle(SIMDVec<T, SIMD_WIDTH> *, SIMDVec<T, SIMD_WIDTH> *)
+    {
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH, int N, int REP, int FINAL_REPS, int ODD>
+  class Unswizzle4Multiple
+  {
+  public:
+    static SIMD_INLINE void
+    _unswizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      Unswizzle4Once<T, SIMD_WIDTH, N, 0, 0>::_unswizzle(v, v2);
+      Unswizzle4Once<T, SIMD_WIDTH, N, 0, 0>::_unswizzle(v2, v);
+      Unswizzle4Multiple<T, SIMD_WIDTH, N,
+          REP + 1, FINAL_REPS, ODD>::_unswizzle(v, v2);
+    }
+  };
+
+  // partial specialization to end the iteration without unswizzle post-amble
+  template <typename T, int SIMD_WIDTH, int N, int FINAL_REPS, int ODD>
+  class Unswizzle4Multiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
+  {
+  public:
+    static SIMD_INLINE void
+    _unswizzle(SIMDVec<T, SIMD_WIDTH> *, SIMDVec<T, SIMD_WIDTH> *)
+    {
+    }
+  };
+
+  // partial specialization to end the iteration with unswizzle post-amble
+  template <typename T, int SIMD_WIDTH, int N, int FINAL_REPS>
+  class Unswizzle4Multiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
+  {
+  public:
+    static SIMD_INLINE void
+    _unswizzle(SIMDVec<T, SIMD_WIDTH> *v, SIMDVec<T, SIMD_WIDTH> *v2)
+    {
+      Unswizzle4Once<T, SIMD_WIDTH, N, 0, 0>::_unswizzle(v, v2);
+      CopyMatrix<T, SIMD_WIDTH, 0, 2 * N>::_copy(v2, v);
+    }
+  };
+
+  // ------------------------ unswizzle main meta template ---------------------
+
+  template <typename T, int SIMD_WIDTH, int N>
+  class Unswizzle4
+  {
+    enum { FINALBLKSIZE = SIMDVec<T, SIMD_WIDTH>::elements };
+    enum { ORIG_REPS = (int) floorlog2<FINALBLKSIZE>::value + 1 };
+    enum { FINAL_REPS = ORIG_REPS / 2 };
+    enum { ODD = (ORIG_REPS & 0x01) };
+
+  public:
+    static SIMD_INLINE void
+    _unswizzle(SIMDVec<T, SIMD_WIDTH> *v)
+    {
+      SIMDVec<T, SIMD_WIDTH> v2[2 * N];
+      Unswizzle4Multiple<T, SIMD_WIDTH, N,
+          0, FINAL_REPS, ODD>::_unswizzle(v, v2);
+    }
+  };
+
+  // ===========================================================================
+  // unswizzle4 wrapper function
+  // ===========================================================================
+
+  // 15. Oct 22 (Jonas Keller): added unswizzle4 wrapper function
+
+  template <int N, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  unswizzle4(SIMDVec<T, SIMD_WIDTH> *const v)
+  {
+    Unswizzle4<T, SIMD_WIDTH, N>::_unswizzle(v);
+  }
+
+  // ===========================================================================
   // transpose4 Swizzle4<Zip>
   // ===========================================================================
 

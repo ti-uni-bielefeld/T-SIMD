@@ -81,6 +81,9 @@ else
   set autotest_target = ""
 endif
 
+# set languange to english
+setenv LANG en_US.UTF-8
+
 make platform_dirs # only does something when run in PROG system
 
 mkdir -p COMPILE_AND_TEST

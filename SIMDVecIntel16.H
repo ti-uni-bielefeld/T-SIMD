@@ -420,6 +420,37 @@ namespace ns_simd {
     return x_mm_srli_epi32<IMM>(a, IsPosInGivenRange<32, IMM>());
   }
 
+  // 16. Oct 22 (Jonas Keller): added x_mm_srai_epi8
+
+  // positive and in range: shift
+  template <int IMM>
+  static SIMD_INLINE __m128i
+  x_mm_srai_epi8(__m128i a, IsPosInRange<true, true>)
+  {
+    __m128i odd = _mm_srai_epi16(a, IMM);
+    __m128i even = _mm_srai_epi16(_mm_slli_epi16(a, 8), IMM + 8);
+    __m128i odd_masked = _mm_and_si128(odd, _mm_set1_epi16(0xFF00));
+    __m128i even_masked = _mm_and_si128(even, _mm_set1_epi16(0x00FF));
+    return _mm_or_si128(odd_masked, even_masked);
+  }
+
+  // positive and out of range: maximal shift
+  template <int IMM>
+  static SIMD_INLINE __m128i
+  x_mm_srai_epi8(__m128i a, IsPosInRange<true, false>)
+  {
+    // result should be all ones if a is negative, all zeros otherwise
+    return _mm_cmplt_epi8(a, _mm_setzero_si128());
+  }
+
+  // hub
+  template <int IMM>
+  static SIMD_INLINE __m128i
+  x_mm_srai_epi8(__m128i a)
+  {
+    return x_mm_srai_epi8<IMM>(a, IsPosInGivenRange<7, IMM>());
+  }
+
   // positive and in range: shift
   template <int IMM>
   static SIMD_INLINE __m128i
@@ -2303,11 +2334,24 @@ namespace ns_simd {
   }
 
   // ---------------------------------------------------------------------------
-  // srai (16/32 only)
+  // srai
   // ---------------------------------------------------------------------------
 
-  // TODO: srai: emulation of missing 8-bit versions?
-  // TODO: (Hacker's Delight 2nd ed. sec. 2-7?)
+  // 16. Oct 22 (Jonas Keller): added missing Byte and SignedByte versions
+
+  template <int IMM>
+  static SIMD_INLINE SIMDVec<SIMDByte,16> 
+  srai(const SIMDVec<SIMDByte,16> &a)
+  {
+    return x_mm_srai_epi8<IMM>(a);
+  }
+
+  template <int IMM>
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16> 
+  srai(const SIMDVec<SIMDSignedByte,16> &a)
+  {
+    return x_mm_srai_epi8<IMM>(a);
+  }
 
   template <int IMM>
   static SIMD_INLINE SIMDVec<SIMDWord,16> 

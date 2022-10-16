@@ -160,9 +160,7 @@ main(int argc, char *argv[])
   UnaryArrayTemplateType<SIMDFloat,SIMDInt,SW,Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<SIMDInt,SIMDFloat,SW,Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<SIMDFloat,SIMDFloat,SW,Extend>::test(repeats1, pattern);
-  UnaryTemplateIntMinToMax<SIMDWord,SW,Srai>::test(repeats1, pattern);
-  UnaryTemplateIntMinToMax<SIMDShort,SW,Srai>::test(repeats1, pattern);
-  UnaryTemplateIntMinToMax<SIMDInt,SW,Srai>::test(repeats1, pattern);
+  TestIntTI<UnaryTemplateIntMinToMax,SW,Srai>::test(repeats1, pattern);
   TestIntTI<UnaryTemplateIntMinToMax,SW,Srli>::test(repeats1, pattern);
   TestIntTI<UnaryTemplateIntMinToMax,SW,Slli>::test(repeats1, pattern);
   UnaryTemplateType<SIMDInt,SIMDFloat,SW,Cvts>::test(repeats1, pattern);

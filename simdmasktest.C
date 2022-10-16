@@ -25,13 +25,8 @@
 //
 // ===========================================================================
 
-// TODO: 31. Mar 22 (rm)
-// TODO: there are warnings when this is compiled on an ARM architecture
-// TODO: where uinttest_t is defined below as uint32_t:
-// TODO: - %lx printf format for uinttest_t arguments doesn't fit
-// TODO: - uinttest_t mask=0xfffffffffff overflows
-// TODO: - TEST_TEMPLATE_SHIFT: compiler complains that shifts are larger
-// TODO:   than width of type
+// 16. Oct 22 (Jonas Keller):
+// removed TODOs for compilation on ARM, as that works now
 
 // 20. Sep 22 (Jonas Keller): defined PRIutest to be PRIu32 or PRIu64 from
 // inttypes.h depending on whether uinttest_t is 32 or 64 bit and used it in

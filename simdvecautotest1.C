@@ -184,12 +184,7 @@ main(int argc, char *argv[])
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSortSortedPairs>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSortSortedPairs2>::test(repeats1, pattern);
   TestAll<Binary,SW,Avgru>::test(repeats1, pattern);
-  // NOTE: Avgrd: srai not yet implemented for SIMDSignedByte
-  Binary<SIMDByte,SW,Avgrd>::test(repeats1, pattern);
-  Binary<SIMDWord,SW,Avgrd>::test(repeats1, pattern);
-  Binary<SIMDShort,SW,Avgrd>::test(repeats1, pattern);
-  Binary<SIMDInt,SW,Avgrd>::test(repeats1, pattern);
-  Binary<SIMDFloat,SW,Avgrd>::test(repeats1, pattern);
+  TestAll<Binary,SW,Avgrd>::test(repeats1, pattern);
   TestAll<Nullary,SW,Setones>::test(1, pattern);
   TestAll<Nullary,SW,Setmin>::test(1, pattern);
   TestAll<Nullary,SW,Setmax>::test(1, pattern);

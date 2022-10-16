@@ -137,11 +137,10 @@ int main(int argc, char *argv[]) {
   TestAll<TesterMaskBinary, SW, Mask_max>::test(repeats1, pattern);
   TestAll<TesterMaskZBinary, SW, MaskZ_max>::test(repeats1, pattern);
 
-  // TODO: masked div2r0 and div2rd are not implemented for SIMDSignedByte
-  TestAllExceptSignedByte<TesterMaskUnary, SW, Mask_div2r0>::test(repeats1, pattern);
-  TestAllExceptSignedByte<TesterMaskZUnary, SW, MaskZ_div2r0>::test(repeats1, pattern);
-  TestAllExceptSignedByte<TesterMaskUnary, SW, Mask_div2rd>::test(repeats1, pattern);
-  TestAllExceptSignedByte<TesterMaskZUnary, SW, MaskZ_div2rd>::test(repeats1, pattern);
+  TestAll<TesterMaskUnary, SW, Mask_div2r0>::test(repeats1, pattern);
+  TestAll<TesterMaskZUnary, SW, MaskZ_div2r0>::test(repeats1, pattern);
+  TestAll<TesterMaskUnary, SW, Mask_div2rd>::test(repeats1, pattern);
+  TestAll<TesterMaskZUnary, SW, MaskZ_div2rd>::test(repeats1, pattern);
 
   TestIntExcept8BitTI<TesterMaskUnaryTIMinToMax, SW, Mask_srai>::test(repeats1, pattern);
   TestIntExcept8BitTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_srai>::test(repeats1, pattern);

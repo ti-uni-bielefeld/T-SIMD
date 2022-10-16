@@ -3038,13 +3038,15 @@ namespace ns_simd {
     return srli<1>(a); 
   }
 
-  /* TODO: div2r0 can be implemented if srai exists for SIMDSignedByte
-     template <int SIMD_WIDTH>
-     static SIMD_INLINE SIMDVec<SIMDSignedByte,SIMD_WIDTH>
-     div2r0(const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &a)
-     {
-     }
-  */
+  // 16. Oct 22 (Jonas Keller): added missing version for SIMDSignedByte
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,SIMD_WIDTH>
+  div2r0(const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &a)
+  {
+    // add 1 if number is negative
+    return srai<1>(add(a, srli<7>(a)));
+  }
+  
 
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDWord,SIMD_WIDTH>
@@ -3088,13 +3090,13 @@ namespace ns_simd {
     return srli<1>(a); 
   }
 
-  /* TODO: div2rd can be implemented if srai exists for SIMDSignedByte
-     template <int SIMD_WIDTH>
-     static SIMD_INLINE SIMDVec<SIMDSignedByte,SIMD_WIDTH>
-     div2rd(const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &a)
-     {
-     }
-  */
+  // 16. Oct 22 (Jonas Keller): added missing version for SIMDSignedByte
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,SIMD_WIDTH>
+  div2rd(const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &a)
+  {
+    return srai<1>(a);
+  }
 
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDWord,SIMD_WIDTH>

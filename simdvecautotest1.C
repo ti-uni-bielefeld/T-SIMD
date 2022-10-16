@@ -217,17 +217,8 @@ main(int argc, char *argv[])
   TernaryConditionTemplateType<SIMDShort,SIMDWord,SW,Ifelse>::test(repeats1, pattern);
   TernaryConditionTemplateType<SIMDInt,SIMDFloat,SW,Ifelse>::test(repeats1, pattern);
   TernaryConditionTemplateType<SIMDFloat,SIMDInt,SW,Ifelse>::test(repeats1, pattern); 
-  // NOTE: Div2rd/Div2r0: srai not yet implemented for SIMDSignedByte
-  Unary<SIMDByte,SW,Div2r0>::test(repeats1, pattern);
-  Unary<SIMDWord,SW,Div2r0>::test(repeats1, pattern);
-  Unary<SIMDShort,SW,Div2r0>::test(repeats1, pattern);
-  Unary<SIMDInt,SW,Div2r0>::test(repeats1, pattern);
-  Unary<SIMDFloat,SW,Div2r0>::test(repeats1, pattern);
-  Unary<SIMDByte,SW,Div2rd>::test(repeats1, pattern);
-  Unary<SIMDWord,SW,Div2rd>::test(repeats1, pattern);
-  Unary<SIMDShort,SW,Div2rd>::test(repeats1, pattern);
-  Unary<SIMDInt,SW,Div2rd>::test(repeats1, pattern);
-  Unary<SIMDFloat,SW,Div2rd>::test(repeats1, pattern);
+  TestAll<Unary,SW,Div2r0>::test(repeats1, pattern);
+  TestAll<Unary,SW,Div2rd>::test(repeats1, pattern);
   Binary<SIMDFloat,SW,Sign>::test(repeats1, pattern);
   TestAll<Binary,SW,AbsDiff>::test(repeats1, pattern);
   // TODO: operators

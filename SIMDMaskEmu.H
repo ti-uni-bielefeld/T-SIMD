@@ -365,7 +365,10 @@ namespace ns_simd {
   EMULATE_DOP_INT(hsubs)
 
   //TODO mask parameters?
-  #define EMULATE_CMP(OP) \
+
+  // 16. Oct 22 (Jonas Keller): added overloaded versions of mask_cmp* functions
+  // that only take two vector parameters and no mask parameter
+#define EMULATE_CMP(OP) \
   template <typename T, int SIMD_WIDTH> \
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> \
   mask_ ## OP (const SIMDMask<T, SIMD_WIDTH> &k, \
@@ -381,6 +384,20 @@ namespace ns_simd {
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &b) \
   { \
     return SIMDMask<SIMDFloat, SIMD_WIDTH>(mask_ifelse(k, OP(mask_ifelse(k, a, setzero<SIMDFloat, SIMD_WIDTH>()), mask_ifelse(k, b, setzero<SIMDFloat, SIMD_WIDTH>())), setzero<SIMDFloat, SIMD_WIDTH>())); \
+  } \
+  template <typename T, int SIMD_WIDTH> \
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> \
+  mask_ ## OP (const SIMDVec<T, SIMD_WIDTH> &a, \
+      const SIMDVec<T, SIMD_WIDTH> &b) \
+  { \
+    return SIMDMask<T, SIMD_WIDTH>(OP(a, b)); \
+  } \
+  template <int SIMD_WIDTH> \
+  static SIMD_INLINE SIMDMask<SIMDFloat, SIMD_WIDTH> \
+  mask_ ## OP (const SIMDVec<SIMDFloat, SIMD_WIDTH> &a, \
+      const SIMDVec<SIMDFloat, SIMD_WIDTH> &b) \
+  { \
+    return SIMDMask<SIMDFloat, SIMD_WIDTH>(OP(a, b)); \
   }
   
   EMULATE_CMP(cmplt)

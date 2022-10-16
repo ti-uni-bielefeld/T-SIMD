@@ -583,6 +583,53 @@ struct TesterMaskCmp {
   }
 };
 
+// 16. Oct 22 (Jonas Keller): added TesterCmpMask
+
+// =============================================================================
+// test for functions with two vector arguments that return a mask
+// =============================================================================
+
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
+struct TesterCmpMask {
+  static void test(int repeats, const std::string &pattern) {
+    std::string name = FCT<T, SIMD_WIDTH>::name();
+    if (name.find(pattern) == std::string::npos) {
+      return;
+    }
+    std::string args = "v,v";
+    printInfo(name, args);
+    int errors = 0, trials = 0;
+    long int time = 0;
+    struct timespec start, end;
+    for (int i = 0; i < repeats; i++, trials++) {
+      SIMDSerialVec<T, SIMD_WIDTH> a, b;
+      FCT<T, SIMD_WIDTH>::randomizeInput(a);
+      FCT<T, SIMD_WIDTH>::randomizeInput(b);
+      SIMDSerialMask<T, SIMD_WIDTH> cs =
+          FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec, SIMDSerialMask>(a, b);
+      start = getTimeSpec();
+      SIMDSerialMask<T, SIMD_WIDTH> cp =
+          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(a, b);
+      end = getTimeSpec();
+      time += timeSpecDiffNsec(end, start);
+      if (cs != cp) {
+        errors++;
+        if (errors <= PRINT_ERRORS) {
+          printError(name, args);
+          PRINT_VEC(T, a);
+          PRINT_VEC(T, b);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cs);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cp);
+        }
+        EXIT;
+      }
+    }
+    printErrorStats(errors, trials);
+    printTimeStats(time, trials);
+  }
+};
+
 // =============================================================================
 // test for masked functions with a mask and one vector argument that returns
 // an int

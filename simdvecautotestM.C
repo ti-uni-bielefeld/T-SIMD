@@ -165,6 +165,16 @@ int main(int argc, char *argv[]) {
   TestAll<TesterMaskCmp, SW, Mask_cmpge>::test(repeats1, pattern);
   TestAll<TesterMaskCmp, SW, Mask_cmpneq>::test(repeats1, pattern);
 
+  // 16. Oct 22 (Jonas Keller): added tests for overloaded versions of
+  // mask_cmp* functions that only take two vector parameters and no mask
+  // parameter
+  TestAll<TesterCmpMask, SW, Mask_cmplt>::test(repeats1, pattern);
+  TestAll<TesterCmpMask, SW, Mask_cmple>::test(repeats1, pattern);
+  TestAll<TesterCmpMask, SW, Mask_cmpeq>::test(repeats1, pattern);
+  TestAll<TesterCmpMask, SW, Mask_cmpgt>::test(repeats1, pattern);
+  TestAll<TesterCmpMask, SW, Mask_cmpge>::test(repeats1, pattern);
+  TestAll<TesterCmpMask, SW, Mask_cmpneq>::test(repeats1, pattern);
+
   TestAll<TesterMaskBinary, SW, Mask_avg>::test(repeats1, pattern);
   TestAll<TesterMaskZBinary, SW, MaskZ_avg>::test(repeats1, pattern);
 

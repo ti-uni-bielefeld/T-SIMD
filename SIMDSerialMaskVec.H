@@ -343,6 +343,10 @@ GENERATE_SERIAL_MASK_MASKZ_BINARY(hadds)
 GENERATE_SERIAL_MASK_MASKZ_BINARY(hsub)
 GENERATE_SERIAL_MASK_MASKZ_BINARY(hsubs)
 
+
+// 16. Oct 22 (Jonas Keller): added overloaded versions of mask_cmp* functions
+// that only take two vector parameters and no mask parameter
+
 #define GENERATE_SERIAL_MASK_CMP(OP)                                           \
   template <typename T, int SIMD_WIDTH>                                        \
   static SIMDSerialMask<T, SIMD_WIDTH> mask_##OP(                              \
@@ -350,6 +354,12 @@ GENERATE_SERIAL_MASK_MASKZ_BINARY(hsubs)
       const SIMDSerialVec<T, SIMD_WIDTH> &a,                                   \
       const SIMDSerialVec<T, SIMD_WIDTH> &b) {                                 \
     return mask_ifelsezero(k, OP(a, b));                                       \
+  }                                                                            \
+  template <typename T, int SIMD_WIDTH>                                        \
+  static SIMDSerialMask<T, SIMD_WIDTH> mask_##OP(                              \
+      const SIMDSerialVec<T, SIMD_WIDTH> &a,                                   \
+      const SIMDSerialVec<T, SIMD_WIDTH> &b) {                                 \
+    return OP(a, b);                                                           \
   }
 
 GENERATE_SERIAL_MASK_CMP(cmplt)

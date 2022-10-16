@@ -305,6 +305,10 @@ GENERATE_WRAPPER_MASK_MASKZ_BINARY(hadds)
 GENERATE_WRAPPER_MASK_MASKZ_BINARY(hsub)
 GENERATE_WRAPPER_MASK_MASKZ_BINARY(hsubs)
 
+
+// 16. Oct 22 (Jonas Keller): added overloaded versions of mask_cmp* functions
+// that only take two vector parameters and no mask parameter
+
 #define GENERATE_WRAPPER_MASK_CMP(OP)                                          \
   template <typename T, int SIMD_WIDTH> struct Mask_##OP {                     \
     static std::string name() { return t2s<T, SIMD_WIDTH>("mask_" #OP); }      \
@@ -320,6 +324,12 @@ GENERATE_WRAPPER_MASK_MASKZ_BINARY(hsubs)
                                      const Vec<T, SIMD_WIDTH> &a,              \
                                      const Vec<T, SIMD_WIDTH> &b) {            \
       return mask_##OP(k, a, b);                                               \
+    }                                                                          \
+    template <template <typename, int> class Vec,                              \
+              template <typename, int> class Mask>                             \
+    static Mask<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,              \
+                                     const Vec<T, SIMD_WIDTH> &b) {            \
+      return mask_##OP(a, b);                                                  \
     }                                                                          \
   };
 

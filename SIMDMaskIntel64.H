@@ -1420,6 +1420,8 @@ namespace ns_simd {
   }
 
 
+  // 16. Oct 22 (Jonas Keller): added overloaded versions of mask_cmp* functions
+  // that only take two vector parameters and no mask parameter
 
   #define GENERATE_CMP(OP, TYPE, SUF) \
   static SIMD_INLINE SIMDMask<TYPE, 64> \
@@ -1428,6 +1430,12 @@ namespace ns_simd {
       const SIMDVec<TYPE, 64> &b) \
   { \
     return _mm512_mask_ ## OP ## _ ## SUF ## _mask (k, a, b); \
+  } \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  mask_ ## OP (const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return _mm512_ ## OP ## _ ## SUF ## _mask (a, b); \
   }
 
   #define GENERATE_CMP_WITH_GENERALIZED_FCT(OP, IMM8) \
@@ -1437,6 +1445,12 @@ namespace ns_simd {
       const SIMDVec<SIMDFloat, 64> &b) \
   { \
     return _mm512_mask_cmp_ps_mask (k, a, b, IMM8); \
+  } \
+  static SIMD_INLINE SIMDMask<SIMDFloat, 64> \
+  mask_ ## OP (const SIMDVec<SIMDFloat, 64> &a, \
+      const SIMDVec<SIMDFloat, 64> &b) \
+  { \
+    return _mm512_cmp_ps_mask (a, b, IMM8); \
   }
 
   #define EMULATE_CMP_64(OP, TYPE) \
@@ -1446,6 +1460,12 @@ namespace ns_simd {
       const SIMDVec<TYPE, 64> &b) \
   { \
     return _mm512_and_si512(k, OP (a, b)); \
+  } \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  mask_ ## OP (const SIMDVec<TYPE, 64> &a, \
+      const SIMDVec<TYPE, 64> &b) \
+  { \
+    return OP (a, b); \
   }
 
   // ---------------------------------------------------------------------------

@@ -30,9 +30,6 @@
 //  
 // ===========================================================================
 
-// TODO:
-// [ ] more efficient hadd/hsub implementation
-
 #ifndef _SIMD_VEC_INTEL_64_H_
 #define _SIMD_VEC_INTEL_64_H_
 

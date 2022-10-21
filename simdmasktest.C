@@ -33,6 +33,21 @@
 // the printf statements.
 // fixes printf format warnings on 32 bit ARM and on Windows
 
+// 21. Oct 22 (Jonas Keller):
+// Note: When executing the tests there are errors complaining that the value
+// of the csr register is different before and after executing the function
+// for the functions avg, div2r0 and div2rd. Specifically, the following
+// flags are different:
+// - Invalid Operation: when operand is NaN
+// - Denormal: when operand is denormal
+// - Overflow: when result is not representable with a finite value
+// - Underflow: when result is too small to be represented
+// - Inexact: when result is not exactly representable
+// The differences in these flags should not matter and thus the errors
+// should be able to be ignored.
+// It is not clear why these errors only occur for the functions avg, div2r0
+// and div2rd and not for the other functions.
+
 #include <float.h>
 #include <math.h>
 #include <stdint.h>

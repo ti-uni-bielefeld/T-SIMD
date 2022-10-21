@@ -2065,6 +2065,13 @@ namespace ns_simd {
 
   // 15. Oct 22 (Jonas Keller): added Unswizzle4 classes
 
+  // Note: Unlike the Swizzle4 classes, the Unswizzle4 classes do not have a
+  // template-template parameter for the Zip class.
+  // In the Swizzle4 classes, the Zip template parameter is used to choose
+  // between the zip and zip16 functions, which is needed by the Transpose4
+  // classes. The Unswizzle4 classes are not used by Transpose4, so the Zip
+  // template parameter is not needed.
+
   template <typename T, int SIMD_WIDTH, int N, int SRC, int DST>
   class Unswizzle4Once
   {

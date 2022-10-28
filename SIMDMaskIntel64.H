@@ -1465,7 +1465,7 @@ namespace ns_simd {
   mask_ ## OP (const SIMDVec<TYPE, 64> &a, \
       const SIMDVec<TYPE, 64> &b) \
   { \
-    return OP (a, b); \
+    return OP (a, b).zmm; \
   }
 
   // ---------------------------------------------------------------------------

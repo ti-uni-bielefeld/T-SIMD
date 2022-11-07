@@ -767,7 +767,7 @@ namespace ns_simd {
 	}
 	printErrorStats(errors, trials);
 
-  T input;
+  T input = T();
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats; i++) {
     doNotOptimize(input);
@@ -821,7 +821,7 @@ namespace ns_simd {
   }
   printErrorStats(errors, trials);
 
-  uint64_t input;
+  uint64_t input = uint64_t();
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats; i++) {
     doNotOptimize(input);

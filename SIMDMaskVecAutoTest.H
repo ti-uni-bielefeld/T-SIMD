@@ -560,7 +560,7 @@ struct TesterMaskScalar {
 
     SIMDVec<T, SIMD_WIDTH> inputSrc, input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    T inputScalar;
+    T inputScalar = T();
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats; i++) {
       doNotOptimize(inputSrc);
@@ -616,7 +616,7 @@ struct TesterMaskZScalar {
     printErrorStats(errors, trials);
 
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    T inputScalar;
+    T inputScalar = T();
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats; i++) {
       doNotOptimize(inputMask);

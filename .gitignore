@@ -1,5 +1,6 @@
-COMPILE_AND_TEST/
 .vscode/
+COMPILE_AND_TEST/
+build*/
 *.tmp
 *.o
 *.ilk

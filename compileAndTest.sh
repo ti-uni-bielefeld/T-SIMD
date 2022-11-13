@@ -34,6 +34,8 @@ set errors = 1
 set cppstd_test = 1
 set default_compilation = 1
 
+set COMPILE_AND_TEST_JOBS = 16
+
 if ($useGccClang) then
   # g++, clang++
   # set compiler = g++
@@ -91,12 +93,9 @@ if ($sandbox_test) then
   foreach sandbox_defines ("" "-DSIMDVEC_SANDBOX")
     echo "================= sandbox_defines $sandbox_defines ================="
     if ($doitCompile) then
-      set build_dir = "build_compileandtest_sandbox_${sandbox_defines}"
-      ( make clean build_dir=$build_dir; \
-        make dep build_dir=$build_dir; \
-        make build_dir=$build_dir \
-          sandbox_defines="$sandbox_defines" all_tsimd $autotest_target \
-          >& COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log ) &
+      make clean
+      make dep # only does something when run in PROG system
+      make -j ${COMPILE_AND_TEST_JOBS} sandbox_defines="$sandbox_defines" all_tsimd $autotest_target >& COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log
     endif
   end
 endif
@@ -106,12 +105,10 @@ if ($opt_test) then
   foreach opt_flags ("-O3 -funroll-loops")# "-O0"
     echo "==================== optflags $opt_flags ===================="
     if ($doitCompile) then
-      set build_dir = "build_compileandtest_opt_${opt_flags}"
-      ( make clean build_dir=$build_dir ; \
-        make dep build_dir=$build_dir ; \
-        make build_dir=$build_dir \
-          optflags="$opt_flags" all_tsimd $autotest_target \
-          >& COMPILE_AND_TEST/opt/compile_${opt_flags}.log ) &
+      make clean
+      make dep # only does something when run in PROG system
+      make -j ${COMPILE_AND_TEST_JOBS} optflags="$opt_flags" all_tsimd $autotest_target >& COMPILE_AND_TEST/opt/compile_${opt_flags}.log
+      rehash
     endif
   end
 endif
@@ -128,18 +125,29 @@ if ($opt_arch_test) then
     # echo "arch_info = $arch_info"
     # echo "arch = $arch"
     # echo "arch_defines = $arch_defines"
-    set build_dir = "build_compileandtest_opt_arch_${arch}"
     foreach opt_flags ("-O3 -funroll-loops") #"-O0"
       echo "======== flags_arch $arch_defines optflags $opt_flags ========"
       if ($doitCompile) then
-        ( make clean build_dir=$build_dir; \
-          make dep build_dir=$build_dir; \
-          make \
-            build_dir=$build_dir flags_arch="$arch_defines" \
-            optflags="$opt_flags" all_tsimd $autotest_target \
-            >& "COMPILE_AND_TEST/opt_arch/$arch/compile_$opt_flags.log" ) &
+        make clean
+        make dep # only does something when run in PROG system
+        make -j ${COMPILE_AND_TEST_JOBS} \
+          flags_arch="$arch_defines" optflags="$opt_flags" all_tsimd $autotest_target \
+          >& "COMPILE_AND_TEST/opt_arch/$arch/compile_$opt_flags.log"
       endif
     end
+    # tests only for last compilation above
+    echo "running tests for $arch"
+    if ($doitRun) then
+      rehash
+      make -j ${COMPILE_AND_TEST_JOBS} flags-info flags_arch="$arch_defines" >& \
+	      COMPILE_AND_TEST/opt_arch/$arch/flags_info.log
+      if ($doitAlsoRunAutoTest) then
+        ./simdvecautotest0 "" 10000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest0.log &
+        ./simdvecautotest1 "" 1000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest1.log &
+        ./simdvecautotestM "" 10000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotestM.log &
+      endif
+      wait
+    endif
   end
 endif
 
@@ -149,17 +157,15 @@ if ($cppstd_test) then
     set cppstd_defines = "-std=$cppstd"
     echo "================= flags_cppstd $cppstd_defines ================="
     if ($doitCompile) then
-      set build_dir = "build_compileandtest_cppstd_${cppstd}"
+      make clean
+      make dep # only does something when run in PROG system
       if ($cppstd == "c++98") then
         set all_tsimd = "all_tsimd_cpp98"
       else
         set all_tsimd = "all_tsimd"
       endif
-      ( make clean build_dir=$build_dir; \
-        make dep build_dir=$build_dir; \
-        make build_dir=$build_dir\
-          flags_cppstd="$cppstd_defines" $all_tsimd $autotest_target \
-          >& COMPILE_AND_TEST/cppstd/compile_${cppstd}.log ) &
+      make -j ${COMPILE_AND_TEST_JOBS} flags_cppstd="$cppstd_defines" $all_tsimd $autotest_target >& COMPILE_AND_TEST/cppstd/compile_${cppstd}.log
+      rehash
     endif
   end
 endif
@@ -168,36 +174,11 @@ if ($default_compilation) then
   mkdir -p COMPILE_AND_TEST/default
   echo "================== default compilation ================="
   if ($doitCompile) then
-    set build_dir = "build_compileandtest_default"
-    ( make clean build_dir=$build_dir; \
-      make dep build_dir=$build_dir; \
-      make build_dir=$build_dir all_tsimd \
-        $autotest_target >& COMPILE_AND_TEST/default/compile.log ) &
+    make clean
+    make dep # only does something when run in PROG system
+    make -j ${COMPILE_AND_TEST_JOBS} all_tsimd $autotest_target >& COMPILE_AND_TEST/default/compile.log
   endif
 endif
-
-wait
-
-if ($doitRun && $opt_arch_test) then
-  rehash
-  foreach arch_info ($arch_info_list)
-    # https://stackoverflow.com/questions/7735160/how-do-i-split-a-string-in-csh
-    set arch_list = ($arch_info:as/,/ /)
-    set arch = $arch_list[1]
-    set arch_defines = "$arch_list[2-]"
-    set build_dir = "build_compileandtest_opt_arch_${arch}"
-    echo "running tests for $arch"
-    make flags-info flags_arch="$arch_defines" >& \
-      COMPILE_AND_TEST/opt_arch/$arch/flags_info.log
-    if ($doitAlsoRunAutoTest) then
-      $build_dir/simdvecautotest0 "" 10000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest0.log &
-      $build_dir/simdvecautotest1 "" 1000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest1.log &
-      $build_dir/simdvecautotestM "" 10000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotestM.log &
-    endif
-  end
-endif
-
-wait
 
 set where_there_errors = 0
 
@@ -217,6 +198,8 @@ if ($errors) then
     echo "No errors or warnings found!"
   endif
 endif
+
+make clean
 
 date
 

@@ -69,13 +69,8 @@ namespace ns_simd {
       return ((1 << i) & msb2int(SIMDVec<T, 32>(k))) != 0;
     }
     bool operator==(const SIMDMask<T, 32> &x) {
-#ifdef __AVX2__
-      return ((unsigned int)_mm256_movemask_epi8(_mm256_cmpeq_epi8(k, x))) ==
-             0xffffffff;
-#else
-      return test_all_ones(
-          cmpeq(SIMDVec<SIMDByte, 32>(k), SIMDVec<SIMDByte, 32>(x)));
-#endif
+      return test_all_zeros(
+          xor(SIMDVec<SIMDByte, 32>(k), SIMDVec<SIMDByte, 32>(x)));
     }
   };
 
@@ -103,19 +98,9 @@ namespace ns_simd {
       }
       return ((1 << i) & msb2int(SIMDVec<SIMDFloat, 32>(k))) != 0;
     }
-#ifdef __AVX2__
     bool operator==(const SIMDMask<SIMDFloat, 32> &x) {
-      return ((unsigned int)_mm256_movemask_epi8(_mm256_cmpeq_epi8(
-                 _mm256_castps_si256(k), _mm256_castps_si256(x)))) ==
-             0xffffffff;
+      return test_all_zeros(_mm256_xor_ps(k, x));
     }
-#else
-    bool operator==(const SIMDMask<SIMDFloat, 32> &x) {
-      return test_all_ones(
-          cmpeq(SIMDVec<SIMDByte, 32>(_mm256_castps_si256(k)),
-                SIMDVec<SIMDByte, 32>(_mm256_castps_si256(x))));
-    }
-#endif
   };
   
   template <>

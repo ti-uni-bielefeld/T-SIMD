@@ -28,8 +28,13 @@
 #ifndef _SIMDMASKEMU_H_
 #define _SIMDMASKEMU_H_
 
-//  1. Oct 19 (rm)
-#include "SIMDVecExt.H"
+#include "SIMDDefs.H"
+#include "SIMDMaskArchSpec.H"
+#include "SIMDTypes.H"
+#include "SIMDVec.H"
+#include "SIMDVecBase.H"
+
+#include <stdint.h>
 
 namespace ns_simd {
   #define EMULATE_SOP_INT(OP) \

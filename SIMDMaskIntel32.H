@@ -29,10 +29,16 @@
 #ifndef _SIMDMASKINTEL32_H_
 #define _SIMDMASKINTEL32_H_
 
-#ifdef __AVX__
-
+#include "SIMDDefs.H"
+#include "SIMDIntrinsIntel.H"
 #include "SIMDMaskIntel16.H"
+#include "SIMDTypes.H"
+#include "SIMDVec.H"
 #include "SIMDVecIntel32.H"
+
+#include <stdint.h>
+
+#ifdef __AVX__
 
 namespace ns_simd {
   // 10. Oct 22 (Jonas Keller):

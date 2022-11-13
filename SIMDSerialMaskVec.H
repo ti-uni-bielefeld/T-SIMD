@@ -27,7 +27,12 @@
 #define _SIMD_MASK_VEC_SERIAL_H_
 
 #include "SIMDSerialVec.H"
+#include "SIMDTypes.H"
 #include "SIMDVec.H"
+#include "SIMDVecExt.H"
+
+#include <stdint.h>
+#include <stdlib.h>
 
 namespace ns_simd {
 

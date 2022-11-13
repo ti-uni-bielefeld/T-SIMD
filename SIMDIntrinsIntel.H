@@ -1,7 +1,7 @@
 // ===========================================================================
 // 
-// SIMD.H --
-// includes include files for vector intrinsics
+// SIMDIntrinsIntel.H --
+// includes include files for vector intrinsics on Intel CPUs
 // 
 // This source code file is part of the following software:
 // 
@@ -23,15 +23,12 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMD_H_
-#define _SIMD_H_
+#ifndef _SIMD_INTRINS_INTEL_H_
+#define _SIMD_INTRINS_INTEL_H_
 
-// TODO: - may be a bit confusing: SIMD.H is included from SIMDVecAll.H since
-// TODO:   we need the *ENABLE variables to select the right SIMDVec*.H 
-// TODO:   include files, but it is also included from SIMDVec*.H since we
-// TODO:   need the include files included here depending on the architecture
+#include "SIMDDefs.H"
 
-#if defined(__i386__) || defined(__x86_64__)
+#ifdef SIMDVEC_INTEL_ENABLE
 
 // 30. Aug 22 (Jonas Keller):
 // gcc warns that the value returned by the _mm*_undefined_* intrinsics is
@@ -45,21 +42,7 @@
 #include <x86intrin.h>
 #pragma GCC diagnostic pop
 
-#define SIMDVEC_INTEL_ENABLE 1
-#endif
+#endif // SIMDVEC_INTEL_ENABLE
 
-// 31. Mar 22 (rm): gcc on ARM doesn't define __arm__
-// #if defined(__arm__) && (defined(__ARM_NEON__) || defined(__ARM_NEON))
-#if defined(__ARM_NEON__) || defined(__ARM_NEON)
-#include <arm_neon.h>
-#define SIMDVEC_NEON_ENABLE 1
-#endif
-
-// TODO: - check whether either SIMDVEC_INTEL_ENABLE od
-// TODO:   SIMDVEC_NEON_ENABLE are defined? (problem: why doesn't #error
-// TODO:   stop compilation?)
-
-#include "SIMDAlloc.H"
-
-#endif // _SIMD_H_
+#endif // _SIMD_INTRINS_INTEL_H_
 

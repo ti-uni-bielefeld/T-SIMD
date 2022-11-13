@@ -25,22 +25,13 @@
 
 #include "SIMDVecAll.H"
 
+#include <stdio.h>
+
 using namespace ns_simd;
 
 // SW = SIMD width = number of bytes in a single SIMD vector
 
-#ifdef _SIMD_VEC_64_AVAIL_
-# define SW 64
-# define SA 64
-#else
-# ifdef _SIMD_VEC_32_AVAIL_
-#  define SW 32
-#  define SA 32
-# else
-#  define SW 16
-#  define SA 16
-# endif
-#endif
+# define SW NATIVE_SIMD_WIDTH
 
 #define LINE1								\
   puts("---------------------------------------------------------------------");

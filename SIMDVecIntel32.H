@@ -30,38 +30,15 @@
 #ifndef _SIMD_VEC_INTEL_32_H_
 #define _SIMD_VEC_INTEL_32_H_
 
-#ifdef __AVX__
-// this can be used to check whether 32-byte support is available
-#define _SIMD_VEC_32_AVAIL_
-#ifdef __AVX2__
-// this can be used to check whether full 32-byte support is available
-#define _SIMD_VEC_32_FULL_AVAIL_
-#endif
-
-// determine NATIVE_SIMD_WIDTH
-// we are the first to define NATIVE_SIMD_WIDTH, nobody else will do it later
-#ifndef NATIVE_SIMD_WIDTH
-// the user specified a maximal width
-# ifdef MAX_SIMD_WIDTH
-// the maximal width is smaller than what would be possible, so we
-// take the reduced width (but is is ignored if it is not 16)
-#  if MAX_SIMD_WIDTH == 16
-#   define NATIVE_SIMD_WIDTH MAX_SIMD_WIDTH
-// the maximal width is not smaller than what would be possible, so we
-// take what is possible
-#  else
-#   define NATIVE_SIMD_WIDTH 32
-#  endif
-// the user didn't specify a maximal width, we take what is possible
-# else
-#  define NATIVE_SIMD_WIDTH 32
-# endif
-#endif
-
+#include "SIMDDefs.H"
+#include "SIMDIntrinsIntel.H"
+#include "SIMDTypes.H"
 #include "SIMDVec.H"
-#include "SIMD.H"
 #include "SIMDVecIntel16.H"
-#include <assert.h>
+
+#include <stdint.h>
+
+#ifdef __AVX__
 
 namespace ns_simd {
 

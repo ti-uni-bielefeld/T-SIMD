@@ -26,11 +26,11 @@
 #ifndef _SIMD_TYPES_H_
 #define _SIMD_TYPES_H_
 
+#include "SIMDDefs.H"
+
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
-#include <math.h>
-#include "SIMDDefs.H"
 
 namespace ns_simd {
   

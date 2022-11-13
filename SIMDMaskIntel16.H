@@ -29,9 +29,15 @@
 #ifndef _SIMDMASKINTEL16_H_
 #define _SIMDMASKINTEL16_H_
 
-#ifdef __SSE2__
+#include "SIMDDefs.H"
+#include "SIMDIntrinsIntel.H"
+#include "SIMDTypes.H"
+#include "SIMDVec.H"
 #include "SIMDVecIntel16.H"
-#include <emmintrin.h> //SSE2
+
+#include <stdint.h>
+
+#ifdef __SSE2__
 
 namespace ns_simd {
   // 10. Oct 22 (Jonas Keller):

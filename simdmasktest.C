@@ -48,13 +48,14 @@
 // It is not clear why these errors only occur for the functions avg, div2r0
 // and div2rd and not for the other functions.
 
-#include <float.h>
+#include "SIMDVecAll.H"
+
+#include <inttypes.h>
 #include <math.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <inttypes.h>
+
 // 30. aug 22 (Jonas Keller): add workaround for gettimeofday on windows
 // from https://stackoverflow.com/a/26085827/8461272
 #ifdef _WIN32
@@ -85,7 +86,6 @@ int gettimeofday(struct timeval *tp, struct timezone *) {
 #else
 #include <sys/time.h> //gettimeofday
 #endif
-#include "SIMDVecAll.H"
 
 #define PRINT_PASS 0
 

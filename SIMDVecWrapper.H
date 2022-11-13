@@ -26,13 +26,15 @@
 #ifndef _SIMD_VEC_WRAPPER_
 #define _SIMD_VEC_WRAPPER_
 
-#include <string>
-#include <stdio.h>
-#include <algorithm>
-#include <functional>
 #include "SIMDDefs.H"
-#include "SIMDTypes.H"
 #include "SIMDSerialVec.H"
+#include "SIMDTypes.H"
+#include "SIMDVecExt.H"
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
 
 // - template parameters T and SIMD_WIDTH are included in class
 //   definition and therefore have to be explicitly provided (no

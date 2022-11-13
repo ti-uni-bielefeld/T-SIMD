@@ -26,11 +26,13 @@
 #ifndef _SSSE3_COMPAT_H_
 #define _SSSE3_COMPAT_H_
 
-// we assume that we have SSE2 
-#include <emmintrin.h>
-#include <stdint.h>
-#include <cmath>
 #include "SIMDDefs.H"
+#include "SIMDIntrinsIntel.H"
+
+#include <math.h>
+#include <stdint.h>
+
+// SSE3/SSSE3 emulation for very old CPUs (very inefficient sequential code!)
 
 // replacement for SSE3 instructions
 // _mm_hadd_ps
@@ -50,11 +52,13 @@
 // _mm_shuffle_epi8
 // _mm_sign_epi16
 
+#ifdef __SSE2__
+
+namespace ns_simd {
+
 // ===========================================================================
 // SSE3 replacements
 // ===========================================================================
-
-namespace ns_simd {
 
 #ifndef __SSE3__
 
@@ -299,4 +303,6 @@ namespace ns_simd {
 
 }
 
-#endif
+#endif // __SSE2__
+
+#endif // _SSSE3_COMPAT_H_

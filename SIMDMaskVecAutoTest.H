@@ -29,13 +29,18 @@
 #ifndef _SIMD_MASK_VEC_AUTO_TEST_H_
 #define _SIMD_MASK_VEC_AUTO_TEST_H_
 
-#include "SIMDMaskVecWrapper.H"
+#include "SIMDDefs.H"
 #include "SIMDSerialMaskVec.H"
+#include "SIMDSerialVec.H"
+#include "SIMDTypes.H"
 #include "SIMDVecAutoTest.H"
 #include "TimeMeasurement.H"
+
 #include <bitset>
 #include <iostream>
+#include <stdio.h>
 #include <string>
+#include <time.h>
 
 // 02. Oct 22 (Jonas Keller): added support for different comparators
 

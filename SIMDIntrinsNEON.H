@@ -1,7 +1,7 @@
 // ===========================================================================
 // 
-// SIMDVecAll.H --
-// common include file for SIMD*.H and SIMDVec*.H
+// SIMDIntrinsNEON.H --
+// includes include files for vector intrinsics on ARM CPUs
 // 
 // This source code file is part of the following software:
 // 
@@ -23,20 +23,14 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMD_VEC_ALL_H_
-#define _SIMD_VEC_ALL_H_
+#ifndef _SIMD_INTRINS_NEON_H_
+#define _SIMD_INTRINS_NEON_H_
 
-// base-level templates/functions
-#include "SIMDVecBase.H"
-// generic templates for extension commands
-#include "SIMDVecExt.H"
-// SIMDVecs: multiple SIMDVec in template class
-#include "SIMDVecs.H"
-// architecture-specific templates/functions for masked operations
-#include "SIMDMaskArchSpec.H"
-// architecture independent emulated templates/functions for masked operations
-#include "SIMDMaskEmu.H"
-// aligned memory allocation
-#include "SIMDAlloc.H"
+#include "SIMDDefs.H"
 
+#ifdef SIMDVEC_NEON_ENABLE
+#include <arm_neon.h>
 #endif
+
+#endif // _SIMD_INTRINS_NEON_H_
+

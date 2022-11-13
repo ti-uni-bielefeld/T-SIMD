@@ -29,6 +29,13 @@
 #ifndef _SIMDMASKNEON16_H_
 #define _SIMDMASKNEON16_H_
 
+#include "SIMDDefs.H"
+#include "SIMDIntrinsNEON.H"
+#include "SIMDTypes.H"
+#include "SIMDVec.H"
+
+#include <stdint.h>
+
 #ifdef SIMDVEC_NEON_ENABLE
 
 namespace ns_simd {

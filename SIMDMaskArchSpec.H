@@ -1,7 +1,8 @@
 // ===========================================================================
 // 
-// SIMDVecAll.H --
-// common include file for SIMD*.H and SIMDVec*.H
+// SIMDMaskArchSpec.H --
+// common include file for architecture specific mask classes and masked
+// functions
 // 
 // This source code file is part of the following software:
 // 
@@ -23,20 +24,34 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMD_VEC_ALL_H_
-#define _SIMD_VEC_ALL_H_
+#ifndef _SIMD_MASK_ARCH_SPEC_H_
+#define _SIMD_MASK_ARCH_SPEC_H_
 
-// base-level templates/functions
-#include "SIMDVecBase.H"
-// generic templates for extension commands
-#include "SIMDVecExt.H"
-// SIMDVecs: multiple SIMDVec in template class
-#include "SIMDVecs.H"
-// architecture-specific templates/functions for masked operations
-#include "SIMDMaskArchSpec.H"
-// architecture independent emulated templates/functions for masked operations
-#include "SIMDMaskEmu.H"
-// aligned memory allocation
-#include "SIMDAlloc.H"
+#ifdef SIMDVEC_SANDBOX
 
-#endif
+// test templates
+#include "SIMDMaskSandbox.H"
+
+#else // SIMDVEC_SANDBOX
+
+#include "SIMDDefs.H"
+
+// architecture-dependent files:
+
+// Intel
+#ifdef SIMDVEC_INTEL_ENABLE
+// 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
+#include "SIMDMaskIntel16.H"
+#include "SIMDMaskIntel32.H"
+#include "SIMDMaskIntel64.H"
+#endif // SIMDVEC_INTEL_ENABLE
+
+// ARM NEON
+#ifdef SIMDVEC_NEON_ENABLE
+// 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
+#include "SIMDMaskNEON16.H"
+#endif // SIMDVEC_NEON_ENABLE
+
+#endif // else SIMDVEC_SANDBOX
+
+#endif // _SIMD_MASK_ARCH_SPEC_H_

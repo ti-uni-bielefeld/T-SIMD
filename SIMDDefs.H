@@ -1,7 +1,7 @@
 // ===========================================================================
 // 
 // SIMDDefs.H --
-// encapsulates compiler-specific constructs
+// encapsulates compiler- and architecture-specific definitions and constructs
 // 
 // This source code file is part of the following software:
 // 
@@ -44,32 +44,90 @@
 // and store functions (if necessary on given architecture)
 
 // ---------------------------------------------------------------------------
-// g++
+// architecture-specific definitions
 // ---------------------------------------------------------------------------
 
-// TODO: icc and clang++ also define __GNUC__: make this one specific for g++?
-// 30. Aug 22 (Jonas Keller): clang++ on windows does not define __GNUC__
-//#ifdef __GNUC__
-#if defined(__GNUC__) || defined(__clang__)
-#define SIMD_DEFS_DEFINED
-#define SIMD_INLINE inline __attribute__ ((always_inline))
-#define SIMD_ATTR_ALIGNED(ALIGN) __attribute__ ((aligned(ALIGN)))
-#define SIMD_ATTR_PACKED_STRUCT struct __attribute__ ((__packed__))
-#define SIMD_FULL_MEMBARRIER __sync_synchronize()
+#if defined(__i386__) || defined(__x86_64__)
+#define SIMDVEC_INTEL_ENABLE 1
+
+#ifdef __AVX512F__
+// this can be used to check whether 64-byte support is available
+#define _SIMD_VEC_64_AVAIL_
+#ifdef __AVX512BW__
+// this can be used to check whether full 64-byte support is available
+#define _SIMD_VEC_64_FULL_AVAIL_
+#endif
+#endif
+
+#ifdef __AVX__
+// this can be used to check whether 32-byte support is available
+#define _SIMD_VEC_32_AVAIL_
+#ifdef __AVX2__
+// this can be used to check whether full 32-byte support is available
+#define _SIMD_VEC_32_FULL_AVAIL_
+#endif
+#endif
+
+#ifdef __SSE2__
+#define _SIMD_VEC_16_AVAIL_
+#endif
+
+// determine NATIVE_SIMD_WIDTH
+#ifdef _SIMD_VEC_64_AVAIL_
+#define NATIVE_SIMD_WIDTH 64
+#elif defined(_SIMD_VEC_32_AVAIL_)
+#define NATIVE_SIMD_WIDTH 32
+#else
+#define NATIVE_SIMD_WIDTH 16
+#endif
+
+#endif // defined(__i386__) || defined(__x86_64__)
+
+
+// 31. Mar 22 (rm): gcc on ARM doesn't define __arm__
+// #if defined(__arm__) && (defined(__ARM_NEON__) || defined(__ARM_NEON))
+#if defined(__ARM_NEON__) || defined(__ARM_NEON)
+#define SIMDVEC_NEON_ENABLE 1
+
+#define _SIMD_VEC_16_AVAIL_
+
+// determine NATIVE_SIMD_WIDTH
+#define NATIVE_SIMD_WIDTH 16
+
+#endif // defined(__ARM_NEON__) || defined(__ARM_NEON)
+
+// set NATIVE_SIMD_WIDTH to be at most MAX_SIMD_WIDTH
+#ifdef MAX_SIMD_WIDTH
+#  if NATIVE_SIMD_WIDTH > MAX_SIMD_WIDTH
+#    undef NATIVE_SIMD_WIDTH
+#    if MAX_SIMD_WIDTH >= 64
+#      define NATIVE_SIMD_WIDTH 64
+#    elif MAX_SIMD_WIDTH >= 32
+#      define NATIVE_SIMD_WIDTH 32
+#    elif MAX_SIMD_WIDTH >= 16
+#      define NATIVE_SIMD_WIDTH 16
+#    else
+#      error "MAX_SIMD_WIDTH must be at least 16"
+#    endif
+#  endif
 #endif
 
 // ---------------------------------------------------------------------------
-// icc
+// g++, clang++ and icc
 // ---------------------------------------------------------------------------
 
 // thanks to Wolfram Schenck for icc tests
-#ifdef __INTEL_COMPILER
+// 30. Aug 22 (Jonas Keller): clang++ on windows does not define __GNUC__
+//#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)
 #define SIMD_DEFS_DEFINED
 #define SIMD_INLINE inline __attribute__ ((always_inline))
 #define SIMD_ATTR_ALIGNED(ALIGN) __attribute__ ((aligned(ALIGN)))
 #define SIMD_ATTR_PACKED_STRUCT struct __attribute__ ((__packed__))
 #define SIMD_FULL_MEMBARRIER __sync_synchronize()
 #endif
+
+// TODO: MSVC?
 
 // ---------------------------------------------------------------------------
 // compiler-independent stuff
@@ -84,6 +142,26 @@
 #define SIMD_CONSTEXPR constexpr
 #else
 #define SIMD_CONSTEXPR const
+#endif
+
+// macro to set the default value SIMD_WIDTH template parameter to
+// NATIVE_WIDTH if NATIVE_WIDTH is defined
+#ifdef NATIVE_SIMD_WIDTH
+#define SIMD_WIDTH_DEFAULT_NATIVE SIMD_WIDTH = NATIVE_SIMD_WIDTH
+#else
+#define SIMD_WIDTH_DEFAULT_NATIVE SIMD_WIDTH
+#endif
+
+// macro to set the default value SIMD_WIDTH template function parameter to
+// NATIVE_WIDTH if NATIVE_WIDTH is defined and C++11 is available
+#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
+// NATIVE_SIMD_WIDTH is defined and C++11 is available
+// (default template function arguments require C++11)
+#define SIMD_WIDTH_DEFAULT_NATIVE_FUNC SIMD_WIDTH = NATIVE_SIMD_WIDTH
+#else
+// NATIVE_SIMD_WIDTH is undefined or no C++11 available
+// (default template function arguments are not supported in C++98)
+#define SIMD_WIDTH_DEFAULT_NATIVE_FUNC SIMD_WIDTH
 #endif
 
 // for reinterpretation of memory

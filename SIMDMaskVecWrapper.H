@@ -26,10 +26,11 @@
 #ifndef _SIMD_MASK_VEC_WRAPPER_H_
 #define _SIMD_MASK_VEC_WRAPPER_H_
 
+#include "SIMDDefs.H"
 #include "SIMDSerialMaskVec.H"
 #include "SIMDSerialVec.H"
 #include "SIMDVecWrapper.H"
-#include <iostream>
+
 #include <string>
 
 namespace ns_simd {

@@ -30,24 +30,17 @@
 #ifndef _SIMD_VEC_INTEL_16_H_
 #define _SIMD_VEC_INTEL_16_H_
 
-#ifdef __SSE2__
-#define _SIMD_VEC_16_AVAIL_
-
-// determine NATIVE_SIMD_WIDTH
-// a maximal width MAX_SIMD_WIDTH could be specified, but it can't be
-// smaller than 16, so we don't have to
-#ifndef NATIVE_SIMD_WIDTH
-#define NATIVE_SIMD_WIDTH 16
-#endif
-
+#include "SIMDDefs.H"
+#include "SIMDIntrinsIntel.H"
+#include "SIMDTypes.H"
 #include "SIMDVec.H"
-#include "SIMD.H"
-#include <assert.h>
-
-// SSE3/SSSE3 emulation for very old CPUs (very inefficient sequential code!)
-#if !defined(__SSE3__) || !defined(__SSSE3__)
 #include "ssse3_compat.H"
-#endif
+
+#include <stddef.h>
+#include <stdint.h>
+
+
+#ifdef __SSE2__
 
 namespace ns_simd {
 

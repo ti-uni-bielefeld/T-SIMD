@@ -32,7 +32,8 @@
 
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
-#include <stdio.h>
+
+#include <stdint.h>
 
 namespace ns_simd {
 
@@ -55,17 +56,10 @@ namespace ns_simd {
   // 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
 
   // specialized for type of elements and number of bytes in the SIMD vector
-#ifdef NATIVE_SIMD_WIDTH
-  template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+  template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
   class SIMDVec;
-  template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+  template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
   class SIMDMask;
-#else
-  template <typename T, int SIMD_WIDTH>
-  class SIMDVec;
-  template <typename T, int SIMD_WIDTH>
-  class SIMDMask;
-#endif
   
   // ===========================================================================
   // primary template functions on SIMDVec
@@ -108,91 +102,42 @@ namespace ns_simd {
   packs(const SIMDVec<Tin, SIMD_WIDTH> &a,
 	const SIMDVec<Tin, SIMD_WIDTH> &b);
 
-#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
-
-  // NATIVE_SIMD_WIDTH is defined and C++11 is available
-  // (default template function arguments require C++11)
-
-  template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+  template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
   setzero();
 
-  template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+  template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
   set1(T a);
 
   // template argument order reversed so that T can be omitted in instantiation
-  template <int SIMD_WIDTH = NATIVE_SIMD_WIDTH, typename T>
+  template <int SIMD_WIDTH_DEFAULT_NATIVE_FUNC, typename T>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
   load(const T *const p);
 
   // template argument order reversed so that T can be omitted in instantiation
-  template <int SIMD_WIDTH = NATIVE_SIMD_WIDTH, typename T>
+  template <int SIMD_WIDTH_DEFAULT_NATIVE_FUNC, typename T>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
   loadu(const T *const p);
 
   // swizzle table
-  template <int N, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+  template <int N, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   struct SwizzleTable;
 
   // 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
-  template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+  template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
   mask_all_ones();
 
   // 06. Oct 22 (Jonas Keller): added int2msb
-  template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+  template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   int2msb(const uint64_t a);
 
   // 09. Oct 22 (Jonas Keller): added int2bits
-  template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
+  template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   int2bits(const uint64_t a);
-
-#else
-  
-  // NATIVE_SIMD_WIDTH is undefined or no C++11 available
-  // (default template function arguments are not supported in C++98)
-  
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
-  setzero();
-
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
-  set1(T a);
-
-  // template argument order reversed so that T can be omitted in instantiation
-  template <int SIMD_WIDTH, typename T>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
-  load(const T *const p);
-
-  // template argument order reversed so that T can be omitted in instantiation
-  template <int SIMD_WIDTH, typename T>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
-  loadu(const T *const p);
-
-  // swizzle table
-  template <int N, typename T, int SIMD_WIDTH>
-  struct SwizzleTable;
-
-  // 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  mask_all_ones();
-
-  // 06. Oct 22 (Jonas Keller): added int2msb
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  int2msb(const uint64_t a);
-
-  // 09. Oct 22 (Jonas Keller): added int2bits
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  int2bits(const uint64_t a);
-
-#endif
   
   // hub:
   // swizzle (AoS to SoA)

@@ -26,11 +26,15 @@
 #ifndef _SIMD_VEC_EXT_H_
 #define _SIMD_VEC_EXT_H_
 
-#include "SIMDVecBase.H"
 #include "Compare2Type.H"
-#include <assert.h>
+#include "SIMDDefs.H"
+#include "SIMDTypes.H"
+#include "SIMDVec.H"
+#include "SIMDVecBase.H"
+
+#include <math.h>
+#include <stdio.h>
 #include <string.h>
-#include <cmath>
 
 namespace ns_simd {
 
@@ -3217,11 +3221,7 @@ namespace ns_simd {
   const int DESCENDING = 1;
 
   // compare-and-swap
-#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
-  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
-#else
-  template <int SLOPE, typename T, int SIMD_WIDTH>
-#endif
+  template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
   class Cas;
 
   // specialization for DESCENDING
@@ -3255,11 +3255,7 @@ namespace ns_simd {
   // in-place sorting of multiple arbitrary vectors;
   // transVecs have to be transposed vectors (same number of elements
   // as in SIMDVec), are still transposed afterwards
-#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
-  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
-#else
-  template <int SLOPE, typename T, int SIMD_WIDTH>
-#endif
+  template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE void
   bitonicSortTransposed(SIMDVec<T, SIMD_WIDTH> *const transVecs)
   {
@@ -3311,11 +3307,7 @@ namespace ns_simd {
   // in-place sorting; transVecs have to be transposed vectors (same
   // number of elements as in SIMDVec), are still transposed
   // afterwards
-#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
-  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
-#else
-  template <int SLOPE, typename T, int SIMD_WIDTH>
-#endif
+  template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE void
   bitonicSortReducedTransposed(SIMDVec<T, SIMD_WIDTH> *const transVecs)
   {
@@ -3337,11 +3329,7 @@ namespace ns_simd {
   }
 
   // with transpose
-#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
-  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
-#else
-  template <int SLOPE, typename T, int SIMD_WIDTH>
-#endif
+  template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE void
   bitonicSort(SIMDVec<T, SIMD_WIDTH> *const vecs)
   {
@@ -3352,11 +3340,7 @@ namespace ns_simd {
   }
 
   // with transpose2
-#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
-  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
-#else
-  template <int SLOPE, typename T, int SIMD_WIDTH>
-#endif
+  template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE void
   bitonicSort2(SIMDVec<T, SIMD_WIDTH> *const vecs)
   {
@@ -3369,11 +3353,7 @@ namespace ns_simd {
   // second vector is reversed and fused with first vector
   // we don't have to reverse b after the compare-swap since it is
   // bitonic
-#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
-  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
-#else
-  template <int SLOPE, typename T, int SIMD_WIDTH>
-#endif
+  template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE void
   bitonicFusion(SIMDVec<T, SIMD_WIDTH> &a, SIMDVec<T, SIMD_WIDTH> &b)
   {
@@ -3384,11 +3364,7 @@ namespace ns_simd {
   // given sorted vectors as inputs, it fuses each consecutive pair
   // such it is completely sorted over the pair
   // with transpose
-#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
-  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
-#else
-  template <int SLOPE, typename T, int SIMD_WIDTH>
-#endif
+  template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE void
   bitonicSortSortedPairs(SIMDVec<T, SIMD_WIDTH> *const vecs)
   {
@@ -3404,11 +3380,7 @@ namespace ns_simd {
   // given sorted vectors as inputs, it fuses each consecutive pair
   // such it is completely sorted over the pair
   // with transpose2
-#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
-  template <int SLOPE, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
-#else
-  template <int SLOPE, typename T, int SIMD_WIDTH>
-#endif
+  template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE void
   bitonicSortSortedPairs2(SIMDVec<T, SIMD_WIDTH> *const vecs)
   {

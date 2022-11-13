@@ -50,17 +50,14 @@
 #ifndef _SIMD_VEC_NEON_16_H_
 #define _SIMD_VEC_NEON_16_H_
 
-#define _SIMD_VEC_16_AVAIL_
-
-// determine NATIVE_SIMD_WIDTH
-#ifndef NATIVE_SIMD_WIDTH
-#define NATIVE_SIMD_WIDTH 16
-#endif
-
+#include "SIMDDefs.H"
+#include "SIMDIntrinsNEON.H"
+#include "SIMDTypes.H"
 #include "SIMDVec.H"
-#include "SIMD.H"
-#include <assert.h>
-#include <stdio.h>
+
+#include <stdint.h>
+
+#ifdef SIMDVEC_NEON_ENABLE
 
 namespace ns_simd {
   
@@ -2450,5 +2447,7 @@ namespace ns_simd {
     return reinterpret<SIMDFloat>(int2bits<SIMDInt, 16>(a));
   }
 } // namespace ns_simd
+
+#endif // SIMDVEC_NEON_ENABLE
 
 #endif // _SIMD_VEC_NEON_16_H_

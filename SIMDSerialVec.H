@@ -27,17 +27,20 @@
 #ifndef _SIMD_VEC_SERIAL_H_
 #define _SIMD_VEC_SERIAL_H_
 
-#include <string.h>
-#include <stdint.h>
-#include <stdlib.h>
-// round, floor, ceil, sqrt, fmin, fmax
-#include <cmath>
-// min, max
+#include "Compare2Type.H"
+#include "SIMDDefs.H"
+#include "SIMDTypes.H"
+#include "SIMDVec.H"
+#include "SIMDVecExt.H"
+
 #include <algorithm>
-#include <functional>
 #include <assert.h>
-#include "SIMDVecAll.H"
-#include <limits>
+#include <functional>
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // design considerations
 //=======================

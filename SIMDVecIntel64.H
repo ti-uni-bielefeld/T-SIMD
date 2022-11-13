@@ -33,41 +33,16 @@
 #ifndef _SIMD_VEC_INTEL_64_H_
 #define _SIMD_VEC_INTEL_64_H_
 
-// TODO: remove
-// #define WHICH_SIMDVECINTEL64 "new"
+#include "SIMDDefs.H"
+#include "SIMDIntrinsIntel.H"
+#include "SIMDTypes.H"
+#include "SIMDVec.H"
+#include "SIMDVecIntel16.H"
+#include "SIMDVecIntel32.H"
+
+#include <stdint.h>
 
 #ifdef __AVX512F__
-// this can be used to check whether 64-byte support is available
-#define _SIMD_VEC_64_AVAIL_
-#ifdef __AVX512BW__
-// this can be used to check whether full 64-byte support is available
-#define _SIMD_VEC_64_FULL_AVAIL_
-#endif
-
-// determine NATIVE_SIMD_WIDTH
-// we are the first to define NATIVE_SIMD_WIDTH, nobody else will do it later
-#ifndef NATIVE_SIMD_WIDTH
-// the user specified a maximal width
-# ifdef MAX_SIMD_WIDTH
-// the maximal width is smaller than what would be possible, so we
-// take the reduced width (but it is ignored if not 32 or 16)
-#  if (MAX_SIMD_WIDTH == 32) || (MAX_SIMD_WIDTH == 16)
-#   define NATIVE_SIMD_WIDTH MAX_SIMD_WIDTH
-// the maximal width is not smaller than what would be possible, so we
-// take what is possible
-#  else
-#   define NATIVE_SIMD_WIDTH 64
-#  endif
-// the user didn't specify a maximal width, we take what is possible
-# else
-#  define NATIVE_SIMD_WIDTH 64
-# endif
-#endif
-
-#include "SIMDVec.H"
-#include "SIMD.H"
-#include "SIMDVecIntel32.H"
-#include <assert.h>
 
 namespace ns_simd {
 
@@ -5698,6 +5673,6 @@ namespace ns_simd {
   }
 }
 
-#endif // __AVX__
+#endif // __AVX512F__
 
 #endif // _SIMD_VEC_INTEL_64_H_

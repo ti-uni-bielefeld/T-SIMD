@@ -29,12 +29,16 @@
 #ifndef _SIMDMASKINTEL64_H_
 #define _SIMDMASKINTEL64_H_
 
-#ifdef __AVX512F__
+#include "SIMDDefs.H"
+#include "SIMDIntrinsIntel.H"
+#include "SIMDTypes.H"
+#include "SIMDVec.H"
+#include "SIMDVecIntel64.H"
 
-#include "SIMDMaskIntel32.H"
-//  1. Oct 19 (rm)
-#include "SIMDVecExt.H"
-#include <immintrin.h>
+#include <stdint.h>
+#include <string.h>
+
+#ifdef __AVX512F__
 
 namespace ns_simd {
   #define CLASS_MASK(TYPE, MASK_SIZE) \
@@ -1083,27 +1087,9 @@ namespace ns_simd {
   GENERATE_DOP(max, SIMDInt, epi32)
   GENERATE_DOP(max, SIMDFloat, ps)
 
-  // ===========================================================================
-  // div2r0: integer div. by 2 with round to 0 (for integers)
-  // ===========================================================================
-
-  EMULATE_SOP_TYPE(div2r0, SIMDByte)
-  //EMULATE_SOP_TYPE(div2r0, SIMDSignedByte)//TODO the unmasked version in SIMDVecExt is not implemented
-  EMULATE_SOP_TYPE(div2r0, SIMDWord)
-  EMULATE_SOP_TYPE(div2r0, SIMDShort)
-  EMULATE_SOP_TYPE(div2r0, SIMDInt)
-  EMULATE_SOP_FLOAT_64(div2r0)
-
-  // ===========================================================================
-  // div2rd: integer division by two with rounding down (for integers)
-  // ===========================================================================
-
-  EMULATE_SOP_TYPE(div2rd, SIMDByte)
-  //EMULATE_SOP_TYPE(div2rd, SIMDSignedByte)//TODO the unmasked version in SIMDVecExt is not implemented
-  EMULATE_SOP_TYPE(div2rd, SIMDWord)
-  EMULATE_SOP_TYPE(div2rd, SIMDShort)
-  EMULATE_SOP_TYPE(div2rd, SIMDInt)
-  EMULATE_SOP_FLOAT_64(div2rd)
+  // 13. Nov. 2022 (Jonas Keller):
+  // removed emulation of masked div2r0 and div2rd, they are already emulated
+  // in SIMDMaskEmu.H
 
 
   // For all shifts

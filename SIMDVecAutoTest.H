@@ -44,10 +44,20 @@
 #ifndef _SIMD_VEC_AUTO_TEST_H_
 #define _SIMD_VEC_AUTO_TEST_H_
 
+#include "SIMDDefs.H"
 #include "SIMDSerialVec.H"
-#include "SIMDVecWrapper.H"
+#include "SIMDTypes.H"
+#include "SIMDVec.H"
+#include "SIMDVecExt.H"
 #include "TimeMeasurement.H"
+
 #include <inttypes.h>
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <time.h>
 
 namespace ns_simd {
 

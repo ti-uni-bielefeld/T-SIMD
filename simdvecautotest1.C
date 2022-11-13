@@ -33,25 +33,20 @@
 // template-parameter shall be the name of a class template or an
 // alias template, expressed as id-expression.
 
-#include <time.h>
+#include "SIMDDefs.H"
+#include "SIMDVecAll.H"
 #include "SIMDVecAutoTest.H"
+#include "SIMDVecWrapper.H"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <time.h>
 
 using namespace ns_simd;
 
 // SW = SIMD width = number of bytes in a single SIMD vector
-
-#ifdef _SIMD_VEC_64_AVAIL_
-# define SW 64
-# define SA 64
-#else
-# ifdef _SIMD_VEC_32_AVAIL_
-#  define SW 32
-#  define SA 32
-# else
-#  define SW 16
-#  define SA 16
-# endif
-#endif
+#define SW NATIVE_SIMD_WIDTH
 
 #define REPEATS1 100000
 

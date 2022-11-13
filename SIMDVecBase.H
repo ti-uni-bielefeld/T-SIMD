@@ -31,46 +31,22 @@
 // test templates
 #include "SIMDVecSandbox.H"
 
-#else
+#else // SIMDVEC_SANDBOX
 
-#include "SIMD.H"
+#include "SIMDDefs.H"
 
 // architecture-dependent files:
 
 // Intel
 #ifdef SIMDVEC_INTEL_ENABLE
-// order of includes from newer to older vector extensions is
-// important for the definition of NATIVE_SIMD_WIDTH!
-
-// specialized templates and overloaded functions for AVX512
-// TODO: 31. Mar 22 (rm) remove this later, only for tests
-// #ifdef USE_OLD_SIMDVECINTEL64
-// #include "SIMDVecIntel64_OldUnpack.H"
-// #else
-#include "SIMDVecIntel64.H"
-// #endif
-
-// specialized templates and overloaded functions for AVX
-#include "SIMDVecIntel32.H"
-
-// specialized templates and overloaded functions for SSE
 #include "SIMDVecIntel16.H"
-
-// 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
-#include "SIMDMaskIntel64.H"
-#include "SIMDMaskIntel32.H"
-#include "SIMDMaskIntel16.H"
-#include "SIMDMaskEmu.H"
-
+#include "SIMDVecIntel32.H"
+#include "SIMDVecIntel64.H"
 #endif // SIMDVEC_INTEL_ENABLE
 
 // ARM NEON
 #ifdef SIMDVEC_NEON_ENABLE
 #include "SIMDVecNEON16.H"
-// 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
-#include "SIMDMaskNEON16.H"
-#include "SIMDMaskEmu.H"
-
 #endif // SIMDVEC_NEON_ENABLE
 
 #endif // else SIMDVEC_SANDBOX

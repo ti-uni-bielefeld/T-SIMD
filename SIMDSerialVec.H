@@ -606,7 +606,7 @@ namespace ns_simd {
     // SIMDInt: not saturated on Intel, saturated on ARM NEON
 #if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
     return a + b;
-#elifdef SIMDVEC_NEON_ENABLE
+#elif defined(SIMDVEC_NEON_ENABLE)
     int64_t tmp = int64_t(a) + int64_t(b);
     return
       (tmp > int64_t(SIMDTypeInfo<SIMDInt>::max())) ? 
@@ -659,7 +659,7 @@ namespace ns_simd {
     // SIMDInt: not saturated on Intel but saturated on ARM NEON
 #if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
     return a - b;
-#elifdef SIMDVEC_NEON_ENABLE
+#elif defined(SIMDVEC_NEON_ENABLE)
     int64_t tmp = int64_t(a) - int64_t(b);
     return
       (tmp > int64_t(SIMDTypeInfo<SIMDInt>::max())) ? 
@@ -686,7 +686,7 @@ namespace ns_simd {
     // special way to avoid overflow case
     SIMDFloat clip = MAX_POS_FLOAT_CONVERTIBLE_TO_INT32;
     return SIMDInt(std::min(clip, ::rintf(a)));
-#elifdef SIMDVEC_NEON_ENABLE
+#elif defined(SIMDVEC_NEON_ENABLE)
     return SIMDInt(::trunc(a));
 #else
 #error "unknown architecture"
@@ -1360,7 +1360,7 @@ namespace ns_simd {
       // std::round has different behavior
       c[i] = ::rintf(a[i]);
     return c;
-#elifdef SIMDVEC_NEON_ENABLE
+#elif defined(SIMDVEC_NEON_ENABLE)
     // I'm not sure about this one, this is at least the NEON
     // implementation of the workaround if vrndq is missing;
     // also not sure whether daz_neon() is required

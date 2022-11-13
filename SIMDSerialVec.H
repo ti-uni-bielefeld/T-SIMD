@@ -600,20 +600,13 @@ namespace ns_simd {
       T(tmp);
   }
 
+  static SIMD_INLINE SIMDInt
+  _adds(SIMDInt a, SIMDInt b)
+  {
+    // SIMDInt: not saturated on Intel, saturated on ARM NEON
 #if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
-  // SIMDInt: not saturated on Intel
-  static SIMD_INLINE SIMDInt
-  _adds(SIMDInt a, SIMDInt b)
-  {
     return a + b;
-  }
-#endif
-
-#ifdef SIMDVEC_NEON_ENABLE
-  // SIMDInt: saturated on NEON
-  static SIMD_INLINE SIMDInt
-  _adds(SIMDInt a, SIMDInt b)
-  {
+#elifdef SIMDVEC_NEON_ENABLE
     int64_t tmp = int64_t(a) + int64_t(b);
     return
       (tmp > int64_t(SIMDTypeInfo<SIMDInt>::max())) ? 
@@ -621,8 +614,10 @@ namespace ns_simd {
       (tmp < int64_t(SIMDTypeInfo<SIMDInt>::min())) ? 
       SIMDTypeInfo<SIMDInt>::min() :
       SIMDInt(tmp);
-  }
+#else
+#error "unknown architecture"
 #endif
+  }
 
   // SIMDFloat: not saturated
   static SIMD_INLINE SIMDFloat
@@ -658,20 +653,13 @@ namespace ns_simd {
       T(tmp);
   }
 
+  static SIMD_INLINE SIMDInt
+  _subs(SIMDInt a, SIMDInt b)
+  {
+    // SIMDInt: not saturated on Intel but saturated on ARM NEON
 #if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
-  // SIMDInt: not saturated on Intel
-  static SIMD_INLINE SIMDInt
-  _subs(SIMDInt a, SIMDInt b)
-  {
     return a - b;
-  }
-#endif
-
-#ifdef SIMDVEC_NEON_ENABLE
-  // SIMDInt: saturated on NEON
-  static SIMD_INLINE SIMDInt
-  _subs(SIMDInt a, SIMDInt b)
-  {
+#elifdef SIMDVEC_NEON_ENABLE
     int64_t tmp = int64_t(a) - int64_t(b);
     return
       (tmp > int64_t(SIMDTypeInfo<SIMDInt>::max())) ? 
@@ -679,8 +667,10 @@ namespace ns_simd {
       (tmp < int64_t(SIMDTypeInfo<SIMDInt>::min())) ? 
       SIMDTypeInfo<SIMDInt>::min() :
       SIMDInt(tmp);
-  }
+#else
+#error "unknown architecture"
 #endif
+  }
 
   // SIMDFloat: not saturated
   static SIMD_INLINE SIMDFloat
@@ -689,23 +679,19 @@ namespace ns_simd {
     return daz_neon(daz_neon(a) - daz_neon(b));
   }
 
-#if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
-  // special way to avoid overflow case
   static SIMD_INLINE SIMDInt
   _cvts_f2i(SIMDFloat a)
   {
+#if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
+    // special way to avoid overflow case
     SIMDFloat clip = MAX_POS_FLOAT_CONVERTIBLE_TO_INT32;
     return SIMDInt(std::min(clip, ::rintf(a)));
-  }
-#endif
-
-#ifdef SIMDVEC_NEON_ENABLE
-  static SIMD_INLINE SIMDInt
-  _cvts_f2i(SIMDFloat a)
-  {
+#elifdef SIMDVEC_NEON_ENABLE
     return SIMDInt(::trunc(a));
-  }
+#else
+#error "unknown architecture"
 #endif
+  }
 
   // just convert
   static SIMD_INLINE SIMDFloat
@@ -1364,34 +1350,29 @@ namespace ns_simd {
     return c;
   }
 
-#if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
   round(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a)
   {
+#if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
       // std::round has different behavior
       c[i] = ::rintf(a[i]);
     return c;
-  }
-#endif
-
-#ifdef SIMDVEC_NEON_ENABLE
-  // I'm not sure about this one, this is at least the NEON
-  // implementation of the workaround if vrndq is missing;
-  // also not sure whether daz_neon() is required
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
-  round(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a)
-  {
+#elifdef SIMDVEC_NEON_ENABLE
+    // I'm not sure about this one, this is at least the NEON
+    // implementation of the workaround if vrndq is missing;
+    // also not sure whether daz_neon() is required
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
       // std::round has different behavior
       c[i] = std::floor(daz_neon(a[i]) + 0.5f);
     return c;
-  }
+#else
+#error "unknown architecture"
 #endif
+  }
   
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>

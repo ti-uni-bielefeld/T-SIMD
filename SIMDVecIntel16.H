@@ -1546,69 +1546,11 @@ namespace ns_simd {
 
   // NOTE: behavior for workarounds differs for results of -0.0f and +0.0f
 
-#ifdef __SSE4_1__
-
-  static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  ceil(const SIMDVec<SIMDFloat,16> &a)
-  {
-    return _mm_ceil_ps(a);
-  }
-
-  static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  floor(const SIMDVec<SIMDFloat,16> &a)
-  {
-    return _mm_floor_ps(a);
-  }
-
-  static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  round(const SIMDVec<SIMDFloat,16> &a)
-  {
-    // old: use _MM_SET_ROUNDING_MODE to adjust rounding direction
-    // return _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
-    // new  4. Aug 16 (rm): round to nearest, and suppress exceptions
-    return _mm_round_ps(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
-  }
-
-  static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  truncate(const SIMDVec<SIMDFloat,16> &a)
-  {
-    return _mm_round_ps(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
-  }
-
-#else
-
   // work-arounds for round, truncate, floor, and ceil all check whether
   // rounding is necessary (or whether float is an integer anyhow), this also
   // prevents range excess when converting numbers to integer
 
-  // NOTE: only works if rounding mode is default (rnd. to nearest (even))
-  static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  round(const SIMDVec<SIMDFloat,16> &a)
-  {
-    // if e>=23, floating point number represents an integer, 2^23 = 8388608
-    __m128 limit = _mm_set1_ps(8388608.f);
-    // bool mask: no rounding required if abs(a) >= limit
-    __m128 noRndReq = _mm_cmpge_ps(x_mm_abs_ps(a), limit);
-    // rounded result (here rounded according to current rounding mode)
-    // (for |a| < limit)
-    __m128 aRnd = _mm_cvtepi32_ps(_mm_cvtps_epi32(a));
-    // select result
-    return x_mm_ifelsef(noRndReq, a, aRnd);
-  }
-
-  static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  truncate(const SIMDVec<SIMDFloat,16> &a)
-  {
-    // if e>=23, floating point number represents an integer, 2^23 = 8388608
-    __m128 limit = _mm_set1_ps(8388608.f);
-    // bool mask: no rounding required if abs(a) >= limit
-    __m128 noRndReq = _mm_cmpge_ps(x_mm_abs_ps(a), limit);
-    // truncated result (for |a| < limit) (cvtTps!)
-    __m128 aTrunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(a));
-    // select result
-    return x_mm_ifelsef(noRndReq, a, aTrunc);
-  }
-
+  // workarounds for floor and ceil:
   // https://en.wikipedia.org/wiki/Floor_and_ceiling_functions
   //
   // floor, ceil:
@@ -1618,34 +1560,13 @@ namespace ns_simd {
   // 
   // floor(x) = ceil(x)  - (x in Z ? 0 : 1)
   // ceil(x)  = floor(x) + (x in Z ? 0 : 1)
-  
-  static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  floor(const SIMDVec<SIMDFloat,16> &a)
-  {
-    // if e>=23, floating point number represents an integer, 2^23 = 8388608
-    __m128 limit = _mm_set1_ps(8388608.f);
-    // bool mask: no rounding required if abs(a) >= limit
-    __m128 noRndReq = _mm_cmpge_ps(x_mm_abs_ps(a), limit);
-    // bool mask: true if a is negative
-    __m128 isNeg = _mm_castsi128_ps(_mm_srai_epi32(_mm_castps_si128(a), 31));
-    // truncated result (for |a| < limit)
-    __m128 aTrunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(a));
-    // check if a is an integer
-    __m128 isNotInt = _mm_cmpneq_ps(a, aTrunc);
-    // constant 1.0
-    __m128 one = _mm_set1_ps(1.0f);
-    // mask which is 1.0f for negative non-integer values, 0.0f otherwise
-    __m128 oneMask = _mm_and_ps(_mm_and_ps(isNeg, isNotInt), one);
-    // if negative, trunc computes ceil, to turn it into floor we sub
-    // 1 if aTrunc is non-integer
-    aTrunc = _mm_sub_ps(aTrunc, oneMask);
-    // select result (a or aTrunc)
-    return x_mm_ifelsef(noRndReq, a, aTrunc);
-  }
 
   static SIMD_INLINE SIMDVec<SIMDFloat,16>
   ceil(const SIMDVec<SIMDFloat,16> &a)
   {
+#ifdef __SSE4_1__
+    return _mm_ceil_ps(a);
+#else
     // if e>=23, floating point number represents an integer, 2^23 = 8388608
     __m128 limit = _mm_set1_ps(8388608.f);
     // bool mask: no rounding required if abs(a) >= limit
@@ -1665,9 +1586,75 @@ namespace ns_simd {
     aTrunc = _mm_add_ps(aTrunc, oneMask);
     // select result (a or aTrunc)
     return x_mm_ifelsef(noRndReq, a, aTrunc);
+#endif
   }
 
+  static SIMD_INLINE SIMDVec<SIMDFloat,16>
+  floor(const SIMDVec<SIMDFloat,16> &a)
+  {
+#ifdef __SSE4_1__
+    return _mm_floor_ps(a);
+#else
+    // if e>=23, floating point number represents an integer, 2^23 = 8388608
+    __m128 limit = _mm_set1_ps(8388608.f);
+    // bool mask: no rounding required if abs(a) >= limit
+    __m128 noRndReq = _mm_cmpge_ps(x_mm_abs_ps(a), limit);
+    // bool mask: true if a is negative
+    __m128 isNeg = _mm_castsi128_ps(_mm_srai_epi32(_mm_castps_si128(a), 31));
+    // truncated result (for |a| < limit)
+    __m128 aTrunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(a));
+    // check if a is an integer
+    __m128 isNotInt = _mm_cmpneq_ps(a, aTrunc);
+    // constant 1.0
+    __m128 one = _mm_set1_ps(1.0f);
+    // mask which is 1.0f for negative non-integer values, 0.0f otherwise
+    __m128 oneMask = _mm_and_ps(_mm_and_ps(isNeg, isNotInt), one);
+    // if negative, trunc computes ceil, to turn it into floor we sub
+    // 1 if aTrunc is non-integer
+    aTrunc = _mm_sub_ps(aTrunc, oneMask);
+    // select result (a or aTrunc)
+    return x_mm_ifelsef(noRndReq, a, aTrunc);
 #endif
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat,16>
+  round(const SIMDVec<SIMDFloat,16> &a)
+  {
+#ifdef __SSE4_1__
+    // old: use _MM_SET_ROUNDING_MODE to adjust rounding direction
+    // return _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
+    // new  4. Aug 16 (rm): round to nearest, and suppress exceptions
+    return _mm_round_ps(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+#else
+    // NOTE: only works if rounding mode is default (rnd. to nearest (even))
+    // if e>=23, floating point number represents an integer, 2^23 = 8388608
+    __m128 limit = _mm_set1_ps(8388608.f);
+    // bool mask: no rounding required if abs(a) >= limit
+    __m128 noRndReq = _mm_cmpge_ps(x_mm_abs_ps(a), limit);
+    // rounded result (here rounded according to current rounding mode)
+    // (for |a| < limit)
+    __m128 aRnd = _mm_cvtepi32_ps(_mm_cvtps_epi32(a));
+    // select result
+    return x_mm_ifelsef(noRndReq, a, aRnd);
+#endif
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat,16>
+  truncate(const SIMDVec<SIMDFloat,16> &a)
+  {
+#ifdef __SSE4_1__
+    return _mm_round_ps(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+#else
+    // if e>=23, floating point number represents an integer, 2^23 = 8388608
+    __m128 limit = _mm_set1_ps(8388608.f);
+    // bool mask: no rounding required if abs(a) >= limit
+    __m128 noRndReq = _mm_cmpge_ps(x_mm_abs_ps(a), limit);
+    // truncated result (for |a| < limit) (cvtTps!)
+    __m128 aTrunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(a));
+    // select result
+    return x_mm_ifelsef(noRndReq, a, aTrunc);
+#endif
+  }
 
   // ---------------------------------------------------------------------------
   // elementary mathematical functions

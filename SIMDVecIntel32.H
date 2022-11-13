@@ -1162,24 +1162,19 @@ namespace ns_simd {
   //        |   X   |
   // out = Hh Lh Hl Ll
 
-#ifdef __AVX2__
-
   static SIMD_INLINE __m256i
   x_mm256_transpose4x64_epi64(__m256i a)
   {
+
+#ifdef __AVX2__
     return _mm256_permute4x64_epi64(a, _MM_SHUFFLE(3,1,2,0));
-  }
-
 #else
-
   // non-avx2 workarounds (different versions)
 
 #if 1
-  // non-avx2 workaround
-  // (more efficient)
-  static SIMD_INLINE __m256i
-  x_mm256_transpose4x64_epi64(__m256i a)
-  {
+    // non-avx2 workaround
+    // (more efficient)
+
     __m256d in, x1, x2;
     // in = Hh Hl Lh Ll
     in = _mm256_castsi256_pd(a);
@@ -1199,24 +1194,19 @@ namespace ns_simd {
     //       0  1  1  0 = (0,0,1,2)
     // ret: Hh Lh Hl Ll
     return _mm256_castpd_si256(_mm256_blend_pd(in, x2, _MM_SHUFFLE(0,0,1,2)));
-  }
-#endif
+#else
+    // non-avx2 workaround
+    // (less efficient)
 
-#if 0
-  // non-avx2 workaround
-  // (less efficient)
-  static SIMD_INLINE __m256i
-  x_mm256_transpose4x64_epi64(__m256i a)
-  {
     __m128i lo = x_mm256_lo128i(a);
     __m128i hi = x_mm256_hi128i(a);
     __m128i loRes = _mm_unpacklo_epi64(lo, hi);
     __m128i hiRes = _mm_unpackhi_epi64(lo, hi);
     return x_mm256_combine_si128(loRes, hiRes);
-  }
 #endif
 
 #endif
+  }
 
   static SIMD_INLINE __m256
   x_mm256_transpose4x64_ps(__m256 a)
@@ -5112,18 +5102,13 @@ namespace ns_simd {
   test_all_zeros(const SIMDVec<T,32> &a)
   {
     // 2nd argument: generates vector full of ones (epiX: X irrelevant)
-#ifdef __AVX2__
     // 10. Oct 22 (Jonas Keller):
     // replaced unnecessary "_mm256_cmpeq_epi8(a, a)" with "a"
     // return _mm256_testz_si256(a, _mm256_cmpeq_epi8(a, a));
     return _mm256_testz_si256(a, a);
-#else
-    // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
-    return _mm256_testz_si256
-      (a, _mm256_castps_si256(_mm256_cmp_ps(_mm256_castsi256_ps(a),
-					    _mm256_castsi256_ps(a),
-					    _CMP_EQ_UQ)));
-#endif
+    // 13. Nov. 22 (Jonas Keller):
+    // removed workaround for when AVX2 is not available, since it is not
+    // needed anymore now that _mm256_cmpeq_epi8 is not used above anymore
   }
 
   // float version

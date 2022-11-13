@@ -1190,29 +1190,22 @@ namespace ns_simd {
   }
 #endif
 
-#ifdef __AVX512DQ__
   static SIMD_INLINE __m512i
   x_mm512_movm_epi32(__mmask16 k)
   {
+#ifdef __AVX512DQ__
     return _mm512_movm_epi32(k);
-  }
 #else
 # ifdef __AVX512BW__
-  static SIMD_INLINE __m512i
-  x_mm512_movm_epi32(__mmask16 k)
-  {
     return _mm512_maskz_mov_epi32(k, _mm512_set1_epi32(-1));
   }
 # else
-  static SIMD_INLINE __m512i
-  x_mm512_movm_epi32(__mmask16 k)
-  {
     return _mm512_castps_si512
       (_mm512_maskz_mov_ps
        (k, _mm512_castsi512_ps(_mm512_set1_epi32(-1))));
-  }
 # endif
 #endif
+  }
 
   // ---------------------------------------------------------------------------
   // necessary to avoid bugs when compiling with -O0

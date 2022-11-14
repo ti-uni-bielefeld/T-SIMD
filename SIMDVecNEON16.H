@@ -1544,7 +1544,7 @@ namespace ns_simd {
   }
 
   // -------------------------------------------------------------------------
-  // srai (16/32 only)
+  // srai
   // -------------------------------------------------------------------------
 
   // requires cast of unsigned types to signed!
@@ -1552,6 +1552,11 @@ namespace ns_simd {
   //   neon-intrinsic-for-arithmetic-shift
   // out-of-range case handled with FCT=srai
 
+  // 13. Nov 22 (Jonas Keller):
+  // added missing Byte and SignedByte versions of srai
+
+  SIMDVEC_NEON_VEC_VEC_IMM_REINTER_OORFCT(srai,SIMDByte,vshrq_n,u8,s8,8)
+  SIMDVEC_NEON_VEC_VEC_IMM_OORFCT(srai,SIMDSignedByte,vshrq_n,s8,8)
   SIMDVEC_NEON_VEC_VEC_IMM_REINTER_OORFCT(srai,SIMDWord,vshrq_n,u16,s16,16)  
   SIMDVEC_NEON_VEC_VEC_IMM_OORFCT(srai,SIMDShort,vshrq_n,s16,16)  
   SIMDVEC_NEON_VEC_VEC_IMM_OORFCT(srai,SIMDInt,vshrq_n,s32,32)  

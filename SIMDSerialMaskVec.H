@@ -60,7 +60,7 @@ template <> UInt<64> getRandomUInt<64>() {
 }
 
 template <int Bits> UInt<Bits> maskUInt(UInt<Bits> x) {
-  return x & (UInt<Bits>(-1) >> (sizeof(UInt<Bits>) * 8 - Bits));
+  return x & ((~UInt<Bits>(0)) >> (sizeof(UInt<Bits>) * 8 - Bits));
 }
 
 template <typename T, int SIMD_WIDTH> class SIMDSerialMask {
@@ -114,7 +114,7 @@ public:
       if (rand() & 0x01) {
         mask = 0;
       } else {
-        mask = maskUInt<bits>(-1);
+        mask = maskUInt<bits>(~UInt<bits>(0));
       }
     } else {
       mask = maskUInt<bits>(getRandomUInt<bits>());
@@ -420,6 +420,9 @@ kshiftli(const SIMDSerialMask<T, SIMD_WIDTH> &a) {
   // we checked that IMM is not too large above, disable warning
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshift-count-overflow"
+#ifdef __INTEL_COMPILER
+#pragma warning(suppress : 63) // shift count is too large
+#endif
   return a << IMM;
 #pragma GCC diagnostic pop
 }
@@ -433,6 +436,9 @@ kshiftri(const SIMDSerialMask<T, SIMD_WIDTH> &a) {
   // we checked that IMM is not too large above, disable warning
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshift-count-overflow"
+#ifdef __INTEL_COMPILER
+#pragma warning(suppress : 63) // shift count is too large
+#endif
   return a >> IMM;
 #pragma GCC diagnostic pop
 }

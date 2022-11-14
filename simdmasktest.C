@@ -839,10 +839,7 @@ template <typename T, int SIMD_WIDTH> void test_mask_functions() {
   SIMDMask<T, SIMD_WIDTH> a_mask, b_mask, kand_mask, kandn_mask, kor_mask,
       kxor_mask, kxnor_mask, kadd_mask, knot_mask, kshiftli_mask, kshiftri_mask;
   uinttest_t ones =
-      (SIMD_WIDTH / sizeof(T) == 64
-           ? -1
-           : ((uinttest_t(1) << (SIMD_WIDTH / sizeof(T))) -
-              1)); // Conditional operator removes compiler warning
+      (uinttest_t)0xffffffffffffffff >> (64 - (SIMD_WIDTH / sizeof(T)));
   uinttest_t a = ones & random64(), b = ones & random64();
   a_mask = a;
   b_mask = b;

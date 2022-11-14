@@ -3977,9 +3977,7 @@ namespace ns_simd {
     // and set the upper 8 bytes of to 0, so that _mm_movemask_epi8
     // can be used to extract the upper bit of each short
     const __m128i mask =
-        _mm_set_epi8(uint8_t(0x80), uint8_t(0x80), uint8_t(0x80), uint8_t(0x80),
-                     uint8_t(0x80), uint8_t(0x80), uint8_t(0x80), uint8_t(0x80),
-                     15, 13, 11, 9, 7, 5, 3, 1);
+        _mm_set_epi8(-1, -1, -1, -1, -1, -1, -1, -1, 15, 13, 11, 9, 7, 5, 3, 1);
     const __m128i shuffled = _mm_shuffle_epi8(a, mask);
     return _mm_movemask_epi8(shuffled);
   }
@@ -3991,9 +3989,7 @@ namespace ns_simd {
     // and set the upper 8 bytes of to 0, so that _mm_movemask_epi8
     // can be used to extract the upper bit of each word
     const __m128i mask =
-        _mm_set_epi8(uint8_t(0x80), uint8_t(0x80), uint8_t(0x80), uint8_t(0x80),
-                     uint8_t(0x80), uint8_t(0x80), uint8_t(0x80), uint8_t(0x80),
-                     15, 13, 11, 9, 7, 5, 3, 1);
+        _mm_set_epi8(-1, -1, -1, -1, -1, -1, -1, -1, 15, 13, 11, 9, 7, 5, 3, 1);
     const __m128i shuffled = _mm_shuffle_epi8(a, mask);
     return _mm_movemask_epi8(shuffled);
   }

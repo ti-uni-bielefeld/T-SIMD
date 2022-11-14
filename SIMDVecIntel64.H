@@ -1198,7 +1198,6 @@ namespace ns_simd {
 #else
 # ifdef __AVX512BW__
     return _mm512_maskz_mov_epi32(k, _mm512_set1_epi32(-1));
-  }
 # else
     return _mm512_castps_si512
       (_mm512_maskz_mov_ps

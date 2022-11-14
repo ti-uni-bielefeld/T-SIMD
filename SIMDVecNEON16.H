@@ -1135,7 +1135,6 @@ namespace ns_simd {
 
 #if __ARM_ARCH >= 8
 
-  // NOTE: not tested yet!
   // 10. Apr 19 (rm): BINARY->UNARY, qp -> pq etc., still not tested
   SIMDVEC_NEON_UNARY(ceil,SIMDFloat,vrndpq,f32)
   SIMDVEC_NEON_UNARY(floor,SIMDFloat,vrndmq,f32)

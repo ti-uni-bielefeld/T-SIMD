@@ -1931,7 +1931,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = (daz_neon(a[i]) < daz_neon(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
+      c[i] = (a[i] < b[i]) ? SIMDTypeInfo<T>::trueval() : 0;
     return c;
   }
 
@@ -1942,7 +1942,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = (daz_neon(a[i]) <= daz_neon(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
+      c[i] = (a[i] <= b[i]) ? SIMDTypeInfo<T>::trueval() : 0;
     return c;
   }
 
@@ -1964,7 +1964,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = (daz_neon(a[i]) >= daz_neon(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
+      c[i] = (a[i] >= b[i]) ? SIMDTypeInfo<T>::trueval() : 0;
     return c;
   }
 
@@ -1975,7 +1975,7 @@ namespace ns_simd {
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
-      c[i] = (daz_neon(a[i]) > daz_neon(b[i])) ? SIMDTypeInfo<T>::trueval() : 0;
+      c[i] = (a[i] > b[i]) ? SIMDTypeInfo<T>::trueval() : 0;
     return c;
   }
 

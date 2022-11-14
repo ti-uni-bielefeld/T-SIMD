@@ -102,14 +102,16 @@ struct TesterMaskUnary {
     SIMDVec<T, SIMD_WIDTH> inputSrc, input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(inputSrc);
-      doNotOptimize(input);
-      doNotOptimize(inputMask);
-      SIMDVec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
-              inputSrc, inputMask, input);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(inputSrc);
+        doNotOptimize(input);
+        doNotOptimize(inputMask);
+        SIMDVec<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
+                inputSrc, inputMask, input);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -158,13 +160,15 @@ struct TesterMaskZUnary {
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(input);
-      doNotOptimize(inputMask);
-      SIMDVec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
-                                                                input);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(input);
+        doNotOptimize(inputMask);
+        SIMDVec<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
+                                                                  input);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -218,15 +222,17 @@ struct TesterMaskBinary {
     SIMDVec<T, SIMD_WIDTH> inputSrc, input1, input2;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(inputSrc);
-      doNotOptimize(input1);
-      doNotOptimize(input2);
-      doNotOptimize(inputMask);
-      SIMDVec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
-              inputSrc, inputMask, input1, input2);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(inputSrc);
+        doNotOptimize(input1);
+        doNotOptimize(input2);
+        doNotOptimize(inputMask);
+        SIMDVec<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
+                inputSrc, inputMask, input1, input2);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -277,14 +283,16 @@ struct TesterMaskZBinary {
     SIMDVec<T, SIMD_WIDTH> input1, input2;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(input1);
-      doNotOptimize(input2);
-      doNotOptimize(inputMask);
-      SIMDVec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
-                                                                input1, input2);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(input1);
+        doNotOptimize(input2);
+        doNotOptimize(inputMask);
+        SIMDVec<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
+                inputMask, input1, input2);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -335,14 +343,16 @@ struct TesterMaskConditionBinary {
     SIMDVec<T, SIMD_WIDTH> input1, input2;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(input1);
-      doNotOptimize(input2);
-      doNotOptimize(inputMask);
-      SIMDVec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
-                                                                input1, input2);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(input1);
+        doNotOptimize(input2);
+        doNotOptimize(inputMask);
+        SIMDVec<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
+                inputMask, input1, input2);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -391,13 +401,15 @@ struct TesterMaskConditionUnary {
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(input);
-      doNotOptimize(inputMask);
-      SIMDVec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
-                                                                input);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(input);
+        doNotOptimize(inputMask);
+        SIMDVec<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
+                                                                  input);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -452,14 +464,16 @@ struct TesterMaskUnaryTemplateType {
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(inputSrc);
-      doNotOptimize(input);
-      doNotOptimize(inputMask);
-      SIMDVec<Tout, SIMD_WIDTH> result =
-          FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
-              inputSrc, inputMask, input);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(inputSrc);
+        doNotOptimize(input);
+        doNotOptimize(inputMask);
+        SIMDVec<Tout, SIMD_WIDTH> result =
+            FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
+                inputSrc, inputMask, input);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -509,13 +523,15 @@ struct TesterMaskZUnaryTemplateType {
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(input);
-      doNotOptimize(inputMask);
-      SIMDVec<Tout, SIMD_WIDTH> result =
-          FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
-                                                                      input);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(input);
+        doNotOptimize(inputMask);
+        SIMDVec<Tout, SIMD_WIDTH> result =
+            FCT<Tout, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
+                inputMask, input);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -567,15 +583,17 @@ struct TesterMaskScalar {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     T inputScalar = T();
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(inputSrc);
-      doNotOptimize(input);
-      doNotOptimize(inputMask);
-      doNotOptimize(inputScalar);
-      SIMDVec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
-              inputSrc, inputMask, inputScalar);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(inputSrc);
+        doNotOptimize(input);
+        doNotOptimize(inputMask);
+        doNotOptimize(inputScalar);
+        SIMDVec<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
+                inputSrc, inputMask, inputScalar);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -623,13 +641,15 @@ struct TesterMaskZScalar {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     T inputScalar = T();
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(inputMask);
-      doNotOptimize(inputScalar);
-      SIMDVec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
-                                                                inputScalar);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(inputMask);
+        doNotOptimize(inputScalar);
+        SIMDVec<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
+                                                                  inputScalar);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -681,14 +701,16 @@ struct TesterMaskCmp {
     SIMDVec<T, SIMD_WIDTH> input1, input2;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(input1);
-      doNotOptimize(input2);
-      doNotOptimize(inputMask);
-      SIMDMask<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
-                                                                input1, input2);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(input1);
+        doNotOptimize(input2);
+        doNotOptimize(inputMask);
+        SIMDMask<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
+                inputMask, input1, input2);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -738,12 +760,15 @@ struct TesterCmpMask {
 
     SIMDVec<T, SIMD_WIDTH> input1, input2;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(input1);
-      doNotOptimize(input2);
-      SIMDMask<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(input1, input2);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(input1);
+        doNotOptimize(input2);
+        SIMDMask<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(input1,
+                                                                  input2);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -791,12 +816,14 @@ struct TesterMaskUnaryInt {
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(input);
-      doNotOptimize(inputMask);
-      int result = FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
-          inputMask, input);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(input);
+        doNotOptimize(inputMask);
+        int result = FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
+            inputMask, input);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -841,11 +868,13 @@ struct TesterUnaryK {
 
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(inputMask);
-      SIMDMask<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(inputMask);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(inputMask);
+        SIMDMask<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(inputMask);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -892,12 +921,15 @@ struct TesterBinaryK {
 
     SIMDMask<T, SIMD_WIDTH> inputMask1, inputMask2;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(inputMask1);
-      doNotOptimize(inputMask2);
-      SIMDMask<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(inputMask1, inputMask2);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(inputMask1);
+        doNotOptimize(inputMask2);
+        SIMDMask<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(inputMask1,
+                                                         inputMask2);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -949,14 +981,16 @@ struct TesterMaskUnaryTI {
     SIMDVec<T, SIMD_WIDTH> input, inputSrc;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(input);
-      doNotOptimize(inputSrc);
-      doNotOptimize(inputMask);
-      SIMDVec<T, SIMD_WIDTH> result =
-          FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
-              inputSrc, inputMask, input);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(input);
+        doNotOptimize(inputSrc);
+        doNotOptimize(inputMask);
+        SIMDVec<T, SIMD_WIDTH> result =
+            FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
+                inputSrc, inputMask, input);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -1025,13 +1059,15 @@ struct TesterMaskZUnaryTI {
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(input);
-      doNotOptimize(inputMask);
-      SIMDVec<T, SIMD_WIDTH> result =
-          FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
-                                                                   input);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(input);
+        doNotOptimize(inputMask);
+        SIMDVec<T, SIMD_WIDTH> result =
+            FCT<I, T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(inputMask,
+                                                                     input);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);
@@ -1096,11 +1132,13 @@ struct TesterUnaryKTI {
 
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
-    for (int i = 0; i < repeats; i++) {
-      doNotOptimize(inputMask);
-      SIMDMask<T, SIMD_WIDTH> result =
-          FCT<I, T, SIMD_WIDTH>::template apply<SIMDMask>(inputMask);
-      doNotOptimize(result);
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        doNotOptimize(inputMask);
+        SIMDMask<T, SIMD_WIDTH> result =
+            FCT<I, T, SIMD_WIDTH>::template apply<SIMDMask>(inputMask);
+        doNotOptimize(result);
+      }
     }
     struct timespec end = getTimeSpec();
     long int time = timeSpecDiffNsec(end, start);

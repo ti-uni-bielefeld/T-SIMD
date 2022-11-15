@@ -1421,14 +1421,17 @@ namespace ns_simd {
       std::string args = "v,*v";
       const int nOutVecs = sizeof(Tout) / sizeof(T);
       SIMDSerialVec<T,SIMD_WIDTH> a;
-      SIMDSerialVec<Tout,SIMD_WIDTH> cs[nOutVecs], cp[nOutVecs];
-      SIMDVec<Tout,SIMD_WIDTH> _cp[nOutVecs];
       const char *fmt = SIMDTypeInfo<T>::defaultFormat();
       const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
       std::string name = FCT<Tout,T,SIMD_WIDTH>::name();
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
-	int errors = 0, trials = 0;
+  // allocate on the heap to avoid stack overflow
+  SIMDSerialVec<Tout, SIMD_WIDTH>
+      *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[nOutVecs],
+      *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[nOutVecs];
+  SIMDVec<Tout, SIMD_WIDTH> *_cp = new SIMDVec<Tout, SIMD_WIDTH>[nOutVecs];
+  int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<Tout,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<Tout,T,SIMD_WIDTH>::apply(a, cs);
@@ -1452,6 +1455,9 @@ namespace ns_simd {
 	    EXIT;
 	  }
 	}
+  delete[] cs;
+  delete[] cp;
+  delete[] _cp;
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input;
@@ -1485,13 +1491,14 @@ namespace ns_simd {
     {
       std::string args = "*v";
       const int nInVecs = FCT<T,SIMD_WIDTH>::nInputs;
-      SIMDSerialVec<T,SIMD_WIDTH> a[nInVecs];
-      SIMDVec<T,SIMD_WIDTH> _a[nInVecs];
       SIMDSerialVec<T,SIMD_WIDTH> cs, cp;
       const char *fmt = SIMDTypeInfo<T>::defaultFormat();
       std::string name = FCT<T,SIMD_WIDTH>::name();
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
+  // allocate on the heap to avoid stack overflow
+  SIMDSerialVec<T, SIMD_WIDTH> *a = new SIMDSerialVec<T, SIMD_WIDTH>[nInVecs];
+  SIMDVec<T, SIMD_WIDTH> *_a = new SIMDVec<T, SIMD_WIDTH>[nInVecs];
 	int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  for (int j = 0; j < nInVecs; j++) {
@@ -1512,6 +1519,8 @@ namespace ns_simd {
 	    EXIT;
 	  }
 	}
+  delete[] a;
+  delete[] _a;
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[nInVecs];
@@ -1544,14 +1553,15 @@ namespace ns_simd {
     {
       std::string args = "*v";
       const int nInVecs = FCT<Tout,T,SIMD_WIDTH>::nInputs;
-      SIMDSerialVec<T,SIMD_WIDTH> a[nInVecs];
-      SIMDVec<T,SIMD_WIDTH> _a[nInVecs];
       SIMDSerialVec<Tout,SIMD_WIDTH> cs, cp;
       const char *fmt = SIMDTypeInfo<T>::defaultFormat();
       const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
       std::string name = FCT<Tout,T,SIMD_WIDTH>::name();
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
+  // allocate on the heap to avoid stack overflow
+  SIMDSerialVec<T, SIMD_WIDTH> *a = new SIMDSerialVec<T, SIMD_WIDTH>[nInVecs];
+  SIMDVec<T, SIMD_WIDTH> *_a = new SIMDVec<T, SIMD_WIDTH>[nInVecs];
 	int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  for (int j = 0; j < nInVecs; j++) {
@@ -1572,6 +1582,8 @@ namespace ns_simd {
 	    EXIT;
 	  }
 	}
+  delete[] a;
+  delete[] _a;
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[nInVecs];
@@ -1604,13 +1616,17 @@ namespace ns_simd {
     {
       std::string args = "*v,*v";
       const int n = SIMD_WIDTH / sizeof(T);
-      SIMDSerialVec<T,SIMD_WIDTH> as[n], cs[n], cp[n];
-      SIMDVec<T,SIMD_WIDTH> _ap[n], _cp[n];
       const char *fmt = SIMDTypeInfo<T>::defaultFormat();
       std::string name = FCT<T,SIMD_WIDTH>::name();
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
-	int errors = 0, trials = 0;
+  // allocate on the heap to avoid stack overflow
+  SIMDSerialVec<T, SIMD_WIDTH> *as = new SIMDSerialVec<T, SIMD_WIDTH>[n],
+                               *cs = new SIMDSerialVec<T, SIMD_WIDTH>[n],
+                               *cp = new SIMDSerialVec<T, SIMD_WIDTH>[n];
+  SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[n],
+                         *_cp = new SIMDVec<T, SIMD_WIDTH>[n];
+  int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  for (int j = 0; j < n; j++) {
 	    FCT<T,SIMD_WIDTH>::randomizeInput(as[j]);
@@ -1643,6 +1659,11 @@ namespace ns_simd {
 	    EXIT;
 	  }
 	}
+  delete[] as;
+  delete[] cs;
+  delete[] cp;
+  delete[] _ap;
+  delete[] _cp;
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[n];
@@ -1677,16 +1698,20 @@ namespace ns_simd {
       std::string args = "*v,*v";
       const int numInVecs = FCT<Tout,T,SIMD_WIDTH>::numInVecs;
       const int numOutVecs = FCT<Tout,T,SIMD_WIDTH>::numOutVecs;
-      SIMDSerialVec<T,SIMD_WIDTH> as[numInVecs];
-      SIMDSerialVec<Tout, SIMD_WIDTH> cs[numOutVecs], cp[numOutVecs];
-      SIMDVec<T,SIMD_WIDTH> _ap[numInVecs];
-      SIMDVec<Tout,SIMD_WIDTH> _cp[numOutVecs];
       const char *fmt = SIMDTypeInfo<T>::defaultFormat();
       const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
       std::string name = FCT<Tout,T,SIMD_WIDTH>::name();
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
-	int errors = 0, trials = 0;
+  // allocate on the heap to avoid stack overflow
+  SIMDSerialVec<T, SIMD_WIDTH> *as =
+      new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDSerialVec<Tout, SIMD_WIDTH>
+      *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs],
+      *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs];
+  SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDVec<Tout, SIMD_WIDTH> *_cp = new SIMDVec<Tout, SIMD_WIDTH>[numOutVecs];
+  int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  for (int j = 0; j < numInVecs; j++) {
 	    FCT<Tout,T,SIMD_WIDTH>::randomizeInput(as[j]);
@@ -1719,6 +1744,11 @@ namespace ns_simd {
 	    EXIT;
 	  }
 	}
+  delete[] as;
+  delete[] cs;
+  delete[] cp;
+  delete[] _ap;
+  delete[] _cp;
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[numInVecs];
@@ -1753,15 +1783,19 @@ namespace ns_simd {
       std::string args = "*v,s,*v";
       const int numInVecs = FCT<Tout,T,SIMD_WIDTH>::numInVecs;
       const int numOutVecs = FCT<Tout,T,SIMD_WIDTH>::numOutVecs;
-      SIMDSerialVec<T,SIMD_WIDTH> as[numInVecs];
-      SIMDSerialVec<Tout, SIMD_WIDTH> cs[numOutVecs], cp[numOutVecs];
-      SIMDVec<T,SIMD_WIDTH> _ap[numInVecs];
-      SIMDVec<Tout,SIMD_WIDTH> _cp[numOutVecs];
       const char *fmt = SIMDTypeInfo<T>::defaultFormat();
       const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
       std::string name = FCT<Tout,T,SIMD_WIDTH>::name();
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
+  // allocate on the heap to avoid stack overflow
+  SIMDSerialVec<T, SIMD_WIDTH> *as =
+      new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDSerialVec<Tout, SIMD_WIDTH>
+      *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs],
+      *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs];
+  SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDVec<Tout, SIMD_WIDTH> *_cp = new SIMDVec<Tout, SIMD_WIDTH>[numOutVecs];
 	int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  double d = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
@@ -1797,6 +1831,11 @@ namespace ns_simd {
 	    EXIT;
 	  }
 	}
+  delete[] as;
+  delete[] cs;
+  delete[] cp;
+  delete[] _ap;
+  delete[] _cp;
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[numInVecs];
@@ -1833,15 +1872,19 @@ namespace ns_simd {
       std::string args = "*v,s,s,*v";
       const int numInVecs = FCT<Tout,T,SIMD_WIDTH>::numInVecs;
       const int numOutVecs = FCT<Tout,T,SIMD_WIDTH>::numOutVecs;
-      SIMDSerialVec<T,SIMD_WIDTH> as[numInVecs];
-      SIMDSerialVec<Tout, SIMD_WIDTH> cs[numOutVecs], cp[numOutVecs];
-      SIMDVec<T,SIMD_WIDTH> _ap[numInVecs];
-      SIMDVec<Tout,SIMD_WIDTH> _cp[numOutVecs];
       const char *fmt = SIMDTypeInfo<T>::defaultFormat();
       const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
       std::string name = FCT<Tout,T,SIMD_WIDTH>::name();
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
+  // allocate on the heap to avoid stack overflow
+  SIMDSerialVec<T, SIMD_WIDTH> *as =
+      new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDSerialVec<Tout, SIMD_WIDTH>
+      *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs],
+      *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs];
+  SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDVec<Tout, SIMD_WIDTH> *_cp = new SIMDVec<Tout, SIMD_WIDTH>[numOutVecs];
 	int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  double d1 = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
@@ -1878,6 +1921,11 @@ namespace ns_simd {
 	    EXIT;
 	  }
 	}
+  delete[] as;
+  delete[] cs;
+  delete[] cp;
+  delete[] _ap;
+  delete[] _cp;
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[numInVecs];
@@ -1915,15 +1963,22 @@ namespace ns_simd {
       std::string args = "*v,*v,s,*v";
       const int numInVecs = FCT<Tout,T,SIMD_WIDTH>::numInVecs;
       const int numOutVecs = FCT<Tout,T,SIMD_WIDTH>::numOutVecs;
-      SIMDSerialVec<T,SIMD_WIDTH> as[numInVecs], bs[numInVecs];
-      SIMDSerialVec<Tout, SIMD_WIDTH> cs[numOutVecs], cp[numOutVecs];
-      SIMDVec<T,SIMD_WIDTH> _ap[numInVecs], _bp[numInVecs];
-      SIMDVec<Tout,SIMD_WIDTH> _cp[numOutVecs];
       const char *fmt = SIMDTypeInfo<T>::defaultFormat();
       const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
       std::string name = FCT<Tout,T,SIMD_WIDTH>::name();
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
+  // allocate on the heap to avoid stack overflow
+  SIMDSerialVec<T, SIMD_WIDTH> *as =
+      new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDSerialVec<T, SIMD_WIDTH> *bs =
+      new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDSerialVec<Tout, SIMD_WIDTH>
+      *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs],
+      *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs];
+  SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDVec<T, SIMD_WIDTH> *_bp = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDVec<Tout, SIMD_WIDTH> *_cp = new SIMDVec<Tout, SIMD_WIDTH>[numOutVecs];
 	int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  double d = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
@@ -1963,6 +2018,13 @@ namespace ns_simd {
 	    EXIT;
 	  }
 	}
+  delete[] as;
+  delete[] bs;
+  delete[] cs;
+  delete[] cp;
+  delete[] _ap;
+  delete[] _bp;
+  delete[] _cp;
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
@@ -2000,16 +2062,23 @@ namespace ns_simd {
       std::string args = "*v,*v,s,s,*v";
       const int numInVecs = FCT<Tout,T,SIMD_WIDTH>::numInVecs;
       const int numOutVecs = FCT<Tout,T,SIMD_WIDTH>::numOutVecs;
-      SIMDSerialVec<T,SIMD_WIDTH> as[numInVecs], bs[numInVecs];
-      SIMDSerialVec<Tout, SIMD_WIDTH> cs[numOutVecs], cp[numOutVecs];
-      SIMDVec<T,SIMD_WIDTH> _ap[numInVecs], _bp[numInVecs];
-      SIMDVec<Tout,SIMD_WIDTH> _cp[numOutVecs];
       const char *fmt = SIMDTypeInfo<T>::defaultFormat();
       const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
       std::string name = FCT<Tout,T,SIMD_WIDTH>::name();
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
-	int errors = 0, trials = 0;
+  // allocate on the heap to avoid stack overflow
+  SIMDSerialVec<T, SIMD_WIDTH>
+      *as = new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs],
+      *bs = new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDSerialVec<Tout, SIMD_WIDTH>
+      *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs],
+      *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs];
+  SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numInVecs],
+                          *_bp = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
+  SIMDVec<Tout, SIMD_WIDTH> *_cp =
+      new SIMDVec<Tout, SIMD_WIDTH>[numOutVecs];
+        int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  double d1 = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
 	  double d2 = FCT<Tout,T,SIMD_WIDTH>::randomizeInputFloat();
@@ -2049,6 +2118,13 @@ namespace ns_simd {
 	    EXIT;
 	  }
 	}
+  delete [] as;
+  delete [] bs;
+  delete [] cs;
+  delete [] cp;
+  delete [] _ap;
+  delete [] _bp;
+  delete [] _cp;
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
@@ -2086,12 +2162,16 @@ namespace ns_simd {
     {
       std::string args = "*v";
       const int numVecs = FCT<I,T,SIMD_WIDTH>::numVecs;
-      SIMDSerialVec<T,SIMD_WIDTH> as[numVecs], ap[numVecs], a[numVecs];
-      SIMDVec<T,SIMD_WIDTH> _ap[numVecs];
       const char *fmt = SIMDTypeInfo<T>::defaultFormat();
       std::string name = FCT<I,T,SIMD_WIDTH>::name();
       if (name.find(pattern) != std::string::npos) {
 	printInfo(name, args);
+  // allocate on the heap to avoid stack overflow
+  SIMDSerialVec<T, SIMD_WIDTH>
+      *as = new SIMDSerialVec<T, SIMD_WIDTH>[numVecs],
+      *ap = new SIMDSerialVec<T, SIMD_WIDTH>[numVecs],
+      *a = new SIMDSerialVec<T, SIMD_WIDTH>[numVecs];
+  SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numVecs];
 	int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  for (int j = 0; j < numVecs; j++) {
@@ -2127,6 +2207,10 @@ namespace ns_simd {
 	    EXIT;
 	  }
 	}
+  delete [] as;
+  delete [] ap;
+  delete [] a;
+  delete [] _ap;
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[numVecs];

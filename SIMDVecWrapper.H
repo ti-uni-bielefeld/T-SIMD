@@ -27,6 +27,7 @@
 #define _SIMD_VEC_WRAPPER_
 
 #include "SIMDDefs.H"
+#include "SIMDRandom.H"
 #include "SIMDSerialVec.H"
 #include "SIMDTypes.H"
 #include "SIMDVecExt.H"
@@ -1388,7 +1389,7 @@ namespace ns_simd {
 
     static SIMD_INLINE SIMDFloat
     randomizeInputFloat()
-    { return getRandomRanges<SIMDFloat>(); }
+    { return getRandomOrSpecialValueRanges<SIMDFloat>(); }
 
     static SIMD_INLINE void
     randomizeInput1(SIMDSerialVec<T,SIMD_WIDTH> &vec)
@@ -1422,7 +1423,7 @@ namespace ns_simd {
 
     static SIMD_INLINE SIMDFloat
     randomizeInputFloat()
-    { return getRandomRanges<SIMDFloat>(); }
+    { return getRandomOrSpecialValueRanges<SIMDFloat>(); }
 
     // 03. Aug 22 (Jonas Keller):
     // include zeros in the randomization of the input vectors
@@ -1454,7 +1455,7 @@ namespace ns_simd {
 
     static SIMD_INLINE SIMDFloat
     randomizeInputFloat()
-    { return getRandomRanges<SIMDFloat>(); }
+    { return getRandomOrSpecialValueRanges<SIMDFloat>(); }
 
     // 03. Aug 22 (Jonas Keller):
     // include zeros in the randomization of the input vectors
@@ -1487,7 +1488,7 @@ namespace ns_simd {
 
     static SIMD_INLINE SIMDFloat
     randomizeInputFloat()
-    { return getRandomRanges<SIMDFloat>(); }
+    { return getRandomOrSpecialValueRanges<SIMDFloat>(); }
 
     // 03. Aug 22 (Jonas Keller):
     // include zeros in the randomization of the input vectors
@@ -1520,7 +1521,7 @@ namespace ns_simd {
 
     static SIMD_INLINE SIMDFloat
     randomizeInputFloat()
-    { return getRandomRanges<SIMDFloat>(); }
+    { return getRandomOrSpecialValueRanges<SIMDFloat>(); }
 
     static SIMD_INLINE void
     randomizeInput1(SIMDSerialVec<T,SIMD_WIDTH> &vec)

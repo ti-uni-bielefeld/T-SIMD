@@ -27,6 +27,7 @@
 #define _SIMD_MASK_VEC_WRAPPER_H_
 
 #include "SIMDDefs.H"
+#include "SIMDRandom.H"
 #include "SIMDSerialMaskVec.H"
 #include "SIMDSerialVec.H"
 #include "SIMDVecWrapper.H"

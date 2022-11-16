@@ -31,6 +31,7 @@
 #include "SIMDVec.H"
 #include "SIMDVecExt.H"
 
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -46,22 +47,23 @@ template <> struct _UInt<64> { typedef uint64_t type; };
 template <int Bits> struct UInt {
   typename _UInt<Bits>::type value;
   UInt() {}
-  UInt(const typename _UInt<Bits>::type &v) : value(v) {}
+  UInt(const typename _UInt<Bits>::type &v) : value(maskValue(v)) {}
   operator typename _UInt<Bits>::type() const { return value; }
+
+private:
+  typename _UInt<Bits>::type maskValue(typename _UInt<Bits>::type x) const {
+    assert(Bits >= 4 && Bits <= 64);
+    if (Bits == 4) {
+      return x & 0x0f;
+    }
+    return x;
+  }
 };
 
-template <int Bits> UInt<Bits> getRandomUInt();
+template <int Bits> UInt<Bits> getRandomUInt() {
+  return getRandomUInt<Bits / 2>() | (getRandomUInt<Bits / 2>() << (Bits / 2));
+}
 template <> UInt<4> getRandomUInt<4>() { return rand() & 0xF; }
-template <> UInt<8> getRandomUInt<8>() { return rand() & 0xFF; }
-template <> UInt<16> getRandomUInt<16>() { return rand() & 0xFFFF; }
-template <> UInt<32> getRandomUInt<32>() { return rand(); }
-template <> UInt<64> getRandomUInt<64>() {
-  return ((UInt<64>)rand() << 32) | rand();
-}
-
-template <int Bits> UInt<Bits> maskUInt(UInt<Bits> x) {
-  return x & ((~UInt<Bits>(0)) >> (sizeof(UInt<Bits>) * 8 - Bits));
-}
 
 template <typename T, int SIMD_WIDTH> class SIMDSerialMask {
 public:
@@ -69,8 +71,8 @@ public:
   UInt<bits> mask;
 
   SIMDSerialMask() : mask(0) {}
-  SIMDSerialMask(const UInt<bits> &_mask) : mask(maskUInt<bits>(_mask)) {}
-  SIMDSerialMask(const typename _UInt<bits>::type &_mask) : mask(maskUInt<bits>(_mask)) {}
+  SIMDSerialMask(const UInt<bits> &_mask) : mask(_mask) {}
+  SIMDSerialMask(const typename _UInt<bits>::type &_mask) : mask(_mask) {}
   SIMDSerialMask(const SIMDSerialVec<T, SIMD_WIDTH> &x) {
     mask = 0;
     // avoids comparison with SIMDTypeInfo::trueval, which fails for
@@ -83,22 +85,19 @@ public:
     }
   }
   SIMDSerialMask(const SIMDMask<T, SIMD_WIDTH> &x)
-      : mask(maskUInt<bits>((typename _UInt<bits>::type)x)) {}
+      : mask((typename _UInt<bits>::type)x) {}
   SIMDSerialMask<T, SIMD_WIDTH> &operator=(const UInt<bits> &_mask) {
-    mask = maskUInt<bits>(_mask);
+    mask = _mask;
     return *this;
   }
   SIMDSerialMask<T, SIMD_WIDTH> &operator=(const SIMDMask<T, SIMD_WIDTH> &x) {
-    mask = maskUInt<bits>(x);
+    mask = x;
     return *this;
   }
 
   operator UInt<bits>() const { return mask; }
   operator typename _UInt<bits>::type() const { return mask; }
   operator SIMDMask<T, SIMD_WIDTH>() const { return getSIMDMask(); }
-  bool operator==(const SIMDSerialMask<T, SIMD_WIDTH> &other) const {
-    return maskUInt<bits>(mask) == maskUInt<bits>(other.mask);
-  }
 
   bool operator[](const uint8_t i) const {
     if (i >= bits) {
@@ -114,15 +113,15 @@ public:
       if (rand() & 0x01) {
         mask = 0;
       } else {
-        mask = maskUInt<bits>(~UInt<bits>(0));
+        mask = ~UInt<bits>(0);
       }
     } else {
-      mask = maskUInt<bits>(getRandomUInt<bits>());
+      mask = getRandomUInt<bits>();
     }
   }
 
   SIMDMask<T, SIMD_WIDTH> getSIMDMask() const {
-    return SIMDMask<T, SIMD_WIDTH>(maskUInt<bits>(mask));
+    return SIMDMask<T, SIMD_WIDTH>(mask);
   }
 };
 
@@ -347,7 +346,6 @@ GENERATE_SERIAL_MASK_MASKZ_BINARY(hadd)
 GENERATE_SERIAL_MASK_MASKZ_BINARY(hadds)
 GENERATE_SERIAL_MASK_MASKZ_BINARY(hsub)
 GENERATE_SERIAL_MASK_MASKZ_BINARY(hsubs)
-
 
 // 16. Oct 22 (Jonas Keller): added overloaded versions of mask_cmp* functions
 // that only take two vector parameters and no mask parameter

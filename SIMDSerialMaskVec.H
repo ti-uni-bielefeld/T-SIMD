@@ -61,7 +61,8 @@ private:
 };
 
 template <int Bits> UInt<Bits> getRandomUInt() {
-  return getRandomUInt<Bits / 2>() | (getRandomUInt<Bits / 2>() << (Bits / 2));
+  return getRandomUInt<Bits / 2>() |
+         ((UInt<Bits>)getRandomUInt<Bits / 2>() << (Bits / 2));
 }
 template <> UInt<4> getRandomUInt<4>() { return rand() & 0xF; }
 

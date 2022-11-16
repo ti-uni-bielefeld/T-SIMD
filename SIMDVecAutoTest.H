@@ -363,24 +363,6 @@ namespace ns_simd {
     }
   };
 
-  template <template <typename, int, 
-		      template <typename, int> class, class> class Tester,
-	    int SIMD_WIDTH, 
-	    template <typename, int> class FCT,
-      class CMP = CmpEqual>
-  struct TestAllExceptSignedByte
-  {
-    static void
-    test(int repeats, const std::string &pattern)
-    {
-      Tester<SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-    }
-  };
-
   // ===========================================================================
   // tests for different type combinations: one additional int template argument
   // ===========================================================================
@@ -488,24 +470,6 @@ namespace ns_simd {
     {
       TestIntTI<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
       TestFloatTI<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-    }
-  };
-
-  template <template <typename, int, 
-		      template <int, typename, int> class, class> class Tester,
-	    int SIMD_WIDTH, 
-	    template <int, typename, int> class FCT,
-      class CMP = CmpEqual>
-  struct TestAllExceptSignedByteTI
-  {
-    static void
-    test(int repeats, const std::string &pattern)
-    {
-      Tester<SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 

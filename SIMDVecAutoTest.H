@@ -426,22 +426,6 @@ namespace ns_simd {
       TestUnsignedIntTI<Tester,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
-  
-  template <template <typename, int, 
-		      template <int, typename, int> class, class> class Tester,
-	    int SIMD_WIDTH, 
-	    template <int, typename, int> class FCT,
-      class CMP = CmpEqual>
-  struct TestIntExcept8BitTI
-  {
-    static void
-    test(int repeats, const std::string &pattern)
-    {
-      Tester<SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-    }
-  };
       
   template <template <typename, int, 
 		      template <int, typename, int> class, class> class Tester,

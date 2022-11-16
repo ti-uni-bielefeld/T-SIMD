@@ -135,12 +135,12 @@ int main(int argc, char *argv[]) {
   TestAll<TesterMaskUnary, SW, Mask_div2rd>::test(repeats1, pattern);
   TestAll<TesterMaskZUnary, SW, MaskZ_div2rd>::test(repeats1, pattern);
 
-  TestIntExcept8BitTI<TesterMaskUnaryTIMinToMax, SW, Mask_srai>::test(repeats1, pattern);
-  TestIntExcept8BitTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_srai>::test(repeats1, pattern);
-  TestIntExcept8BitTI<TesterMaskUnaryTIMinToMax, SW, Mask_srli>::test(repeats1, pattern);
-  TestIntExcept8BitTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_srli>::test(repeats1, pattern);
-  TestIntExcept8BitTI<TesterMaskUnaryTIMinToMax, SW, Mask_slli>::test(repeats1, pattern);
-  TestIntExcept8BitTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_slli>::test(repeats1, pattern);
+  TestIntTI<TesterMaskUnaryTIMinToMax, SW, Mask_srai>::test(repeats1, pattern);
+  TestIntTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_srai>::test(repeats1, pattern);
+  TestIntTI<TesterMaskUnaryTIMinToMax, SW, Mask_srli>::test(repeats1, pattern);
+  TestIntTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_srli>::test(repeats1, pattern);
+  TestIntTI<TesterMaskUnaryTIMinToMax, SW, Mask_slli>::test(repeats1, pattern);
+  TestIntTI<TesterMaskZUnaryTIMinToMax, SW, MaskZ_slli>::test(repeats1, pattern);
 
   TestAll<TesterMaskBinary, SW, Mask_hadd>::test(repeats1, pattern);
   TestAll<TesterMaskZBinary, SW, MaskZ_hadd>::test(repeats1, pattern);

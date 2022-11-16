@@ -179,50 +179,6 @@ namespace ns_simd {
   // implementations with different SSE* extensions, or provide
   // altered or additional functionality.
   // Only for use in wrapper functions!
-
-  // ---------------------------------------------------------------------------
-  // some definitions are missing for -O0 in some versions of gcc (e.g. 5.4)
-  // ---------------------------------------------------------------------------
-
-  // bug seems to be fixed in avx512bwintrin.h in gcc 5.5.0
-  
-#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
-#define GCC_VERSION (__GNUC__ * 10000 \
-                     + __GNUC_MINOR__ * 100 \
-                     + __GNUC_PATCHLEVEL__)
-# if GCC_VERSION < 50500
-#  ifndef __OPTIMIZE__
-#   ifdef __AVX512BW__
-  
-  // _mm512_pack[u]s_epi32 doesn't need a define (no int arguments),
-  // but is not available without optimization (error in include file)
-  
-  extern __inline __m512i
-  __attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-  _mm512_packs_epi32 (__m512i __A, __m512i __B)
-  {
-    return (__m512i) __builtin_ia32_packssdw512_mask ((__v16si) __A,
-						      (__v16si) __B,
-						      (__v32hi)
-						      _mm512_setzero_hi (),
-						      (__mmask32) -1);
-  }
-  
-  extern __inline __m512i
-  __attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
-  _mm512_packus_epi32 (__m512i __A, __m512i __B)
-  {
-    return (__m512i) __builtin_ia32_packusdw512_mask ((__v16si) __A,
-						      (__v16si) __B,
-						      (__v32hi)
-						      _mm512_setzero_hi (),
-						      (__mmask32) -1);
-  }
-  
-#   endif
-#  endif
-# endif
-#endif
   
   // ---------------------------------------------------------------------------
   // permute1_64_16: permutation of 128-bit lanes, single source

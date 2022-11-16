@@ -42,6 +42,46 @@
 #include <x86intrin.h>
 #pragma GCC diagnostic pop
 
+
+// ---------------------------------------------------------------------------
+// some definitions are missing for -O0 in some versions of gcc (e.g. 5.4)
+// ---------------------------------------------------------------------------
+
+// 15. Nov 22 (Jonas Keller): moved this to here from SIMDVecIntel64.H
+
+// bug seems to be fixed in avx512bwintrin.h in gcc 5.5.0
+
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER) &&  \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) < 50500 && \
+    !defined(__OPTIMIZE__) && defined(__AVX512BW__)
+
+// _mm512_pack[u]s_epi32 doesn't need a define (no int arguments),
+// but is not available without optimization (error in include file)
+
+extern __inline __m512i
+__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
+_mm512_packs_epi32 (__m512i __A, __m512i __B)
+{
+  return (__m512i) __builtin_ia32_packssdw512_mask ((__v16si) __A,
+                (__v16si) __B,
+                (__v32hi)
+                _mm512_setzero_hi (),
+                (__mmask32) -1);
+}
+
+extern __inline __m512i
+__attribute__ ((__gnu_inline__, __always_inline__, __artificial__))
+_mm512_packus_epi32 (__m512i __A, __m512i __B)
+{
+  return (__m512i) __builtin_ia32_packusdw512_mask ((__v16si) __A,
+                (__v16si) __B,
+                (__v32hi)
+                _mm512_setzero_hi (),
+                (__mmask32) -1);
+}
+
+#endif
+
 #endif // SIMDVEC_INTEL_ENABLE
 
 #endif // _SIMD_INTRINS_INTEL_H_

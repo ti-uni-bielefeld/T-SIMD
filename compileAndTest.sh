@@ -95,7 +95,9 @@ if ($sandbox_test) then
     if ($doitCompile) then
       make clean
       make dep # only does something when run in PROG system
-      make -j ${COMPILE_AND_TEST_JOBS} sandbox_defines="$sandbox_defines" all_tsimd $autotest_target >& COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log
+      make -j ${COMPILE_AND_TEST_JOBS} sandbox_defines="$sandbox_defines" \
+        all_tsimd $autotest_target \
+        >& "COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log"
     endif
   end
 endif
@@ -107,7 +109,9 @@ if ($opt_test) then
     if ($doitCompile) then
       make clean
       make dep # only does something when run in PROG system
-      make -j ${COMPILE_AND_TEST_JOBS} optflags="$opt_flags" all_tsimd $autotest_target >& COMPILE_AND_TEST/opt/compile_${opt_flags}.log
+      make -j ${COMPILE_AND_TEST_JOBS} optflags="$opt_flags" \
+        all_tsimd $autotest_target \
+        >& "COMPILE_AND_TEST/opt/compile_${opt_flags}.log"
       rehash
     endif
   end
@@ -130,8 +134,8 @@ if ($opt_arch_test) then
       if ($doitCompile) then
         make clean
         make dep # only does something when run in PROG system
-        make -j ${COMPILE_AND_TEST_JOBS} \
-          flags_arch="$arch_defines" optflags="$opt_flags" all_tsimd $autotest_target \
+        make -j ${COMPILE_AND_TEST_JOBS} flags_arch="$arch_defines" \
+          optflags="$opt_flags" all_tsimd $autotest_target \
           >& "COMPILE_AND_TEST/opt_arch/$arch/compile_$opt_flags.log"
       endif
     end
@@ -139,12 +143,15 @@ if ($opt_arch_test) then
     echo "running tests for $arch"
     if ($doitRun) then
       rehash
-      make -j ${COMPILE_AND_TEST_JOBS} flags-info flags_arch="$arch_defines" >& \
-	      COMPILE_AND_TEST/opt_arch/$arch/flags_info.log
+      make -j ${COMPILE_AND_TEST_JOBS} flags-info flags_arch="$arch_defines" \
+	      >& "COMPILE_AND_TEST/opt_arch/$arch/flags_info.log"
       if ($doitAlsoRunAutoTest) then
-        ./build/simdvecautotest0 "" 10000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest0.log &
-        ./build/simdvecautotest1 "" 1000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest1.log &
-        ./build/simdvecautotestM "" 10000 >& COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotestM.log &
+        ./build/simdvecautotest0 "" 10000 \
+          >& "COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest0.log" &
+        ./build/simdvecautotest1 "" 1000 \
+          >& "COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest1.log" &
+        ./build/simdvecautotestM "" 10000 \
+          >& "COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotestM.log" &
       endif
       wait
     endif
@@ -164,7 +171,9 @@ if ($cppstd_test) then
       else
         set all_tsimd = "all_tsimd"
       endif
-      make -j ${COMPILE_AND_TEST_JOBS} flags_cppstd="$cppstd_defines" $all_tsimd $autotest_target >& COMPILE_AND_TEST/cppstd/compile_${cppstd}.log
+      make -j ${COMPILE_AND_TEST_JOBS} flags_cppstd="$cppstd_defines" \
+        $all_tsimd $autotest_target \
+        >& "COMPILE_AND_TEST/cppstd/compile_${cppstd}.log"
       rehash
     endif
   end
@@ -176,7 +185,8 @@ if ($default_compilation) then
   if ($doitCompile) then
     make clean
     make dep # only does something when run in PROG system
-    make -j ${COMPILE_AND_TEST_JOBS} all_tsimd $autotest_target >& COMPILE_AND_TEST/default/compile.log
+    make -j ${COMPILE_AND_TEST_JOBS} all_tsimd $autotest_target \
+      >& COMPILE_AND_TEST/default/compile.log
   endif
 endif
 
@@ -184,12 +194,14 @@ set where_there_errors = 0
 
 if ($errors) then
   echo "================= errors ================"
-  grep -nri --exclude={errors,warnings}.log error COMPILE_AND_TEST >& COMPILE_AND_TEST/errors.log
+  grep -nri --exclude={errors,warnings}.log error COMPILE_AND_TEST \
+    >& COMPILE_AND_TEST/errors.log
   if ( -s COMPILE_AND_TEST/errors.log ) then
     echo "There are errors! See COMPILE_AND_TEST/errors.log"
     set where_there_errors = 1
   endif
-  grep -nri --exclude={errors,warnings}.log warning COMPILE_AND_TEST >& COMPILE_AND_TEST/warnings.log
+  grep -nri --exclude={errors,warnings}.log warning COMPILE_AND_TEST \
+    >& COMPILE_AND_TEST/warnings.log
   if ( -s COMPILE_AND_TEST/warnings.log ) then
     echo "There are warnings! See COMPILE_AND_TEST/warnings.log"
     set where_there_errors = 1

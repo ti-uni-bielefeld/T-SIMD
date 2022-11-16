@@ -61,41 +61,6 @@ namespace ns_simd {
   // SIMDSerialVec
   // =========================================================================
 
-  // for all integer types, we can compare bit patterns
-  template <typename T>
-  static SIMD_INLINE bool
-  sameSerialVec(const T *const p1, const T *const p2, int n)
-  {
-    return !memcmp(p1, p2, n * sizeof(T));
-  }
-
-  // for SIMDFloat, we have to make sure that -0.0f == +0.0f
-  static SIMD_INLINE bool
-  sameSerialVec(const SIMDFloat *const p1, const SIMDFloat *const p2, int n)
-  {
-    // case 1: if all bit pattern match, the vectors are the same
-    if (!memcmp(p1, p2, n * sizeof(SIMDFloat))) return true;
-    // case 2: if not all bit pattern match, we look at +-0.0f
-    // go through all individual elements
-    for (int i = 0; i < n; i++)
-      // check whether the bit pattern has a mismatch for this element
-      if (memcmp(p1 + i, p2 + i, sizeof(SIMDFloat)))
-	// we have a bit pattern mismatch
-	// if it is not the case +-0.0f, we have found a vector mismatch
-	if (!((fabsf(p1[i]) == 0.0f) && (fabsf(p2[i]) == 0.0f)))
-	  return false;
-    // no mismatch found
-    return true;
-  }
-
-  // 31. Jul 18 (rm): comparison of scalar
-  template <typename T>
-  static SIMD_INLINE bool
-  sameScalar(const T& a, const T& b)
-  {
-    return sameSerialVec(&a, &b, 1);
-  }
-  
   template <typename T, int SIMD_WIDTH>
   class SIMDSerialVec
   {
@@ -137,18 +102,6 @@ namespace ns_simd {
     SIMDVec<T, SIMD_WIDTH> getSIMDVec() const
     {
       return load<SIMD_WIDTH>(vec);
-    }
-    bool same(const SIMDSerialVec<T,SIMD_WIDTH> &x) const
-    {
-      return sameSerialVec(vec, x.vec, elements);
-    }
-    bool operator== (const SIMDSerialVec<T,SIMD_WIDTH> &x) const
-    {
-      return this->same(x);
-    }
-    bool operator!= (const SIMDSerialVec<T,SIMD_WIDTH> &x) const
-    {
-      return !(*this == x);
     }
     T operator[] (int i) const
     {

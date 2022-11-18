@@ -201,7 +201,9 @@ namespace ns_simd {
     static SIMD_INLINE SIMDByte trueval() { return SIMDBYTE_TRUE; }
     // special values mainly used for testing edge cases
     static std::vector<SIMDByte> specialValues() {
-      return {0, 1, SIMDBYTE_MAX/2, SIMDBYTE_MAX-1, SIMDBYTE_MAX};
+      SIMDByte v[] = {0, 1, SIMDBYTE_MAX / 2, SIMDBYTE_MAX - 1, SIMDBYTE_MAX};
+      const size_t n = sizeof(v) / sizeof(SIMDByte);
+      return std::vector<SIMDByte>(v, v + n);
     }
     typedef SIMDWord NextLargerType;
     typedef SIMDByte UnsignedType;
@@ -224,9 +226,13 @@ namespace ns_simd {
     static SIMD_INLINE SIMDSignedByte trueval() { return SIMDSIGNEDBYTE_TRUE; }
     // special values mainly used for testing edge cases
     static std::vector<SIMDSignedByte> specialValues() {
-      return {SIMDSIGNEDBYTE_MIN, SIMDSIGNEDBYTE_MIN+1, SIMDSIGNEDBYTE_MIN/2,
-              -1, 0, 1,
-              SIMDSIGNEDBYTE_MAX/2, SIMDSIGNEDBYTE_MAX-1, SIMDSIGNEDBYTE_MAX};
+      SIMDSignedByte v[] = {
+        SIMDSIGNEDBYTE_MIN, SIMDSIGNEDBYTE_MIN+1, SIMDSIGNEDBYTE_MIN/2,
+        -1, 0, 1,
+        SIMDSIGNEDBYTE_MAX/2, SIMDSIGNEDBYTE_MAX-1, SIMDSIGNEDBYTE_MAX
+      };
+      const size_t n = sizeof(v) / sizeof(SIMDSignedByte);
+      return std::vector<SIMDSignedByte>(v, v + n);
     }
     typedef SIMDShort NextLargerType;
     typedef SIMDByte UnsignedType;
@@ -249,7 +255,9 @@ namespace ns_simd {
     static SIMD_INLINE SIMDWord trueval() { return SIMDWORD_TRUE; }
     // special values mainly used for testing edge cases
     static std::vector<SIMDWord> specialValues() {
-      return {0, 1, SIMDWORD_MAX/2, SIMDWORD_MAX-1, SIMDWORD_MAX};
+      SIMDWord v[] = {0, 1, SIMDWORD_MAX / 2, SIMDWORD_MAX - 1, SIMDWORD_MAX};
+      const size_t n = sizeof(v) / sizeof(SIMDWord);
+      return std::vector<SIMDWord>(v, v + n);
     }
     typedef SIMDInt NextLargerType; // no larger unsigned type, use SIMDInt
     typedef SIMDWord UnsignedType;
@@ -272,9 +280,13 @@ namespace ns_simd {
     static SIMD_INLINE SIMDShort trueval() { return SIMDSHORT_TRUE; }
     // special values mainly used for testing edge cases
     static std::vector<SIMDShort> specialValues() {
-      return {SIMDSHORT_MIN, SIMDSHORT_MIN+1, SIMDSHORT_MIN/2,
-              -1, 0, 1,
-              SIMDSHORT_MAX/2, SIMDSHORT_MAX-1, SIMDSHORT_MAX};
+      SIMDShort v[] = {
+        SIMDSHORT_MIN, SIMDSHORT_MIN+1, SIMDSHORT_MIN/2,
+        -1, 0, 1,
+        SIMDSHORT_MAX/2, SIMDSHORT_MAX-1, SIMDSHORT_MAX
+      };
+      const size_t n = sizeof(v) / sizeof(SIMDShort);
+      return std::vector<SIMDShort>(v, v + n);
     }
     typedef SIMDInt NextLargerType;
     typedef SIMDWord UnsignedType;
@@ -297,9 +309,13 @@ namespace ns_simd {
     static SIMD_INLINE SIMDInt trueval() { return SIMDINT_TRUE; }
     // special values mainly used for testing edge cases
     static std::vector<SIMDInt> specialValues() {
-      return {SIMDINT_MIN, SIMDINT_MIN+1, SIMDINT_MIN/2,
-              -1, 0, 1,
-              SIMDINT_MAX/2, SIMDINT_MAX-1, SIMDINT_MAX};
+      SIMDInt v[] = {
+        SIMDINT_MIN, SIMDINT_MIN+1, SIMDINT_MIN/2,
+        -1, 0, 1,
+        SIMDINT_MAX/2, SIMDINT_MAX-1, SIMDINT_MAX
+      };
+      const size_t n = sizeof(v) / sizeof(SIMDInt);
+      return std::vector<SIMDInt>(v, v + n);
     }
     typedef SIMDInt NextLargerType; // no larger integer type than SIMDInt
     typedef uint32_t UnsignedType; // not a SIMD type
@@ -328,10 +344,14 @@ namespace ns_simd {
     }
     // special values mainly used for testing edge cases
     static std::vector<SIMDFloat> specialValues() {
-      return {SIMDFLOAT_MIN, SIMDFLOAT_MIN/2, SIMDFLOAT_MAX/2, SIMDFLOAT_MAX,
-              -1.0f, -0.5f, -0.0f, 0.0f, 0.5f, 1.0f,
-              MAX_POS_FLOAT_CONVERTIBLE_TO_INT32,
-              MAX_POS_FLOAT_CONVERTIBLE_TO_INT32+1};
+      SIMDFloat v[] = {
+        SIMDFLOAT_MIN, SIMDFLOAT_MIN/2, SIMDFLOAT_MAX/2, SIMDFLOAT_MAX,
+        -1.0f, -0.5f, -0.0f, 0.0f, 0.5f, 1.0f,
+        MAX_POS_FLOAT_CONVERTIBLE_TO_INT32,
+        MAX_POS_FLOAT_CONVERTIBLE_TO_INT32+1
+      };
+      const size_t n = sizeof(v) / sizeof(SIMDFloat);
+      return std::vector<SIMDFloat>(v, v + n);
     }
     typedef SIMDFloat NextLargerType; // no larger float type than SIMDFloat
   };

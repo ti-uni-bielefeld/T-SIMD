@@ -5,7 +5,6 @@
 #include "SIMDTypes.H"
 
 #include <cmath>
-#include <random>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -179,11 +178,8 @@ namespace ns_simd {
   template<typename T>
   static T getRandomSpecialValue()
   {
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
     std::vector<T> specialValues = SIMDTypeInfo<T>::specialValues();
-    std::uniform_int_distribution<> dis(0, specialValues.size() - 1);
-    return specialValues[dis(gen)];
+    return specialValues[((double)rand() / RAND_MAX) * specialValues.size()];
   }
 
   // returns a special value with 1/16 probability and a random value otherwise

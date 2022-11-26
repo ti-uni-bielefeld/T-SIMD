@@ -563,45 +563,29 @@ namespace ns_simd {
       class CMP = CmpEqual>
   struct TestAllTT
   {
+    // 26. Nov 22 (Jonas Keller): Added testAllSeconds to make this easier to
+    // read and make sure that all types are tested.
     static void
     test(int repeats, const std::string &pattern)
     {
-      Tester<SIMDByte,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDByte,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDByte,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDByte,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDByte,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDByte,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDSignedByte,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDWord,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDShort,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDInt,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
-      Tester<SIMDFloat,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      testAllSeconds<SIMDByte>(repeats, pattern);
+      testAllSeconds<SIMDSignedByte>(repeats, pattern);
+      testAllSeconds<SIMDWord>(repeats, pattern);
+      testAllSeconds<SIMDShort>(repeats, pattern);
+      testAllSeconds<SIMDInt>(repeats, pattern);
+      testAllSeconds<SIMDFloat>(repeats, pattern);
+    }
+  private:
+    template <typename T1>
+    static void
+    testAllSeconds(int repeats, const std::string &pattern)
+    {
+      Tester<T1,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<T1,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<T1,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<T1,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<T1,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<T1,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
     }
   };
 

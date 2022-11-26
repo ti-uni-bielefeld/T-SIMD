@@ -61,6 +61,11 @@ namespace ns_simd {
   // SIMDSerialVec
   // =========================================================================
 
+  // 26. Nov 22 (Jonas Keller): Removed implicit conversion from SIMDSerialVec
+  // to SIMDVec and vice versa and added explicit conversion functions
+  // instead. This is to make sure the right functions are called when using
+  // SIMDSerialVec in the autotests.
+
   template <typename T, int SIMD_WIDTH>
   class SIMDSerialVec
   {
@@ -80,28 +85,26 @@ namespace ns_simd {
     {
       memcpy(vec, x.vec, SIMD_WIDTH);
     }
-    SIMDSerialVec(const SIMDVec<T,SIMD_WIDTH> &x)
-    {
-      storeu(vec, x);
-    }
     template <typename U>
     SIMDSerialVec& operator=(const SIMDSerialVec<U,SIMD_WIDTH> &x)
     {
       memcpy(vec, x.vec, SIMD_WIDTH);
       return *this;
     }
-    SIMDSerialVec& operator=(const SIMDVec<T,SIMD_WIDTH> &x) 
-    {
-      store(vec, x);
-      return *this;
-    }
-    operator SIMDVec<T, SIMD_WIDTH>() const
-    {
-      return getSIMDVec();
-    }
     SIMDVec<T, SIMD_WIDTH> getSIMDVec() const
     {
       return load<SIMD_WIDTH>(vec);
+    }
+    void setSIMDVec(const SIMDVec<T, SIMD_WIDTH> &x)
+    {
+      storeu(vec, x);
+    }
+    static SIMDSerialVec<T, SIMD_WIDTH>
+    fromSIMDVec(const SIMDVec<T, SIMD_WIDTH> &x)
+    {
+      SIMDSerialVec<T, SIMD_WIDTH> y;
+      y.setSIMDVec(x);
+      return y;
     }
     T operator[] (int i) const
     {

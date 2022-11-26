@@ -66,6 +66,11 @@ template <int Bits> UInt<Bits> getRandomUInt() {
 }
 template <> UInt<4> getRandomUInt<4>() { return rand() & 0xF; }
 
+// 26. Nov 22 (Jonas Keller): Removed implicit conversion from SIMDSerialMask to
+// SIMDMask and vice versa and added explicit conversion functions instead.
+// This is to make sure the right functions are called when using SIMDSerialVec
+// in the autotests.
+
 template <typename T, int SIMD_WIDTH> class SIMDSerialMask {
 public:
   enum { bits = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH) };
@@ -85,20 +90,9 @@ public:
       }
     }
   }
-  SIMDSerialMask(const SIMDMask<T, SIMD_WIDTH> &x)
-      : mask((typename _UInt<bits>::type)x) {}
-  SIMDSerialMask<T, SIMD_WIDTH> &operator=(const UInt<bits> &_mask) {
-    mask = _mask;
-    return *this;
-  }
-  SIMDSerialMask<T, SIMD_WIDTH> &operator=(const SIMDMask<T, SIMD_WIDTH> &x) {
-    mask = x;
-    return *this;
-  }
 
   operator UInt<bits>() const { return mask; }
   operator typename _UInt<bits>::type() const { return mask; }
-  operator SIMDMask<T, SIMD_WIDTH>() const { return getSIMDMask(); }
 
   bool operator[](const uint8_t i) const {
     if (i >= bits) {
@@ -123,6 +117,11 @@ public:
 
   SIMDMask<T, SIMD_WIDTH> getSIMDMask() const {
     return SIMDMask<T, SIMD_WIDTH>(mask);
+  }
+  void setSIMDMask(const SIMDMask<T, SIMD_WIDTH> &x) { mask = x; }
+  static SIMDSerialMask<T, SIMD_WIDTH>
+  fromSIMDMask(const SIMDMask<T, SIMD_WIDTH> &x) {
+    return SIMDSerialMask<T, SIMD_WIDTH>(x);
   }
 };
 

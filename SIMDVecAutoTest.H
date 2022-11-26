@@ -231,6 +231,14 @@ namespace ns_simd {
       }
       return true;
     }
+
+    template <typename T, int SIMD_WIDTH>
+    static bool cmpVec(SIMDSerialVec<T, SIMD_WIDTH> &expected,
+                       SIMDVec<T, SIMD_WIDTH> &actual) {
+      SIMDSerialVec<T, SIMD_WIDTH> actualSerial =
+          SIMDSerialVec<T, SIMD_WIDTH>::fromSIMDVec(actual);
+      return cmpVec(expected, actualSerial);
+    }
   };
 
   // allows a relative error of COEFF * 10^EXP_10 * 2^EXP_2 for floats
@@ -267,6 +275,14 @@ namespace ns_simd {
         }
       }
       return true;
+    }
+
+    template <typename T, int SIMD_WIDTH>
+    static bool cmpVec(SIMDSerialVec<T, SIMD_WIDTH> &expected,
+                       SIMDVec<T, SIMD_WIDTH> &actual) {
+      SIMDSerialVec<T, SIMD_WIDTH> actualSerial =
+          SIMDSerialVec<T, SIMD_WIDTH>::fromSIMDVec(actual);
+      return cmpVec(expected, actualSerial);
     }
   };
 
@@ -610,7 +626,7 @@ namespace ns_simd {
 	int errors = 0, trials = 0;
 	for (int i = 0; i < repeats; i++, trials++) {
 	  cs = FCT<T,SIMD_WIDTH>::template apply<SIMDSerialVec>();
-	  cp = FCT<T,SIMD_WIDTH>::template apply<SIMDVec>();
+	  cp.setSIMDVec(FCT<T,SIMD_WIDTH>::template apply<SIMDVec>());
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -660,7 +676,7 @@ namespace ns_simd {
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<T,SIMD_WIDTH>::apply(a);
-	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec());
+	  cp.setSIMDVec(FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec()));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -714,7 +730,7 @@ namespace ns_simd {
 	for (int i = 0; i < repeats; i++, trials++) {
 	  a = FCT<T,SIMD_WIDTH>::randomizeInputScalar();
 	  cs = FCT<T,SIMD_WIDTH>::template apply<SIMDSerialVec>(a);
-	  cp = FCT<T,SIMD_WIDTH>::template apply<SIMDVec>(a);
+	  cp.setSIMDVec(FCT<T,SIMD_WIDTH>::template apply<SIMDVec>(a));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -770,7 +786,7 @@ namespace ns_simd {
   for (int i = 0; i < repeats; i++, trials++) {
     a = FCT<T,SIMD_WIDTH>::randomizeInputScalar();
     cs = FCT<T,SIMD_WIDTH>::template apply<SIMDSerialVec>(a);
-    cp = FCT<T,SIMD_WIDTH>::template apply<SIMDVec>(a);
+    cp.setSIMDVec(FCT<T,SIMD_WIDTH>::template apply<SIMDVec>(a));
     if (!CMP::cmpVec(cs, cp)) {
       errors++;
       if (errors <= PRINT_ERRORS) {
@@ -945,7 +961,7 @@ namespace ns_simd {
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<Tout,T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<Tout,T,SIMD_WIDTH>::apply(a);
-	  cp = FCT<Tout,T,SIMD_WIDTH>::apply(a.getSIMDVec());
+	  cp.setSIMDVec(FCT<Tout,T,SIMD_WIDTH>::apply(a.getSIMDVec()));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1080,7 +1096,7 @@ namespace ns_simd {
 	for (int i = 0; i < repeats; i++, trials++) {
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(a);
 	  cs = FCT<I,T,SIMD_WIDTH>::apply(a);
-	  cp = FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec());
+	  cp.setSIMDVec(FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec()));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1166,7 +1182,7 @@ namespace ns_simd {
         for (int i = 0; i < repeats; i++, trials++) {
           FCT<I,T,SIMD_WIDTH>::randomizeInput(a);
           cs = FCT<I,T,SIMD_WIDTH>::apply(a);
-          cp = FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec());
+          cp.setSIMDVec(FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec()));
           if (!CMP::cmpVec(cs, cp)) {
             errors++;
             if (errors <= PRINT_ERRORS) {
@@ -1249,7 +1265,7 @@ namespace ns_simd {
 	  FCT<T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<T,SIMD_WIDTH>::apply(a, b);
-	  cp = FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
+	  cp.setSIMDVec(FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec()));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1306,7 +1322,7 @@ namespace ns_simd {
 	  FCT<Tout,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<Tout,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<Tout,T,SIMD_WIDTH>::apply(a, b);
-	  cp = FCT<Tout,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
+	  cp.setSIMDVec(FCT<Tout,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec()));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1371,7 +1387,7 @@ namespace ns_simd {
 	  FCT<Tout,T,SIMD_WIDTH>::apply(a.getSIMDVec(), _cp);
 	  bool foundError = false;
 	  for (int io = 0; io < nOutVecs; io++) {
-	    cp[io] = _cp[io];
+	    cp[io].setSIMDVec(_cp[io]);
 	    if (!CMP::cmpVec(cs[io], cp[io]))
 	      foundError = true;
 	  }
@@ -1439,7 +1455,7 @@ namespace ns_simd {
 	    _a[j] = a[j].getSIMDVec();
 	  }
 	  cs = FCT<T,SIMD_WIDTH>::apply(a);
-	  cp = FCT<T,SIMD_WIDTH>::apply(_a);
+	  cp.setSIMDVec(FCT<T,SIMD_WIDTH>::apply(_a));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1502,7 +1518,7 @@ namespace ns_simd {
 	    _a[j] = a[j].getSIMDVec();
 	  }
 	  cs = FCT<Tout,T,SIMD_WIDTH>::apply(a);
-	  cp = FCT<Tout,T,SIMD_WIDTH>::apply(_a);
+	  cp.setSIMDVec(FCT<Tout,T,SIMD_WIDTH>::apply(_a));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -1572,7 +1588,7 @@ namespace ns_simd {
 	  bool equal = true;
 	  for (int j = 0; j < n; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
-	    cp[j] = _cp[j];
+	    cp[j].setSIMDVec(_cp[j]);
 	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
@@ -1657,7 +1673,7 @@ namespace ns_simd {
 	  bool equal = true;
 	  for (int j = 0; j < numOutVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
-	    cp[j] = _cp[j];
+	    cp[j].setSIMDVec(_cp[j]);
 	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
@@ -1743,7 +1759,7 @@ namespace ns_simd {
 	  bool equal = true;
 	  for (int j = 0; j < numOutVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
-	    cp[j] = _cp[j];
+	    cp[j].setSIMDVec(_cp[j]);
 	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
@@ -1833,7 +1849,7 @@ namespace ns_simd {
 	  bool equal = true;
 	  for (int j = 0; j < numOutVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
-	    cp[j] = _cp[j];
+	    cp[j].setSIMDVec(_cp[j]);
 	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
@@ -1928,7 +1944,7 @@ namespace ns_simd {
 	  bool equal = true;
 	  for (int j = 0; j < numOutVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
-	    cp[j] = _cp[j];
+	    cp[j].setSIMDVec(_cp[j]);
 	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
@@ -2028,7 +2044,7 @@ namespace ns_simd {
 	  bool equal = true;
 	  for (int j = 0; j < numOutVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
-	    cp[j] = _cp[j];
+	    cp[j].setSIMDVec(_cp[j]);
 	    if (!CMP::cmpVec(cs[j], cp[j]))
 	      equal = false;
 	  }
@@ -2120,7 +2136,7 @@ namespace ns_simd {
 	  bool equal = true;
 	  for (int j = 0; j < numVecs; j++) {
 	    // assign SIMDVec -> SIMDSerialVec
-	    ap[j] = _ap[j];
+	    ap[j].setSIMDVec(_ap[j]);
 	    if (!CMP::cmpVec(as[j], ap[j]))
 	      equal = false;
 	  }
@@ -2214,7 +2230,7 @@ namespace ns_simd {
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<I,T,SIMD_WIDTH>::apply(a, b);
-	  cp = FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
+	  cp.setSIMDVec(FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec()));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -2303,8 +2319,8 @@ namespace ns_simd {
 	  FCT<I,T,SIMD_WIDTH>::randomizeInput(b);
 	  FCT<I,T,SIMD_WIDTH>::apply(a, b, cs, ds);
 	  FCT<I,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec(), _cp, _dp);
-	  cp = _cp;
-	  dp = _dp;
+	  cp.setSIMDVec(_cp);
+	  dp.setSIMDVec(_dp);
     if (!CMP::cmpVec(cs, cp) || !CMP::cmpVec(ds, dp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -2395,7 +2411,7 @@ namespace ns_simd {
 	  FCT<I,J,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<I,J,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<I,J,T,SIMD_WIDTH>::apply(a, b);
-	  cp = FCT<I,J,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec());
+	  cp.setSIMDVec(FCT<I,J,T,SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec()));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {
@@ -2489,8 +2505,8 @@ namespace ns_simd {
 	  FCT<Tcond,T,SIMD_WIDTH>::randomizeInput(a);
 	  FCT<Tcond,T,SIMD_WIDTH>::randomizeInput(b);
 	  cs = FCT<Tcond,T,SIMD_WIDTH>::apply(cond, a, b);
-	  cp = FCT<Tcond,T,SIMD_WIDTH>::apply(cond.getSIMDVec(), 
-					      a.getSIMDVec(), b.getSIMDVec());
+	  cp.setSIMDVec(FCT<Tcond,T,SIMD_WIDTH>::apply(cond.getSIMDVec(), 
+					      a.getSIMDVec(), b.getSIMDVec()));
 	  if (!CMP::cmpVec(cs, cp)) {
 	    errors++;
 	    if (errors <= PRINT_ERRORS) {

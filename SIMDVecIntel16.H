@@ -771,7 +771,10 @@ namespace ns_simd {
   static SIMD_INLINE SIMDVec<Tdst,16>
   reinterpret(const SIMDVec<Tsrc,16>& vec, OutputType<Tdst>)
   {
-    return reinterpret_cast<const SIMDVec<Tdst,16>&>(vec);
+    // 26. Nov 22 (Jonas Keller): reinterpret_cast is technically undefined
+    // behavior, so just rewrapping the vector register in a new SIMDVec instead
+    //return reinterpret_cast<const SIMDVec<Tdst,16>&>(vec);
+    return SIMDVec<Tdst,16>(vec.xmm);
   }
 
   // from float to any integer type

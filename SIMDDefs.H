@@ -35,6 +35,10 @@
 // preprocessor symbols
 // ---------------------------------------------------------------------------
 
+// NOTE: these symbols should be defined before including any T-SIMD header file
+//       (e.g. by passing them to the compiler via the command line) otherwise
+//       they might not have the desired effect
+
 // SIMD_STRICT_SATURATION:
 // if defined, non-saturated work-arounds for saturated functions are
 // not included (typically for SIMDInt and SIMDFloat, e.g. in adds, hadds)
@@ -42,6 +46,10 @@
 // SIMD_ALIGN_CHK:
 // if defined, alignment checks of pointers are added in aligned load
 // and store functions (if necessary on given architecture)
+
+// MAX_SIMD_WIDTH:
+// if defined, NATIVE_SIMD_WIDTH will be at most to this value
+// must be at least 16, as smaller vector widths are not supported
 
 // ---------------------------------------------------------------------------
 // architecture-specific definitions

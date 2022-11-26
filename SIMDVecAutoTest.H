@@ -107,6 +107,7 @@ namespace ns_simd {
   // doNotOptimize
   // modified from:
   // https://github.com/google/benchmark/blob/d2a8a4ee41b923876c034afb939c4fc03598e622/include/benchmark/benchmark.h#L437-L527
+  // License: Apache License 2.0
   // ===========================================================================
 
   // 05. Nov 22 (Jonas Keller): added doNotOptimize

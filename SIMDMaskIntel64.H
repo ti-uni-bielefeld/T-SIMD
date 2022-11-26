@@ -178,14 +178,14 @@ namespace ns_simd {
   maskz_ ## OP (const SIMDMask<SIMDFloat, 64> &k, \
       const SIMDVec<SIMDFloat, 64> &a) \
   { \
-    return mask_ifelsezero(k, OP (a)); \
+    return OP (mask_ifelsezero(k, a)); \
   } \
   static SIMD_INLINE SIMDVec<SIMDFloat, 64> \
   mask_ ## OP (const SIMDVec<SIMDFloat, 64> &src, \
       const SIMDMask<SIMDFloat, 64> &k, \
       const SIMDVec<SIMDFloat, 64> &a) \
   { \
-    return mask_ifelse(k, OP (a), src); \
+    return mask_ifelse(k, maskz_ ## OP (k, a), src); \
   }
 
   #define EMULATE_DOP_TYPE(OP, TYPE) \
@@ -367,8 +367,7 @@ namespace ns_simd {
       const TYPE a) \
   { \
     /*return mask_ifelse(k, set1(a), setzero<TYPE, 64>());*/ \
-    /*return _mm512_castps_si512(x_mm512_and_ps(_mm512_castsi512_ps(k), _mm512_castsi512_ps(set1<TYPE, 64>(a))));*/ \
-    return mask_ifelsezero(k, set1<TYPE, 64>(a));\
+    return _mm512_castps_si512(x_mm512_and_ps(_mm512_castsi512_ps(k), _mm512_castsi512_ps(set1<TYPE, 64>(a)))); \
   }
   EMULATE_SET1(SIMDByte)
   EMULATE_SET1(SIMDSignedByte)
@@ -1156,7 +1155,7 @@ namespace ns_simd {
   maskz_ ## OP (const SIMDMask<TYPE, 64> &k, \
       const SIMDVec<TYPE,64> &a) \
   { \
-    return mask_ifelsezero(k, OP <IMM>(a)); \
+    return mask_ifelse(k, OP <IMM>(a), setzero<TYPE, 64>()); \
   }
 
   // ---------------------------------------------------------------------------
@@ -1696,7 +1695,7 @@ namespace ns_simd {
   mask_test_all_zeros(const SIMDMask<TYPE, 64> &k, \
       const SIMDVec<TYPE, 64> &a) \
   { \
-    return test_all_zeros(mask_ifelsezero(k, a)); \
+    return test_all_zeros(mask_ifelse(k, a, setzero<TYPE, 64>())); \
   }
 
 #ifdef __AVX512BW__

@@ -103,7 +103,7 @@ struct TesterMaskUnary {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
         doNotOptimize(input);
         doNotOptimize(inputMask);
@@ -161,7 +161,7 @@ struct TesterMaskZUnary {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
         SIMDVec<T, SIMD_WIDTH> result =
@@ -223,7 +223,7 @@ struct TesterMaskBinary {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
         doNotOptimize(input1);
         doNotOptimize(input2);
@@ -284,7 +284,7 @@ struct TesterMaskZBinary {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
         doNotOptimize(input2);
         doNotOptimize(inputMask);
@@ -344,7 +344,7 @@ struct TesterMaskConditionBinary {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
         doNotOptimize(input2);
         doNotOptimize(inputMask);
@@ -402,7 +402,7 @@ struct TesterMaskConditionUnary {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
         SIMDVec<T, SIMD_WIDTH> result =
@@ -465,7 +465,7 @@ struct TesterMaskUnaryTemplateType {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
         doNotOptimize(input);
         doNotOptimize(inputMask);
@@ -524,7 +524,7 @@ struct TesterMaskZUnaryTemplateType {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
         SIMDVec<Tout, SIMD_WIDTH> result =
@@ -584,7 +584,7 @@ struct TesterMaskScalar {
     T inputScalar = T();
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
         doNotOptimize(input);
         doNotOptimize(inputMask);
@@ -642,7 +642,7 @@ struct TesterMaskZScalar {
     T inputScalar = T();
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
         doNotOptimize(inputScalar);
         SIMDVec<T, SIMD_WIDTH> result =
@@ -702,7 +702,7 @@ struct TesterMaskCmp {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
         doNotOptimize(input2);
         doNotOptimize(inputMask);
@@ -761,7 +761,7 @@ struct TesterCmpMask {
     SIMDVec<T, SIMD_WIDTH> input1, input2;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
         doNotOptimize(input2);
         SIMDMask<T, SIMD_WIDTH> result =
@@ -817,7 +817,7 @@ struct TesterMaskUnaryInt {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
         int result = FCT<T, SIMD_WIDTH>::template apply<SIMDVec, SIMDMask>(
@@ -869,7 +869,7 @@ struct TesterUnaryK {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
         SIMDMask<T, SIMD_WIDTH> result =
             FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(inputMask);
@@ -922,7 +922,7 @@ struct TesterBinaryK {
     SIMDMask<T, SIMD_WIDTH> inputMask1, inputMask2;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask1);
         doNotOptimize(inputMask2);
         SIMDMask<T, SIMD_WIDTH> result =
@@ -982,7 +982,7 @@ struct TesterMaskUnaryTI {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputSrc);
         doNotOptimize(inputMask);
@@ -1060,7 +1060,7 @@ struct TesterMaskZUnaryTI {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
         SIMDVec<T, SIMD_WIDTH> result =
@@ -1133,7 +1133,7 @@ struct TesterUnaryKTI {
     SIMDMask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpec();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
         SIMDMask<T, SIMD_WIDTH> result =
             FCT<I, T, SIMD_WIDTH>::template apply<SIMDMask>(inputMask);

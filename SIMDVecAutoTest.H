@@ -641,7 +641,7 @@ namespace ns_simd {
 
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       SIMDVec<T, SIMD_WIDTH> res =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec>();
       doNotOptimize(res);
@@ -693,7 +693,7 @@ namespace ns_simd {
   SIMDVec<T, SIMD_WIDTH> input;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       SIMDVec<T, SIMD_WIDTH> res =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(input);
@@ -747,7 +747,7 @@ namespace ns_simd {
   T input = T();
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       SIMDVec<T, SIMD_WIDTH> res =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(input);
@@ -803,7 +803,7 @@ namespace ns_simd {
   uint64_t input = uint64_t();
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       SIMDVec<T, SIMD_WIDTH> res =
           FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(input);
@@ -859,7 +859,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       TRES res = FCT<T, SIMD_WIDTH>::apply(input);
       doNotOptimize(res);
@@ -924,7 +924,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       uint64_t res = FCT<T, SIMD_WIDTH>::apply(input);
       doNotOptimize(res);
@@ -978,7 +978,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       SIMDVec<Tout, SIMD_WIDTH> res = FCT<Tout, T, SIMD_WIDTH>::apply(input);
       doNotOptimize(res);
@@ -1031,7 +1031,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       T res = FCT<I, T, SIMD_WIDTH>::apply(input);
       doNotOptimize(res);
@@ -1113,7 +1113,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       SIMDVec<T, SIMD_WIDTH> res = FCT<I, T, SIMD_WIDTH>::apply(input);
       doNotOptimize(res);
@@ -1199,7 +1199,7 @@ namespace ns_simd {
         SIMDVec<T,SIMD_WIDTH> input;
         struct timespec start = getTimeSpec();
         for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-          for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+          for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
             doNotOptimize(input);
             SIMDVec<T, 16> res = FCT<I, T, SIMD_WIDTH>::apply(input);
             doNotOptimize(res);
@@ -1283,7 +1283,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input1, input2;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
       doNotOptimize(input2);
       SIMDVec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input1, input2);
@@ -1340,7 +1340,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input1, input2;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
       doNotOptimize(input2);
       SIMDVec<Tout, SIMD_WIDTH> res =
@@ -1412,7 +1412,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       SIMDVec<Tout, SIMD_WIDTH> res[nOutVecs];
       FCT<Tout, T, SIMD_WIDTH>::apply(input, res);
@@ -1475,7 +1475,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input[nInVecs];
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       SIMDVec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input);
       doNotOptimize(res);
@@ -1538,7 +1538,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input[nInVecs];
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       SIMDVec<Tout, SIMD_WIDTH> res = FCT<Tout, T, SIMD_WIDTH>::apply(input);
       doNotOptimize(res);
@@ -1618,7 +1618,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input[n];
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       SIMDVec<T, SIMD_WIDTH> res[n];
       FCT<T, SIMD_WIDTH>::apply(input, res);
@@ -1703,7 +1703,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input[numInVecs];
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       SIMDVec<Tout, SIMD_WIDTH> res[numOutVecs];
       FCT<Tout, T, SIMD_WIDTH>::apply(input, res);
@@ -1791,7 +1791,7 @@ namespace ns_simd {
   double inputD;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       doNotOptimize(inputD);
       SIMDVec<Tout, SIMD_WIDTH> res[numOutVecs];
@@ -1881,7 +1881,7 @@ namespace ns_simd {
   double inputD1, inputD2;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       doNotOptimize(inputD1);
       doNotOptimize(inputD2);
@@ -1980,7 +1980,7 @@ namespace ns_simd {
   double inputD;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
       doNotOptimize(input2);
       doNotOptimize(inputD);
@@ -2080,7 +2080,7 @@ namespace ns_simd {
   double inputD1, inputD2;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
       doNotOptimize(input2);
       doNotOptimize(inputD1);
@@ -2165,7 +2165,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input[numVecs];
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
       FCT<I, T, SIMD_WIDTH>::apply(input);
       doNotOptimize(input);
@@ -2248,7 +2248,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input1, input2;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
       doNotOptimize(input2);
       SIMDVec<T, SIMD_WIDTH> result =
@@ -2340,7 +2340,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input1, input2;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
       doNotOptimize(input2);
       SIMDVec<T, SIMD_WIDTH> result1, result2;
@@ -2429,7 +2429,7 @@ namespace ns_simd {
   SIMDVec<T,SIMD_WIDTH> input1, input2;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
       doNotOptimize(input2);
       SIMDVec<T, SIMD_WIDTH> result =
@@ -2526,7 +2526,7 @@ namespace ns_simd {
   SIMDVec<Tcond,SIMD_WIDTH> inputCond;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-    for (int i = 0; i < SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+    for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
       doNotOptimize(input2);
       doNotOptimize(inputCond);

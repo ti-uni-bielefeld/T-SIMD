@@ -128,18 +128,19 @@ flags_archspec = $(userdefs_avx512) -pthread
 # os dependent definitions
 ifeq ($(OS),Windows_NT) 
 RM = del /Q /F
-MKDIR = mkdir
 NULL = NUL
 else
 RM = rm -f
-MKDIR = mkdir -p
 NULL = /dev/null
 endif
 
-build_dir ?= build
+# C++ files (for dependencies)
+all_cpp_files      = $(addsuffix .C,$(all_binaries))
+archspec_cpp_files = $(addsuffix .C,$(archspec_binaries))
+default_cpp_files  = $(addsuffix .C,$(default_binaries))
 
 .PHONY: all
-all: $(addprefix $(build_dir)/,$(binaries))
+all: $(binaries)
 	@echo "use 'make autotest' to compile $(autotest_binaries)"
 	@echo "  requires long compilation time and may run out of memory,"
 	@echo "  compilation may take much longer on g++ than on clang++"
@@ -147,18 +148,18 @@ all: $(addprefix $(build_dir)/,$(binaries))
 	@echo "  please select flags_archspec for your machine"
 
 .PHONY: all_tsimd
-all_tsimd: $(addprefix $(build_dir)/,$(tsimd_binaries))
+all_tsimd: $(tsimd_binaries)
 
 # all_tsimd except styleExamples and tsimdtest,
 # since those require at least C++11
 .PHONY: all_tsimd_cpp98
-all_tsimd_cpp98: $(addprefix $(build_dir)/,$(filter-out styleExamples tsimdtest,$(tsimd_binaries)))
+all_tsimd_cpp98: $(filter-out styleExamples tsimdtest,$(tsimd_binaries))
 
 .PHONY: autotest
-autotest: $(addprefix $(build_dir)/,$(autotest_binaries))
+autotest: $(autotest_binaries)
 
 .PHONY: archspec
-archspec: $(addprefix $(build_dir)/,$(archspec_binaries))
+archspec: $(archspec_binaries)
 
 #===========================================================================
 # compiler
@@ -166,15 +167,13 @@ archspec: $(addprefix $(build_dir)/,$(archspec_binaries))
 
 # https://www.gnu.org/software/make/manual/make.html#Static-Pattern
 
-$(addprefix $(build_dir)/,$(default_objects)): $(build_dir)/%.o: %.C
+$(default_objects): %.o: %.C
 	@echo compiling default $@ from $<
-	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_depends) $(flags_arch) $(flags_cpp) -c $< -o $@
 
-$(addprefix $(build_dir)/,$(archspec_objects)): $(build_dir)/%.o: %.C
+$(archspec_objects): %.o: %.C
 	@echo compiling archspec $@ from $<
 	@echo please select flags_archspec for your machine
-	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_depends) $(flags_archspec) $(flags_cpp) -c $< -o $@
 
 #===========================================================================
@@ -183,33 +182,28 @@ $(addprefix $(build_dir)/,$(archspec_objects)): $(build_dir)/%.o: %.C
 
 # https://www.gnu.org/software/make/manual/make.html#Static-Pattern
 
-$(addprefix $(build_dir)/,$(binaries)): $(build_dir)/%: $(build_dir)/%.o
+$(binaries): %: %.o
 	@echo linking $@ from $< $(libraries)
-	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
 
-$(addprefix $(build_dir)/,$(autotest_binaries)): $(build_dir)/%: $(build_dir)/%.o
+$(autotest_binaries): %: %.o
 	@echo linking $@ from $< $(libraries)
-	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
 
-$(addprefix $(build_dir)/,$(archspec_binaries)): $(build_dir)/%: $(build_dir)/%.o
+$(archspec_binaries): %: %.o
 	@echo linking $@ from $< $(libraries)
-	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_archspec) $(flags_cpp) -o $@ $< $(libraries)
 
 #===========================================================================
 # other rules
 #===========================================================================
 
-all_build_files = $(all_objects) $(all_binaries) $(depend_files) \
-		$(addsuffix .exe,$(all_binaries)) \
-		$(addsuffix .ilk,$(all_binaries)) $(addsuffix .pdb,$(all_binaries))
-
 .PHONY: clean
 clean:
 	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files and backup files
-	@$(RM) $(addprefix $(build_dir)/,$(all_build_files)) \
+	@$(RM) $(all_objects) $(all_binaries) $(depend_files) \
+		$(addsuffix .exe,$(all_binaries)) \
+		$(addsuffix .ilk,$(all_binaries)) $(addsuffix .pdb,$(all_binaries)) \
 		*~ >$(NULL) 2>&1
 
 .PHONY: info
@@ -233,6 +227,7 @@ info:
 	@echo "archspec_objects:  " $(archspec_objects)
 	@echo "default_objects    " $(default_objects)
 	@echo "all_objects:       " $(all_objects)
+	@echo "all_cpp_files:     " $(all_cpp_files)
 
 # for compileAndTest
 .PHONY: flags-info
@@ -246,4 +241,4 @@ flags-info:
 platform_dirs: ;
 dep: ;
 
--include $(addprefix $(build_dir)/,$(depend_files))
+-include $(depend_files)

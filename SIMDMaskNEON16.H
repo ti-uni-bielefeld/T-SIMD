@@ -29,6 +29,7 @@
 #ifndef _SIMDMASKNEON16_H_
 #define _SIMDMASKNEON16_H_
 
+#include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDIntrinsNEON.H"
 #include "SIMDTypes.H"
@@ -125,6 +126,17 @@ namespace ns_simd {
       GET_AND_SET_BIT(u8, 15)
       return res;
     }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(sizeof(uint8x16_t), 16); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(sizeof(uint8x16_t), 16); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
 
   template <>
@@ -204,6 +216,17 @@ namespace ns_simd {
       GET_AND_SET_BIT(s8, 15)
       return res;
     }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(sizeof(int8x16_t), 16); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(sizeof(int8x16_t), 16); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
 
   template <>
@@ -259,6 +282,17 @@ namespace ns_simd {
       GET_AND_SET_BIT(u16, 7)
       return res;
     }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(sizeof(uint16x8_t), 16); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(sizeof(uint16x8_t), 16); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
 
   template <>
@@ -314,6 +348,17 @@ namespace ns_simd {
       GET_AND_SET_BIT(s16, 7)
       return res;
     }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(sizeof(int16x8_t), 16); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(sizeof(int16x8_t), 16); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
 
   template <>
@@ -357,6 +402,17 @@ namespace ns_simd {
       GET_AND_SET_BIT(s32, 3)
       return res;
     }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(sizeof(int32x4_t), 16); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(sizeof(int32x4_t), 16); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
 
   template <>
@@ -402,6 +458,17 @@ namespace ns_simd {
       if(vgetq_lane_s32(ktemp, 3)!=0) { res|=(1<<3); }
       return res;
     }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(sizeof(float32x4_t), 16); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(sizeof(float32x4_t), 16); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
 
   template <>

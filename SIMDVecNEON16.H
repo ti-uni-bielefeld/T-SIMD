@@ -50,6 +50,7 @@
 #ifndef _SIMD_VEC_NEON_16_H_
 #define _SIMD_VEC_NEON_16_H_
 
+#include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDIntrinsNEON.H"
 #include "SIMDTypes.H"
@@ -154,6 +155,17 @@ namespace ns_simd {
     SIMDVec& operator=(const typename SIMDVecNeon<T>::Type &x) 
     { reg = x; return *this; }
     operator typename SIMDVecNeon<T>::Type() const { return reg; }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(bytes, size); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(bytes, size); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
 
   // =========================================================================

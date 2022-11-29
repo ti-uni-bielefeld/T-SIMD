@@ -28,6 +28,7 @@
 #define _SIMD_VEC_SERIAL_H_
 
 #include "Compare2Type.H"
+#include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDRandom.H"
 #include "SIMDTypes.H"
@@ -117,6 +118,17 @@ namespace ns_simd {
       assert ((i >= 0) && (i < elements));
       return vec[i];
     }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(bytes, size); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(bytes, size); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
     void randomize()
     {
       // random init

@@ -29,6 +29,7 @@
 #ifndef _SIMDMASKINTEL64_H_
 #define _SIMDMASKINTEL64_H_
 
+#include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
 #include "SIMDTypes.H"
@@ -61,6 +62,9 @@ namespace ns_simd {
 
   // 10. Oct 22 (Jonas Keller):
   // Used the int2bits and msb2int functions for conversion from/to an integer.
+  // 29. Nov 22 (Jonas Keller):
+  // defined operators new and delete to ensure proper alignment, since
+  // the default new and delete are not guaranteed to do so before C++17
   #define EMULATE_CLASS_MASK(TYPE, MASK_SIZE) \
   template <> \
   class SIMDMask<TYPE, 64> \
@@ -80,6 +84,14 @@ namespace ns_simd {
     bool operator==(const SIMDMask<TYPE, 64> &x) {\
       return _mm512_cmpeq_epi64_mask(k, x)==0xff; \
     } \
+    void *operator new(size_t size) \
+    { return simd_aligned_malloc(sizeof(__m256i), size); } \
+    void operator delete(void *p) \
+    { simd_aligned_free(p); } \
+    void *operator new[](size_t size) \
+    { return simd_aligned_malloc(sizeof(__m256i), size); } \
+    void operator delete[](void *p) \
+    { simd_aligned_free(p); } \
   };
 
 #ifdef __AVX512BW__

@@ -30,6 +30,7 @@
 #ifndef _SIMD_VEC_INTEL_16_H_
 #define _SIMD_VEC_INTEL_16_H_
 
+#include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
 #include "SIMDTypes.H"
@@ -80,6 +81,17 @@ namespace ns_simd {
     SIMDVec(const __m128i &x) { xmm = x; }
     SIMDVec& operator=(const __m128i &x) { xmm = x; return *this; }
     operator __m128i() const { return xmm; }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(bytes, size); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(bytes, size); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
 
   // ===========================================================================
@@ -99,6 +111,17 @@ namespace ns_simd {
     SIMDVec(const __m128 &x) { xmm = x; }
     SIMDVec& operator=(const __m128 &x) { xmm = x; return *this; }
     operator __m128() const { return xmm; }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(bytes, size); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(bytes, size); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
 
   // ===========================================================================

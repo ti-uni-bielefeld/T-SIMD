@@ -29,6 +29,7 @@
 #ifndef _SIMDMASKINTEL32_H_
 #define _SIMDMASKINTEL32_H_
 
+#include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
 #include "SIMDMaskIntel16.H"
@@ -72,6 +73,17 @@ namespace ns_simd {
       return test_all_zeros(
           xor(SIMDVec<SIMDByte, 32>(k), SIMDVec<SIMDByte, 32>(x)));
     }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(sizeof(__m256i), size); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(sizeof(__m256i), size); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
 
   template <>
@@ -101,6 +113,17 @@ namespace ns_simd {
     bool operator==(const SIMDMask<SIMDFloat, 32> &x) {
       return test_all_zeros(_mm256_xor_ps(k, x));
     }
+    // 29. Nov 22 (Jonas Keller):
+    // defined operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size)
+    { return simd_aligned_malloc(sizeof(__m256), size); }
+    void operator delete(void *p)
+    { simd_aligned_free(p); }
+    void *operator new[](size_t size)
+    { return simd_aligned_malloc(sizeof(__m256), size); }
+    void operator delete[](void *p)
+    { simd_aligned_free(p); }
   };
   
   template <>

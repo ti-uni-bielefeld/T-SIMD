@@ -1788,7 +1788,7 @@ namespace ns_simd {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[numInVecs];
-  double inputD;
+  double inputD = 1.0;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
@@ -1878,7 +1878,7 @@ namespace ns_simd {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[numInVecs];
-  double inputD1, inputD2;
+  double inputD1 = 1.0, inputD2 = 1.0;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
@@ -1977,7 +1977,7 @@ namespace ns_simd {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
-  double inputD;
+  double inputD = 1.0;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
@@ -2077,7 +2077,7 @@ namespace ns_simd {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
-  double inputD1, inputD2;
+  double inputD1 = 1.0, inputD2 = 1.0;
   struct timespec start = getTimeSpec();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {

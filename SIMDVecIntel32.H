@@ -503,7 +503,7 @@ namespace ns_simd {
   {
     __m256i odd = _mm256_srai_epi16(a, IMM);
     __m256i even = _mm256_srai_epi16(_mm256_slli_epi16(a, 8), IMM + 8);
-    return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16(0xff00));
+    return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16((int16_t)0xff00));
   }
 
   // positive and out of range: maximal shift

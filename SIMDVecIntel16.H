@@ -422,7 +422,7 @@ namespace ns_simd {
   {
     __m128i odd = _mm_srai_epi16(a, IMM);
     __m128i even = _mm_srai_epi16(_mm_slli_epi16(a, 8), IMM + 8);
-    __m128i odd_masked = _mm_and_si128(odd, _mm_set1_epi16(0xFF00));
+    __m128i odd_masked = _mm_and_si128(odd, _mm_set1_epi16((int16_t)0xFF00));
     __m128i even_masked = _mm_and_si128(even, _mm_set1_epi16(0x00FF));
     return _mm_or_si128(odd_masked, even_masked);
   }

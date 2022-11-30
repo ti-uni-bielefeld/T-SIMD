@@ -325,7 +325,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDFloat
   daz_neon(SIMDFloat a)
   {
-#ifdef SIMDVEC_NEON_ENABLE
+#if defined(SIMDVEC_NEON_ENABLE) && __ARM_ARCH < 8
     // use daz for ARM NEON
     return daz(a);
 #else
@@ -1319,8 +1319,12 @@ namespace ns_simd {
 	  const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &b)
   {
     SIMDSerialVec<SIMDFloat, SIMD_WIDTH> c;
-    for (int i = 0; i < c.elements; i++)
-      c[i] = (a[i] > b[i]) ? (a[i] - b[i]) : (b[i] - a[i]);
+    for (int i = 0; i < c.elements; i++) {
+      // 29. Nov 22 (Jonas Keller): applied daz_neon to inputs and result
+      SIMDFloat a_i = daz_neon(a[i]);
+      SIMDFloat b_i = daz_neon(b[i]);
+      c[i] = daz_neon((a_i > b_i) ? (a_i - b_i) : (b_i - a_i));
+    }
     return c;
   }
 

@@ -23,10 +23,6 @@
 // 
 // ===========================================================================
 
-// Please do not include this file directly! NATIVE_SIMD_WIDTH has to
-// be defined according to the architecture in the files that are
-// including SIMDVec.H.
-
 #ifndef _SIMD_VEC_H_
 #define _SIMD_VEC_H_
 

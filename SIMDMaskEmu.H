@@ -25,6 +25,68 @@
 // 
 // ===========================================================================
 
+// 30. Nov 22 (Jonas Keller):
+// NOTE:
+// The float versions of the emulated mask functions in this file as well as in
+// SIMDMaskIntel64.H are not as fast as they could be, as they are implemented
+// such that they match the not emulated ones in flag and exception behavior as
+// well. This is done by masking the inputs of the masked functions, which for
+// example leads to the following code for masked addition:
+/*
+template <int SIMD_WIDTH>
+static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
+maskz_add(const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
+          const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
+          const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
+{
+  return add(mask_ifelse(k, a, setzero<SIMDFloat, SIMD_WIDTH>()),
+             mask_ifelse(k, b, setzero<SIMDFloat, SIMD_WIDTH>()));
+}
+template <int SIMD_WIDTH>
+static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
+mask_add(const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
+         const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
+         const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
+         const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
+{
+  return mask_ifelse(k, maskz_add(k, a, b), src);
+}
+*/
+// which calls mask_ifelse 3 times for one call of mask_add, instead of
+/*
+template <int SIMD_WIDTH>
+static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
+maskz_add(const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
+          const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
+          const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
+{
+  return mask_ifelse(k, add(a, b), setzero<SIMDFloat, SIMD_WIDTH>());
+}
+template <int SIMD_WIDTH>
+static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
+mask_add(const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
+         const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
+         const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
+         const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
+{
+  return mask_ifelse(k, add(a, b), k);
+}
+*/
+// which calls mask_ifelse only once for one call of mask_add.
+//
+// The second version would however for example set the denormal flag if an
+// input is denormalized, even if the corresponding mask bit is not set, which
+// is different from the behavior of the not emulated mask functions.
+//
+// It may be worth considering to implement the emulated mask functions
+// analogous to the second version to improve performance. This would
+// change the flag/exception behavior of the emulated mask functions.
+// However, the flag/exception behavior is probably not correct in the
+// whole library anyway, and probably also different on ARM.
+// Additionally, the T-SIMD does not provide an architecture independent
+// way to use flags or exceptions, so emulating them does not make much
+// sense anyway.
+
 #ifndef _SIMDMASKEMU_H_
 #define _SIMDMASKEMU_H_
 

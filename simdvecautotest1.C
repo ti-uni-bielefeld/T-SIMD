@@ -174,6 +174,9 @@ main(int argc, char *argv[])
   // 15. Oct 22 (Jonas Keller): added test for swizzle4 and unswizzle4
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Swizzle4>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Unswizzle4>::test(repeats1, pattern);
+  // 04. Dec 22 (Jonas Keller): The bitonic sorts flush denormals to zero on
+  // ARMv7, since the min and max operations flush denormals to zero on ARMv7.
+  // This results in autotest errors on ARMv7.
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSort>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSort2>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,BitonicSortSortedPairs>::test(repeats1, pattern);

@@ -157,6 +157,10 @@ main(int argc, char *argv[])
   TestIntTI<UnaryTemplateIntMinToMax,SW,Srai>::test(repeats1, pattern);
   TestIntTI<UnaryTemplateIntMinToMax,SW,Srli>::test(repeats1, pattern);
   TestIntTI<UnaryTemplateIntMinToMax,SW,Slli>::test(repeats1, pattern);
+  // 19. Dec 22 (Jonas Keller): added test for Sra, Srl and Sll
+  TestInt<UnaryUInt8,SW,Sra>::test(repeats1, pattern);
+  TestInt<UnaryUInt8,SW,Srl>::test(repeats1, pattern);
+  TestInt<UnaryUInt8,SW,Sll>::test(repeats1, pattern);
   UnaryTemplateType<SIMDInt,SIMDFloat,SW,Cvts>::test(repeats1, pattern);
   UnaryTemplateType<SIMDFloat,SIMDInt,SW,Cvts>::test(repeats1, pattern);
   TestAll<Binary,SW,Hadd>::test(repeats1, pattern);

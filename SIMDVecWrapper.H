@@ -776,6 +776,75 @@ namespace ns_simd {
     }
   };
 
+
+  // 19. Dec 22 (Jonas Keller): added Sra, Srl and Sll wrappers
+
+  template <typename T, int SIMD_WIDTH>
+  struct Sra 
+  {
+    static SIMD_INLINE std::string name()
+    { return t2s<T,SIMD_WIDTH>("sra"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomizeRanges(); }
+
+    static SIMD_INLINE uint8_t
+    randomizeInputScalar()
+    { return getRandomOrSpecialValue<uint8_t>(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE VEC<T,SIMD_WIDTH>
+    apply(const VEC<T,SIMD_WIDTH> &a, const uint8_t count)
+    {
+      return sra(a, count);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  struct Srl 
+  {
+    static SIMD_INLINE std::string name()
+    { return t2s<T,SIMD_WIDTH>("srl"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomizeRanges(); }
+
+    static SIMD_INLINE uint8_t
+    randomizeInputScalar()
+    { return getRandomOrSpecialValue<uint8_t>(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE VEC<T,SIMD_WIDTH>
+    apply(const VEC<T,SIMD_WIDTH> &a, const uint8_t count)
+    {
+      return srl(a, count);
+    }
+  };
+
+  template <typename T, int SIMD_WIDTH>
+  struct Sll 
+  {
+    static SIMD_INLINE std::string name()
+    { return t2s<T,SIMD_WIDTH>("sll"); }
+
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomizeRanges(); }
+
+    static SIMD_INLINE uint8_t
+    randomizeInputScalar()
+    { return getRandomOrSpecialValue<uint8_t>(); }
+
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE VEC<T,SIMD_WIDTH>
+    apply(const VEC<T,SIMD_WIDTH> &a, const uint8_t count)
+    {
+      return sll(a, count);
+    }
+  };
+
   template <typename Tout, typename T, int SIMD_WIDTH>
   struct Cvts
   {

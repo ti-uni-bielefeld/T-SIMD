@@ -3530,6 +3530,177 @@ namespace ns_simd {
 #endif
 
 
+  // 19. Dec 22 (Jonas Keller): added sra, srl and sll functions
+
+  // ---------------------------------------------------------------------------
+  // sra
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX2__
+
+  static SIMD_INLINE SIMDVec<SIMDByte,32>
+  sra(const SIMDVec<SIMDByte,32> &a, const uint8_t count)
+  {
+    if (count >= 8) {
+      // result should be all ones if a is negative, all zeros otherwise
+      return _mm256_cmpgt_epi8(_mm256_setzero_si256(), a);
+    }
+    __m256i odd = _mm256_sra_epi16(a, _mm_cvtsi32_si128(count));
+    __m256i even =
+        _mm256_sra_epi16(_mm256_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
+    return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16((int16_t)0xff00));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,32>
+  sra(const SIMDVec<SIMDSignedByte,32> &a, const uint8_t count)
+  {
+    if (count >= 8) {
+      // result should be all ones if a is negative, all zeros otherwise
+      return _mm256_cmpgt_epi8(_mm256_setzero_si256(), a);
+    }
+    __m256i odd = _mm256_sra_epi16(a, _mm_cvtsi32_si128(count));
+    __m256i even =
+        _mm256_sra_epi16(_mm256_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
+    return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16((int16_t)0xff00));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,32> 
+  sra(const SIMDVec<SIMDWord,32> &a, const uint8_t count)
+  {
+    return _mm256_sra_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,32> 
+  sra(const SIMDVec<SIMDShort,32> &a, const uint8_t count)
+  {
+    return _mm256_sra_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,32>
+  sra(const SIMDVec<SIMDInt,32> &a, const uint8_t count)
+  {
+    return _mm256_sra_epi32(a, _mm_cvtsi32_si128(count));
+  }
+
+#else
+
+  // non-avx2 workaround
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T,32>
+  sra(const SIMDVec<T,32> &a, const uint8_t count)
+  {
+    return SIMDVec<T,32>(sra(a.lo(), count),
+       sra(a.hi(), count));
+  }
+
+#endif
+
+  // ---------------------------------------------------------------------------
+  // srl
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX2__
+
+  static SIMD_INLINE SIMDVec<SIMDByte,32>
+  srl(const SIMDVec<SIMDByte,32> &a, const uint8_t count)
+  {
+    return _mm256_and_si256(
+        _mm256_srl_epi16(a, _mm_cvtsi32_si128(count)),
+        _mm256_set1_epi8((int8_t)(uint8_t)(0xff >> count)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,32>
+  srl(const SIMDVec<SIMDSignedByte,32> &a, const uint8_t count)
+  {
+    return _mm256_and_si256(
+        _mm256_srl_epi16(a, _mm_cvtsi32_si128(count)),
+        _mm256_set1_epi8((int8_t)(uint8_t)(0xff >> count)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,32>
+  srl(const SIMDVec<SIMDWord,32> &a, const uint8_t count)
+  {
+    return _mm256_srl_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,32>
+  srl(const SIMDVec<SIMDShort,32> &a, const uint8_t count)
+  {
+    return _mm256_srl_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,32>
+  srl(const SIMDVec<SIMDInt,32> &a, const uint8_t count)
+  {
+    return _mm256_srl_epi32(a, _mm_cvtsi32_si128(count));
+  }
+
+#else
+
+  // non-avx2 workaround
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T,32>
+  srl(const SIMDVec<T,32> &a, const uint8_t count)
+  {
+    return SIMDVec<T,32>(srl(a.lo(), count),
+       srl(a.hi(), count));
+  }
+
+#endif
+
+  // ---------------------------------------------------------------------------
+  // sll
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX2__
+
+  static SIMD_INLINE SIMDVec<SIMDByte,32>
+  sll(const SIMDVec<SIMDByte,32> &a, const uint8_t count)
+  {
+    return x_mm256_and_si256(
+        _mm256_sll_epi16(a, _mm_cvtsi32_si128(count)),
+        _mm256_set1_epi8((int8_t)(uint8_t)(0xff & (0xff << count))));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,32>
+  sll(const SIMDVec<SIMDSignedByte,32> &a, const uint8_t count)
+  {
+    return x_mm256_and_si256(
+        _mm256_sll_epi16(a, _mm_cvtsi32_si128(count)),
+        _mm256_set1_epi8((int8_t)(uint8_t)(0xff & (0xff << count))));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,32>
+  sll(const SIMDVec<SIMDWord,32> &a, const uint8_t count)
+  {
+    return _mm256_sll_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,32>
+  sll(const SIMDVec<SIMDShort,32> &a, const uint8_t count)
+  {
+    return _mm256_sll_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,32>
+  sll(const SIMDVec<SIMDInt,32> &a, const uint8_t count)
+  {
+    return _mm256_sll_epi32(a, _mm_cvtsi32_si128(count));
+  }
+
+#else
+
+  // non-avx2 workaround
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T,32>
+  sll(const SIMDVec<T,32> &a, const uint8_t count)
+  {
+    return SIMDVec<T,32>(sll(a.lo(), count),
+       sll(a.hi(), count));
+  }
+
+#endif
+
   // 19. Sep 22 (Jonas Keller):
   // added SIMDByte and SIMDSignedByte versions of hadd, hadds, hsub and hsubs
   // added SIMDWord version of hadds and hsubs

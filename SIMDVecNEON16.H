@@ -56,6 +56,7 @@
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
 
+#include <algorithm>
 #include <stdint.h>
 
 #ifdef SIMDVEC_NEON_ENABLE
@@ -1598,6 +1599,175 @@ namespace ns_simd {
   SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(slli,SIMDShort,vshlq_n,s16,16)  
   SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(slli,SIMDInt,vshlq_n,s32,32)  
 
+
+  // 19. Dec 22 (Jonas Keller): added sra, srl and sll functions
+
+  // -------------------------------------------------------------------------
+  // sra
+  // -------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDByte,16>
+  sra(const SIMDVec<SIMDByte,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vreinterpretq_u8_s8(
+        vshrq_n_s8(vreinterpretq_s8_u8(a), std::min(count, uint8_t(8))));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  sra(const SIMDVec<SIMDSignedByte,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vshrq_n_s8(a, std::min(count, uint8_t(8)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,16>
+  sra(const SIMDVec<SIMDWord,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vreinterpretq_u16_s16(
+        vshrq_n_s16(vreinterpretq_s16_u16(a), std::min(count, uint8_t(16))));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,16>
+  sra(const SIMDVec<SIMDShort,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vshrq_n_s16(a, std::min(count, uint8_t(16)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,16>
+  sra(const SIMDVec<SIMDInt,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vshrq_n_s32(a, std::min(count, uint8_t(32)));
+  }
+
+  // -------------------------------------------------------------------------
+  // srl
+  // -------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDByte,16>
+  srl(const SIMDVec<SIMDByte,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vshrq_n_u8(a, std::min(count, uint8_t(8)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  srl(const SIMDVec<SIMDSignedByte,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vreinterpretq_s8_u8(
+        vshrq_n_u8(vreinterpretq_u8_s8(a), std::min(count, uint8_t(8))));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,16>
+  srl(const SIMDVec<SIMDWord,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vshrq_n_u16(a, std::min(count, uint8_t(16)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,16>
+  srl(const SIMDVec<SIMDShort,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vreinterpretq_s16_u16(
+        vshrq_n_u16(vreinterpretq_u16_s16(a), std::min(count, uint8_t(16))));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,16>
+  srl(const SIMDVec<SIMDInt,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vreinterpretq_s32_u32(
+        vshrq_n_u32(vreinterpretq_u32_s32(a), std::min(count, uint8_t(32))));
+  }
+
+  // -------------------------------------------------------------------------
+  // sll
+  // -------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDByte,16>
+  sll(const SIMDVec<SIMDByte,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vshlq_n_u8(a, std::min(count, uint8_t(8)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  sll(const SIMDVec<SIMDSignedByte,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vshlq_n_s8(a, std::min(count, uint8_t(8)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,16>
+  sll(const SIMDVec<SIMDWord,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vshlq_n_u16(a, std::min(count, uint8_t(16)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,16>
+  sll(const SIMDVec<SIMDShort,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vshlq_n_s16(a, std::min(count, uint8_t(16)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,16>
+  sll(const SIMDVec<SIMDInt,16> &a, const uint8_t count)
+  {
+    if (count == 0) {
+      // is this necessary? what does vshrq_n do for count==0?
+      return a;
+    }
+    return vshlq_n_s32(a, std::min(count, uint8_t(32)));
+  }
 
   // 26. Sep 22 (Jonas Keller):
   // added SIMDByte and SIMDSignedByte versions of hadd, hadds, hsub and hsubs

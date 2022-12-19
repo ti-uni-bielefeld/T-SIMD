@@ -516,6 +516,28 @@ namespace ns_simd {
   }
 
   // ---------------------------------------------------------------------------
+  // element-wise shift where count does not need to be constant
+  // ---------------------------------------------------------------------------
+
+  // 19. Dec 22 (Jonas Keller): added x_mm_sra_epi8
+
+  static SIMD_INLINE __m128i
+  x_mm_sra_epi8(__m128i a, uint8_t count)
+  {
+    // there is no _mm_sra_epi8 intrinsic
+    if (count >= 8) {
+      // result should be all ones if a is negative, all zeros otherwise
+      return _mm_cmplt_epi8(a, _mm_setzero_si128());
+    }
+    __m128i odd = _mm_sra_epi16(a, _mm_cvtsi32_si128(count));
+    __m128i even =
+        _mm_sra_epi16(_mm_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
+    __m128i odd_masked = _mm_and_si128(odd, _mm_set1_epi16((int16_t)0xFF00));
+    __m128i even_masked = _mm_and_si128(even, _mm_set1_epi16(0x00FF));
+    return _mm_or_si128(odd_masked, even_masked);
+  }
+
+  // ---------------------------------------------------------------------------
   // extract
   // ---------------------------------------------------------------------------
 
@@ -2470,6 +2492,117 @@ namespace ns_simd {
   slli(const SIMDVec<SIMDInt,16> &a)
   {
     return x_mm_slli_epi32<IMM>(a);
+  }
+
+
+  // 19. Dec 22 (Jonas Keller): added sra, srl and sll functions
+
+  // ---------------------------------------------------------------------------
+  // sra
+  // ---------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDByte,16>
+  sra(const SIMDVec<SIMDByte,16> &a, const uint8_t count)
+  {
+    return x_mm_sra_epi8(a, count);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  sra(const SIMDVec<SIMDSignedByte,16> &a, const uint8_t count)
+  {
+    return x_mm_sra_epi8(a, count);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,16>
+  sra(const SIMDVec<SIMDWord,16> &a, const uint8_t count)
+  {
+    return _mm_sra_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,16>
+  sra(const SIMDVec<SIMDShort,16> &a, const uint8_t count)
+  {
+    return _mm_sra_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,16>
+  sra(const SIMDVec<SIMDInt,16> &a, const uint8_t count)
+  {
+    return _mm_sra_epi32(a, _mm_cvtsi32_si128(count));
+  }
+
+  // ---------------------------------------------------------------------------
+  // srl
+  // ---------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDByte,16>
+  srl(const SIMDVec<SIMDByte,16> &a, const uint8_t count)
+  {
+    return _mm_and_si128(_mm_srl_epi16(a, _mm_cvtsi32_si128(count)),
+                         _mm_set1_epi8((int8_t)(uint8_t)(0xff >> count)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  srl(const SIMDVec<SIMDSignedByte,16> &a, const uint8_t count)
+  {
+    return _mm_and_si128(_mm_srl_epi16(a, _mm_cvtsi32_si128(count)),
+                         _mm_set1_epi8((int8_t)(uint8_t)(0xff >> count)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,16>
+  srl(const SIMDVec<SIMDWord,16> &a, const uint8_t count)
+  {
+    return _mm_srl_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,16>
+  srl(const SIMDVec<SIMDShort,16> &a, const uint8_t count)
+  {
+    return _mm_srl_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,16>
+  srl(const SIMDVec<SIMDInt,16> &a, const uint8_t count)
+  {
+    return _mm_srl_epi32(a, _mm_cvtsi32_si128(count));
+  }
+
+  // ---------------------------------------------------------------------------
+  // sll
+  // ---------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDByte,16>
+  sll(const SIMDVec<SIMDByte,16> &a, const uint8_t count)
+  {
+    return _mm_and_si128(
+        _mm_sll_epi16(a, _mm_cvtsi32_si128(count)),
+        _mm_set1_epi8((int8_t)(uint8_t)(0xff & (0xff << count))));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  sll(const SIMDVec<SIMDSignedByte,16> &a, const uint8_t count)
+  {
+    return _mm_and_si128(
+        _mm_sll_epi16(a, _mm_cvtsi32_si128(count)),
+        _mm_set1_epi8((int8_t)(uint8_t)(0xff & (0xff << count))));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,16>
+  sll(const SIMDVec<SIMDWord,16> &a, const uint8_t count)
+  {
+    return _mm_sll_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,16>
+  sll(const SIMDVec<SIMDShort,16> &a, const uint8_t count)
+  {
+    return _mm_sll_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,16>
+  sll(const SIMDVec<SIMDInt,16> &a, const uint8_t count)
+  {
+    return _mm_sll_epi32(a, _mm_cvtsi32_si128(count));
   }
 
 

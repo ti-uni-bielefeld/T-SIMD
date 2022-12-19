@@ -679,61 +679,6 @@ namespace ns_simd {
   {
     return _convert(CompareTypes<Tout,Tin>(), OutputType<Tout>(), in);
   }
-  
-  // -------------------------------------------------------------------------
-  // shifts
-  // -------------------------------------------------------------------------
-
-  // work around for e.g. ARM compiler warning "left/right shift count
-  // >= width of type"
-
-  template <int IMM, typename T>
-  static SIMD_INLINE T
-  _srli(T in, IsPosInRange<true, true>)
-  {
-    // on signed types, we force the compiler to use an unsigned shift
-    typedef typename SIMDTypeInfo<T>::UnsignedType U;
-    U u = U(in);
-    u = u >> IMM; 
-    return T(u);
-  }
-
-  template <int IMM, typename T>
-  static SIMD_INLINE T
-  _srli(T, IsPosInRange<true, false>)
-  {
-    return T(0);
-  }
-
-  // hub
-  template <int IMM, typename T>
-  static SIMD_INLINE T
-  _srli(T in)
-  {
-    return _srli<IMM>(in, IsPosInBitRange<T, IMM>());
-  }
-  
-  template <int IMM, typename T>
-  static SIMD_INLINE T
-  _slli(T in, IsPosInRange<true, true>)
-  {
-    return in << IMM;
-  }
-
-  template <int IMM, typename T>
-  static SIMD_INLINE T
-  _slli(T, IsPosInRange<true, false>)
-  {
-    return T(0);
-  }
-
-  // hub
-  template <int IMM, typename T>
-  static SIMD_INLINE T
-  _slli(T in)
-  {
-    return _slli<IMM>(in, IsPosInBitRange<T, IMM>());
-  }
 
   // =========================================================================
   // wrapper for template functions without vector arguments
@@ -1469,42 +1414,85 @@ namespace ns_simd {
     *vOut = cvts(vIn);
   }
 
-  template <int IMM, typename T, int SIMD_WIDTH>
+
+  // 19. Dec 22 (Jonas Keller): added sra, srl and sll functions
+
+  template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH>
-  srai(const SIMDSerialVec<T, SIMD_WIDTH> &a)
+  sra(const SIMDSerialVec<T, SIMD_WIDTH> &a, const uint8_t count)
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     // operator >> on signed types is *usually* an arithmetic right
     // shift, but this is not guaranteed, so we use a workaround
     typedef typename SIMDTypeInfo<T>::UnsignedType U;
-    U m = 1u << (sizeof(T)*8-1); 
+    U signBitMask = U(1) << (sizeof(T)*8-1); 
     for (int i = 0; i < c.elements; i++) {
-      U u = U(a[i]);
-      for (int s = 0; s < IMM; s++)
-	u = (u >> 1) | (u & m);
-      c[i] = T(u);
+      U result = U(a[i]);
+      if (count >= sizeof(T)*8) {
+        result = (U(a[i]) & signBitMask) != 0 ? ~U(0) : 0;
+      } else {
+        for (int s = 0; s < count; s++) {
+          result = (result >> 1) | (result & signBitMask);
+        }
+      }
+      c[i] = T(result);
+    }
+    return c;
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH>
+  srl(const SIMDSerialVec<T, SIMD_WIDTH> &a, const uint8_t count)
+  {
+    SIMDSerialVec<T, SIMD_WIDTH> c;
+    // on signed types, we force the compiler to use an unsigned shift
+    typedef typename SIMDTypeInfo<T>::UnsignedType U;
+    for (int i = 0; i < c.elements; i++) {
+      if (count >= sizeof(T)*8) {
+        c[i] = 0;
+      } else {
+        c[i] = T(U(a[i]) >> count);
+      }
+    }
+    return c;
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH>
+  sll(const SIMDSerialVec<T, SIMD_WIDTH> &a, const uint8_t count)
+  {
+    SIMDSerialVec<T, SIMD_WIDTH> c;
+    // on signed types, we force the compiler to use an unsigned shift
+    typedef typename SIMDTypeInfo<T>::UnsignedType U;
+    for (int i = 0; i < c.elements; i++) {
+      if (count >= sizeof(T)*8) {
+        c[i] = 0;
+      } else {
+        c[i] = T(U(a[i]) << count);
+      }
     }
     return c;
   }
 
   template <int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH>
+  srai(const SIMDSerialVec<T, SIMD_WIDTH> &a)
+  {
+    return sra(a, IMM);
+  }
+
+  template <int IMM, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH>
   srli(const SIMDSerialVec<T, SIMD_WIDTH> &a)
   {
-    SIMDSerialVec<T, SIMD_WIDTH> c;
-    for (int i = 0; i < c.elements; i++) 
-      c[i] = _srli<IMM>(a[i]);
-    return c;
+    return srl(a, IMM);
   }
 
   template <int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH>
   slli(const SIMDSerialVec<T, SIMD_WIDTH> &a)
   {
-    SIMDSerialVec<T, SIMD_WIDTH> c;
-    for (int i = 0; i < c.elements; i++)
-      c[i] = _slli<IMM>(a[i]);
-    return c;
+    return sll(a, IMM);
   }
 
   template <typename T, int SIMD_WIDTH>

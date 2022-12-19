@@ -3733,6 +3733,181 @@ namespace ns_simd {
   }
 
 
+  // 19. Dec 22 (Jonas Keller): added sra, srl and sll functions
+
+  // ---------------------------------------------------------------------------
+  // sra
+  // ---------------------------------------------------------------------------
+
+#ifdef __AVX512BW__
+
+  static SIMD_INLINE SIMDVec<SIMDByte,64>
+  sra(const SIMDVec<SIMDByte,64> &a, const uint8_t count)
+  {
+    if (count >= 8) {
+      // result should be all ones if a is negative, all zeros otherwise
+      return _mm512_movm_epi8(
+          _mm512_cmplt_epi8_mask(a, _mm512_setzero_si512()));
+    }
+    __m512i odd = _mm512_sra_epi16(a, _mm_cvtsi32_si128(count));
+    __m512i even =
+        _mm512_sra_epi16(_mm512_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
+    __mmask64 mask = _cvtu64_mask64(0x5555555555555555);
+    return _mm512_mask_blend_epi8(mask, odd, even);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64>
+  sra(const SIMDVec<SIMDSignedByte,64> &a, const uint8_t count)
+  {
+    if (count >= 8) {
+      // result should be all ones if a is negative, all zeros otherwise
+      return _mm512_movm_epi8(
+          _mm512_cmplt_epi8_mask(a, _mm512_setzero_si512()));
+    }
+    __m512i odd = _mm512_sra_epi16(a, _mm_cvtsi32_si128(count));
+    __m512i even =
+        _mm512_sra_epi16(_mm512_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
+    __mmask64 mask = _cvtu64_mask64(0x5555555555555555);
+    return _mm512_mask_blend_epi8(mask, odd, even);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,64> 
+  sra(const SIMDVec<SIMDWord,64> &a, const uint8_t count)
+  {
+    return _mm512_sra_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,64> 
+  sra(const SIMDVec<SIMDShort,64> &a, const uint8_t count)
+  {
+    return _mm512_sra_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+#else
+
+  // non-avx512bw workaround
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  sra(const SIMDVec<T,64> &a, const uint8_t count)
+  {
+    return SIMDVec<T,64>(sra(a.lo(), count),
+       sra(a.hi(), count));
+  }
+
+#endif
+
+  static SIMD_INLINE SIMDVec<SIMDInt,64>
+  sra(const SIMDVec<SIMDInt,64> &a, const uint8_t count)
+  {
+    return _mm512_sra_epi32(a, _mm_cvtsi32_si128(count));
+  }
+
+  // ---------------------------------------------------------------------------
+  // srl
+  // ---------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDByte,64>
+  srl(const SIMDVec<SIMDByte,64> &a, const uint8_t count)
+  {
+    return _mm512_and_si512(
+        _mm512_srl_epi32(a, _mm_cvtsi32_si128(count)),
+        _mm512_set1_epi8((int8_t)(uint8_t)(0xff >> count)));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64>
+  srl(const SIMDVec<SIMDSignedByte,64> &a, const uint8_t count)
+  {
+    return _mm512_and_si512(
+        _mm512_srl_epi32(a, _mm_cvtsi32_si128(count)),
+        _mm512_set1_epi8((int8_t)(uint8_t)(0xff >> count)));
+  }
+
+#ifdef __AVX512BW__
+
+  static SIMD_INLINE SIMDVec<SIMDWord,64>
+  srl(const SIMDVec<SIMDWord,64> &a, const uint8_t count)
+  {
+    return _mm512_srl_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,64>
+  srl(const SIMDVec<SIMDShort,64> &a, const uint8_t count)
+  {
+    return _mm512_srl_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+#else
+
+  // non-avx512bw workaround
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  srl(const SIMDVec<T,64> &a, const uint8_t count)
+  {
+    return SIMDVec<T,64>(srl(a.lo(), count),
+       srl(a.hi(), count));
+  }
+
+#endif
+
+  static SIMD_INLINE SIMDVec<SIMDInt,64>
+  srl(const SIMDVec<SIMDInt,64> &a, const uint8_t count)
+  {
+    return _mm512_srl_epi32(a, _mm_cvtsi32_si128(count));
+  }
+
+  // ---------------------------------------------------------------------------
+  // sll
+  // ---------------------------------------------------------------------------
+
+  static SIMD_INLINE SIMDVec<SIMDByte,64>
+  sll(const SIMDVec<SIMDByte,64> &a, const uint8_t count)
+  {
+    return _mm512_and_si512(
+        _mm512_sll_epi32(a, _mm_cvtsi32_si128(count)),
+        _mm512_set1_epi8((int8_t)(uint8_t)(0xff & (0xff << count))));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64>
+  sll(const SIMDVec<SIMDSignedByte,64> &a, const uint8_t count)
+  {
+    return _mm512_and_si512(
+        _mm512_sll_epi32(a, _mm_cvtsi32_si128(count)),
+        _mm512_set1_epi8((int8_t)(uint8_t)(0xff & (0xff << count))));
+  }
+
+#ifdef __AVX512BW__
+
+  static SIMD_INLINE SIMDVec<SIMDWord,64>
+  sll(const SIMDVec<SIMDWord,64> &a, const uint8_t count)
+  {
+    return _mm512_sll_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,64>
+  sll(const SIMDVec<SIMDShort,64> &a, const uint8_t count)
+  {
+    return _mm512_sll_epi16(a, _mm_cvtsi32_si128(count));
+  }
+
+#else
+
+  // non-avx512bw workaround
+  template <typename T>
+  static SIMD_INLINE SIMDVec<T,64>
+  sll(const SIMDVec<T,64> &a, const uint8_t count)
+  {
+    return SIMDVec<T,64>(sll(a.lo(), count),
+       sll(a.hi(), count));
+  }
+
+#endif
+
+  static SIMD_INLINE SIMDVec<SIMDInt,64>
+  sll(const SIMDVec<SIMDInt,64> &a, const uint8_t count)
+  {
+    return _mm512_sll_epi32(a, _mm_cvtsi32_si128(count));
+  }
+
   // 05. Aug 22 (Jonas Keller):
   // Improved implementation of hadd, hadds, hsub and hsubs,
   // implementation does not use emulation via AVX anymore.

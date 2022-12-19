@@ -938,6 +938,65 @@ namespace ns_simd {
   };
 
   // ===========================================================================
+  // test of unary commands with add. uint8_t function parameter and vec result
+  // ===========================================================================
+
+  // 19. Dec 22 (Jonas Keller): added UnaryUInt8
+
+  template <typename T, int SIMD_WIDTH,
+      template <typename, int> class FCT,
+      class CMP = CmpEqual>
+  struct UnaryUInt8
+  {
+    static void
+    test(int repeats, const std::string &pattern)
+    {
+      std::string args = "v";
+      SIMDSerialVec<T,SIMD_WIDTH> a;
+      uint8_t b;
+      SIMDSerialVec<T,SIMD_WIDTH> cs, cp;
+      const char *fmt = SIMDTypeInfo<T>::defaultFormat();
+      const char *fmtRes = SIMDTypeInfo<T>::defaultFormat();
+      std::string name = FCT<T,SIMD_WIDTH>::name();
+      if (name.find(pattern) != std::string::npos) {
+        printInfo(name, args);
+        int errors = 0, trials = 0;
+        for (int i = 0; i < repeats; i++, trials++) {
+          FCT<T,SIMD_WIDTH>::randomizeInput(a);
+          b = FCT<T,SIMD_WIDTH>::randomizeInputScalar();
+          cs = FCT<T,SIMD_WIDTH>::apply(a, b);
+          cp.setSIMDVec(FCT<T,SIMD_WIDTH>::apply(a.getSIMDVec(), b));
+          if (!CMP::cmpVec(cs, cp)) {
+            errors++;
+            if (errors <= PRINT_ERRORS) {
+              printError(name, args);
+              PRINT(fmt,a);
+              PRINTVAL("%" PRIu8,b);
+              PRINT(fmtRes,cs);
+              PRINT(fmtRes,cp);
+            }
+            EXIT;
+          }
+        }
+        printErrorStats(errors, trials);
+
+        SIMDVec<T,SIMD_WIDTH> input;
+        struct timespec start = getTimeSpec();
+        for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+          for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+            doNotOptimize(input);
+            SIMDVec<T,SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input, 0);
+            doNotOptimize(res);
+          }
+        }
+        struct timespec end = getTimeSpec();
+        long int time = timeSpecDiffNsec(end, start);
+        printTimeStats(time, repeats);
+      }
+    }
+  };
+
+  // ===========================================================================
   // test of unary commands with single type template parameter
   // ===========================================================================
 

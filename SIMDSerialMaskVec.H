@@ -26,6 +26,8 @@
 #ifndef _SIMD_MASK_VEC_SERIAL_H_
 #define _SIMD_MASK_VEC_SERIAL_H_
 
+#include "SIMDMaskArchSpec.H"
+#include "SIMDMaskEmu.H"
 #include "SIMDSerialVec.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
@@ -101,6 +103,12 @@ public:
     return (mask & (UInt<bits>(1) << i)) != 0;
   }
 
+  void setTrue(const uint8_t i) {
+    if (i < bits) {
+      mask = mask | (UInt<bits>(1) << i);
+    }
+  }
+
   void randomize() {
     // randomize with a 1 in 16 chance to be all 1s or all 0s
     // to make sure these cases are also tested
@@ -124,6 +132,58 @@ public:
     return SIMDSerialMask<T, SIMD_WIDTH>(x);
   }
 };
+
+// ===========================================================================
+// wrapper for template functions without vector arguments
+// ===========================================================================
+
+// 28. Dec 22 (Jonas Keller): Added MaskDeductor
+
+template <template <typename, int> class MASK> struct MaskDeductor;
+
+template <> struct MaskDeductor<SIMDMask> {
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  _setTrueLeft(const unsigned int x) {
+    return setTrueLeft<T, SIMD_WIDTH>(x);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  _setTrueRight(const unsigned int x) {
+    return setTrueRight<T, SIMD_WIDTH>(x);
+  }
+};
+
+template <> struct MaskDeductor<SIMDSerialMask> {
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDSerialMask<T, SIMD_WIDTH>
+  _setTrueLeft(const unsigned int x) {
+    SIMDSerialMask<T, SIMD_WIDTH> result;
+    for (unsigned int i = 0; i < result.bits; i++) {
+      // TODO: is this the right way around?
+      if (i >= x) {
+        result.setTrue(i);
+      }
+    }
+    return result;
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDSerialMask<T, SIMD_WIDTH>
+  _setTrueRight(const unsigned int x) {
+    SIMDSerialMask<T, SIMD_WIDTH> result;
+    for (unsigned int i = 0; i < result.bits; i++) {
+      // TODO: is this the right way around?
+      if (((long)i) < result.bits - ((long)x)) {
+        result.setTrue(i);
+      }
+    }
+    return result;
+  }
+};
+
+
 
 template <typename T, int SIMD_WIDTH>
 static SIMDSerialVec<T, SIMD_WIDTH>

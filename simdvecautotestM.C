@@ -185,6 +185,10 @@ int main(int argc, char *argv[]) {
   TestAllTI<TesterUnaryKTIMinToMax, SW, Kshiftli>::test(repeats1, pattern);
   TestAllTI<TesterUnaryKTIMinToMax, SW, Kshiftri>::test(repeats1, pattern);
 
+  // 28. Dec 22 (Jonas Keller): added tests for setTrueLeft and setTrueRight
+  TestAll<TesterIntToMask, SW, SetTrueLeft>::test(repeats1, pattern);
+  TestAll<TesterIntToMask, SW, SetTrueRight>::test(repeats1, pattern);
+
   printf("simdvecautotestM complete\n");
   return 0;
 }

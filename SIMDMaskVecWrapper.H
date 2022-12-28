@@ -27,6 +27,7 @@
 #define _SIMD_MASK_VEC_WRAPPER_H_
 
 #include "SIMDDefs.H"
+#include "SIMDMaskEmu.H"
 #include "SIMDRandom.H"
 #include "SIMDSerialMaskVec.H"
 #include "SIMDSerialVec.H"
@@ -432,6 +433,30 @@ template <int IMM, typename T, int SIMD_WIDTH> struct Kshiftri {
   template <template <typename, int> class Mask>
   static Mask<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &a) {
     return kshiftri<IMM>(a);
+  }
+};
+
+// 28. Dec 22 (Jonas Keller): added SetTrueLeft and SetTrueRight
+
+template <typename T, int SIMD_WIDTH> struct SetTrueLeft {
+  static std::string name() { return t2s<T, SIMD_WIDTH>("setTrueLeft"); }
+  static unsigned int randomizeInputUInt() {
+    return getRandomOrSpecialValueRanges<SIMDByte>();
+  }
+  template <template <typename, int> class Mask>
+  static Mask<T, SIMD_WIDTH> apply(unsigned int i) {
+    return MaskDeductor<Mask>::template _setTrueLeft<T, SIMD_WIDTH>(i);
+  }
+};
+
+template <typename T, int SIMD_WIDTH> struct SetTrueRight {
+  static std::string name() { return t2s<T, SIMD_WIDTH>("setTrueRight"); }
+  static unsigned int randomizeInputUInt() {
+    return getRandomOrSpecialValueRanges<SIMDByte>();
+  }
+  template <template <typename, int> class Mask>
+  static Mask<T, SIMD_WIDTH> apply(unsigned int i) {
+    return MaskDeductor<Mask>::template _setTrueRight<T, SIMD_WIDTH>(i);
   }
 };
 

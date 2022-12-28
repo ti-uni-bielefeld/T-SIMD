@@ -1182,6 +1182,55 @@ struct TesterUnaryKTIMinToMax {
   }
 };
 
+
+// 28. Dec 22 (Jonas Keller): added TesterIntToMask
+template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+          class CMP = CmpEqual>
+struct TesterIntToMask {
+  static void test(int repeats, const std::string &pattern) {
+    std::string name = FCT<T, SIMD_WIDTH>::name();
+    if (name.find(pattern) == std::string::npos) {
+      return;
+    }
+    std::string args = "i";
+    printInfo(name, args);
+    int errors = 0, trials = 0;
+    for (int i = 0; i < repeats; i++, trials++) {
+      unsigned int k = FCT<T, SIMD_WIDTH>::randomizeInputUInt();
+      SIMDSerialMask<T, SIMD_WIDTH> cs =
+          FCT<T, SIMD_WIDTH>::template apply<SIMDSerialMask>(k);
+      SIMDSerialMask<T, SIMD_WIDTH> cp =
+          SIMDSerialMask<T, SIMD_WIDTH>::fromSIMDMask(
+              FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(k));
+      if (cs != cp) {
+        errors++;
+        if (errors <= PRINT_ERRORS) {
+          printError(name, args);
+          PRINT_SCALAR(int, k);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cs);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, cp);
+        }
+        EXIT;
+      }
+    }
+    printErrorStats(errors, trials);
+
+    int input = 0;
+    struct timespec start = getTimeSpec();
+    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+        doNotOptimize(input);
+        SIMDMask<T, SIMD_WIDTH> result =
+            FCT<T, SIMD_WIDTH>::template apply<SIMDMask>(input);
+        doNotOptimize(result);
+      }
+    }
+    struct timespec end = getTimeSpec();
+    long int time = timeSpecDiffNsec(end, start);
+    printTimeStats(time, repeats);
+  }
+};
+
 } // namespace ns_simd
 
 #endif // _SIMD_MASK_VEC_AUTO_TEST_H_

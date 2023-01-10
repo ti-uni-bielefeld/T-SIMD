@@ -35,6 +35,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <string>
 
 namespace ns_simd {
 
@@ -176,9 +177,12 @@ namespace ns_simd {
 	 const char *format, const char *separator, 
 	 const SIMDVec<T,SIMD_WIDTH> &vec)
   {
-    char fmtSep[256];
-    strcat(strcpy(fmtSep, format), separator);
-    fprint(f, fmtSep, vec);
+    // 09. Jan 23 (Jonas Keller): used std::string instead of strcpy and strcat
+    // to avoid potential buffer overflows
+    //char fmtSep[256];
+    //strcat(strcpy(fmtSep, format), separator);
+    std::string fmtSep = std::string(format) + std::string(separator);
+    fprint(f, fmtSep.c_str(), vec);
   }
 
   template <typename T, int SIMD_WIDTH>

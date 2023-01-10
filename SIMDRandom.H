@@ -175,10 +175,68 @@ namespace ns_simd {
   // random special value
   // =========================================================================
   
+  namespace internal {
+    template<typename T>
+    static std::vector<T> specialValues();
+
+    template <> std::vector<SIMDByte> specialValues<SIMDByte>() {
+      SIMDByte v[] = {0, 1, SIMDBYTE_MAX / 2, SIMDBYTE_MAX - 1, SIMDBYTE_MAX};
+      const size_t n = sizeof(v) / sizeof(SIMDByte);
+      return std::vector<SIMDByte>(v, v + n);
+    }
+
+    template <> std::vector<SIMDSignedByte> specialValues<SIMDSignedByte>() {
+      SIMDSignedByte v[] = {
+        SIMDSIGNEDBYTE_MIN, SIMDSIGNEDBYTE_MIN+1, SIMDSIGNEDBYTE_MIN/2,
+        -1, 0, 1,
+        SIMDSIGNEDBYTE_MAX/2, SIMDSIGNEDBYTE_MAX-1, SIMDSIGNEDBYTE_MAX
+      };
+      const size_t n = sizeof(v) / sizeof(SIMDSignedByte);
+      return std::vector<SIMDSignedByte>(v, v + n);
+    }
+
+    template <> std::vector<SIMDWord> specialValues<SIMDWord>() {
+      SIMDWord v[] = {0, 1, SIMDWORD_MAX / 2, SIMDWORD_MAX - 1, SIMDWORD_MAX};
+      const size_t n = sizeof(v) / sizeof(SIMDWord);
+      return std::vector<SIMDWord>(v, v + n);
+    }
+
+    template <> std::vector<SIMDShort> specialValues<SIMDShort>() {
+      SIMDShort v[] = {
+        SIMDSHORT_MIN, SIMDSHORT_MIN+1, SIMDSHORT_MIN/2,
+        -1, 0, 1,
+        SIMDSHORT_MAX/2, SIMDSHORT_MAX-1, SIMDSHORT_MAX
+      };
+      const size_t n = sizeof(v) / sizeof(SIMDShort);
+      return std::vector<SIMDShort>(v, v + n);
+    }
+
+    template <> std::vector<SIMDInt> specialValues<SIMDInt>() {
+      SIMDInt v[] = {
+        SIMDINT_MIN, SIMDINT_MIN+1, SIMDINT_MIN/2,
+        -1, 0, 1,
+        SIMDINT_MAX/2, SIMDINT_MAX-1, SIMDINT_MAX
+      };
+      const size_t n = sizeof(v) / sizeof(SIMDInt);
+      return std::vector<SIMDInt>(v, v + n);
+    }
+
+    template <> std::vector<SIMDFloat> specialValues<SIMDFloat>() {
+      SIMDFloat v[] = {
+        SIMDFLOAT_MIN, SIMDFLOAT_MIN/2, SIMDFLOAT_MAX/2, SIMDFLOAT_MAX,
+        -1.0f, -0.5f, -0.0f, 0.0f, 0.5f, 1.0f,
+        MAX_POS_FLOAT_CONVERTIBLE_TO_INT32,
+        MAX_POS_FLOAT_CONVERTIBLE_TO_INT32+1
+      };
+      const size_t n = sizeof(v) / sizeof(SIMDFloat);
+      return std::vector<SIMDFloat>(v, v + n);
+    }
+  }
+
   template<typename T>
   static T getRandomSpecialValue()
   {
-    std::vector<T> specialValues = SIMDTypeInfo<T>::specialValues();
+    std::vector<T> specialValues = internal::specialValues<T>();
     return specialValues[((double)rand() / RAND_MAX) * specialValues.size()];
   }
 

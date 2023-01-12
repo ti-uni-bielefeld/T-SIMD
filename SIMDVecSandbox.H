@@ -395,6 +395,35 @@ namespace ns_simd {
     return SIMDVec<T,SIMD_WIDTH>();
   }
 
+  // 12. Jan 23 (Jonas Keller): added sra, srl and sll functions
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  sra(const SIMDVec<T, SIMD_WIDTH>&, const uint8_t)
+  {
+    printf("sra<%s,%d>(V, U8)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDVec<T,SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  srl(const SIMDVec<T, SIMD_WIDTH>&, const uint8_t)
+  {
+    printf("srl<%s,%d>(V, U8)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDVec<T,SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  sll(const SIMDVec<T, SIMD_WIDTH>&, const uint8_t)
+  {
+    printf("sll<%s,%d>(V, U8)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDVec<T,SIMD_WIDTH>();
+  }
+
   // conversion without changes in the number of vector elements
   // saturated version
   template <typename Tout, typename Tin, int SIMD_WIDTH>

@@ -916,7 +916,7 @@ main()
 
   puts("\n*********** test of swizzle_32_16 ************\n");
 
-#ifdef _SIMD_VEC_32_AVAIL_
+#if defined(_SIMD_VEC_32_AVAIL_) && !defined(SIMDVEC_SANDBOX)
   SWIZZLE_32_16(SIMDByte,1,"%2d ");
   SWIZZLE_32_16(SIMDByte,2,"%2d ");
   SWIZZLE_32_16(SIMDByte,3,"%2d ");

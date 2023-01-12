@@ -205,23 +205,37 @@ mask_ifelsezero(const SIMDSerialMask<T, SIMD_WIDTH> &cond,
                      Deductor<SIMDSerialVec>::_setzero<T, SIMD_WIDTH>());
 }
 
-// 12. Jan (Jonas Keller): use templates instead of two overloads for
-// mask_cvts and maskz_cvts
+template <int SIMD_WIDTH>
+static SIMDSerialVec<SIMDInt, SIMD_WIDTH>
+mask_cvts(const SIMDSerialVec<SIMDInt, SIMD_WIDTH> &src,
+          const SIMDSerialMask<SIMDFloat, SIMD_WIDTH> &k,
+          const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a) {
+  return mask_ifelse(SIMDSerialMask<SIMDInt, SIMD_WIDTH>(k.mask), cvts(a), src);
+}
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMDSerialVec<Tout, SIMD_WIDTH>
-mask_cvts(const SIMDSerialVec<Tout, SIMD_WIDTH> &src,
-          const SIMDSerialMask<Tin, SIMD_WIDTH> &k,
-          const SIMDSerialVec<Tin, SIMD_WIDTH> &a) {
-  return mask_ifelse(SIMDSerialMask<Tout, SIMD_WIDTH>(k.mask), cvts<Tout>(a),
+template <int SIMD_WIDTH>
+static SIMDSerialVec<SIMDInt, SIMD_WIDTH>
+maskz_cvts(const SIMDSerialMask<SIMDFloat, SIMD_WIDTH> &k,
+           const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a) {
+  return mask_cvts(Deductor<SIMDSerialVec>::_setzero<SIMDInt, SIMD_WIDTH>(), k,
+                   a);
+}
+
+template <int SIMD_WIDTH>
+static SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
+mask_cvts(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &src,
+          const SIMDSerialMask<SIMDInt, SIMD_WIDTH> &k,
+          const SIMDSerialVec<SIMDInt, SIMD_WIDTH> &a) {
+  return mask_ifelse(SIMDSerialMask<SIMDFloat, SIMD_WIDTH>(k.mask), cvts(a),
                      src);
 }
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMDSerialVec<Tout, SIMD_WIDTH>
-maskz_cvts(const SIMDSerialMask<Tin, SIMD_WIDTH> &k,
-           const SIMDSerialVec<Tin, SIMD_WIDTH> &a) {
-  return mask_cvts(Deductor<SIMDSerialVec>::_setzero<Tout, SIMD_WIDTH>(), k, a);
+template <int SIMD_WIDTH>
+static SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
+maskz_cvts(const SIMDSerialMask<SIMDInt, SIMD_WIDTH> &k,
+           const SIMDSerialVec<SIMDInt, SIMD_WIDTH> &a) {
+  return mask_cvts(Deductor<SIMDSerialVec>::_setzero<SIMDFloat, SIMD_WIDTH>(),
+                   k, a);
 }
 
 template <typename T, int SIMD_WIDTH>

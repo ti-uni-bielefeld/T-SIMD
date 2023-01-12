@@ -437,6 +437,55 @@ namespace ns_simd {
   struct IsPosInBitRange :
     public IsPosInGivenRange< (sizeof(T) * 8), BIT > {};
 
+  // 12. Jan 23 (Jonas Keller): move CompareTypes to here from Compare2Type.H
+
+  // int2type trick from 
+  // Andrei Alexandrescu: Modern C++ Design (Addison Wesley),
+  // adapted for type comparisons
+
+  // empty struct
+  // each unique combination of less, equal, greater declares a unique type
+  template <bool less, 
+	    bool equal, 
+	    bool greater>
+  struct Compare
+  {
+  };
+
+  // structs derived from Compare for the special case of sizeof comparisons
+
+  // use with CompareLess, CompareEqual, CompareGreater
+  template <typename Tout, typename Tin>
+  struct CompareTypes : 
+    Compare<(sizeof(Tout) < sizeof(Tin)),
+    (sizeof(Tout) == sizeof(Tin)),
+    (sizeof(Tout) > sizeof(Tin))>
+  {
+  };
+
+  // use with CompareLessOrEqual, CompareGreater
+  template <typename Tout, typename Tin>
+  struct CompareTypesLessOrEqual : 
+    Compare<(sizeof(Tout) <= sizeof(Tin)),
+    (sizeof(Tout) <= sizeof(Tin)),
+    (sizeof(Tout) > sizeof(Tin))>
+  {
+  };
+
+  // use with CompareLess, CompareGreaterOrEqual
+  template <typename Tout, typename Tin>
+  struct CompareTypesGreaterOrEqual :
+    Compare<(sizeof(Tout) < sizeof(Tin)),
+    (sizeof(Tout) >= sizeof(Tin)),
+	    (sizeof(Tout) >= sizeof(Tin))>
+  {
+  };
+
+  typedef Compare<true,false,false> CompareLess;
+  typedef Compare<true,true,false>  CompareLessOrEqual;
+  typedef Compare<false,true,false> CompareEqual;
+  typedef Compare<false,true,true>  CompareGreaterOrEqual;
+  typedef Compare<false,false,true> CompareGreater;
 } // namespace
 
 #endif

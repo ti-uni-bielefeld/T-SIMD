@@ -27,7 +27,6 @@
 #ifndef _SIMD_VEC_SERIAL_H_
 #define _SIMD_VEC_SERIAL_H_
 
-#include "Compare2Type.H"
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDRandom.H"

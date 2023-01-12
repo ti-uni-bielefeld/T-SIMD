@@ -26,7 +26,6 @@
 #ifndef _SIMD_VEC_EXT_H_
 #define _SIMD_VEC_EXT_H_
 
-#include "Compare2Type.H"
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
@@ -420,7 +419,7 @@ namespace ns_simd {
   // ===========================================================================
 
   // here we distinguish between the three cases (type size comparison)
-  // using the CompareTypes mechanisms (from Compare2Type.H);
+  // using the CompareTypes mechanisms (from SIMDTypes.H);
   // the alternative would be to have branches for the 3 different cases,
   // however, all branches are compiled, even if the compiler can select
   // between the three different branches at compile time,

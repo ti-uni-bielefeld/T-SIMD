@@ -1100,6 +1100,26 @@ namespace ns_simd {
      SIMDTypeInfo<T>::name(), SIMD_WIDTH, count);
     return SIMDMask<T,SIMD_WIDTH>();
   }
+
+  // 12. Jan 23 (Jonas Keller): add setTrueRight and setTrueLeft
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  setTrueLeft(const unsigned int x)
+  {
+    printf("setTrueLeft<%s,%d>(%d)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);
+    return SIMDMask<T,SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  setTrueRight(const unsigned int x)
+  {
+    printf("setTrueRight<%s,%d>(%d)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);
+    return SIMDMask<T,SIMD_WIDTH>();
+  }
 }
 
 #endif // _SIMD_MASK_SANDBOX_H_

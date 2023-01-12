@@ -76,47 +76,29 @@ namespace ns_simd {
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDVec<T,SIMD_WIDTH>();
   }
-  
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDInt, SIMD_WIDTH>
-  mask_cvts(const SIMDVec<SIMDInt, SIMD_WIDTH>&,
-            const SIMDMask<SIMDFloat, SIMD_WIDTH>&,
-            const SIMDVec<SIMDFloat, SIMD_WIDTH>&)
+
+  // 12. Jan (Jonas Keller): use templates instead of two overloads for
+  // mask_cvts and maskz_cvts
+
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
+  mask_cvts(const SIMDVec<Tout, SIMD_WIDTH>&,
+            const SIMDMask<Tin, SIMD_WIDTH>&,
+            const SIMDVec<Tin, SIMD_WIDTH>&)
   {
     printf("mask_cvts<%s,%s,%d>(V,M,V)\n",
-     SIMDTypeInfo<SIMDInt>::name(), SIMDTypeInfo<SIMDFloat>::name(), SIMD_WIDTH);
-    return SIMDVec<SIMDInt,SIMD_WIDTH>();
+     SIMDTypeInfo<Tout>::name(), SIMDTypeInfo<Tin>::name(), SIMD_WIDTH);
+    return SIMDVec<Tout,SIMD_WIDTH>();
   }
 
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDInt, SIMD_WIDTH>
-  maskz_cvts(const SIMDMask<SIMDFloat, SIMD_WIDTH>&,
-             const SIMDVec<SIMDFloat, SIMD_WIDTH>&)
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
+  maskz_cvts(const SIMDMask<Tin, SIMD_WIDTH>&,
+             const SIMDVec<Tin, SIMD_WIDTH>&)
   {
     printf("maskz_cvts<%s,%s,%d>(M,V)\n",
-     SIMDTypeInfo<SIMDInt>::name(), SIMDTypeInfo<SIMDFloat>::name(), SIMD_WIDTH);
-    return SIMDVec<SIMDInt,SIMD_WIDTH>();
-  }
-  
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
-  mask_cvts(const SIMDVec<SIMDFloat, SIMD_WIDTH>&,
-            const SIMDMask<SIMDInt, SIMD_WIDTH>&,
-            const SIMDVec<SIMDInt, SIMD_WIDTH>&)
-  {
-    printf("mask_cvts<%s,%s,%d>(V,M,V)\n",
-     SIMDTypeInfo<SIMDFloat>::name(), SIMDTypeInfo<SIMDInt>::name(), SIMD_WIDTH);
-    return SIMDVec<SIMDFloat,SIMD_WIDTH>();
-  }
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
-  maskz_cvts(const SIMDMask<SIMDInt, SIMD_WIDTH>&,
-             const SIMDVec<SIMDInt, SIMD_WIDTH>&)
-  {
-    printf("maskz_cvts<%s,%s,%d>(M,V)\n",
-     SIMDTypeInfo<SIMDFloat>::name(), SIMDTypeInfo<SIMDInt>::name(), SIMD_WIDTH);
-    return SIMDVec<SIMDFloat,SIMD_WIDTH>();
+     SIMDTypeInfo<Tout>::name(), SIMDTypeInfo<Tin>::name(), SIMD_WIDTH);
+    return SIMDVec<Tout,SIMD_WIDTH>();
   }
 
   template <typename T, int SIMD_WIDTH>

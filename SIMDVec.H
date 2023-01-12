@@ -92,6 +92,20 @@ namespace ns_simd {
   static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> 
   cvts(const SIMDVec<Tin, SIMD_WIDTH> &a);
 
+  // 12. Jan 23 (Jonas Keller): added primary templates for mask_cvts and
+  // maskz_cvts
+
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> 
+  mask_cvts(const SIMDVec<SIMDInt, SIMD_WIDTH> &src,
+            const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
+            const SIMDVec<SIMDFloat, SIMD_WIDTH> &a);
+
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> 
+  maskz_cvts(const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
+             const SIMDVec<SIMDFloat, SIMD_WIDTH> &a);
+
   // unifies packs and packus, depending on Tout
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> 

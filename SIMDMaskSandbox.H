@@ -951,6 +951,69 @@ namespace ns_simd {
     return SIMDMask<T,SIMD_WIDTH>();
   }
 
+  // 12. Jan 23 (Jonas Keller): added overloaded versions of mask_cmp*
+  // that only take two vector parameters and no mask parameter
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_cmplt(const SIMDVec<T, SIMD_WIDTH>&,
+             const SIMDVec<T, SIMD_WIDTH>&)
+  {
+    printf("mask_cmplt<%s,%d>(V,V)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDMask<T,SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_cmple(const SIMDVec<T, SIMD_WIDTH>&,
+             const SIMDVec<T, SIMD_WIDTH>&)
+  {
+    printf("mask_cmple<%s,%d>(V,V)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDMask<T,SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_cmpeq(const SIMDVec<T, SIMD_WIDTH>&,
+             const SIMDVec<T, SIMD_WIDTH>&)
+  {
+    printf("mask_cmpeq<%s,%d>(V,V)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDMask<T,SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_cmpgt(const SIMDVec<T, SIMD_WIDTH>&,
+             const SIMDVec<T, SIMD_WIDTH>&)
+  {
+    printf("mask_cmpgt<%s,%d>(V,V)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDMask<T,SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_cmpge(const SIMDVec<T, SIMD_WIDTH>&,
+             const SIMDVec<T, SIMD_WIDTH>&)
+  {
+    printf("mask_cmpge<%s,%d>(V,V)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDMask<T,SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_cmpneq(const SIMDVec<T, SIMD_WIDTH>&,
+              const SIMDVec<T, SIMD_WIDTH>&)
+  {
+    printf("mask_cmpneq<%s,%d>(V,V)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDMask<T,SIMD_WIDTH>();
+  }
+
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   mask_avg(const SIMDVec<T, SIMD_WIDTH>&,

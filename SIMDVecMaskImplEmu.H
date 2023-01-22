@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDMaskEmu.H --
+// SIMDVecMaskImplEmu.H --
 // emulated mask functions
 // Author: Markus Vieth (Bielefeld University, mvieth@techfak.uni-bielefeld.de)
 // Year of creation: 2019
@@ -28,7 +28,7 @@
 // 30. Nov 22 (Jonas Keller):
 // NOTE:
 // The float versions of the emulated mask functions in this file as well as in
-// SIMDMaskIntel64.H are not as fast as they could be, as they are implemented
+// SIMDVecMaskImplIntel64.H are not as fast as they could be, as they are implemented
 // such that they match the not emulated ones in flag and exception behavior as
 // well. This is done by masking the inputs of the masked functions, which for
 // example leads to the following code for masked addition:
@@ -87,25 +87,28 @@ mask_add(const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
 // way to use flags or exceptions, so emulating them does not make much
 // sense anyway.
 
-#ifndef _SIMDMASKEMU_H_
-#define _SIMDMASKEMU_H_
+#ifndef _SIMD_VEC_MASK_IMPL_EMU_H_
+#define _SIMD_VEC_MASK_IMPL_EMU_H_
 
 #include "SIMDDefs.H"
-#include "SIMDMaskArchSpec.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
 #include "SIMDVecBase.H"
+#include "SIMDVecMaskImplArchSpec.H"
 
+#include <math.h>
 #include <stdint.h>
 
 namespace ns_simd {
+namespace internal {
+namespace mask {
   #define EMULATE_SOP_INT(OP) \
   template <typename T, int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> \
   maskz_ ## OP (const SIMDMask<T, SIMD_WIDTH> &k, \
       const SIMDVec<T, SIMD_WIDTH> &a) \
   { \
-    return mask_ifelse(k, OP (a), setzero<T,SIMD_WIDTH>()); \
+    return mask::mask_ifelse(k, OP (a), ::ns_simd::setzero<T,SIMD_WIDTH>()); \
   } \
   template <typename T, int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> \
@@ -113,7 +116,7 @@ namespace ns_simd {
       const SIMDMask<T, SIMD_WIDTH> &k, \
       const SIMDVec<T, SIMD_WIDTH> &a) \
   { \
-    return mask_ifelse(k, OP (a), src); \
+    return mask::mask_ifelse(k, OP (a), src); \
   }
 
   #define EMULATE_SOP_FLOAT(OP) \
@@ -122,7 +125,7 @@ namespace ns_simd {
   maskz_ ## OP (const SIMDMask<SIMDFloat, SIMD_WIDTH> &k, \
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a) \
   { \
-    return OP (mask_ifelse(k, a, setzero<SIMDFloat,SIMD_WIDTH>())); \
+    return OP (mask::mask_ifelse(k, a, ::ns_simd::setzero<SIMDFloat,SIMD_WIDTH>())); \
   } \
   template <int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH> \
@@ -130,7 +133,7 @@ namespace ns_simd {
       const SIMDMask<SIMDFloat, SIMD_WIDTH> &k, \
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a) \
   { \
-    return mask_ifelse(k, maskz_ ## OP (k, a), src); \
+    return mask::mask_ifelse(k, maskz_ ## OP (k, a), src); \
   }
 
   #define EMULATE_SOP(OP) EMULATE_SOP_INT(OP) EMULATE_SOP_FLOAT(OP)
@@ -142,7 +145,7 @@ namespace ns_simd {
       const SIMDVec<T, SIMD_WIDTH> &a, \
       const SIMDVec<T, SIMD_WIDTH> &b) \
   { \
-    return mask_ifelse(k, OP (a, b), setzero<T,SIMD_WIDTH>()); \
+    return mask::mask_ifelse(k, OP (a, b), ::ns_simd::setzero<T,SIMD_WIDTH>()); \
   } \
   template <typename T, int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> \
@@ -151,7 +154,7 @@ namespace ns_simd {
       const SIMDVec<T, SIMD_WIDTH> &a, \
       const SIMDVec<T, SIMD_WIDTH> &b) \
   { \
-    return mask_ifelse(k, OP (a, b), src); \
+    return mask::mask_ifelse(k, OP (a, b), src); \
   }
 
   #define EMULATE_DOP_FLOAT(OP) \
@@ -161,7 +164,7 @@ namespace ns_simd {
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a, \
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &b) \
   { \
-    return OP (mask_ifelse(k, a, setzero<SIMDFloat,SIMD_WIDTH>()), mask_ifelse(k, b, setzero<SIMDFloat,SIMD_WIDTH>())); \
+    return OP (mask::mask_ifelse(k, a, ::ns_simd::setzero<SIMDFloat,SIMD_WIDTH>()), mask::mask_ifelse(k, b, ::ns_simd::setzero<SIMDFloat,SIMD_WIDTH>())); \
   } \
   template <int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH> \
@@ -170,7 +173,7 @@ namespace ns_simd {
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a, \
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &b) \
   { \
-    return mask_ifelse(k, maskz_ ## OP (k, a, b), src); \
+    return mask::mask_ifelse(k, maskz_ ## OP (k, a, b), src); \
   }
 
   #define EMULATE_DOP(OP) EMULATE_DOP_INT(OP) EMULATE_DOP_FLOAT(OP)
@@ -191,7 +194,7 @@ namespace ns_simd {
   mask_ifelsezero(const SIMDMask<T, SIMD_WIDTH> &k,
       const SIMDVec<T, SIMD_WIDTH> &trueVal)
   {
-    return ifelse((SIMDVec<T, SIMD_WIDTH>) k, trueVal, setzero<T,SIMD_WIDTH>());
+    return ifelse((SIMDVec<T, SIMD_WIDTH>) k, trueVal, ::ns_simd::setzero<T,SIMD_WIDTH>());
   }
   
   template <int SIMD_WIDTH>
@@ -214,7 +217,7 @@ namespace ns_simd {
   maskz_cvts(const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return cvts<SIMDInt, SIMDFloat, SIMD_WIDTH>(mask_ifelse(k, a, setzero<SIMDFloat,SIMD_WIDTH>()));
+    return ::ns_simd::cvts<SIMDInt, SIMDFloat, SIMD_WIDTH>(mask::mask_ifelse(k, a, ::ns_simd::setzero<SIMDFloat,SIMD_WIDTH>()));
   }
   
   template <int SIMD_WIDTH>
@@ -223,7 +226,7 @@ namespace ns_simd {
       const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return mask_ifelse(reinterpret_mask(k), cvts<SIMDInt, SIMDFloat, SIMD_WIDTH>(mask_ifelse(k, a, setzero<SIMDFloat, SIMD_WIDTH>())), src);
+    return mask::mask_ifelse(reinterpret_mask(k), ::ns_simd::cvts<SIMDInt, SIMDFloat, SIMD_WIDTH>(mask::mask_ifelse(k, a, ::ns_simd::setzero<SIMDFloat, SIMD_WIDTH>())), src);
   }
 
   template <int SIMD_WIDTH>
@@ -231,7 +234,7 @@ namespace ns_simd {
   maskz_cvts(const SIMDMask<SIMDInt, SIMD_WIDTH> &k,
       const SIMDVec<SIMDInt, SIMD_WIDTH> &a)
   {
-    return cvts<SIMDFloat, SIMDInt, SIMD_WIDTH>(mask_ifelse(k, a, setzero<SIMDInt,SIMD_WIDTH>()));
+    return ::ns_simd::cvts<SIMDFloat, SIMDInt, SIMD_WIDTH>(mask::mask_ifelse(k, a, ::ns_simd::setzero<SIMDInt,SIMD_WIDTH>()));
   }
 
   template <int SIMD_WIDTH>
@@ -240,10 +243,10 @@ namespace ns_simd {
       const SIMDMask<SIMDInt, SIMD_WIDTH> &k,
       const SIMDVec<SIMDInt, SIMD_WIDTH> &a)
   {
-    return mask_ifelse(reinterpret_mask(k), cvts<SIMDFloat, SIMDInt, SIMD_WIDTH>(mask_ifelse(k, a, setzero<SIMDInt,SIMD_WIDTH>())), src);
+    return mask::mask_ifelse(reinterpret_mask(k), ::ns_simd::cvts<SIMDFloat, SIMDInt, SIMD_WIDTH>(mask::mask_ifelse(k, a, ::ns_simd::setzero<SIMDInt,SIMD_WIDTH>())), src);
   }
 
-  //maskz_load is implemented with architecture specific intrinsics (in SIMDMaskIntel16/32/Neon16.H)
+  //maskz_load is implemented with architecture specific intrinsics (in SIMDVecMaskImplIntel16/32/Neon16.H)
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -285,7 +288,7 @@ namespace ns_simd {
   maskz_set1 (const SIMDMask<T, SIMD_WIDTH> &k,
       const T a)
   {
-    return mask_ifelse(k, set1<T, SIMD_WIDTH>(a), setzero<T, SIMD_WIDTH>());
+    return mask::mask_ifelse(k, ::ns_simd::set1<T, SIMD_WIDTH>(a), ::ns_simd::setzero<T, SIMD_WIDTH>());
   }
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -293,7 +296,7 @@ namespace ns_simd {
       const SIMDMask<T, SIMD_WIDTH> &k,
       const T a)
   {
-    return mask_ifelse(k, set1<T, SIMD_WIDTH>(a), src);
+    return mask::mask_ifelse(k, ::ns_simd::set1<T, SIMD_WIDTH>(a), src);
   }
 
   EMULATE_DOP(add)
@@ -309,7 +312,7 @@ namespace ns_simd {
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
   {
-    return div(mask_ifelse(k, a, setzero<SIMDFloat,SIMD_WIDTH>()), mask_ifelse(k, b, set1<SIMDFloat,SIMD_WIDTH>(1.0f))); // "div" is special because the "neutral" operation must be 0/1, not 0/0
+    return div(mask::mask_ifelse(k, a, ::ns_simd::setzero<SIMDFloat,SIMD_WIDTH>()), mask::mask_ifelse(k, b, ::ns_simd::set1<SIMDFloat,SIMD_WIDTH>(1.0f))); // "div" is special because the "neutral" operation must be 0/1, not 0/0
   }
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
@@ -318,7 +321,7 @@ namespace ns_simd {
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
   {
-    return mask_ifelse(k, maskz_div(k, a, b), src);
+    return mask::mask_ifelse(k, maskz_div(k, a, b), src);
   }
   
   // ---------------------------------------------------------------------------
@@ -339,7 +342,7 @@ namespace ns_simd {
   maskz_rcp (const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return rcp(mask_ifelse(k, a, set1<SIMDFloat,SIMD_WIDTH>(INFINITY)));
+    return rcp(mask::mask_ifelse(k, a, ::ns_simd::set1<SIMDFloat,SIMD_WIDTH>(INFINITY)));
   }
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
@@ -347,7 +350,7 @@ namespace ns_simd {
       const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return mask_ifelse(k, maskz_rcp (k, a), src);
+    return mask::mask_ifelse(k, maskz_rcp (k, a), src);
   }
   
   template <int SIMD_WIDTH>
@@ -355,7 +358,7 @@ namespace ns_simd {
   maskz_rsqrt (const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return rsqrt (mask_ifelse(k, a, set1<SIMDFloat,SIMD_WIDTH>(INFINITY)));
+    return rsqrt (mask::mask_ifelse(k, a, ::ns_simd::set1<SIMDFloat,SIMD_WIDTH>(INFINITY)));
   }
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
@@ -363,7 +366,7 @@ namespace ns_simd {
       const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return mask_ifelse(k, maskz_rsqrt (k, a), src);
+    return mask::mask_ifelse(k, maskz_rsqrt (k, a), src);
   }
   
   EMULATE_SOP_FLOAT(sqrt)
@@ -380,7 +383,7 @@ namespace ns_simd {
   maskz_not (const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return not(mask_ifelse(k, a, reinterpret<SIMDFloat>(set1<SIMDInt,SIMD_WIDTH>(0xffffffff))));
+    return not(mask::mask_ifelse(k, a, reinterpret<SIMDFloat>(::ns_simd::set1<SIMDInt,SIMD_WIDTH>(0xffffffff))));
   }
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
@@ -388,7 +391,7 @@ namespace ns_simd {
       const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return mask_ifelse(k, maskz_not (k, a), src);
+    return mask::mask_ifelse(k, maskz_not (k, a), src);
   }
   EMULATE_SOP(neg)
   EMULATE_DOP(min)
@@ -402,7 +405,7 @@ namespace ns_simd {
   maskz_ ## OP (const SIMDMask<T, SIMD_WIDTH> &k, \
       const SIMDVec<T, SIMD_WIDTH> &a) \
   { \
-    return mask_ifelse(k, OP <IMM>(a), setzero<T,SIMD_WIDTH>()); \
+    return mask::mask_ifelse(k, OP <IMM>(a), ::ns_simd::setzero<T,SIMD_WIDTH>()); \
   } \
   template <int IMM, typename T, int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> \
@@ -410,7 +413,7 @@ namespace ns_simd {
       const SIMDMask<T, SIMD_WIDTH> &k, \
       const SIMDVec<T, SIMD_WIDTH> &a) \
   { \
-    return mask_ifelse(k, OP <IMM>(a), src); \
+    return mask::mask_ifelse(k, OP <IMM>(a), src); \
   }
   EMULATE_SHIFT(srai)
   EMULATE_SHIFT(srli)
@@ -442,7 +445,7 @@ namespace ns_simd {
       const SIMDVec<T, SIMD_WIDTH> &a, \
       const SIMDVec<T, SIMD_WIDTH> &b) \
   { \
-    return SIMDMask<T, SIMD_WIDTH>(mask_ifelse(k, OP(a, b), setzero<T, SIMD_WIDTH>())); \
+    return SIMDMask<T, SIMD_WIDTH>(mask::mask_ifelse(k, OP(a, b), ::ns_simd::setzero<T, SIMD_WIDTH>())); \
   } \
   template <int SIMD_WIDTH> \
   static SIMD_INLINE SIMDMask<SIMDFloat, SIMD_WIDTH> \
@@ -450,7 +453,7 @@ namespace ns_simd {
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a, \
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &b) \
   { \
-    return SIMDMask<SIMDFloat, SIMD_WIDTH>(mask_ifelse(k, OP(mask_ifelse(k, a, setzero<SIMDFloat, SIMD_WIDTH>()), mask_ifelse(k, b, setzero<SIMDFloat, SIMD_WIDTH>())), setzero<SIMDFloat, SIMD_WIDTH>())); \
+    return SIMDMask<SIMDFloat, SIMD_WIDTH>(mask::mask_ifelse(k, OP(mask::mask_ifelse(k, a, ::ns_simd::setzero<SIMDFloat, SIMD_WIDTH>()), mask::mask_ifelse(k, b, ::ns_simd::setzero<SIMDFloat, SIMD_WIDTH>())), ::ns_simd::setzero<SIMDFloat, SIMD_WIDTH>())); \
   } \
   template <typename T, int SIMD_WIDTH> \
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> \
@@ -481,7 +484,7 @@ namespace ns_simd {
   mask_test_all_zeros(const SIMDMask<T, SIMD_WIDTH> &k,
       const SIMDVec<T, SIMD_WIDTH> &a)
   {
-    return test_all_zeros(mask_ifelse<T, SIMD_WIDTH>(k, a, setzero<T, SIMD_WIDTH>()));
+    return test_all_zeros(mask::mask_ifelse<T, SIMD_WIDTH>(k, a, ::ns_simd::setzero<T, SIMD_WIDTH>()));
   }
   
   template <typename T, int SIMD_WIDTH>
@@ -489,14 +492,14 @@ namespace ns_simd {
   mask_test_all_ones(const SIMDMask<T, SIMD_WIDTH> &k,
       const SIMDVec<T, SIMD_WIDTH> &a)
   {
-    return mask_test_all_zeros(k, not(a)); //test_all_ones(mask_ifelse<T, SIMD_WIDTH>(k, a, () set1<SIMDByte, SIMD_WIDTH>(0xFF)));
+    return mask::mask_test_all_zeros(k, not(a)); //test_all_ones(mask_ifelse<T, SIMD_WIDTH>(k, a, () set1<SIMDByte, SIMD_WIDTH>(0xFF)));
   }
   template <int SIMD_WIDTH>
   static SIMD_INLINE int
   mask_test_all_ones(const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return test_all_ones(mask_ifelse<SIMDFloat, SIMD_WIDTH>(k, a, reinterpret<SIMDFloat>(set1<SIMDByte, SIMD_WIDTH>(0xFF))));
+    return test_all_ones(mask::mask_ifelse<SIMDFloat, SIMD_WIDTH>(k, a, reinterpret<SIMDFloat>(::ns_simd::set1<SIMDByte, SIMD_WIDTH>(0xFF))));
   }
   
   #define EMULATE_DMASKOP(NAME) \
@@ -599,14 +602,17 @@ namespace ns_simd {
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
   setTrueLeft(const unsigned int x)
   {
-    return kshiftli(mask_all_ones<T, SIMD_WIDTH>(), x);
+    return mask::kshiftli(mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>()), x);
   }
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
   setTrueRight(const unsigned int x)
   {
-    return kshiftri(mask_all_ones<T, SIMD_WIDTH>(), x);
+    return mask::kshiftri(mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>()), x);
   }
-} //namespace ns_simd
-#endif // _SIMDMASKEMU_H_
+} // namespace mask
+} // namespace internal
+} // namespace ns_simd
+
+#endif // _SIMD_VEC_MASK_IMPL_EMU_H_

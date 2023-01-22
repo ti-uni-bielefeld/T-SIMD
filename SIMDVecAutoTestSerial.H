@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDSerialVec.H --
+// SIMDVecAutoTestSerial.H --
 // serial implementations of SIMDVec functions
 // used for tests, but also useful as a definition of the parallel functions
 // 
@@ -24,14 +24,14 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMD_VEC_SERIAL_H_
-#define _SIMD_VEC_SERIAL_H_
+#ifndef _SIMD_VEC_AUTO_TEST_SERIAL_H_
+#define _SIMD_VEC_AUTO_TEST_SERIAL_H_
 
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
-#include "SIMDRandom.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
+#include "SIMDVecAutoTestRandom.H"
 #include "SIMDVecExt.H"
 
 #include <algorithm>
@@ -56,6 +56,7 @@
 // provided with generic parameter T (won't compile for other types)
 
 namespace ns_simd {
+namespace auto_test {
 
   // =========================================================================
   // SIMDSerialVec
@@ -141,7 +142,7 @@ namespace ns_simd {
 
       // 16. Nov 22 (Jonas Keller):
       // moved selection of random special value to getRandomOrSpecialValue()
-      // in SIMDRandom.H
+      // in SIMDVecAutoTestRandom.H
 
       // randomize with a 1 in 16 chance to fill entire vector with the same
       // random or special value, otherwise fill with random or special values
@@ -177,7 +178,7 @@ namespace ns_simd {
 
       // 16. Nov 22 (Jonas Keller):
       // moved selection of random special value to getRandomOrSpecialValue()
-      // in SIMDRandom.H
+      // in SIMDVecAutoTestRandom.H
 
       // randomize with a 1 in 16 chance to fill entire vector with the same
       // random or special value, otherwise fill with random or special values
@@ -203,7 +204,7 @@ namespace ns_simd {
 
       // 16. Nov 22 (Jonas Keller):
       // moved selection of random special value to
-      // getRandomOrSpecialValueRanges() in SIMDRandom.H
+      // getRandomOrSpecialValueRanges() in SIMDVecAutoTestRandom.H
 
       // randomize with a 1 in 16 chance to fill entire vector with the same
       // random or special value, otherwise fill with random or special values
@@ -228,7 +229,7 @@ namespace ns_simd {
 
       // 16. Nov 22 (Jonas Keller):
       // moved selection of random special value to
-      // getRandomOrSpecialValueRanges() in SIMDRandom.H
+      // getRandomOrSpecialValueRanges() in SIMDVecAutoTestRandom.H
 
       // randomize with a 1 in 16 chance to fill entire vector with the same
       // random or special value, otherwise fill with random or special values
@@ -532,6 +533,8 @@ namespace ns_simd {
   // _packs
   // -------------------------------------------------------------------------
 
+  using ::ns_simd::internal::OutputType;
+
   // also accepts same-size input and output types
 
   // from integer types to integer types
@@ -637,6 +640,11 @@ namespace ns_simd {
   // -------------------------------------------------------------------------
   // _convert
   // -------------------------------------------------------------------------
+
+  using ::ns_simd::internal::CompareEqual;
+  using ::ns_simd::internal::CompareGreater;
+  using ::ns_simd::internal::CompareLess;
+  using ::ns_simd::internal::CompareTypes;
 
   template <typename Tout, typename Tin>
   static SIMD_INLINE Tout
@@ -948,7 +956,7 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void 
-  streamstore(T *const p, 
+  stream_store(T *const p, 
 	      const SIMDSerialVec<T, SIMD_WIDTH> &v)
   {
     store(p, v);
@@ -2456,6 +2464,7 @@ namespace ns_simd {
     return msb2int(reinterpret<SIMDInt>(a));
   }
 
-} // namespace
+} // namespace auto_test
+} // namespace ns_simd
 
-#endif
+#endif // _SIMD_VEC_AUTO_TEST_SERIAL_H_

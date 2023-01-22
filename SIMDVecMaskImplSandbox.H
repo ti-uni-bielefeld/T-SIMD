@@ -1,9 +1,8 @@
 // ===========================================================================
 // 
-// SIMDMaskSandbox.H --
+// SIMDVecMaskImplSandbox.H --
 // test template functions for SIMDMask and associated function templates
 // these functions just print out template parameters and some arguments
-// contains all "level-0" functions (SIMDMask*16/32/64.H)
 // 
 // This source code file is part of the following software:
 // 
@@ -27,8 +26,8 @@
 
 // 04. Aug 22 (Jonas Keller): added masked functions
 
-#ifndef _SIMD_MASK_SANDBOX_H_
-#define _SIMD_MASK_SANDBOX_H_
+#ifndef _SIMD_VEC_MASK_IMPL_SANDBOX_H_
+#define _SIMD_VEC_MASK_IMPL_SANDBOX_H_
 
 // TODO: should this only contain level 0 functions?
 
@@ -52,26 +51,43 @@ namespace ns_simd {
     operator uint64_t() const { return 0; }
   };
 
+namespace internal {
+namespace mask {
   // ===========================================================================
   // masked functions
   // ===========================================================================
 
   template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_ifelse(const SIMDMask<T, SIMD_WIDTH>&,
-              const SIMDVec<T, SIMD_WIDTH>&,
-              const SIMDVec<T, SIMD_WIDTH>&)
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_all_ones(OutputType<T>, Integer<SIMD_WIDTH>)
   {
+    printf("mask_all_ones<%s,%d>()\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDMask<T, SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_ifelse(const SIMDMask<T, SIMD_WIDTH>&cond,
+              const SIMDVec<T, SIMD_WIDTH>&trueVal,
+              const SIMDVec<T, SIMD_WIDTH>&falseVal)
+  {
+    (void)cond;
+    (void)trueVal;
+    (void)falseVal;
     printf("mask_ifelse<%s,%d>(M,V,V)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDVec<T,SIMD_WIDTH>();
   }
 
+  // mask_ifelsezero
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_ifelsezero(const SIMDMask<T, SIMD_WIDTH>&,
-                  const SIMDVec<T, SIMD_WIDTH>&)
+  mask_ifelsezero(const SIMDMask<T, SIMD_WIDTH>&cond,
+                  const SIMDVec<T, SIMD_WIDTH>&trueVal)
   {
+    (void)cond;
+    (void)trueVal;
     printf("mask_ifelsezero<%s,%d>(M,V)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDVec<T,SIMD_WIDTH>();
@@ -1039,9 +1055,11 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE int
-  mask_test_all_zeros(const SIMDMask<T, SIMD_WIDTH>&,
-                      const SIMDVec<T, SIMD_WIDTH>&)
+  mask_test_all_zeros(const SIMDMask<T, SIMD_WIDTH>&k,
+                      const SIMDVec<T, SIMD_WIDTH>&a)
   {
+    (void)k;
+    (void)a;
     printf("mask_test_all_zeros<%s,%d>(M,V)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return 0;
@@ -1049,9 +1067,11 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE int
-  mask_test_all_ones(const SIMDMask<T, SIMD_WIDTH>&,
-                     const SIMDVec<T, SIMD_WIDTH>&)
+  mask_test_all_ones(const SIMDMask<T, SIMD_WIDTH>& k,
+                     const SIMDVec<T, SIMD_WIDTH>& a)
   {
+    (void)k;
+    (void)a;
     printf("mask_test_all_ones<%s,%d>(M,V)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return 0;
@@ -1059,9 +1079,11 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kadd(const SIMDMask<T, SIMD_WIDTH>&,
-       const SIMDMask<T, SIMD_WIDTH>&)
+  kadd(const SIMDMask<T, SIMD_WIDTH>&a,
+       const SIMDMask<T, SIMD_WIDTH>&b)
   {
+    (void)a;
+    (void)b;
     printf("kadd<%s,%d>(M,M)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1069,9 +1091,11 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kand(const SIMDMask<T, SIMD_WIDTH>&,
-       const SIMDMask<T, SIMD_WIDTH>&)
+  kand(const SIMDMask<T, SIMD_WIDTH>&a,
+       const SIMDMask<T, SIMD_WIDTH>&b)
   {
+    (void)a;
+    (void)b;
     printf("kand<%s,%d>(M,M)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1079,9 +1103,11 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kandn(const SIMDMask<T, SIMD_WIDTH>&,
-        const SIMDMask<T, SIMD_WIDTH>&)
+  kandn(const SIMDMask<T, SIMD_WIDTH>&a,
+        const SIMDMask<T, SIMD_WIDTH>&b)
   {
+    (void)a;
+    (void)b;
     printf("kandn<%s,%d>(M,M)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1089,9 +1115,11 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kor(const SIMDMask<T, SIMD_WIDTH>&,
-      const SIMDMask<T, SIMD_WIDTH>&)
+  kor(const SIMDMask<T, SIMD_WIDTH>&a,
+      const SIMDMask<T, SIMD_WIDTH>&b)
   {
+    (void)a;
+    (void)b;
     printf("kor<%s,%d>(M,M)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1099,9 +1127,11 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kxor(const SIMDMask<T, SIMD_WIDTH>&,
-       const SIMDMask<T, SIMD_WIDTH>&)
+  kxor(const SIMDMask<T, SIMD_WIDTH>&a,
+       const SIMDMask<T, SIMD_WIDTH>&b)
   {
+    (void)a;
+    (void)b;
     printf("kxor<%s,%d>(M,M)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1109,9 +1139,11 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kxnor(const SIMDMask<T, SIMD_WIDTH>&,
-        const SIMDMask<T, SIMD_WIDTH>&)
+  kxnor(const SIMDMask<T, SIMD_WIDTH>&a,
+        const SIMDMask<T, SIMD_WIDTH>&b)
   {
+    (void)a;
+    (void)b;
     printf("kxnor<%s,%d>(M,M)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1119,8 +1151,9 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  knot(const SIMDMask<T, SIMD_WIDTH>&)
+  knot(const SIMDMask<T, SIMD_WIDTH>&a)
   {
+    (void)a;
     printf("knot<%s,%d>(M)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1128,8 +1161,9 @@ namespace ns_simd {
 
   template <unsigned int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kshiftri(const SIMDMask<T, SIMD_WIDTH>&)
+  kshiftri(const SIMDMask<T, SIMD_WIDTH>&a)
   {
+    (void)a;
     printf("kshiftri<%d, %s,%d>(M,%d)\n",
      IMM, SIMDTypeInfo<T>::name(), SIMD_WIDTH, IMM);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1137,8 +1171,9 @@ namespace ns_simd {
 
   template <unsigned int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kshiftli(const SIMDMask<T, SIMD_WIDTH>&)
+  kshiftli(const SIMDMask<T, SIMD_WIDTH>&a)
   {
+    (void)a;
     printf("kshiftli<%d, %s,%d>(M,%d)\n",
      IMM, SIMDTypeInfo<T>::name(), SIMD_WIDTH, IMM);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1146,9 +1181,10 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kshiftri(const SIMDMask<T, SIMD_WIDTH>&,
+  kshiftri(const SIMDMask<T, SIMD_WIDTH>&a,
            const uint64_t count)
   {
+    (void)a;
     printf("kshiftri<%s,%d>(M,%d)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH, count);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1156,9 +1192,10 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kshiftli(const SIMDMask<T, SIMD_WIDTH>&,
+  kshiftli(const SIMDMask<T, SIMD_WIDTH>&a,
            const uint64_t count)
   {
+    (void)a;
     printf("kshiftli<%s,%d>(M,%d)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH, count);
     return SIMDMask<T,SIMD_WIDTH>();
@@ -1183,6 +1220,8 @@ namespace ns_simd {
      SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);
     return SIMDMask<T,SIMD_WIDTH>();
   }
-}
+} // namespace mask
+} // namespace internal
+} // namespace ns_simd
 
-#endif // _SIMD_MASK_SANDBOX_H_
+#endif // _SIMD_VEC_MASK_IMPL_SANDBOX_H_

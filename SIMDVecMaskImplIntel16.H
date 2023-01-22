@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDMaskIntel16.H --
+// SIMDVecMaskImplIntel16.H --
 // Mask class definitions and architecture specific functions
 // for Intel 16 byte (128 bit)
 // Author: Markus Vieth (Bielefeld University, mvieth@techfak.uni-bielefeld.de)
@@ -26,16 +26,18 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMDMASKINTEL16_H_
-#define _SIMDMASKINTEL16_H_
+#ifndef _SIMD_VEC_MASK_IMPL_INTEL_16_H_
+#define _SIMD_VEC_MASK_IMPL_INTEL_16_H_
 
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
-#include "SIMDVecIntel16.H"
+#include "SIMDVecBase.H"
+#include "SIMDVecBaseImplIntel16.H"
 
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __SSE2__
@@ -124,45 +126,42 @@ namespace ns_simd {
     void operator delete[](void *p)
     { simd_aligned_free(p); }
   };
+
+namespace internal {
+namespace mask {
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDByte, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDByte, 16>
+  mask_all_ones(OutputType<SIMDByte>, Integer<16>)
   {
     return _mm_set1_epi8(-1);
   }
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDSignedByte, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDSignedByte, 16>
+  mask_all_ones(OutputType<SIMDSignedByte>, Integer<16>)
   {
     return _mm_set1_epi8(-1);
   }
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDWord, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDWord, 16>
+  mask_all_ones(OutputType<SIMDWord>, Integer<16>)
   {
     return _mm_set1_epi8(-1);
   }
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDShort, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDShort, 16>
+  mask_all_ones(OutputType<SIMDShort>, Integer<16>)
   {
     return _mm_set1_epi8(-1);
   }
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDInt, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDInt, 16>
+  mask_all_ones(OutputType<SIMDInt>, Integer<16>)
   {
     return _mm_set1_epi8(-1);
   }
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDFloat, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDFloat, 16>
+  mask_all_ones(OutputType<SIMDFloat>, Integer<16>)
   {
     return _mm_castsi128_ps(_mm_set1_epi8(-1));
   }
@@ -188,7 +187,7 @@ namespace ns_simd {
       const SIMDSignedByte *const p)
   {
 #ifdef __SSE4_1__
-    SIMDVec<SIMDSignedByte, 16> result=setzero<SIMDSignedByte, 16>();
+    SIMDVec<SIMDSignedByte, 16> result=::ns_simd::setzero<SIMDSignedByte, 16>();
     CHECK_AND_INSERT(_mm_insert_epi8, 0)
     CHECK_AND_INSERT(_mm_insert_epi8, 1)
     CHECK_AND_INSERT(_mm_insert_epi8, 2)
@@ -218,7 +217,7 @@ namespace ns_simd {
   maskz_load(const SIMDMask<SIMDByte, 16> &k,
       const SIMDByte *const p)
   {
-    return reinterpret<SIMDByte>(maskz_load(SIMDMask<SIMDSignedByte, 16>((__m128i) k), (const SIMDSignedByte *) p));
+    return ::ns_simd::reinterpret<SIMDByte>(maskz_load(SIMDMask<SIMDSignedByte, 16>((__m128i) k), (const SIMDSignedByte *) p));
   }
   static SIMD_INLINE SIMDVec<SIMDShort, 16>
   maskz_load(const SIMDMask<SIMDShort, 16> &k,
@@ -242,7 +241,7 @@ namespace ns_simd {
 #ifdef BENCH_METHOD3*/
     //if(test_all_ones(SIMDVec<SIMDShort, 16>(k))) { return load<16, SIMDShort>(p); }
     //if(test_all_zeros(SIMDVec<SIMDShort, 16>(k))) { return setzero<SIMDShort, 16>(); }
-    SIMDVec<SIMDShort, 16> result=setzero<SIMDShort, 16>();
+    SIMDVec<SIMDShort, 16> result=::ns_simd::setzero<SIMDShort, 16>();
     /*if(_mm_extract_epi64 (k, 0)==0xffffffffffffffff) { result=_mm_loadl_epi64((__m128i const*) p); } else {
         result=setzero<SIMDShort, 16>();
         CHECK_AND_INSERT(_mm_insert_epi16, 0)
@@ -259,7 +258,7 @@ namespace ns_simd {
     uint64_t mask=k;
     if((0x0f&mask)==0x0f) {
         if((0xf0&mask)==0xf0) {
-            result=load<16, SIMDShort>(p);
+            result=::ns_simd::load<16, SIMDShort>(p);
         } else {
             result=_mm_loadl_epi64((__m128i const*) p);
             CHECK_AND_INSERT(_mm_insert_epi16, 4)
@@ -484,6 +483,10 @@ namespace ns_simd {
     CHECK_AND_STORE4
 #endif
   }
-} //namespace ns_simd
+} // namespace mask
+} // namespace internal
+} // namespace ns_simd
+
 #endif // ifdef __SSE2__
-#endif // _SIMDMASKINTEL16_H_
+
+#endif // _SIMD_VEC_MASK_IMPL_INTEL_16_H_

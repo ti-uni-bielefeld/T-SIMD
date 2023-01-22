@@ -26,6 +26,7 @@
 #ifndef _SIMD_VECS_H_
 #define _SIMD_VECS_H_
 
+#include "SIMDDefs.H"
 #include "SIMDVec.H"
 #include "SIMDVecBase.H"
 #include "SIMDVecExt.H"

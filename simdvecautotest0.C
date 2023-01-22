@@ -33,7 +33,7 @@
 
 #include "SIMDVecAll.H"
 #include "SIMDVecAutoTest.H"
-#include "SIMDVecWrapper.H"
+#include "SIMDVecAutoTestWrapper.H"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +41,7 @@
 #include <time.h>
 
 using namespace ns_simd;
+using namespace auto_test;
 
 // SW = SIMD width = number of bytes in a single SIMD vector
 #define SW NATIVE_SIMD_WIDTH
@@ -86,7 +87,7 @@ main(int argc, char *argv[])
   TestAll<Nullary,SW,Setzero>::test(repeats1, pattern);
   TestAll<Scalar,SW,Set1>::test(repeats1, pattern);
   // NOTE: load and store are used in SIMDSerialVec, test would probably be flawed
-  // NOTE: not tested: load, loadu, store, storeu, streamstore
+  // NOTE: not tested: load, loadu, store, storeu, stream_store
   TestAllTI<UnaryTemplateIntScalarMinToMax,SW,Extract>::test(repeats1, pattern);
   TestAll<Binary,SW,Add>::test(repeats1, pattern);
   TestAll<Binary,SW,Adds>::test(repeats1, pattern);

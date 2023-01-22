@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDVecWrapper.H --
+// SIMDVecAutoTestWrapper.H --
 // class wrapper, for both SIMDVec and SIMDSerialVec, used for tests
 // 
 // This source code file is part of the following software:
@@ -23,13 +23,14 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMD_VEC_WRAPPER_
-#define _SIMD_VEC_WRAPPER_
+#ifndef _SIMD_VEC_AUTO_TEST_WRAPPER_H_
+#define _SIMD_VEC_AUTO_TEST_WRAPPER_H_
 
 #include "SIMDDefs.H"
-#include "SIMDRandom.H"
-#include "SIMDSerialVec.H"
 #include "SIMDTypes.H"
+#include "SIMDVecAutoTestRandom.H"
+#include "SIMDVecAutoTestSerial.H"
+#include "SIMDVecBase.H"
 #include "SIMDVecExt.H"
 
 #include <stdint.h>
@@ -46,6 +47,7 @@
 //   least one argument of SIMDVec or SIMDSerialVec)
 
 namespace ns_simd {
+namespace auto_test {
 
   // -------------------------------------------------------------------------
   // aux. functions
@@ -2336,6 +2338,7 @@ namespace ns_simd {
     }
   };
 
-} // namespace
+} // namespace auto_test
+} // namespace ns_simd
 
-#endif
+#endif // _SIMD_VEC_AUTO_TEST_WRAPPER_H_

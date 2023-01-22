@@ -47,7 +47,7 @@
 // some definitions are missing for -O0 in some versions of gcc (e.g. 5.4)
 // ---------------------------------------------------------------------------
 
-// 15. Nov 22 (Jonas Keller): moved this to here from SIMDVecIntel64.H
+// 15. Nov 22 (Jonas Keller): moved this to here from SIMDVecBaseImplIntel64.H
 
 // bug seems to be fixed in avx512bwintrin.h in gcc 5.5.0
 

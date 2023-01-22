@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDMaskIntel64.H --
+// SIMDVecMaskImplIntel64.H --
 // Mask class definitions and architecture specific functions
 // for Intel 64 byte (512 bit)
 // Author: Markus Vieth (Bielefeld University, mvieth@techfak.uni-bielefeld.de)
@@ -26,15 +26,15 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMDMASKINTEL64_H_
-#define _SIMDMASKINTEL64_H_
+#ifndef _SIMD_VEC_MASK_IMPL_INTEL_64_H_
+#define _SIMD_VEC_MASK_IMPL_INTEL_64_H_
 
-#include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
-#include "SIMDVecIntel64.H"
+#include "SIMDVecBase.H"
+#include "SIMDVecBaseImplIntel64.H"
 
 #include <stdint.h>
 #include <string.h>
@@ -108,18 +108,21 @@ namespace ns_simd {
   CLASS_MASK(SIMDInt, 16)
   CLASS_MASK(SIMDFloat, 16)
 
+namespace internal {
+namespace mask {
+
   template <typename T>
   static SIMD_INLINE SIMDMask<T, 64>
   setTrueLeft(const unsigned int x)
   {
-    return kshiftli(mask_all_ones<T, 64>(), x);
+    return kshiftli(mask_all_ones(OutputType<T>(), Integer<64>()), x);
   }
 
   template <typename T>
   static SIMD_INLINE SIMDMask<T, 64>
   setTrueRight(const unsigned int x)
   {
-    return kshiftri(mask_all_ones<T, 64>(), x);
+    return kshiftri(mask_all_ones(OutputType<T>(), Integer<64>()), x);
   }
 
 
@@ -272,7 +275,7 @@ namespace ns_simd {
   mask_ifelsezero(const SIMDMask<TYPE, 64> &cond, \
 	 const SIMDVec<TYPE, 64> &trueVal) \
   { \
-    return mask_ifelse(cond, trueVal, setzero<TYPE, 64>()); \
+    return mask_ifelse(cond, trueVal, ::ns_simd::setzero<TYPE, 64>()); \
   }
 
   #define MASK_IFELSEZEROV(TYPE) \
@@ -379,7 +382,7 @@ namespace ns_simd {
       const TYPE a) \
   { \
     /*return mask_ifelse(k, set1(a), setzero<TYPE, 64>());*/ \
-    return _mm512_castps_si512(x_mm512_and_ps(_mm512_castsi512_ps(k), _mm512_castsi512_ps(set1<TYPE, 64>(a)))); \
+    return _mm512_castps_si512(base::x_mm512_and_ps(_mm512_castsi512_ps(k), _mm512_castsi512_ps(set1<TYPE, 64>(a)))); \
   }
   EMULATE_SET1(SIMDByte)
   EMULATE_SET1(SIMDSignedByte)
@@ -463,8 +466,8 @@ namespace ns_simd {
 	const T *const p)
   {
     //Align check is made in 256-bit versions of mask_load
-    return SIMDVec<T,64>(mask_load(src.lo(), x_mm512_lo_si256(k), p),
-			 mask_load(src.hi(), x_mm512_hi_si256(k), p+(32/sizeof(T))));
+    return SIMDVec<T,64>(mask_load(src.lo(), base::x_mm512_lo_si256(k), p),
+			 mask_load(src.hi(), base::x_mm512_hi_si256(k), p+(32/sizeof(T))));
   }
   template <typename T>
   static SIMD_INLINE SIMDVec<T,64>
@@ -472,8 +475,8 @@ namespace ns_simd {
 	const T *const p)
   {
     //Align check is made in 256-bit versions of maskz_load
-    return SIMDVec<T,64>(maskz_load(x_mm512_lo_si256(k), p),
-			 maskz_load(x_mm512_hi_si256(k), p+(32/sizeof(T))));
+    return SIMDVec<T,64>(maskz_load(base::x_mm512_lo_si256(k), p),
+			 maskz_load(base::x_mm512_hi_si256(k), p+(32/sizeof(T))));
   }
 #endif
   GENERATE_LOAD(load, SIMDInt, epi32)
@@ -567,8 +570,8 @@ namespace ns_simd {
 	const SIMDVec<T,64> &a)
   {
     // Align check is made in 256-bit versions of mask_store
-    mask_store(p, x_mm512_lo_si256(k), a.lo());
-    mask_store(p+(32/sizeof(T)), x_mm512_hi_si256(k), a.hi());
+    mask_store(p, base::x_mm512_lo_si256(k), a.lo());
+    mask_store(p+(32/sizeof(T)), base::x_mm512_hi_si256(k), a.hi());
   }
 #endif
   MASK_STORE(store, SIMDInt, epi32)
@@ -876,7 +879,7 @@ namespace ns_simd {
   maskz_abs (const SIMDMask<SIMDFloat, 64> &k,
       const SIMDVec<SIMDFloat, 64> &a)
   {
-    return _mm512_mask_abs_ps (setzero<SIMDFloat, 64>(), k, a);
+    return _mm512_mask_abs_ps (::ns_simd::setzero<SIMDFloat, 64>(), k, a);
   }
 #endif
 
@@ -1024,7 +1027,7 @@ namespace ns_simd {
   maskz_not (const SIMDMask<SIMDFloat, 64> &k,
       const SIMDVec<SIMDFloat, 64> &a)
   {
-    return not(mask_ifelse(k, a, reinterpret<SIMDFloat>(set1<SIMDInt, 64>(0xffffffff))));
+    return not(mask_ifelse(k, a, reinterpret<SIMDFloat>(::ns_simd::set1<SIMDInt, 64>(0xffffffff))));
   }
   static SIMD_INLINE SIMDVec<SIMDFloat, 64>
   mask_not (const SIMDVec<SIMDFloat, 64> &src,
@@ -1101,7 +1104,7 @@ namespace ns_simd {
 
   // 13. Nov. 2022 (Jonas Keller):
   // removed emulation of masked div2r0 and div2rd, they are already emulated
-  // in SIMDMaskEmu.H
+  // in SIMDVecMaskImplEmu.H
 
 
   // For all shifts
@@ -1652,7 +1655,7 @@ namespace ns_simd {
       const SIMDVec<SIMDInt,64> &a,
       const SIMDVec<SIMDInt,64> &b)
   {
-    SIMDVec<SIMDInt,64> one = set1<SIMDInt,64>(1), as, bs, lsb;
+    SIMDVec<SIMDInt,64> one = ::ns_simd::set1<SIMDInt,64>(1), as, bs, lsb;
     lsb = and(or(a, b), one);
     as = srai<1>(a);
     bs = srai<1>(b);
@@ -1664,7 +1667,7 @@ namespace ns_simd {
       const SIMDVec<SIMDInt,64> &a,
       const SIMDVec<SIMDInt,64> &b)
   {
-    SIMDVec<SIMDInt,64> one = set1<SIMDInt,64>(1), as, bs, lsb;
+    SIMDVec<SIMDInt,64> one = ::ns_simd::set1<SIMDInt,64>(1), as, bs, lsb;
     lsb = and(or(a, b), one);
     as = srai<1>(a);
     bs = srai<1>(b);
@@ -1737,7 +1740,7 @@ namespace ns_simd {
   // description of testn intrinsics was not clear, chosen other way
 
   // 02. Aug 22 (Jonas Keller): Was implemented using a template parameter for
-  // the type, but that was ambiguous with the emulated version in SIMDMaskEmu.H,
+  // the type, but that was ambiguous with the emulated version in SIMDVecMaskImplEmu.H,
   // so defining it for every type explicitly instead to resolve the ambiguity.
 
   #define TEST_ALL_ONES(TYPE) \
@@ -1756,12 +1759,9 @@ namespace ns_simd {
   TEST_ALL_ONES(SIMDFloat)
 
 
-  template <typename T, int SIMD_WIDTH> SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_all_ones();
-
   #define MASK_ALL_ONES(TYPE, MASK) \
-  template <> \
-  SIMD_INLINE SIMDMask<TYPE, 64> \
-  mask_all_ones() \
+  static SIMD_INLINE SIMDMask<TYPE, 64> \
+  mask_all_ones(OutputType<TYPE>, Integer<64>) \
   { \
     return MASK; \
   }
@@ -1772,27 +1772,23 @@ namespace ns_simd {
   MASK_ALL_ONES(SIMDWord, 0xFFFFFFFF)
   MASK_ALL_ONES(SIMDShort, 0xFFFFFFFF)
 #else
-  template <>
-  SIMD_INLINE SIMDMask<SIMDByte, 64>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDByte, 64>
+  mask_all_ones(OutputType<SIMDByte>, Integer<64>)
   {
     return _mm512_set1_epi32(-1);
   }
-  template <>
-  SIMD_INLINE SIMDMask<SIMDSignedByte, 64>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDSignedByte, 64>
+  mask_all_ones(OutputType<SIMDSignedByte>, Integer<64>)
   {
     return _mm512_set1_epi32(-1);
   }
-  template <>
-  SIMD_INLINE SIMDMask<SIMDWord, 64>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDWord, 64>
+  mask_all_ones(OutputType<SIMDWord>, Integer<64>)
   {
     return _mm512_set1_epi32(-1);
   }
-  template <>
-  SIMD_INLINE SIMDMask<SIMDShort, 64>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDShort, 64>
+  mask_all_ones(OutputType<SIMDShort>, Integer<64>)
   {
     return _mm512_set1_epi32(-1);
   }
@@ -1967,7 +1963,7 @@ The last resort (because it is probably slower in most cases) is to emulate the 
   kandn (const SIMDMask<T, 64> &a,
       const SIMDMask<T, 64> &b)
   {
-    return (mask_all_ones<T, 64>() & ((~a) & b));
+    return (mask_all_ones(OutputType<T>(), Integer<64>()) & ((~a) & b));
   }
 
   template <typename T>
@@ -1991,7 +1987,7 @@ The last resort (because it is probably slower in most cases) is to emulate the 
   kxnor (const SIMDMask<T, 64> &a,
       const SIMDMask<T, 64> &b)
   {
-    return (mask_all_ones<T, 64>() & (~(a ^ b)));
+    return (mask_all_ones(OutputType<T>(), Integer<64>()) & (~(a ^ b)));
   }
 
   template <typename T>
@@ -2006,7 +2002,7 @@ The last resort (because it is probably slower in most cases) is to emulate the 
   static SIMD_INLINE SIMDMask<T, 64>
   knot(const SIMDMask<T, 64> &a)
   {
-    return (mask_all_ones<T, 64>() & (~a));
+    return (mask_all_ones(OutputType<T>(), Integer<64>()) & (~a));
   }
 
   template <unsigned int IMM, typename T>
@@ -2176,7 +2172,10 @@ The last resort (because it is probably slower in most cases) is to emulate the 
     }
     return (((uint64_t) a) >> count);
   }
-} //namespace ns_simd
+} // namespace mask
+} // namespace internal
+} // namespace ns_simd
 
 #endif // __AVX512F__
-#endif // _SIMDMASKINTEL64_H_
+
+#endif // _SIMD_VEC_MASK_IMPL_INTEL_64_H_

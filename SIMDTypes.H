@@ -28,11 +28,9 @@
 
 #include "SIMDDefs.H"
 
-#include <limits>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <vector>
 
 namespace ns_simd {
   
@@ -350,6 +348,7 @@ namespace ns_simd {
   // tag dispatching
   // ===========================================================================
 
+namespace internal {
   // int2type trick from 
   // Andrei Alexandrescu: Modern C++ Design (Addison Wesley)
 
@@ -486,6 +485,8 @@ namespace ns_simd {
   typedef Compare<false,true,false> CompareEqual;
   typedef Compare<false,true,true>  CompareGreaterOrEqual;
   typedef Compare<false,false,true> CompareGreater;
+} // namespace internal
+
 } // namespace
 
 #endif

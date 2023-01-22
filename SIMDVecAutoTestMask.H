@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDMaskVecAutoTest.H --
+// SIMDVecAutoTestMask.H --
 // autotest templates for masked operations, Jonas Keller
 // 
 // This source code file is part of the following software:
@@ -26,14 +26,14 @@
 // 05. Nov 22 (Jonas Keller):
 // added time measurement for SIMD versions of all tested functions
 
-#ifndef _SIMD_MASK_VEC_AUTO_TEST_H_
-#define _SIMD_MASK_VEC_AUTO_TEST_H_
+#ifndef _SIMD_VEC_AUTO_TEST_MASK_H_
+#define _SIMD_VEC_AUTO_TEST_MASK_H_
 
-#include "SIMDDefs.H"
-#include "SIMDSerialMaskVec.H"
-#include "SIMDSerialVec.H"
 #include "SIMDTypes.H"
+#include "SIMDVec.H"
 #include "SIMDVecAutoTest.H"
+#include "SIMDVecAutoTestSerial.H"
+#include "SIMDVecAutoTestSerialMask.H"
 #include "TimeMeasurement.H"
 
 #include <bitset>
@@ -45,6 +45,7 @@
 // 02. Oct 22 (Jonas Keller): added support for different comparators
 
 namespace ns_simd {
+namespace auto_test {
 
 #define PRINT_VEC(T, VEC) PRINT(SIMDTypeInfo<T>::defaultFormat(), VEC)
 #define PRINT_SERIAL_MASK(T, SIMD_WIDTH, MASK)                                 \
@@ -1231,6 +1232,7 @@ struct TesterIntToMask {
   }
 };
 
+} // namespace auto_test
 } // namespace ns_simd
 
-#endif // _SIMD_MASK_VEC_AUTO_TEST_H_
+#endif // _SIMD_VEC_AUTO_TEST_MASK_H_

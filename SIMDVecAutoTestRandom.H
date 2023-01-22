@@ -1,5 +1,5 @@
-#ifndef _SIMD_RANDOM_H_
-#define _SIMD_RANDOM_H_
+#ifndef _SIMD_VEC_AUTO_TEST_RANDOM_H_
+#define _SIMD_VEC_AUTO_TEST_RANDOM_H_
 
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
@@ -11,10 +11,11 @@
 #include <vector>
 
 // 16. Nov 22 (Jonas Keller): moved functions for generating random numbers
-// from SIMDSerialVec.H to this file and added functions for generating
+// from SIMDVecAutoTestSerial.H to this file and added functions for generating
 // random numbers where special values have higher probability
 
 namespace ns_simd {
+namespace auto_test {
 
   template <typename T>
   static SIMD_INLINE T
@@ -310,6 +311,7 @@ namespace ns_simd {
     // or just return completely random float
     return getRandomOrSpecialValue<SIMDFloat>();
   }
-}
+} // namespace auto_test
+} // namespace ns_simd
 
-#endif
+#endif // _SIMD_VEC_AUTO_TEST_RANDOM_H_

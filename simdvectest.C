@@ -545,7 +545,7 @@ using namespace ns_simd;
       printf("\n");							\
     }									\
     puts("");								\
-    swizzle_32_16<N>(vIn, vOut);					\
+    internal::base::swizzle_32_16<N>(vIn, vOut);					\
     for (int i = 0; i < N; i++, bufp += nElems) {			\
       printf("vOut[%d] = ", i);						\
       print(FORMAT, vOut[i]);						\

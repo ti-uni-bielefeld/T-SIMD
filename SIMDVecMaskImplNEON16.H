@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDMaskNEON16.H --
+// SIMDVecMaskImplNEON16.H --
 // Mask class definitions and architecture specific functions
 // for Arm Neon 16 byte (128 bit)
 // Author: Markus Vieth (Bielefeld University, mvieth@techfak.uni-bielefeld.de)
@@ -26,8 +26,8 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMDMASKNEON16_H_
-#define _SIMDMASKNEON16_H_
+#ifndef _SIMD_VEC_MASK_IMPL_NEON_16_H_
+#define _SIMD_VEC_MASK_IMPL_NEON_16_H_
 
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
@@ -471,44 +471,41 @@ namespace ns_simd {
     { simd_aligned_free(p); }
   };
 
-  template <>
-  SIMD_INLINE SIMDMask<SIMDByte, 16>
-  mask_all_ones()
+namespace internal {
+namespace mask {
+
+  static SIMD_INLINE SIMDMask<SIMDByte, 16>
+  mask_all_ones(OutputType<SIMDByte>, Integer<16>)
   {
     return vdupq_n_u8(0xFF);
   }
 
-  template <>
-  SIMD_INLINE SIMDMask<SIMDSignedByte, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDSignedByte, 16>
+  mask_all_ones(OutputType<SIMDSignedByte>, Integer<16>)
   {
     return vdupq_n_s8(-1);
   }
 
-  template <>
-  SIMD_INLINE SIMDMask<SIMDWord, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDWord, 16>
+  mask_all_ones(OutputType<SIMDWord>, Integer<16>)
   {
     return vdupq_n_u16(0xFFFF);
   }
 
-  template <>
-  SIMD_INLINE SIMDMask<SIMDShort, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDShort, 16>
+  mask_all_ones(OutputType<SIMDShort>, Integer<16>)
   {
     return vdupq_n_s16(-1);
   }
 
-  template <>
-  SIMD_INLINE SIMDMask<SIMDInt, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDInt, 16>
+  mask_all_ones(OutputType<SIMDInt>, Integer<16>)
   {
     return vdupq_n_s32(-1);
   }
 
-  template <>
-  SIMD_INLINE SIMDMask<SIMDFloat, 16>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDFloat, 16>
+  mask_all_ones(OutputType<SIMDFloat>, Integer<16>)
   {
     return vreinterpretq_f32_s32(vdupq_n_s32(-1));
   }
@@ -670,6 +667,10 @@ namespace ns_simd {
   {
     CHECK_AND_STORE4
   }
-} //namespace ns_simd
+} // namespace mask
+} // namespace internal
+} // namespace ns_simd
+
 #endif //ifdef SIMDVEC_NEON_ENABLE
-#endif // _SIMDMASKNEON16_H_
+
+#endif // _SIMD_VEC_MASK_IMPL_NEON_16_H_

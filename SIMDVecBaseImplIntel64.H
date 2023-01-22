@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDVecIntel64.H --
+// SIMDVecBaseImplIntel64.H --
 // encapsulation for AVX512 Intel vector extensions
 // inspired by Agner Fog's C++ Vector Class Library
 // http://www.agner.org/optimize/#vectorclass
@@ -30,17 +30,18 @@
 //  
 // ===========================================================================
 
-#ifndef _SIMD_VEC_INTEL_64_H_
-#define _SIMD_VEC_INTEL_64_H_
+#ifndef _SIMD_VEC_BASE_IMPL_INTEL_64_H_
+#define _SIMD_VEC_BASE_IMPL_INTEL_64_H_
 
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
-#include "SIMDVecIntel16.H"
-#include "SIMDVecIntel32.H"
+#include "SIMDVecBaseImplIntel16.H"
+#include "SIMDVecBaseImplIntel32.H"
 
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __AVX512F__
@@ -59,6 +60,8 @@ namespace ns_simd {
   //   the user is responsible to avoid overflows
   // ===========================================================================
 
+namespace internal {
+namespace base {
   // ---------------------------------------------------------------------------
   // x_mm512_hi_si256/_ps, x_mm512_lo_si256/_ps: extract high / low 256-bit v
   // ---------------------------------------------------------------------------
@@ -106,6 +109,8 @@ namespace ns_simd {
        (_mm512_castps_pd(_mm512_castps256_ps512(lo)),
 	_mm256_castps_pd(hi), 1));
   }
+} // namespace base
+} // namespace internal
   
   // ===========================================================================
   // SIMDVec integer specialization for AVX512 v
@@ -127,11 +132,11 @@ namespace ns_simd {
     operator __m512i() const { return zmm; }
     // for avx512bw emulation
     SIMDVec(const SIMDVec<T,32> &lo, const SIMDVec<T,32> &hi)
-    { zmm = x_mm512_combine_si256(lo, hi); }
+    { zmm = internal::base::x_mm512_combine_si256(lo, hi); }
     SIMD_INLINE SIMDVec<T,32> lo() const 
-    { return x_mm512_lo_si256(zmm); }
+    { return internal::base::x_mm512_lo_si256(zmm); }
     SIMD_INLINE SIMDVec<T,32> hi() const 
-    { return x_mm512_hi_si256(zmm); }
+    { return internal::base::x_mm512_hi_si256(zmm); }
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
@@ -164,12 +169,12 @@ namespace ns_simd {
     operator __m512() const { return zmm; }
     // for avx512bw emulation
     SIMDVec(const SIMDVec<SIMDFloat,32> &lo, const SIMDVec<SIMDFloat,32> &hi)
-    { zmm = x_mm512_combine_ps(lo, hi); }
+    { zmm = internal::base::x_mm512_combine_ps(lo, hi); }
     SIMD_INLINE SIMDVec<SIMDFloat,32> lo() const 
-    { return x_mm512_lo_ps256(zmm); }
+    { return internal::base::x_mm512_lo_ps256(zmm); }
     // _mm512_extractf32x8_ps only in AVX512DQ
     SIMD_INLINE SIMDVec<SIMDFloat,32> hi() const
-    { return x_mm512_hi_ps256(zmm); }
+    { return internal::base::x_mm512_hi_ps256(zmm); }
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
@@ -182,6 +187,9 @@ namespace ns_simd {
     void operator delete[](void *p)
     { simd_aligned_free(p); }
   };
+
+namespace internal {
+namespace base {
 
   // ===========================================================================
   // macros v
@@ -1255,9 +1263,8 @@ namespace ns_simd {
   // convertible to int32 without overflow (0x7fffffbf = 2147483520);
   // negative values cannot overflow (they are clamped to invalid int
   // which is the most negative int32)
-  template <>
-  SIMD_INLINE SIMDVec<SIMDInt,64> 
-  cvts(const SIMDVec<SIMDFloat,64> &a)
+  static SIMD_INLINE SIMDVec<SIMDInt,64> 
+  cvts(const SIMDVec<SIMDFloat,64> &a, OutputType<SIMDInt>)
   {
     // TODO: analyze much more complex solution for cvts at
     // TODO: http://stackoverflow.com/questions/9157373/
@@ -1267,9 +1274,8 @@ namespace ns_simd {
   }
 
   // saturation is not necessary in this case
-  template <>
-  SIMD_INLINE SIMDVec<SIMDFloat,64> 
-  cvts(const SIMDVec<SIMDInt,64> &a)
+  static SIMD_INLINE SIMDVec<SIMDFloat,64> 
+  cvts(const SIMDVec<SIMDInt,64> &a, OutputType<SIMDFloat>)
   {
     return _mm512_cvtepi32_ps(a);
   }
@@ -1278,44 +1284,38 @@ namespace ns_simd {
   // setzero v
   // ---------------------------------------------------------------------------
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDByte,64> 
-  setzero()
+  static SIMD_INLINE SIMDVec<SIMDByte,64> 
+  setzero(OutputType<SIMDByte>, Integer<64>)
   { 
     return _mm512_setzero_si512(); 
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDSignedByte,64> 
-  setzero()
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64> 
+  setzero(OutputType<SIMDSignedByte>, Integer<64>)
   {
     return _mm512_setzero_si512();
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDWord,64> 
-  setzero()
+  static SIMD_INLINE SIMDVec<SIMDWord,64> 
+  setzero(OutputType<SIMDWord>, Integer<64>)
   {
     return _mm512_setzero_si512();
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDShort,64> 
-  setzero()
+  static SIMD_INLINE SIMDVec<SIMDShort,64> 
+  setzero(OutputType<SIMDShort>, Integer<64>)
   {
     return _mm512_setzero_si512();
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDInt,64> 
-  setzero()
+  static SIMD_INLINE SIMDVec<SIMDInt,64> 
+  setzero(OutputType<SIMDInt>, Integer<64>)
   {
     return _mm512_setzero_si512();
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDFloat,64>
-  setzero()
+  static SIMD_INLINE SIMDVec<SIMDFloat,64>
+  setzero(OutputType<SIMDFloat>, Integer<64>)
   {
     return _mm512_setzero_ps();
   }
@@ -1324,44 +1324,38 @@ namespace ns_simd {
   // set1 v
   // ---------------------------------------------------------------------------
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDByte,64> 
-  set1(SIMDByte a)
+  static SIMD_INLINE SIMDVec<SIMDByte,64> 
+  set1(SIMDByte a, Integer<64>)
   {
     return _mm512_set1_epi8(a);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDSignedByte,64> 
-  set1(SIMDSignedByte a)
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64> 
+  set1(SIMDSignedByte a, Integer<64>)
   {
     return _mm512_set1_epi8(a);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDWord,64> 
-  set1(SIMDWord a)
+  static SIMD_INLINE SIMDVec<SIMDWord,64> 
+  set1(SIMDWord a, Integer<64>)
   {
     return _mm512_set1_epi16(a);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDShort,64> 
-  set1(SIMDShort a)
+  static SIMD_INLINE SIMDVec<SIMDShort,64> 
+  set1(SIMDShort a, Integer<64>)
   {
     return _mm512_set1_epi16(a);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDInt,64> 
-  set1(SIMDInt a)
+  static SIMD_INLINE SIMDVec<SIMDInt,64> 
+  set1(SIMDInt a, Integer<64>)
   {
     return _mm512_set1_epi32(a);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDFloat,64>
-  set1(SIMDFloat a)
+  static SIMD_INLINE SIMDVec<SIMDFloat,64>
+  set1(SIMDFloat a, Integer<64>)
   {
     return _mm512_set1_ps(a);
   }
@@ -1370,9 +1364,8 @@ namespace ns_simd {
   // load v
   // ---------------------------------------------------------------------------
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDByte,64> 
-  load(const SIMDByte *const p)
+  static SIMD_INLINE SIMDVec<SIMDByte,64> 
+  load(const SIMDByte *const p, Integer<64>)
   {
 #ifdef SIMD_ALIGN_CHK
     // AVX load and store instructions need alignment to 64 byte
@@ -1382,9 +1375,8 @@ namespace ns_simd {
     return _mm512_load_si512((__m512i*) p);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDSignedByte,64> 
-  load(const SIMDSignedByte *const p)
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64> 
+  load(const SIMDSignedByte *const p, Integer<64>)
   {
 #ifdef SIMD_ALIGN_CHK
     // AVX load and store instructions need alignment to 64 byte
@@ -1394,9 +1386,8 @@ namespace ns_simd {
     return _mm512_load_si512((__m512i*) p);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDWord,64> 
-  load(const SIMDWord *const p)
+  static SIMD_INLINE SIMDVec<SIMDWord,64> 
+  load(const SIMDWord *const p, Integer<64>)
   {
 #ifdef SIMD_ALIGN_CHK
     // AVX load and store instructions need alignment to 64 byte
@@ -1406,9 +1397,8 @@ namespace ns_simd {
     return _mm512_load_si512((__m512i*) p);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDShort,64> 
-  load(const SIMDShort *const p)
+  static SIMD_INLINE SIMDVec<SIMDShort,64> 
+  load(const SIMDShort *const p, Integer<64>)
   {
 #ifdef SIMD_ALIGN_CHK
     // AVX load and store instructions need alignment to 64 byte
@@ -1418,9 +1408,8 @@ namespace ns_simd {
     return _mm512_load_si512((__m512i*) p);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDInt,64> 
-  load(const SIMDInt *const p)
+  static SIMD_INLINE SIMDVec<SIMDInt,64> 
+  load(const SIMDInt *const p, Integer<64>)
   {
 #ifdef SIMD_ALIGN_CHK
     // AVX load and store instructions need alignment to 64 byte
@@ -1430,9 +1419,8 @@ namespace ns_simd {
     return _mm512_load_si512((__m512i*) p);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDFloat,64>
-  load(const SIMDFloat *const p)
+  static SIMD_INLINE SIMDVec<SIMDFloat,64>
+  load(const SIMDFloat *const p, Integer<64>)
   {
 #ifdef SIMD_ALIGN_CHK
     // AVX load and store instructions need alignment to 64 byte
@@ -1446,44 +1434,38 @@ namespace ns_simd {
   // loadu v
   // ---------------------------------------------------------------------------
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDByte,64> 
-  loadu(const SIMDByte *const p)
+  static SIMD_INLINE SIMDVec<SIMDByte,64> 
+  loadu(const SIMDByte *const p, Integer<64>)
   {
     return _mm512_loadu_si512((__m512i*) p);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDSignedByte,64> 
-  loadu(const SIMDSignedByte *const p)
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64> 
+  loadu(const SIMDSignedByte *const p, Integer<64>)
   {
     return _mm512_loadu_si512((__m512i*) p);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDWord,64> 
-  loadu(const SIMDWord *const p)
+  static SIMD_INLINE SIMDVec<SIMDWord,64> 
+  loadu(const SIMDWord *const p, Integer<64>)
   {
     return _mm512_loadu_si512((__m512i*) p);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDShort,64> 
-  loadu(const SIMDShort *const p)
+  static SIMD_INLINE SIMDVec<SIMDShort,64> 
+  loadu(const SIMDShort *const p, Integer<64>)
   {
     return _mm512_loadu_si512((__m512i*) p);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDInt,64> 
-  loadu(const SIMDInt *const p)
+  static SIMD_INLINE SIMDVec<SIMDInt,64> 
+  loadu(const SIMDInt *const p, Integer<64>)
   {
     return _mm512_loadu_si512((__m512i*) p);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDFloat,64>
-  loadu(const SIMDFloat *const p)
+  static SIMD_INLINE SIMDVec<SIMDFloat,64>
+  loadu(const SIMDFloat *const p, Integer<64>)
   {
     return _mm512_loadu_ps(p);
   }
@@ -3333,60 +3315,62 @@ namespace ns_simd {
   
   // ========== signed -> signed ==========
   
-  template <>
-  SIMD_INLINE SIMDVec<SIMDSignedByte,64> 
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64> 
   packs(const SIMDVec<SIMDShort,64> &a,
-	const SIMDVec<SIMDShort,64> &b)
+	const SIMDVec<SIMDShort,64> &b,
+  OutputType<SIMDSignedByte>)
   {
     return x_mm512_evenodd8x64_epi64
       (x_mm512_packs_epi16(a, b));
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDShort,64> 
+  static SIMD_INLINE SIMDVec<SIMDShort,64> 
   packs(const SIMDVec<SIMDInt,64> &a,
-	const SIMDVec<SIMDInt,64> &b)
+	const SIMDVec<SIMDInt,64> &b,
+  OutputType<SIMDShort>)
   {
     return x_mm512_evenodd8x64_epi64
       (x_mm512_packs_epi32(a, b));
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDShort,64>
+  static SIMD_INLINE SIMDVec<SIMDShort,64>
   packs(const SIMDVec<SIMDFloat,64> &a,
-	const SIMDVec<SIMDFloat,64> &b)
+	const SIMDVec<SIMDFloat,64> &b,
+  OutputType<SIMDShort>)
   {
-    return packs<SIMDShort>(cvts<SIMDInt>(a), cvts<SIMDInt>(b));
+    return packs(cvts(a, OutputType<SIMDInt>()), cvts(b, OutputType<SIMDInt>()),
+                 OutputType<SIMDShort>());
   }
 
   // ========== signed -> unsigned ==========
 
   // non-avx512bw workaround
-  template <>
-  SIMD_INLINE SIMDVec<SIMDByte,64> 
+  static SIMD_INLINE SIMDVec<SIMDByte,64> 
   packs(const SIMDVec<SIMDShort,64> &a,
-	const SIMDVec<SIMDShort,64> &b)
+	const SIMDVec<SIMDShort,64> &b,
+  OutputType<SIMDByte>)
   {
     return x_mm512_evenodd8x64_epi64
       (x_mm512_packus_epi16(a, b));
   }
 
   // non-avx512bw workaround
-  template <>
-  SIMD_INLINE SIMDVec<SIMDWord,64> 
+  static SIMD_INLINE SIMDVec<SIMDWord,64> 
   packs(const SIMDVec<SIMDInt,64> &a,
-	const SIMDVec<SIMDInt,64> &b)
+	const SIMDVec<SIMDInt,64> &b,
+  OutputType<SIMDWord>)
   {
     return x_mm512_evenodd8x64_epi64
       (x_mm512_packus_epi32(a, b));
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDWord,64>
+  static SIMD_INLINE SIMDVec<SIMDWord,64>
   packs(const SIMDVec<SIMDFloat,64> &a,
-	const SIMDVec<SIMDFloat,64> &b)
+	const SIMDVec<SIMDFloat,64> &b,
+  OutputType<SIMDWord>)
   {
-    return packs<SIMDWord>(cvts<SIMDInt>(a), cvts<SIMDInt>(b));
+    return packs(cvts(a, OutputType<SIMDInt>()), cvts(b, OutputType<SIMDInt>()),
+                 OutputType<SIMDWord>());
   }
 
   // ---------------------------------------------------------------------------
@@ -3454,7 +3438,7 @@ namespace ns_simd {
 	 SIMDVec<SIMDWord,64> *const vOut)
   {
     // there's no _mm512_cvtepu8_epu16()
-    SIMDVec<SIMDByte,64> zero = setzero<SIMDByte,64>();
+    SIMDVec<SIMDByte,64> zero = setzero(OutputType<SIMDByte>(), Integer<64>());
     // 16. Jul 16 (rm): here we avoid to use generalized unpack from
     // SIMDVecExt.H
     vOut[0] = unpack(vIn, zero, Part<0>(), Bytes<1>());
@@ -3511,7 +3495,8 @@ namespace ns_simd {
   {
     SIMDVec<SIMDInt,64> vTmp[4];
     extend(vIn, vTmp);
-    for (int i = 0; i < 4; i++) vOut[i] = cvts<SIMDFloat>(vTmp[i]);
+    for (int i = 0; i < 4; i++)
+      vOut[i] = cvts(vTmp[i], OutputType<SIMDFloat>());
   }
 
   // unsigned -> signed
@@ -3534,7 +3519,8 @@ namespace ns_simd {
   {
     SIMDVec<SIMDInt,64> vTmp[4];
     extend(vIn, vTmp);
-    for (int i = 0; i < 4; i++) vOut[i] = cvts<SIMDFloat>(vTmp[i]);
+    for (int i = 0; i < 4; i++)
+      vOut[i] = cvts(vTmp[i], OutputType<SIMDFloat>());
   }
 
   // ---------------------------------------------------------------------------
@@ -3545,14 +3531,14 @@ namespace ns_simd {
   extend(const SIMDVec<SIMDInt,64> &vIn,
 	 SIMDVec<SIMDFloat,64> *const vOut)
   {
-    *vOut = cvts<SIMDFloat>(vIn);
+    *vOut = cvts(vIn, OutputType<SIMDFloat>());
   }
 
   static SIMD_INLINE void
   extend(const SIMDVec<SIMDFloat,64> &vIn,
 	 SIMDVec<SIMDInt,64> *const vOut)
   {
-    *vOut = cvts<SIMDInt>(vIn);
+    *vOut = cvts(vIn, OutputType<SIMDInt>());
   }
 
   // ---------------------------------------------------------------------------
@@ -4079,11 +4065,11 @@ namespace ns_simd {
   alignr_16(const SIMDVec<T, 64> &h,
 	    const SIMDVec<T, 64> &l)
   {
-    return reinterpret<T>
+    return reinterpret
       (SIMDVec<SIMDByte,64>
        (x_mm512_alignr_epi8<IMM>
 	//(x_mm512_cast_si512(h), x_mm512_cast_si512(l))));
-	(reinterpret<SIMDByte>(h), reinterpret<SIMDByte>(l))));
+	(reinterpret(h, OutputType<SIMDByte>()), reinterpret(l, OutputType<SIMDByte>()))), OutputType<T>());
   }
 
   // positive and in range
@@ -4096,7 +4082,8 @@ namespace ns_simd {
   {
     enum { byteShift = IMM * sizeof(T), laneShift = byteShift / 16 };
     SIMDVec<T,64> L = (byteShift < 64) ? l : h;
-    SIMDVec<T,64> H = (byteShift < 64) ? h : setzero<T,64>();
+    SIMDVec<T,64> H =
+        (byteShift < 64) ? h : setzero(OutputType<T>(), Integer<64>());
     return alignr_16<(byteShift % 16)>
       (align_64_16<(laneShift % 4 + 1)>(L, H),
        align_64_16<(laneShift % 4)>(L, H));
@@ -4110,7 +4097,7 @@ namespace ns_simd {
 	  const SIMDVec<T, 64> &,
 	  IsPosInRange<true,false>)
   {
-    return setzero<T,64>();
+    return setzero(OutputType<T>(), Integer<64>());
   }
 
   // hub:
@@ -4137,7 +4124,7 @@ namespace ns_simd {
   srle(const SIMDVec<T, 64> &a,
        IsPosInRange<true,true>)
   {
-    return alignre<IMM>(setzero<T,64>(), a);
+    return alignre<IMM>(setzero(OutputType<T>(), Integer<64>()), a);
   }
 
   // positive and out of range
@@ -4147,7 +4134,7 @@ namespace ns_simd {
   srle(const SIMDVec<T, 64> &,
        IsPosInRange<true,false>)
   {
-    return setzero<T,64>();
+    return setzero(OutputType<T>(), Integer<64>());
   }
 
   // hub:
@@ -4172,7 +4159,7 @@ namespace ns_simd {
   slle(const SIMDVec<T, 64> &a,
        IsPosInRange<true,true>)
   {
-    return alignre<SIMDVec<T,64>::elements - IMM>(a, setzero<T,64>());
+    return alignre<SIMDVec<T,64>::elements - IMM>(a, setzero(OutputType<T>(), Integer<64>()));
   }
 
   // positive and out of range
@@ -4182,7 +4169,7 @@ namespace ns_simd {
   slle(const SIMDVec<T, 64> &,
        IsPosInRange<true,false>)
   {
-    return setzero<T,64>();
+    return setzero(OutputType<T>(), Integer<64>());
   }
 
   // hub:
@@ -4193,6 +4180,8 @@ namespace ns_simd {
   {
     return slle<IMM>(a, IsPosInGivenRange<SIMDVec<T,64>::elements, IMM>());
   }
+} // namespace base
+} // namespace internal
   
   // ---------------------------------------------------------------------------
   // swizzle v
@@ -4207,32 +4196,40 @@ namespace ns_simd {
   struct SwizzleTable<N,SIMDByte,64>
   {
     SIMDVec<SIMDByte,64> mask;
-    SwizzleTable() 
-    { mask = x_mm512_duplicate_si128(load<16>(swizzleByteMask16_[N])); }
+    SwizzleTable() {
+      mask = internal::base::x_mm512_duplicate_si128(
+          internal::base::load(internal::base::swizzleByteMask16_[N], internal::Integer<16>()));
+    }
   };
 
   template <int N>
   struct SwizzleTable<N,SIMDSignedByte,64>
   {
     SIMDVec<SIMDByte,64> mask;
-    SwizzleTable() 
-    { mask = x_mm512_duplicate_si128(load<16>(swizzleByteMask16_[N])); }
+    SwizzleTable() {
+      mask = internal::base::x_mm512_duplicate_si128(
+          internal::base::load(internal::base::swizzleByteMask16_[N], internal::Integer<16>()));
+    }
   };
 
   template <int N>
   struct SwizzleTable<N,SIMDWord,64>
   {
     SIMDVec<SIMDByte,64> mask;
-    SwizzleTable() 
-    { mask = x_mm512_duplicate_si128(load<16>(swizzleWordMask16_[N])); }
+    SwizzleTable() {
+      mask = internal::base::x_mm512_duplicate_si128(
+          internal::base::load(internal::base::swizzleWordMask16_[N], internal::Integer<16>()));
+    }
   };
 
   template <int N>
   struct SwizzleTable<N,SIMDShort,64>
   {
     SIMDVec<SIMDByte,64> mask;
-    SwizzleTable() 
-    { mask = x_mm512_duplicate_si128(load<16>(swizzleWordMask16_[N])); }
+    SwizzleTable() {
+      mask = internal::base::x_mm512_duplicate_si128(
+          internal::base::load(internal::base::swizzleWordMask16_[N], internal::Integer<16>()));
+    }
   };
 
   // no mask required
@@ -4249,6 +4246,8 @@ namespace ns_simd {
     SwizzleTable() {}
   };
 
+namespace internal {
+namespace base {
   // ---------- swizzle aux functions -----------
 
   // alignoff is the element-wise offset (relates to size of byte)
@@ -5205,13 +5204,13 @@ namespace ns_simd {
   {
 #ifdef __AVX512DQ__
     return _mm512_mask_blend_ps
-      (_mm512_movepi32_mask(reinterpret<SIMDInt>(cond)),
+      (_mm512_movepi32_mask(reinterpret(cond, OutputType<SIMDInt>())),
        falseVal, trueVal);
 #else
-    return reinterpret<SIMDFloat>
-      (ifelse(reinterpret<SIMDInt>(cond),
-	      reinterpret<SIMDInt>(trueVal),
-	      reinterpret<SIMDInt>(falseVal)));
+    return reinterpret
+      (ifelse(reinterpret(cond, OutputType<SIMDInt>()),
+	      reinterpret(trueVal, OutputType<SIMDInt>()),
+	      reinterpret(falseVal, OutputType<SIMDInt>())), OutputType<SIMDFloat>());
 #endif
   }
 
@@ -5386,7 +5385,7 @@ namespace ns_simd {
   avg(const SIMDVec<SIMDInt,64> &a,
       const SIMDVec<SIMDInt,64> &b)
   {
-    SIMDVec<SIMDInt,64> one = set1<SIMDInt,64>(1), as, bs, lsb;
+    SIMDVec<SIMDInt,64> one = set1(SIMDInt(1), Integer<64>()), as, bs, lsb;
     lsb = and(or(a, b), one);
     as = srai<1>(a);
     bs = srai<1>(b);
@@ -5430,7 +5429,7 @@ namespace ns_simd {
   static SIMD_INLINE int
   test_all_zeros(const SIMDVec<SIMDFloat,64> &a)
   {
-    return test_all_zeros(reinterpret<SIMDInt>(a));
+    return test_all_zeros(reinterpret(a, OutputType<SIMDInt>()));
   }
   
   // ---------------------------------------------------------------------------
@@ -5473,10 +5472,10 @@ namespace ns_simd {
   reverse(const SIMDVec<SIMDByte,64> &a)
   {
 #ifdef __AVX512VBMI__
-    return _mm512_permutexvar_epi8(load<64>(reverse_mask_1), a);
+    return _mm512_permutexvar_epi8(load(reverse_mask_1, Integer<64>()), a);
 #else
     SIMDVec<SIMDByte,64> r =
-      x_mm512_shuffle_epi8(a, load<64>(reverse_mask_1));
+      x_mm512_shuffle_epi8(a, load(reverse_mask_1, Integer<64>()));
     return permute_64_16_1<3,2,1,0>(r);
 #endif
   }
@@ -5485,10 +5484,10 @@ namespace ns_simd {
   reverse(const SIMDVec<SIMDSignedByte,64> &a)
   {
 #ifdef __AVX512VBMI__
-    return _mm512_permutexvar_epi8(load<64>(reverse_mask_1), a);
+    return _mm512_permutexvar_epi8(load(reverse_mask_1, Integer<64>()), a);
 #else
     SIMDVec<SIMDSignedByte,64> r =
-      x_mm512_shuffle_epi8(a, load<64>(reverse_mask_1));
+      x_mm512_shuffle_epi8(a, load(reverse_mask_1, Integer<64>()));
     return permute_64_16_1<3,2,1,0>(r);
 #endif
   }
@@ -5497,10 +5496,10 @@ namespace ns_simd {
   reverse(const SIMDVec<SIMDWord,64> &a)
   {
 #ifdef __AVX512VBMI__
-    return _mm512_permutexvar_epi8(load<64>(reverse_mask_2), a);    
+    return _mm512_permutexvar_epi8(load(reverse_mask_2, Integer<64>()), a);    
 #else
     SIMDVec<SIMDWord,64> r =
-      x_mm512_shuffle_epi8(a, load<64>(reverse_mask_2));
+      x_mm512_shuffle_epi8(a, load(reverse_mask_2, Integer<64>()));
     return permute_64_16_1<3, 2, 1, 0>(r);
 #endif
   }
@@ -5509,10 +5508,10 @@ namespace ns_simd {
   reverse(const SIMDVec<SIMDShort,64> &a)
   {
 #ifdef __AVX512VBMI__
-    return _mm512_permutexvar_epi8(load<64>(reverse_mask_2), a);    
+    return _mm512_permutexvar_epi8(load(reverse_mask_2, Integer<64>()), a);    
 #else
     SIMDVec<SIMDShort,64> r =
-      x_mm512_shuffle_epi8(a, load<64>(reverse_mask_2));
+      x_mm512_shuffle_epi8(a, load(reverse_mask_2, Integer<64>()));
     return permute_64_16_1<3, 2, 1, 0>(r);
 #endif
   }
@@ -5521,7 +5520,7 @@ namespace ns_simd {
   reverse(const SIMDVec<SIMDInt,64> &a)
   {
     // AVX512F
-    return _mm512_permutexvar_epi32(load<64>(reverse_mask_4), a);
+    return _mm512_permutexvar_epi32(load(reverse_mask_4, Integer<64>()), a);
   }
 
   // float version, slightly changed int version
@@ -5529,7 +5528,7 @@ namespace ns_simd {
   reverse(const SIMDVec<SIMDFloat,64> &a)
   {
     // AVX512F
-    return _mm512_permutexvar_ps(load<64>(reverse_mask_4), a);
+    return _mm512_permutexvar_ps(load(reverse_mask_4, Integer<64>()), a);
   }
 
 
@@ -5611,10 +5610,10 @@ namespace ns_simd {
   static SIMD_INLINE uint64_t
   msb2int(const SIMDVec<SIMDByte,64> &a)
   {
-    const uint64_t part3 = msb2int(reinterpret<SIMDInt>(a));
-    const uint64_t part2 = msb2int(reinterpret<SIMDInt>(slle<1>(a)));
-    const uint64_t part1 = msb2int(reinterpret<SIMDInt>(slle<2>(a)));
-    const uint64_t part0 = msb2int(reinterpret<SIMDInt>(slle<3>(a)));
+    const uint64_t part3 = msb2int(reinterpret(a, OutputType<SIMDInt>()));
+    const uint64_t part2 = msb2int(reinterpret(slle<1>(a), OutputType<SIMDInt>()));
+    const uint64_t part1 = msb2int(reinterpret(slle<2>(a), OutputType<SIMDInt>()));
+    const uint64_t part0 = msb2int(reinterpret(slle<3>(a), OutputType<SIMDInt>()));
     // TODO: is there a more efficient way to interleave with 3 zeros instead of
     // interleaving with 1 zero twice?
     const uint64_t part3_with_zeros =
@@ -5632,10 +5631,10 @@ namespace ns_simd {
   static SIMD_INLINE uint64_t
   msb2int(const SIMDVec<SIMDSignedByte,64> &a)
   {
-    const uint64_t part3 = msb2int(reinterpret<SIMDInt>(a));
-    const uint64_t part2 = msb2int(reinterpret<SIMDInt>(slle<1>(a)));
-    const uint64_t part1 = msb2int(reinterpret<SIMDInt>(slle<2>(a)));
-    const uint64_t part0 = msb2int(reinterpret<SIMDInt>(slle<3>(a)));
+    const uint64_t part3 = msb2int(reinterpret(a, OutputType<SIMDInt>()));
+    const uint64_t part2 = msb2int(reinterpret(slle<1>(a), OutputType<SIMDInt>()));
+    const uint64_t part1 = msb2int(reinterpret(slle<2>(a), OutputType<SIMDInt>()));
+    const uint64_t part0 = msb2int(reinterpret(slle<3>(a), OutputType<SIMDInt>()));
     // TODO: is there a more efficient way to interleave with 3 zeros instead of
     // interleaving with 1 zero twice?
     const uint64_t part3_with_zeros =
@@ -5653,8 +5652,8 @@ namespace ns_simd {
   static SIMD_INLINE uint64_t
   msb2int(const SIMDVec<SIMDShort,64> &a)
   {
-    const uint64_t odd = msb2int(reinterpret<SIMDInt>(a));
-    const uint64_t even = msb2int(reinterpret<SIMDInt>(slle<1>(a)));
+    const uint64_t odd = msb2int(reinterpret(a, OutputType<SIMDInt>()));
+    const uint64_t even = msb2int(reinterpret(slle<1>(a), OutputType<SIMDInt>()));
     return interleave_uint32_with_zeros(even) |
            (interleave_uint32_with_zeros(odd) << 1);
   }
@@ -5662,8 +5661,8 @@ namespace ns_simd {
   static SIMD_INLINE uint64_t
   msb2int(const SIMDVec<SIMDWord,64> &a)
   {
-    const uint64_t odd = msb2int(reinterpret<SIMDInt>(a));
-    const uint64_t even = msb2int(reinterpret<SIMDInt>(slle<1>(a)));
+    const uint64_t odd = msb2int(reinterpret(a, OutputType<SIMDInt>()));
+    const uint64_t even = msb2int(reinterpret(slle<1>(a), OutputType<SIMDInt>()));
     return interleave_uint32_with_zeros(even) |
            (interleave_uint32_with_zeros(odd) << 1);
   }
@@ -5675,9 +5674,8 @@ namespace ns_simd {
 
   // 06. Oct 22 (Jonas Keller): added int2msb functions
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDByte,64>
-  int2msb(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDByte,64>
+  int2msb(const uint64_t a, OutputType<SIMDByte>, Integer<64>)
   {
 #ifdef __AVX512BW__
     return _mm512_maskz_set1_epi8(_cvtu64_mask64(a), (int8_t)0x80);
@@ -5697,16 +5695,15 @@ namespace ns_simd {
 #endif
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDSignedByte,64>
-  int2msb(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64>
+  int2msb(const uint64_t a, OutputType<SIMDSignedByte>, Integer<64>)
   {
-    return reinterpret<SIMDSignedByte>(int2msb<SIMDByte, 64>(a));
+    return reinterpret(int2msb(a, OutputType<SIMDByte>(), Integer<64>()),
+                       OutputType<SIMDSignedByte>());
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDShort,64>
-  int2msb(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDShort,64>
+  int2msb(const uint64_t a, OutputType<SIMDShort>, Integer<64>)
   {
 #ifdef __AVX512BW__
     return _mm512_maskz_set1_epi16(_cvtu32_mask32(a), (int16_t)0x8000);
@@ -5725,25 +5722,24 @@ namespace ns_simd {
 #endif
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDWord,64>
-  int2msb(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDWord,64>
+  int2msb(const uint64_t a, OutputType<SIMDWord>, Integer<64>)
   {
-    return reinterpret<SIMDWord>(int2msb<SIMDShort, 64>(a));
+    return reinterpret(int2msb(a, OutputType<SIMDShort>(), Integer<64>()),
+                       OutputType<SIMDWord>());
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDInt,64>
-  int2msb(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDInt,64>
+  int2msb(const uint64_t a, OutputType<SIMDInt>, Integer<64>)
   {
     return _mm512_maskz_set1_epi32(_cvtu32_mask16(a), 0x80000000);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDFloat,64>
-  int2msb(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDFloat,64>
+  int2msb(const uint64_t a, OutputType<SIMDFloat>, Integer<64>)
   {
-    return reinterpret<SIMDFloat>(int2msb<SIMDInt, 64>(a));
+    return reinterpret(int2msb(a, OutputType<SIMDInt>(), Integer<64>()),
+                       OutputType<SIMDFloat>());
   }
 
   // ---------------------------------------------------------------------------
@@ -5752,9 +5748,8 @@ namespace ns_simd {
 
   // 09. Oct 22 (Jonas Keller): added int2bits functions
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDByte,64>
-  int2bits(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDByte,64>
+  int2bits(const uint64_t a, OutputType<SIMDByte>, Integer<64>)
   {
 #ifdef __AVX512BW__
     return _mm512_maskz_set1_epi8(_cvtu64_mask64(a), (int8_t)0xff);
@@ -5773,16 +5768,15 @@ namespace ns_simd {
 #endif
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDSignedByte,64>
-  int2bits(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64>
+  int2bits(const uint64_t a, OutputType<SIMDSignedByte>, Integer<64>)
   {
-    return reinterpret<SIMDSignedByte>(int2bits<SIMDByte, 64>(a));
+    return reinterpret(int2bits(a, OutputType<SIMDByte>(), Integer<64>()),
+                       OutputType<SIMDSignedByte>());
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDShort,64>
-  int2bits(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDShort,64>
+  int2bits(const uint64_t a, OutputType<SIMDShort>, Integer<64>)
   {
 #ifdef __AVX512BW__
     return _mm512_maskz_set1_epi16(_cvtu32_mask32(a), (int16_t)0xffff);
@@ -5800,28 +5794,29 @@ namespace ns_simd {
 #endif
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDWord,64>
-  int2bits(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDWord,64>
+  int2bits(const uint64_t a, OutputType<SIMDWord>, Integer<64>)
   {
-    return reinterpret<SIMDWord>(int2bits<SIMDShort, 64>(a));
+    return reinterpret(int2bits(a, OutputType<SIMDShort>(), Integer<64>()),
+                       OutputType<SIMDWord>());
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDInt,64>
-  int2bits(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDInt,64>
+  int2bits(const uint64_t a, OutputType<SIMDInt>, Integer<64>)
   {
     return _mm512_maskz_set1_epi32(_cvtu32_mask16(a), 0xffffffff);
   }
 
-  template <>
-  SIMD_INLINE SIMDVec<SIMDFloat,64>
-  int2bits(const uint64_t a)
+  static SIMD_INLINE SIMDVec<SIMDFloat,64>
+  int2bits(const uint64_t a, OutputType<SIMDFloat>, Integer<64>)
   {
-    return reinterpret<SIMDFloat>(int2bits<SIMDInt, 64>(a));
+    return reinterpret(int2bits(a, OutputType<SIMDInt>(), Integer<64>()),
+                       OutputType<SIMDFloat>());
   }
-}
+} // namespace base
+} // namespace internal
+} // namespace ns_simd
 
 #endif // __AVX512F__
 
-#endif // _SIMD_VEC_INTEL_64_H_
+#endif // _SIMD_VEC_BASE_IMPL_INTEL_64_H_

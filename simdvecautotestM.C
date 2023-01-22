@@ -24,10 +24,10 @@
 // ===========================================================================
 
 #include "SIMDDefs.H"
-#include "SIMDMaskVecAutoTest.H"
-#include "SIMDMaskVecWrapper.H"
 #include "SIMDVecAll.H"
 #include "SIMDVecAutoTest.H"
+#include "SIMDVecAutoTestMask.H"
+#include "SIMDVecAutoTestWrapperMask.H"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,6 +35,7 @@
 #include <time.h>
 
 using namespace ns_simd;
+using namespace auto_test;
 
 // SW = SIMD width = number of bytes in a single SIMD vector
 #define SW NATIVE_SIMD_WIDTH

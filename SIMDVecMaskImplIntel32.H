@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDMaskIntel32.H --
+// SIMDVecMaskImplIntel32.H --
 // Mask class definitions and architecture specific functions
 // for Intel 32 byte (256 bit)
 // Author: Markus Vieth (Bielefeld University, mvieth@techfak.uni-bielefeld.de)
@@ -26,17 +26,19 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMDMASKINTEL32_H_
-#define _SIMDMASKINTEL32_H_
+#ifndef _SIMD_VEC_MASK_IMPL_INTEL_32_H_
+#define _SIMD_VEC_MASK_IMPL_INTEL_32_H_
 
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
-#include "SIMDMaskIntel16.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
-#include "SIMDVecIntel32.H"
+#include "SIMDVecBase.H"
+#include "SIMDVecBaseImplIntel32.H"
+#include "SIMDVecMaskImplIntel16.H"
 
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __AVX__
@@ -111,7 +113,7 @@ namespace ns_simd {
       return ((1 << i) & msb2int(SIMDVec<SIMDFloat, 32>(k))) != 0;
     }
     bool operator==(const SIMDMask<SIMDFloat, 32> &x) {
-      return test_all_zeros(_mm256_xor_ps(k, x));
+      return ::ns_simd::test_all_zeros<SIMDFloat, 32>(_mm256_xor_ps(k, x));
     }
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
@@ -125,45 +127,41 @@ namespace ns_simd {
     void operator delete[](void *p)
     { simd_aligned_free(p); }
   };
-  
-  template <>
-  SIMD_INLINE SIMDMask<SIMDByte, 32>
-  mask_all_ones()
+
+namespace internal {
+namespace mask {
+  static SIMD_INLINE SIMDMask<SIMDByte, 32>
+  mask_all_ones(OutputType<SIMDByte>, Integer<32>)
   {
     return _mm256_set1_epi8(-1);
   }
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDSignedByte, 32>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDSignedByte, 32>
+  mask_all_ones(OutputType<SIMDSignedByte>, Integer<32>)
   {
     return _mm256_set1_epi8(-1);
   }
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDWord, 32>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDWord, 32>
+  mask_all_ones(OutputType<SIMDWord>, Integer<32>)
   {
     return _mm256_set1_epi8(-1);
   }
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDShort, 32>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDShort, 32>
+  mask_all_ones(OutputType<SIMDShort>, Integer<32>)
   {
     return _mm256_set1_epi8(-1);
   }
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDInt, 32>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDInt, 32>
+  mask_all_ones(OutputType<SIMDInt>, Integer<32>)
   {
     return _mm256_set1_epi8(-1);
   }
   
-  template <>
-  SIMD_INLINE SIMDMask<SIMDFloat, 32>
-  mask_all_ones()
+  static SIMD_INLINE SIMDMask<SIMDFloat, 32>
+  mask_all_ones(OutputType<SIMDFloat>, Integer<32>)
   {
     return _mm256_castsi256_ps(_mm256_set1_epi8(-1));
   }
@@ -183,7 +181,7 @@ namespace ns_simd {
   maskz_load(const SIMDMask<SIMDSignedByte, 32> &k,
       const SIMDSignedByte *const p)
   {
-    SIMDVec<SIMDSignedByte, 32> result=setzero<SIMDSignedByte, 32>();
+    SIMDVec<SIMDSignedByte, 32> result=::ns_simd::setzero<SIMDSignedByte, 32>();
     CHECK_AND_INSERT(_mm256_insert_epi8, 0)
     CHECK_AND_INSERT(_mm256_insert_epi8, 1)
     CHECK_AND_INSERT(_mm256_insert_epi8, 2)
@@ -230,7 +228,7 @@ namespace ns_simd {
   {
 //#ifdef BENCH_METHOD1
 #if __GNUC__ < 8
-    SIMDVec<SIMDShort, 32> result=setzero<SIMDShort, 32>();
+    SIMDVec<SIMDShort, 32> result=::ns_simd::setzero<SIMDShort, 32>();
     CHECK_AND_INSERT(_mm256_insert_epi16, 0)
     CHECK_AND_INSERT(_mm256_insert_epi16, 1)
     CHECK_AND_INSERT(_mm256_insert_epi16, 2)
@@ -390,6 +388,10 @@ namespace ns_simd {
 #endif
   }
 //#endif // __AVX__
-} //namespace ns_simd
+} // namespace mask
+} // namespace internal
+} // namespace ns_simd
+
 #endif // ifdef __AVX__
-#endif // _SIMDMASKINTEL32_H_
+
+#endif // _SIMD_VEC_MASK_IMPL_INTEL_32_H_

@@ -49,9 +49,9 @@
 #define _SIMD_VEC_AUTO_TEST_H_
 
 #include "SIMDDefs.H"
-#include "SIMDSerialVec.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
+#include "SIMDVecAutoTestSerial.H"
 #include "SIMDVecExt.H"
 #include "TimeMeasurement.H"
 
@@ -64,6 +64,7 @@
 #include <time.h>
 
 namespace ns_simd {
+namespace auto_test {
 
   // how many error cases should be printed to stdout
 #define PRINT_ERRORS 1
@@ -2600,6 +2601,7 @@ namespace ns_simd {
       }
     }
   };
-} // namespace
+} // namespace auto_test
+} // namespace ns_simd
 
 #endif

@@ -32,10 +32,8 @@
 #include "SIMDVecExt.H"
 // SIMDVecs: multiple SIMDVec in template class
 #include "SIMDVecs.H"
-// architecture-specific templates/functions for masked operations
-#include "SIMDMaskArchSpec.H"
-// architecture independent emulated templates/functions for masked operations
-#include "SIMDMaskEmu.H"
+// templates/functions for masked operations
+#include "SIMDVecMask.H"
 // aligned memory allocation
 #include "SIMDAlloc.H"
 

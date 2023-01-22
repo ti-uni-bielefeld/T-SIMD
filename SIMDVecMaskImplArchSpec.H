@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDMaskArchSpec.H --
+// SIMDVecMaskImplArchSpec.H --
 // common include file for architecture specific mask classes and masked
 // functions
 // 
@@ -24,15 +24,8 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMD_MASK_ARCH_SPEC_H_
-#define _SIMD_MASK_ARCH_SPEC_H_
-
-#ifdef SIMDVEC_SANDBOX
-
-// test templates
-#include "SIMDMaskSandbox.H"
-
-#else // SIMDVEC_SANDBOX
+#ifndef _SIMD_VEC_MASK_IMPL_ARCH_SPEC_H_
+#define _SIMD_VEC_MASK_IMPL_ARCH_SPEC_H_
 
 #include "SIMDDefs.H"
 
@@ -41,17 +34,15 @@
 // Intel
 #ifdef SIMDVEC_INTEL_ENABLE
 // 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
-#include "SIMDMaskIntel16.H"
-#include "SIMDMaskIntel32.H"
-#include "SIMDMaskIntel64.H"
+#include "SIMDVecMaskImplIntel16.H"
+#include "SIMDVecMaskImplIntel32.H"
+#include "SIMDVecMaskImplIntel64.H"
 #endif // SIMDVEC_INTEL_ENABLE
 
 // ARM NEON
 #ifdef SIMDVEC_NEON_ENABLE
 // 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
-#include "SIMDMaskNEON16.H"
+#include "SIMDVecMaskImplNEON16.H"
 #endif // SIMDVEC_NEON_ENABLE
 
-#endif // else SIMDVEC_SANDBOX
-
-#endif // _SIMD_MASK_ARCH_SPEC_H_
+#endif // _SIMD_VEC_MASK_IMPL_ARCH_SPEC_H_

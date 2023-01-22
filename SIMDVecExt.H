@@ -33,7 +33,6 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <string.h>
 #include <string>
 
 namespace ns_simd {
@@ -99,7 +98,9 @@ namespace ns_simd {
   {
     return NUM_SIMDVECS_ELEMENTS(Tout,Tin,SIMD_WIDTH);
   }
-  
+
+namespace internal {
+namespace ext {
   // 22. Sep 22 (Jonas Keller): this was implemented using a constexpr function from
   // https://stackoverflow.com/questions/23781506/compile-time-computing-of-number-of-bits-needed-to-encode-n-different-states
   // but C++98 does not support constexpr, so we use template metaprogramming instead
@@ -108,6 +109,8 @@ namespace ns_simd {
     static const unsigned int value = 1 + floorlog2<x / 2>::value;
   };
   template <> struct floorlog2<1> { static const unsigned int value = 0; };
+} // namespace ext
+} // namespace internal
 
   // determine NATIVE_SIMD_REG_COUNT
   // https://stackoverflow.com/questions/62419256/how-can-i-determine-how-many-avx-registers-my-processor-has
@@ -259,7 +262,8 @@ namespace ns_simd {
   }
 
   // -------------------- different store functions ----------------------------
-
+namespace internal {
+namespace ext {
   template <typename T, int SIMD_WIDTH>
   class Store
   {
@@ -289,7 +293,7 @@ namespace ns_simd {
   // TODO: Currently storing complete quadratic matrix. Integrate numOutVecs?
   //
   // gcc error with inline template function: inlining failed in call to
-  // always_inline ‘void ns_simd::storeu16(..) [..]’: recursive inlining
+  // always_inline ‘void storeu16(..) [..]’: recursive inlining
   // ---------------------------------------------------------------------------
 
   template< template <typename, int> class Store,
@@ -355,6 +359,8 @@ namespace ns_simd {
     {
     }
   };
+} // namespace ext
+} // namespace internal
 
   // -------------------- store16 functions ------------------------------------
 
@@ -364,8 +370,8 @@ namespace ns_simd {
   {
     const int numRows = SIMD_WIDTH / sizeof(T);
     const int storeStop = 16 / sizeof(T);
-    Store16<Store, T, SIMD_WIDTH, numRows, 0, storeStop, SIMD_WIDTH, 0, 0>
-        ::_store16(p, outVecs);
+    internal::ext::Store16<internal::ext::Store, T, SIMD_WIDTH, numRows, 0, storeStop,
+                      SIMD_WIDTH, 0, 0>::_store16(p, outVecs);
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -374,8 +380,8 @@ namespace ns_simd {
   {
     const int numRows = SIMD_WIDTH / sizeof(T);
     const int storeStop = 16 / sizeof(T);
-    Store16<StoreU, T, SIMD_WIDTH, numRows, 0, storeStop, SIMD_WIDTH, 0, 0>
-        ::_store16(p, outVecs);
+    internal::ext::Store16<internal::ext::StoreU, T, SIMD_WIDTH, numRows, 0, storeStop,
+                      SIMD_WIDTH, 0, 0>::_store16(p, outVecs);
   }
 
   // ===========================================================================
@@ -415,6 +421,88 @@ namespace ns_simd {
   }
 
   // ===========================================================================
+  // generalized packs
+  // ===========================================================================
+
+  // from\to
+  //    SB B S W I F 
+  // SB  x
+  //  B     
+  //  S  x x x
+  //  W         
+  //  I  x x x x x x
+  //  F  x x x x x x
+  //
+  // input is only signed
+  // same-size input and output is allowed
+
+namespace internal {
+namespace ext {
+
+
+  // no stage
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  packs(const SIMDVec<T, SIMD_WIDTH> *const a, 
+	OutputType<T>, Compression<1>)
+  {
+    return *a;
+  }
+  
+  // single stage
+
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
+  packs(const SIMDVec<Tin, SIMD_WIDTH> *const a, 
+	OutputType<Tout>, Compression<2>)
+  {
+    return packs<Tout>(a[0], a[1]);
+  }
+
+  // two stages
+
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
+  packs(const SIMDVec<Tin, SIMD_WIDTH> *const a, 
+	OutputType<Tout>, Compression<4>)
+  {
+    // always via SIMDShort
+    return packs<Tout>(packs<SIMDShort>(a[0], a[1]),
+		       packs<SIMDShort>(a[2], a[3]));
+  }
+
+  // special case: int <-> float
+
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDFloat,SIMD_WIDTH>
+  packs(const SIMDVec<SIMDInt,SIMD_WIDTH> *const a, 
+	OutputType<SIMDFloat>, Compression<1>)
+  {
+    return cvts<SIMDFloat>(*a);
+  }
+
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDInt,SIMD_WIDTH>
+  packs(const SIMDVec<SIMDFloat,SIMD_WIDTH> *const a, 
+	OutputType<SIMDInt>, Compression<1>)
+  {
+    return cvts<SIMDInt>(*a);
+  }
+} // namespace ext
+} // namespace internal
+
+  // hub
+  // generalized version of packs: includes multistage packing
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
+  packs(const SIMDVec<Tin, SIMD_WIDTH> *const a)
+  {
+    return internal::ext::packs(a, internal::OutputType<Tout>(),
+                           internal::Compression<sizeof(Tin) / sizeof(Tout)>());
+  }
+
+  // ===========================================================================
   // generalized convert (using extend and packs)
   // ===========================================================================
 
@@ -437,6 +525,8 @@ namespace ns_simd {
   //  I  x x x x x x
   //  F  x x x x x x
 
+namespace internal {
+namespace ext {
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE void
   convert(CompareLess,
@@ -463,6 +553,8 @@ namespace ns_simd {
   {
     extend(*inVecs, outVecs);
   }
+} // namespace ext
+} // namespace internal
 
   // hub
   template <typename Tout, typename Tin, int SIMD_WIDTH>
@@ -470,7 +562,7 @@ namespace ns_simd {
   convert(const SIMDVec<Tin,SIMD_WIDTH> *const inVecs, 
 	  SIMDVec<Tout,SIMD_WIDTH> *const outVecs)
   {
-    convert(CompareTypes<Tout,Tin>(), inVecs, outVecs);
+    internal::ext::convert(internal::CompareTypes<Tout,Tin>(), inVecs, outVecs);
   }
 
   // ===========================================================================
@@ -485,6 +577,8 @@ namespace ns_simd {
 
   // TODO: fdivmul: better fmuldiv = first multiply then divide?
 
+namespace internal {
+namespace ext {
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE void
   fdivmul(CompareLess,
@@ -557,6 +651,8 @@ namespace ns_simd {
       resF[j] = mul(div(numF[j], denomF[j]), facF);
     *vecsOut = packs<Tout>(resF);
   }
+} // namespace ext
+} // namespace internal
 
   // hub
   template <typename Tout, typename Tin, int SIMD_WIDTH>
@@ -566,7 +662,7 @@ namespace ns_simd {
 	  double fac,
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
-    fdivmul(CompareTypes<Tout,Tin>(), vecsNum, vecsDenom, fac, vecsOut);
+    internal::ext::fdivmul(internal::CompareTypes<Tout,Tin>(), vecsNum, vecsDenom, fac, vecsOut);
   }
   
   // ---------------------------------------------------------------------------
@@ -577,6 +673,8 @@ namespace ns_simd {
   // a = -0.433 from fitting this to 1/(1+exp(y(x,1))
   // ---------------------------------------------------------------------------
 
+namespace internal {
+namespace ext {
   template <int DIM, int NVEC, typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE void
   fdivMsigmoidmul(CompareLess,
@@ -693,6 +791,8 @@ namespace ns_simd {
     }
     *vecsOut = packs<Tout>(resF);
   }
+} // namespace ext
+} // namespace internal
   
   // hub
   template <int DIM, int NVEC, typename Tout, typename Tin, int SIMD_WIDTH>
@@ -706,7 +806,7 @@ namespace ns_simd {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
     typeSizeLEQ<Tin,SIMDFloat>();
     typeSizeLEQ<Tout,SIMDFloat>();
-    fdivMsigmoidmul<DIM, NVEC>(CompareTypes<Tout,Tin>(),
+    internal::ext::fdivMsigmoidmul<DIM, NVEC>(internal::CompareTypes<Tout,Tin>(),
                                vecsNum, vecsDenom, w, w0, fac, vecsOut);
   }
 
@@ -714,6 +814,8 @@ namespace ns_simd {
   // multiply with float constant in float arithmetic
   // ---------------------------------------------------------------------------
 
+namespace internal {
+namespace ext {
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE void
   fmul(CompareLess,
@@ -780,6 +882,8 @@ namespace ns_simd {
       resF[j] = mul(inF[j], facF);
     *vecsOut = packs<Tout>(resF);
   }
+} // namespace ext
+} // namespace internal
 
   // hub
   template <typename Tout, typename Tin, int SIMD_WIDTH>
@@ -788,13 +892,15 @@ namespace ns_simd {
        double fac,
        SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
-    fmul(CompareTypes<Tout,Tin>(), vecsIn, fac, vecsOut);
+    internal::ext::fmul(internal::CompareTypes<Tout,Tin>(), vecsIn, fac, vecsOut);
   }
 
   // ---------------------------------------------------------------------------
   // add then multiply with float constant in float arithmetic
   // ---------------------------------------------------------------------------
 
+namespace internal {
+namespace ext {
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE void
   faddmul(CompareLess,
@@ -867,7 +973,9 @@ namespace ns_simd {
       resF[j] = mul(add(inF[j], offF), facF);
     *vecsOut = packs<Tout>(resF);
   }
-  
+} // namespace ext
+} // namespace internal
+
   // hub
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE void
@@ -876,7 +984,7 @@ namespace ns_simd {
 	  double fac,
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
-    faddmul(CompareTypes<Tout,Tin>(), vecsIn, off, fac, vecsOut);
+    internal::ext::faddmul(internal::CompareTypes<Tout,Tin>(), vecsIn, off, fac, vecsOut);
   }
 
   // ---------------------------------------------------------------------------
@@ -885,6 +993,8 @@ namespace ns_simd {
 
   // better for conversion of zero-centered data to unsigned pixel format
 
+namespace internal {
+namespace ext {
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE void
   fmuladd(CompareLess,
@@ -957,6 +1067,8 @@ namespace ns_simd {
       resF[j] = add(mul(inF[j], facF), offF);
     *vecsOut = packs<Tout>(resF);
   }
+} // namespace ext
+} // namespace internal
   
   // hub
   template <typename Tout, typename Tin, int SIMD_WIDTH>
@@ -966,7 +1078,7 @@ namespace ns_simd {
 	  double off,
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
-    fmuladd(CompareTypes<Tout,Tin>(), vecsIn, fac, off, vecsOut);
+    internal::ext::fmuladd(internal::CompareTypes<Tout,Tin>(), vecsIn, fac, off, vecsOut);
   }
 
   // ---------------------------------------------------------------------------
@@ -977,6 +1089,8 @@ namespace ns_simd {
   // w: weight factor (in [0,1])
   // fac: scale factor
 
+namespace internal {
+namespace ext {
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE void
   fwaddmul(CompareLess,
@@ -1055,6 +1169,8 @@ namespace ns_simd {
       resF[j] = mul(facF, add(inF2[j], mul(wF, sub(inF1[j], inF2[j]))));
     *vecsOut = packs<Tout>(resF);
   }
+} // namespace ext
+} // namespace internal
 
   // hub
   template <typename Tout, typename Tin, int SIMD_WIDTH>
@@ -1065,7 +1181,7 @@ namespace ns_simd {
 	   double fac,
 	   SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
-    fwaddmul(CompareTypes<Tout,Tin>(), vecsIn1, vecsIn2, w, fac, vecsOut);
+    internal::ext::fwaddmul(internal::CompareTypes<Tout,Tin>(), vecsIn1, vecsIn2, w, fac, vecsOut);
   }
 
   // ===========================================================================
@@ -1075,6 +1191,8 @@ namespace ns_simd {
   // TODO: is there an easy way to implement multivec horizontal min/max?
   // TODO: (Hackers delight: min/max via doz = hsubs?)
 
+namespace internal {
+namespace ext {
   // primary template
   // num: number of elements processed
   // i0, i1: indices of lowest elements of block
@@ -1142,15 +1260,16 @@ namespace ns_simd {
     {
       return hsubs(v[i0], v[i1]);
     }
-
   };
+} // namespace ext
+} // namespace internal
 
   // function template
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
   hadd(const SIMDVec<T,SIMD_WIDTH> *const v)
   {
-    return Horizontal<T, SIMD_WIDTH, 
+    return internal::ext::Horizontal<T, SIMD_WIDTH, 
 		      SIMD_WIDTH / sizeof(T),
 		      0, 
 		      (SIMD_WIDTH / sizeof(T)) / 2>::_hadd(v);
@@ -1161,7 +1280,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
   hadds(const SIMDVec<T,SIMD_WIDTH> *const v)
   {
-    return Horizontal<T, SIMD_WIDTH, 
+    return internal::ext::Horizontal<T, SIMD_WIDTH, 
 		      SIMD_WIDTH / sizeof(T),
 		      0, 
 		      (SIMD_WIDTH / sizeof(T)) / 2>::_hadds(v);
@@ -1172,7 +1291,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
   hsub(const SIMDVec<T,SIMD_WIDTH> *const v)
   {
-    return Horizontal<T, SIMD_WIDTH, 
+    return internal::ext::Horizontal<T, SIMD_WIDTH, 
 		      SIMD_WIDTH / sizeof(T), 
 		      0, 
 		      (SIMD_WIDTH / sizeof(T)) / 2>::_hsub(v);
@@ -1183,7 +1302,7 @@ namespace ns_simd {
   static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
   hsubs(const SIMDVec<T,SIMD_WIDTH> *const v)
   {
-    return Horizontal<T, SIMD_WIDTH, 
+    return internal::ext::Horizontal<T, SIMD_WIDTH, 
 		      SIMD_WIDTH / sizeof(T), 
 		      0, 
 		      (SIMD_WIDTH / sizeof(T)) / 2>::_hsubs(v);
@@ -1201,6 +1320,8 @@ namespace ns_simd {
   //           hadd(v, v)
   //       hadd(u, u)
 
+namespace internal {
+namespace ext {
   template <typename T, int SIMD_WIDTH, int NUM>
   class Horizontal1
   {
@@ -1288,15 +1409,16 @@ namespace ns_simd {
     {
       return max(srle<1>(v), v);
     }
-
   };
+} // namespace ext
+} // namespace internal
 
   // function template
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE T
   hadd(const SIMDVec<T,SIMD_WIDTH> &v)
   {
-    return elem0(Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hadd(v));
+    return elem0(internal::ext::Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hadd(v));
   }
 
   // function template
@@ -1304,7 +1426,7 @@ namespace ns_simd {
   static SIMD_INLINE T
   hadds(const SIMDVec<T,SIMD_WIDTH> &v)
   {
-    return elem0(Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hadds(v));
+    return elem0(internal::ext::Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hadds(v));
   }
 
   // function template
@@ -1312,7 +1434,7 @@ namespace ns_simd {
   static SIMD_INLINE T
   hsub(const SIMDVec<T,SIMD_WIDTH> &v)
   {
-    return elem0(Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hsub(v));
+    return elem0(internal::ext::Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hsub(v));
   }
 
   // function template
@@ -1320,7 +1442,7 @@ namespace ns_simd {
   static SIMD_INLINE T
   hsubs(const SIMDVec<T,SIMD_WIDTH> &v)
   {
-    return elem0(Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hsubs(v));
+    return elem0(internal::ext::Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hsubs(v));
   }
 
   // function template
@@ -1328,7 +1450,7 @@ namespace ns_simd {
   static SIMD_INLINE T
   hmin(const SIMDVec<T,SIMD_WIDTH> &v)
   {
-    return elem0(Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hmin(v));
+    return elem0(internal::ext::Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hmin(v));
   }
 
   // function template
@@ -1336,13 +1458,15 @@ namespace ns_simd {
   static SIMD_INLINE T
   hmax(const SIMDVec<T,SIMD_WIDTH> &v)
   {
-    return elem0(Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hmax(v));
+    return elem0(internal::ext::Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hmax(v));
   }
 
   // ===========================================================================
   // transpose
   // ===========================================================================
 
+namespace internal {
+namespace ext {
   // -------------------- different unpack functions ---------------------------
 
   template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
@@ -1459,6 +1583,8 @@ namespace ns_simd {
     {
     }
   };
+} // namespace ext
+} // namespace internal
   
   // function template: partial transpose
   template <int NUM_TRANSPOSE_ROWS, typename T, int SIMD_WIDTH>
@@ -1466,7 +1592,7 @@ namespace ns_simd {
   transpose(const SIMDVec<T,SIMD_WIDTH> *const inRows,
 	    SIMDVec<T,SIMD_WIDTH> *const outRows)
   {
-    Transpose<Unpack,T,SIMD_WIDTH,
+    internal::ext::Transpose<internal::ext::Unpack,T,SIMD_WIDTH,
 	      // NUMROWS, NUM_TRANSPOSE_ROWS, ROW
 	      SIMD_WIDTH / sizeof(T),
 	      NUM_TRANSPOSE_ROWS, 0>::_transpose(inRows, outRows);
@@ -1481,6 +1607,8 @@ namespace ns_simd {
     transpose<SIMD_WIDTH/sizeof(T)>(inRows, outRows);
   }
 
+namespace internal {
+namespace ext {
   // ===========================================================================
   // copy matrix
   // ===========================================================================
@@ -1622,6 +1750,8 @@ namespace ns_simd {
           inRows, outRows);
     }
   };
+} // namespace ext
+} // namespace internal
 
   // ===========================================================================
   // transpose0: Transpose<Unpack16> + post-process
@@ -1634,10 +1764,10 @@ namespace ns_simd {
              SIMDVec<T,SIMD_WIDTH> *const outRows)
   {
     SIMDVec<T,SIMD_WIDTH> tempRows[SIMDVec<T,SIMD_WIDTH>::elements];
-    Transpose<Unpack16,T,SIMD_WIDTH,
+    internal::ext::Transpose<internal::ext::Unpack16,T,SIMD_WIDTH,
         SIMD_WIDTH / sizeof(T), SIMD_WIDTH / sizeof(T), 0>
         ::_transpose(inRows, tempRows);
-    TransposePostprocess<Unpack16, T, SIMD_WIDTH>::_transpose(tempRows, outRows);
+    internal::ext::TransposePostprocess<internal::ext::Unpack16, T, SIMD_WIDTH>::_transpose(tempRows, outRows);
   }
 
   // ===========================================================================
@@ -1650,7 +1780,7 @@ namespace ns_simd {
   transpose1_16(const SIMDVec<T,SIMD_WIDTH> *const inRows,
                 SIMDVec<T,SIMD_WIDTH> *const outRows)
   {
-    Transpose<Unpack16,T,SIMD_WIDTH,
+    internal::ext::Transpose<internal::ext::Unpack16,T,SIMD_WIDTH,
         SIMD_WIDTH / sizeof(T), SIMD_WIDTH / sizeof(T), 0>
         ::_transpose(inRows, outRows);
   }
@@ -1661,7 +1791,7 @@ namespace ns_simd {
   transpose1_16_t(const SIMDVec<T,SIMD_WIDTH> *const inRows,
                   SIMDVec<T,SIMD_WIDTH> *const outRows)
   {
-    Transpose<Unpack16,T,SIMD_WIDTH,
+    internal::ext::Transpose<internal::ext::Unpack16,T,SIMD_WIDTH,
         SIMD_WIDTH / sizeof(T), SIMD_WIDTH / sizeof(T), 0>
         ::_transpose(inRows, outRows);
 
@@ -1680,6 +1810,8 @@ namespace ns_simd {
   // Uses Transpose1 to transpose single rows.
   // ===========================================================================
 
+namespace internal {
+namespace ext {
   // ----------------------- transpose multiple rows --------------------------
 
   // primary template
@@ -1757,13 +1889,15 @@ namespace ns_simd {
     {
     }
   };
+} // namespace ext
+} // namespace internal
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   transpose16(const SIMDVec<T,SIMD_WIDTH> *const inRows,
               SIMDVec<T,SIMD_WIDTH> *const outRows)
   {
-    Transpose16<Unpack16,T,SIMD_WIDTH,
+    internal::ext::Transpose16<internal::ext::Unpack16,T,SIMD_WIDTH,
         // NUMROWS, ROW, ROW_STOP
         SIMD_WIDTH / sizeof(T), 0, 16 / sizeof(T),
         // TRANSPOSE_WIDTH, SRC_OFF, DST_OFF
@@ -1782,6 +1916,8 @@ namespace ns_simd {
   // TODO: could be possible by starting loop at sizeof(T) and
   // TODO: using zip<NUM_ELEMS>
 
+namespace internal {
+namespace ext {
   // v has to have length 2*N
   // FINALBLKSIZE template argument is required since function is also
   // used for transpose2
@@ -1800,13 +1936,15 @@ namespace ns_simd {
 	v[i] = v2[i];
     }
   }
+} // namespace ext
+} // namespace internal
 
   // v has to have length 2*N
   template <int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   swizzle2(SIMDVec<T, SIMD_WIDTH> *const v)
   {
-    swizzle2<N, SIMDVec<T, SIMD_WIDTH>::elements>(v);
+    internal::ext::swizzle2<N, SIMDVec<T, SIMD_WIDTH>::elements>(v);
   }
 
   // ===========================================================================
@@ -1823,7 +1961,7 @@ namespace ns_simd {
     SIMD_CONSTEXPR int n = SIMDVec<T,SIMD_WIDTH>::elements, N = n / 2;
     for (int i = 0; i < n; i++)
       outRows[i] = inRows[i];
-    swizzle2<N,N>(outRows);
+    internal::ext::swizzle2<N,N>(outRows);
   }
   
   // ===========================================================================
@@ -1836,6 +1974,8 @@ namespace ns_simd {
   // https://stackoverflow.com/a/15377386/3852630
   // takes 2*N input elements
 
+namespace internal {
+namespace ext {
   // v has to have length 2*N
   // FINALBLKSIZE template argument is required since function is also
   // used for transpose3
@@ -1870,13 +2010,15 @@ namespace ns_simd {
     for (int i = 0; i < 2 * N; i++)
       v[i] = v2[i];
   }
+} // namespace ext
+} // namespace internal
 
   // v has to have length 2*N
   template<int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   swizzle3(SIMDVec<T, SIMD_WIDTH> *const v)
   {
-    swizzle3<N, SIMDVec<T, SIMD_WIDTH>::elements>(v);
+    internal::ext::swizzle3<N, SIMDVec<T, SIMD_WIDTH>::elements>(v);
   }
 
   // ===========================================================================
@@ -1895,7 +2037,7 @@ namespace ns_simd {
     const int n = SIMDVec<T, SIMD_WIDTH>::elements, N = n / 2;
     for (int i = 0; i < n; i++)
       outRows[i] = inRows[i];
-    swizzle3<N, N>(outRows);
+    internal::ext::swizzle3<N, N>(outRows);
   }
 
   // ===========================================================================
@@ -1906,6 +2048,8 @@ namespace ns_simd {
 
   // contributed by Adam Marschall
 
+namespace internal {
+namespace ext {
   // -------------------- different zip functions ------------------------------
 
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
@@ -2052,6 +2196,8 @@ namespace ns_simd {
           0, FINAL_REPS, ODD>::_swizzle(v, v2);
     }
   };
+} // namespace ext
+} // namespace internal
 
   // ===========================================================================
   // swizzle4 wrapper function
@@ -2063,7 +2209,8 @@ namespace ns_simd {
   static SIMD_INLINE void
   swizzle4(SIMDVec<T, SIMD_WIDTH> *const v)
   {
-    Swizzle4<Zip, T, SIMD_WIDTH, N, SIMDVec<T, SIMD_WIDTH>::elements>::_swizzle(v);
+    internal::ext::Swizzle4<internal::ext::Zip, T, SIMD_WIDTH, N,
+                            SIMDVec<T, SIMD_WIDTH>::elements>::_swizzle(v);
   }
 
   // ===========================================================================
@@ -2072,6 +2219,8 @@ namespace ns_simd {
 
   // 15. Oct 22 (Jonas Keller): added Unswizzle4 classes
 
+namespace internal {
+namespace ext {
   // Note: Unlike the Swizzle4 classes, the Unswizzle4 classes do not have a
   // template-template parameter for the Zip class.
   // In the Swizzle4 classes, the Zip template parameter is used to choose
@@ -2159,6 +2308,8 @@ namespace ns_simd {
           0, FINAL_REPS, ODD>::_unswizzle(v, v2);
     }
   };
+} // namespace ext
+} // namespace internal
 
   // ===========================================================================
   // unswizzle4 wrapper function
@@ -2170,7 +2321,7 @@ namespace ns_simd {
   static SIMD_INLINE void
   unswizzle4(SIMDVec<T, SIMD_WIDTH> *const v)
   {
-    Unswizzle4<T, SIMD_WIDTH, N>::_unswizzle(v);
+    internal::ext::Unswizzle4<T, SIMD_WIDTH, N>::_unswizzle(v);
   }
 
   // ===========================================================================
@@ -2189,7 +2340,7 @@ namespace ns_simd {
     const int n = SIMDVec<T, SIMD_WIDTH>::elements, N = n / 2;
     for (int i = 0; i < n; i++)
       outRows[i] = inRows[i];
-    Swizzle4<Zip, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
+    internal::ext::Swizzle4<internal::ext::Zip, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
   }
 
   // ===========================================================================
@@ -2197,7 +2348,9 @@ namespace ns_simd {
   // ===========================================================================
 
   // contributed by Adam Marschall
-  
+
+namespace internal {
+namespace ext {
   // ------------------------ swizzle post-process 16 once ---------------------
 
   // primary template
@@ -2324,6 +2477,9 @@ namespace ns_simd {
           ::_swizzle(v, v2);
     }
   };
+} // namespace ext
+} // namespace internal
+
   // ------------------------ transpose5 function call -------------------------
 
   // called transpose5 as it is based on swizzle2, but expects same
@@ -2336,8 +2492,10 @@ namespace ns_simd {
     const int n = SIMDVec<T, SIMD_WIDTH>::elements, N = n / 2;
     for (int i = 0; i < n; i++)
       outRows[i] = inRows[i];
-    Swizzle4<Zip16, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
-    Swizzle4Postprocess<Zip16, T, SIMD_WIDTH, N>::_swizzle(outRows);
+    internal::ext::Swizzle4<internal::ext::Zip16, T, SIMD_WIDTH, N,
+                            N>::_swizzle(outRows);
+    internal::ext::Swizzle4Postprocess<internal::ext::Zip16, T, SIMD_WIDTH,
+                                       N>::_swizzle(outRows);
   }
 
   // ===========================================================================
@@ -2346,6 +2504,8 @@ namespace ns_simd {
 
   // contributed by Adam Marschall
 
+namespace internal {
+namespace ext {
   // primary template: unpack repetition
   template <template <int, int, typename, int> class Unpack,
       typename T, int SIMD_WIDTH,
@@ -2682,6 +2842,8 @@ namespace ns_simd {
       // printf("%s","\n");
     }
   };
+} // namespace ext
+} // namespace internal
 
   // ---------------------------------------------------------------------------
 
@@ -2690,7 +2852,7 @@ namespace ns_simd {
   static SIMD_INLINE void
   transpose6(const T *const inArray, T *const outArray)
   {
-    TransposeRc<Unpack16,T,SIMD_WIDTH>::_transpose(inArray, outArray);
+    internal::ext::TransposeRc<internal::ext::Unpack16,T,SIMD_WIDTH>::_transpose(inArray, outArray);
   }
 
   // function template: full transpose for tests
@@ -2788,6 +2950,8 @@ namespace ns_simd {
   // setnegunity: set all elements to -1
   // ===========================================================================
 
+namespace internal {
+namespace ext {
   // ---------- signed int ----------
 
   template <typename T, int SIMD_WIDTH>
@@ -2868,6 +3032,8 @@ namespace ns_simd {
   {
     return set1<SIMDFloat, SIMD_WIDTH>(-1.0f);
   }
+} // namespace ext
+} // namespace internal
   
   // ---------- hubs ----------
 
@@ -2875,21 +3041,21 @@ namespace ns_simd {
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   setmin()
   {
-    return setmin<T,SIMD_WIDTH>(TypeIsIntIsSigned<T>());
+    return internal::ext::setmin<T,SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
   }
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   setmax()
   {
-    return setmax<T,SIMD_WIDTH>(TypeIsIntIsSigned<T>());
+    return internal::ext::setmax<T,SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
   }
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   setunity()
   {
-    return setunity<T,SIMD_WIDTH>(TypeIsFloatingPoint<T>());
+    return internal::ext::setunity<T,SIMD_WIDTH>(internal::TypeIsFloatingPoint<T>());
   }
 
   // only for signed types
@@ -2897,154 +3063,29 @@ namespace ns_simd {
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   setnegunity()
   {
-    return setnegunity<T,SIMD_WIDTH>(TypeIsIntIsSigned<T>());
-  }
-
-  // ===========================================================================
-  // generalized packs
-  // ===========================================================================
-
-  // from\to
-  //    SB B S W I F 
-  // SB  x
-  //  B     
-  //  S  x x x
-  //  W         
-  //  I  x x x x x x
-  //  F  x x x x x x
-  //
-  // input is only signed
-  // same-size input and output is allowed
-
-  // hub
-  // generalized version of packs: includes multistage packing
-  template <typename Tout, typename Tin, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
-  packs(const SIMDVec<Tin, SIMD_WIDTH> *const a)
-  {
-    return packs(a, 
-		 OutputType<Tout>(), 
-		 Compression<sizeof(Tin)/sizeof(Tout)>());
-  }
-
-  // no stage
-
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  packs(const SIMDVec<T, SIMD_WIDTH> *const a, 
-	OutputType<T>, Compression<1>)
-  {
-    return *a;
-  }
-  
-  // single stage
-
-  template <typename Tout, typename Tin, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
-  packs(const SIMDVec<Tin, SIMD_WIDTH> *const a, 
-	OutputType<Tout>, Compression<2>)
-  {
-    return packs<Tout>(a[0], a[1]);
-  }
-
-  // two stages
-
-  template <typename Tout, typename Tin, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
-  packs(const SIMDVec<Tin, SIMD_WIDTH> *const a, 
-	OutputType<Tout>, Compression<4>)
-  {
-    // always via SIMDShort
-    return packs<Tout>(packs<SIMDShort>(a[0], a[1]),
-		       packs<SIMDShort>(a[2], a[3]));
-  }
-
-  // special case: int <-> float
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDFloat,SIMD_WIDTH>
-  packs(const SIMDVec<SIMDInt,SIMD_WIDTH> *const a, 
-	OutputType<SIMDFloat>, Compression<1>)
-  {
-    return cvts<SIMDFloat>(*a);
-  }
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDInt,SIMD_WIDTH>
-  packs(const SIMDVec<SIMDFloat,SIMD_WIDTH> *const a, 
-	OutputType<SIMDInt>, Compression<1>)
-  {
-    return cvts<SIMDInt>(*a);
+    return internal::ext::setnegunity<T,SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
   }
   
   // ===========================================================================
   // ifelse with casts for compatible conditions
   // ===========================================================================
   
-  // SIMDByte <-> SIMDSignedByte
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDByte,SIMD_WIDTH>
-  ifelse(const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &cond,
-	 const SIMDVec<SIMDByte,SIMD_WIDTH> &trueVal,
-	 const SIMDVec<SIMDByte,SIMD_WIDTH> &falseVal)
+  template <typename Tcond, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
+  ifelse(const SIMDVec<Tcond,SIMD_WIDTH> &cond,
+	 const SIMDVec<T,SIMD_WIDTH> &trueVal,
+	 const SIMDVec<T,SIMD_WIDTH> &falseVal)
   {
-    return ifelse(reinterpret<SIMDByte>(cond), trueVal, falseVal);
-  }
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDSignedByte,SIMD_WIDTH>
-  ifelse(const SIMDVec<SIMDByte,SIMD_WIDTH> &cond,
-	 const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &trueVal,
-	 const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &falseVal)
-  {
-    return ifelse(reinterpret<SIMDSignedByte>(cond), trueVal, falseVal);
-  }
-
-  // SIMDShort <-> SIMDWord
-  
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDWord,SIMD_WIDTH>
-  ifelse(const SIMDVec<SIMDShort,SIMD_WIDTH> &cond,
-	 const SIMDVec<SIMDWord,SIMD_WIDTH> &trueVal,
-	 const SIMDVec<SIMDWord,SIMD_WIDTH> &falseVal)
-  {
-    return ifelse(reinterpret<SIMDWord>(cond), trueVal, falseVal);
-  }
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDShort,SIMD_WIDTH>
-  ifelse(const SIMDVec<SIMDWord,SIMD_WIDTH> &cond,
-	 const SIMDVec<SIMDShort,SIMD_WIDTH> &trueVal,
-	 const SIMDVec<SIMDShort,SIMD_WIDTH> &falseVal)
-  {
-    return ifelse(reinterpret<SIMDShort>(cond), trueVal, falseVal);
-  }
-
-  // SIMDFloat <-> SIMDInt
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDInt,SIMD_WIDTH>
-  ifelse(const SIMDVec<SIMDFloat,SIMD_WIDTH> &cond,
-	 const SIMDVec<SIMDInt,SIMD_WIDTH> &trueVal,
-	 const SIMDVec<SIMDInt,SIMD_WIDTH> &falseVal)
-  {
-    return ifelse(reinterpret<SIMDInt>(cond), trueVal, falseVal);
-  }
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDFloat,SIMD_WIDTH>
-  ifelse(const SIMDVec<SIMDInt,SIMD_WIDTH> &cond,
-	 const SIMDVec<SIMDFloat,SIMD_WIDTH> &trueVal,
-	 const SIMDVec<SIMDFloat,SIMD_WIDTH> &falseVal)
-  {
-    return ifelse(reinterpret<SIMDFloat>(cond), trueVal, falseVal);
+    SIMD_STATIC_ASSERT(sizeof(Tcond) == sizeof(T));
+    return ifelse(reinterpret<T>(cond), trueVal, falseVal);
   }
 
   // ===========================================================================
   // div2r0: integer div. by 2 with round to 0 (for integers)
   // ===========================================================================
 
+namespace internal {
+namespace ext {
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDByte,SIMD_WIDTH>
   div2r0(const SIMDVec<SIMDByte,SIMD_WIDTH> &a)
@@ -3092,11 +3133,22 @@ namespace ns_simd {
   {
     return mul(set1<SIMDFloat,SIMD_WIDTH>(0.5f), a);
   }
+} // namespace ext
+} // namespace internal
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
+  div2r0(const SIMDVec<T,SIMD_WIDTH> &a)
+  {
+    return internal::ext::div2r0(a);
+  }
 
   // ===========================================================================
   // div2rd: integer division by two with rounding down (for integers)
   // ===========================================================================
 
+namespace internal {
+namespace ext {
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDByte,SIMD_WIDTH>
   div2rd(const SIMDVec<SIMDByte,SIMD_WIDTH> &a)
@@ -3140,6 +3192,15 @@ namespace ns_simd {
   {
     return mul(set1<SIMDFloat,SIMD_WIDTH>(0.5f), a);
   }
+} // namespace ext
+} // namespace internal
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
+  div2rd(const SIMDVec<T,SIMD_WIDTH> &a)
+  {
+    return internal::ext::div2rd(a);
+  }
   	  
   // ===========================================================================
   // sign function (SIMDFloat only)
@@ -3165,6 +3226,9 @@ namespace ns_simd {
   // 23. Mar 22 (rm): removed SFINAE enable_if construct
   // (not compatible with C++98)
   // Computes elementwise absolute difference of vectors
+
+namespace internal {
+namespace ext {
 
   // Use these overloads of the function template if Type is unsigned
   
@@ -3213,6 +3277,15 @@ namespace ns_simd {
 	  const SIMDVec<SIMDFloat, SIMD_WIDTH> &v2) {
     return abs(sub(v1, v2));
   }
+} // namespace ext
+} // namespace internal
+
+  template<typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  absDiff(const SIMDVec<T, SIMD_WIDTH> &v1,
+    const SIMDVec<T, SIMD_WIDTH> &v2) {
+    return internal::ext::absDiff(v1, v2);
+  }
 
   // ===========================================================================
   // bitonic sort
@@ -3223,6 +3296,8 @@ namespace ns_simd {
   const int ASCENDING = 0;
   const int DESCENDING = 1;
 
+namespace internal {
+namespace ext {
   // compare-and-swap
   template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
   class Cas;
@@ -3330,6 +3405,8 @@ namespace ns_simd {
       }
     }
   }
+} // namespace ext
+} // namespace internal
 
   // with transpose
   template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
@@ -3338,7 +3415,7 @@ namespace ns_simd {
   {
     SIMDVec<T, SIMD_WIDTH> transVecs[SIMDVec<T, SIMD_WIDTH>::elements];
     transpose(vecs, transVecs);
-    bitonicSortTransposed<SLOPE>(transVecs);
+    internal::ext::bitonicSortTransposed<SLOPE>(transVecs);
     transpose(transVecs, vecs);
   }
 
@@ -3349,10 +3426,12 @@ namespace ns_simd {
   {
     SIMDVec<T, SIMD_WIDTH> transVecs[SIMDVec<T, SIMD_WIDTH>::elements];
     transpose2(vecs, transVecs);
-    bitonicSortTransposed<SLOPE>(transVecs);
+    internal::ext::bitonicSortTransposed<SLOPE>(transVecs);
     transpose2(transVecs, vecs);
   }
 
+namespace internal {
+namespace ext {
   // second vector is reversed and fused with first vector
   // we don't have to reverse b after the compare-swap since it is
   // bitonic
@@ -3363,6 +3442,8 @@ namespace ns_simd {
     b = reverse(b);
     Cas<SLOPE,T,SIMD_WIDTH>::compareAndSwap(a, b);
   }
+} // namespace ext
+} // namespace internal
   
   // given sorted vectors as inputs, it fuses each consecutive pair
   // such it is completely sorted over the pair
@@ -3374,9 +3455,9 @@ namespace ns_simd {
     SIMDVec<T, SIMD_WIDTH> transVecs[SIMDVec<T, SIMD_WIDTH>::elements];
     // second vector of each pair is reversed and fused with first vector
     for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elements; i += 2)
-      bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
+      internal::ext::bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
     transpose(vecs, transVecs);
-    bitonicSortReducedTransposed<SLOPE>(transVecs);
+    internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
     transpose(transVecs, vecs);
   }
 
@@ -3390,9 +3471,9 @@ namespace ns_simd {
     SIMDVec<T, SIMD_WIDTH> transVecs[SIMDVec<T, SIMD_WIDTH>::elements];
     // second vector of each pair is reversed and fused with first vector
     for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elements; i += 2)
-      bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
+      internal::ext::bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
     transpose2(vecs, transVecs);
-    bitonicSortReducedTransposed<SLOPE>(transVecs);
+    internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
     transpose2(transVecs, vecs);
   }
   
@@ -3458,7 +3539,6 @@ namespace ns_simd {
   
   SIMDVEC_UNOP(operator-,neg)
   SIMDVEC_UNOP(operator~,not)
-  
-} // namespace
+} // namespace ns_simd
 
 #endif

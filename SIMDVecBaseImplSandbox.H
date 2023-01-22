@@ -1,9 +1,9 @@
 // ===========================================================================
 // 
-// SIMDVecSandbox.H --
-// test template functions for SIMDVec and associated function templates
-// these functions just print out template parameters and some arguments
-// contains all "level-0" functions (SIMDVec*16/32/64.H)
+// SIMDVecBaseImplSandbox.H --
+// test template functions for SIMDVec and base level ("level-0") function
+// templates these functions just print out template parameters and some
+// arguments
 // 
 // This source code file is part of the following software:
 // 
@@ -25,8 +25,8 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMD_VEC_SANDBOX_H_
-#define _SIMD_VEC_SANDBOX_H_
+#ifndef _SIMD_VEC_BASE_IMPL_SANDBOX_H_
+#define _SIMD_VEC_BASE_IMPL_SANDBOX_H_
 
 // TODO: should this only contain level 0 functions?
 
@@ -54,6 +54,13 @@ namespace ns_simd {
     SIMDVec() {}
   };
 
+  // swizzle table (empty)
+  template <int N, typename T, int SIMD_WIDTH>
+  struct SwizzleTable {};
+
+namespace internal {
+namespace base {
+
   // ===========================================================================
   // reinterpretation cast
   // ===========================================================================
@@ -77,7 +84,7 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
-  setzero()
+  setzero(OutputType<T>, Integer<SIMD_WIDTH>)
   {
     printf("setzero<%s,%d>()\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDVec<T,SIMD_WIDTH>();
@@ -85,7 +92,7 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
-  set1(T)
+  set1(T, Integer<SIMD_WIDTH>)
   {
     printf("set1<%s,%d>()\n", 
 	   SIMDTypeInfo<T>::name(), SIMD_WIDTH);
@@ -95,7 +102,7 @@ namespace ns_simd {
   // template argument order reversed so that T can be omitted in instantiation
   template <int SIMD_WIDTH, typename T>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
-  load(const T *const p)
+  load(const T *const p, Integer<SIMD_WIDTH>)
   {
     printf("load<%d,%s>(%p)\n", SIMD_WIDTH, SIMDTypeInfo<T>::name(), (void*) p);
     return SIMDVec<T,SIMD_WIDTH>();  
@@ -104,7 +111,7 @@ namespace ns_simd {
   // template argument order reversed so that T can be omitted in instantiation
   template <int SIMD_WIDTH, typename T>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
-  loadu(const T *const p)
+  loadu(const T *const p, Integer<SIMD_WIDTH>)
   {
     printf("loadu<%d,%s>(%p)\n", SIMD_WIDTH, SIMDTypeInfo<T>::name(), (void*) p);
     return SIMDVec<T,SIMD_WIDTH>();  
@@ -128,10 +135,10 @@ namespace ns_simd {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void 
-  streamstore(T *const p, 
+  stream_store(T *const p, 
 	      const SIMDVec<T, SIMD_WIDTH> &)
   {
-    printf("streamstore<%s,%d>(%p,V)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH, (void*) p);
+    printf("stream_store<%s,%d>(%p,V)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH, (void*) p);
   }
 
   static SIMD_INLINE void
@@ -307,14 +314,36 @@ namespace ns_simd {
   // unpack NUM_ELEMS elements of type T 
   // PART=0: low half of input vectors,
   // PART=1: high half of input vectors
-  template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+  template <int PART, int BYTES, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> 
   unpack(const SIMDVec<T, SIMD_WIDTH> &,
-	 const SIMDVec<T, SIMD_WIDTH> &)
+	 const SIMDVec<T, SIMD_WIDTH> &,
+   Part<PART>, Bytes<BYTES>)
   {
-    printf("unpack<PART=%d,NUM_ELEMS=%d,%s,%d>(V,V)\n",
-	   PART, NUM_ELEMS, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    printf("unpack<PART=%d,BYTES=%d,%s,%d>(V,V)\n",
+	   PART, BYTES, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDVec<T,SIMD_WIDTH>();  
+  }
+
+  // unpack16
+  template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  unpack16(const SIMDVec<T, SIMD_WIDTH> &,
+     const SIMDVec<T, SIMD_WIDTH> &)
+  {
+    printf("unpack16<PART=%d,NUM_ELEMS=%d,%s,%d>(V,V)\n",
+     PART, NUM_ELEMS, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDVec<T,SIMD_WIDTH>();  
+  }
+
+  // extractLane
+  template <int IMM, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, 16>
+  extractLane(const SIMDVec<T, SIMD_WIDTH> &)
+  {
+    printf("extractLane<IMM=%d,%s,%d>(V)\n",
+     IMM, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDVec<T,16>();  
   }
 
   // zip (2 x unpack) NUM_ELEMS elements of type T 
@@ -329,23 +358,37 @@ namespace ns_simd {
 	   NUM_ELEMS, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
   }
 
-  // unzip (inverse of zip)
+  // zip16
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  zip16(const SIMDVec<T, SIMD_WIDTH>,
+      const SIMDVec<T, SIMD_WIDTH>,
+      SIMDVec<T, SIMD_WIDTH> &,
+      SIMDVec<T, SIMD_WIDTH> &)
+  {
+    printf("zip16<NUM_ELEMS=%d,%s,%d>(V,V,V&,V&)\n",
+     NUM_ELEMS, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+  }
+
+  // unzip (inverse of zip)
+  template <int BYTES, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void 
   unzip(const SIMDVec<T, SIMD_WIDTH>,
 	const SIMDVec<T, SIMD_WIDTH>,
 	SIMDVec<T, SIMD_WIDTH> &,
-	SIMDVec<T, SIMD_WIDTH> &)
+	SIMDVec<T, SIMD_WIDTH> &,
+  Bytes<BYTES>)
   {
-    printf("unzip<NUM_ELEMS=%d,%s,%d>(V,V,V&,V&)\n",
-	   NUM_ELEMS, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    printf("unzip<BYTES=%d,%s,%d>(V,V,V&,V&)\n",
+	   BYTES, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
   }
 
   // unifies packs and packus, depending on Tout
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> 
   packs(const SIMDVec<Tin, SIMD_WIDTH> &,
-	const SIMDVec<Tin, SIMD_WIDTH> &)
+	const SIMDVec<Tin, SIMD_WIDTH> &,
+  OutputType<Tout>)
   {
     printf("packs<%s,%s,%d>(V,V)\n", 
 	   SIMDTypeInfo<Tout>::name(), 
@@ -428,7 +471,7 @@ namespace ns_simd {
   // saturated version
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> 
-  cvts(const SIMDVec<Tin, SIMD_WIDTH> &)
+  cvts(const SIMDVec<Tin, SIMD_WIDTH> &, OutputType<Tout>)
   {
     printf("cvts<%s,%s,%d>(V)\n", 
 	   SIMDTypeInfo<Tout>::name(),
@@ -516,10 +559,6 @@ namespace ns_simd {
 	   IMM, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDVec<T,SIMD_WIDTH>();
   }
-
-  // swizzle table (empty)
-  template <int N, typename T, int SIMD_WIDTH>
-  struct SwizzleTable {};
 
   // swizzle (AoS to SoA), in-place, with template parameter N
   template <int N, typename T, int SIMD_WIDTH>
@@ -736,7 +775,7 @@ namespace ns_simd {
   // 09. Oct 22 (Jonas Keller): added int2msb
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  int2msb(const uint64_t)
+  int2msb(const uint64_t, OutputType<T>, Integer<SIMD_WIDTH>)
   {
     printf("int2msb<%s,%d>(U64)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDVec<T,SIMD_WIDTH>();
@@ -745,11 +784,13 @@ namespace ns_simd {
   // 09. Oct 22 (Jonas Keller): added int2bits
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  int2bits(const uint64_t)
+  int2bits(const uint64_t, OutputType<T>, Integer<SIMD_WIDTH>)
   {
     printf("int2bits<%s,%d>(U64)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDVec<T,SIMD_WIDTH>();
   }
-}
+} // namespace base
+} // namespace internal
+} // namespace ns_simd
 
-#endif // _SIMD_VEC_SANDBOX_H_
+#endif // _SIMD_VEC_BASE_IMPL_SANDBOX_H_

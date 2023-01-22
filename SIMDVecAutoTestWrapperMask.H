@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDMaskVecWrapper.H --
+// SIMDVecAutoTestWrapperMask.H --
 // wrapper templates for autotest of masked operations, Jonas Keller
 // 
 // This source code file is part of the following software:
@@ -23,19 +23,22 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMD_MASK_VEC_WRAPPER_H_
-#define _SIMD_MASK_VEC_WRAPPER_H_
+#ifndef _SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_
+#define _SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_
 
 #include "SIMDDefs.H"
-#include "SIMDMaskEmu.H"
-#include "SIMDRandom.H"
-#include "SIMDSerialMaskVec.H"
-#include "SIMDSerialVec.H"
-#include "SIMDVecWrapper.H"
+#include "SIMDTypes.H"
+#include "SIMDVecAutoTestRandom.H"
+#include "SIMDVecAutoTestSerial.H"
+#include "SIMDVecAutoTestSerialMask.H"
+#include "SIMDVecAutoTestWrapper.H"
+#include "SIMDVecBase.H"
+#include "SIMDVecMask.H"
 
 #include <string>
 
 namespace ns_simd {
+namespace auto_test {
 
 template <typename T, int SIMD_WIDTH> struct Mask_ifelse {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_ifelse"); }
@@ -460,6 +463,7 @@ template <typename T, int SIMD_WIDTH> struct SetTrueRight {
   }
 };
 
+} // namespace auto_test
 } // namespace ns_simd
 
-#endif // _SIMD_MASK_VEC_WRAPPER_H_
+#endif // _SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_

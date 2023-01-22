@@ -1,6 +1,6 @@
 // ===========================================================================
 // 
-// SIMDSerialMaskVec.H --
+// SIMDVecAutoTestSerialMask.H --
 // serial implementations of masked operations for autotest, Jonas Keller
 // 
 // This source code file is part of the following software:
@@ -23,21 +23,21 @@
 // 
 // ===========================================================================
 
-#ifndef _SIMD_MASK_VEC_SERIAL_H_
-#define _SIMD_MASK_VEC_SERIAL_H_
+#ifndef _SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_
+#define _SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_
 
-#include "SIMDMaskArchSpec.H"
-#include "SIMDMaskEmu.H"
-#include "SIMDSerialVec.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
+#include "SIMDVecAutoTestSerial.H"
 #include "SIMDVecExt.H"
+#include "SIMDVecMask.H"
 
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 
 namespace ns_simd {
+namespace auto_test {
 
 template <int Bits> struct _UInt;
 template <> struct _UInt<4> { typedef uint8_t type; };
@@ -143,13 +143,13 @@ template <template <typename, int> class MASK> struct MaskDeductor;
 
 template <> struct MaskDeductor<SIMDMask> {
   template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  static SIMDMask<T, SIMD_WIDTH>
   _setTrueLeft(const unsigned int x) {
     return setTrueLeft<T, SIMD_WIDTH>(x);
   }
 
   template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  static SIMDMask<T, SIMD_WIDTH>
   _setTrueRight(const unsigned int x) {
     return setTrueRight<T, SIMD_WIDTH>(x);
   }
@@ -157,7 +157,7 @@ template <> struct MaskDeductor<SIMDMask> {
 
 template <> struct MaskDeductor<SIMDSerialMask> {
   template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDSerialMask<T, SIMD_WIDTH>
+  static SIMDSerialMask<T, SIMD_WIDTH>
   _setTrueLeft(const unsigned int x) {
     SIMDSerialMask<T, SIMD_WIDTH> result;
     for (unsigned int i = 0; i < result.bits; i++) {
@@ -170,7 +170,7 @@ template <> struct MaskDeductor<SIMDSerialMask> {
   }
 
   template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDSerialMask<T, SIMD_WIDTH>
+  static SIMDSerialMask<T, SIMD_WIDTH>
   _setTrueRight(const unsigned int x) {
     SIMDSerialMask<T, SIMD_WIDTH> result;
     for (unsigned int i = 0; i < result.bits; i++) {
@@ -519,6 +519,7 @@ kshiftri(const SIMDSerialMask<T, SIMD_WIDTH> &a, unsigned int count) {
   return a >> count;
 }
 
+} // namespace auto_test
 } // namespace ns_simd
 
-#endif // _SIMD_MASK_VEC_SERIAL_H_
+#endif // _SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_

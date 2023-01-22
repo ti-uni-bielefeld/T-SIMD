@@ -29,26 +29,31 @@
 #define _SIMDALLOC_H_
 
 // 30. Aug 22 (Jonas Keller): added simd_aligned_malloc and simd_aligned_free
+
 #ifdef _WIN32
 #include <malloc.h>
-void *simd_aligned_malloc(size_t alignment, size_t size) {
-  return _aligned_malloc(size, alignment);
-}
-void simd_aligned_free(void *ptr) {
-  _aligned_free(ptr);
-}
 #else
 #include <stdlib.h>
+#endif
+
 void *simd_aligned_malloc(size_t alignment, size_t size) {
+#ifdef _WIN32
+  return _aligned_malloc(size, alignment);
+#else
   void *ptr = NULL;
   if (posix_memalign(&ptr, alignment, size) != 0) {
     return NULL;
   }
   return ptr;
-}
-void simd_aligned_free(void *ptr) {
-  free(ptr);
-}
 #endif
+}
+
+void simd_aligned_free(void *ptr) {
+#ifdef _WIN32
+  _aligned_free(ptr);
+#else
+  free(ptr);
+#endif
+}
 
 #endif // _SIMDALLOC_H_

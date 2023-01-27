@@ -23,6 +23,14 @@
 // 
 // ===========================================================================
 
+/**
+ * @file SIMDVecAll.H
+ * @brief Main file to include for using the SIMD library when C++11 is not
+ * available.
+ *
+ * Use tsimd.H instead if C++11 is available.
+ */
+
 #ifndef _SIMD_VEC_ALL_H_
 #define _SIMD_VEC_ALL_H_
 

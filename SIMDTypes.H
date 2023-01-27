@@ -43,43 +43,43 @@ namespace ns_simd {
   // with __STDC_LIMIT_MACROS
 
   // unsigned byte
-  typedef uint8_t SIMDByte;
+  typedef uint8_t SIMDByte; ///< Unsigned 8-bit integer
 #define SIMDBYTE_MAX (255)
 #define SIMDBYTE_TRUE (255)
-  typedef SIMDByte* SIMDBytePtr;
+  typedef SIMDByte* SIMDBytePtr; ///< Pointer to @ref SIMDByte
 
   // signed byte
-  typedef int8_t SIMDSignedByte;
+  typedef int8_t SIMDSignedByte; ///< Signed 8-bit integer
 #define SIMDSIGNEDBYTE_MIN (-128)
 #define SIMDSIGNEDBYTE_MAX (127)
 #define SIMDSIGNEDBYTE_TRUE (-1)
-  typedef SIMDSignedByte* SIMDSignedBytePtr;
+  typedef SIMDSignedByte* SIMDSignedBytePtr; ///< Pointer to @ref SIMDSignedByte
 
   // unsigned word (16 bit)
-  typedef uint16_t SIMDWord;	
+  typedef uint16_t SIMDWord; ///< Unsigned 16-bit integer
 #define SIMDWORD_MAX (65535)
 #define SIMDWORD_TRUE (65535)
-  typedef SIMDWord* SIMDWordPtr;
+  typedef SIMDWord* SIMDWordPtr; ///< Pointer to @ref SIMDWord
 
   // signed word (16 bit)
-  typedef int16_t SIMDShort;
+  typedef int16_t SIMDShort; ///< Signed 16-bit integer
 #define SIMDSHORT_MIN (-32768)
 #define SIMDSHORT_MAX (32767)
 #define SIMDSHORT_TRUE (-1)
-  typedef SIMDShort* SIMDShortPtr;
+  typedef SIMDShort* SIMDShortPtr; ///< Pointer to @ref SIMDShort
 
   // signed int (32 bit)
-  typedef int32_t SIMDInt;
+  typedef int32_t SIMDInt; ///< Signed 32-bit integer
 #define SIMDINT_MIN (-2147483647-1)
 #define SIMDINT_MAX (2147483647)
 #define SIMDINT_TRUE (-1)
-  typedef SIMDInt* SIMDIntPtr;
+  typedef SIMDInt* SIMDIntPtr; ///< Pointer to @ref SIMDInt
 
   // float
-  typedef float SIMDFloat;
+  typedef float SIMDFloat; ///< Single-precision floating point number (32-bit)
 #define SIMDFLOAT_MIN (-3.402823466E+38F)
 #define SIMDFLOAT_MAX (3.402823466E+38F)
-  typedef SIMDFloat* SIMDFloatPtr;
+  typedef SIMDFloat* SIMDFloatPtr; ///< Pointer to @ref SIMDFloat
 
   // 0x7fffff80
 #define MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 2147483520.0f
@@ -88,9 +88,15 @@ namespace ns_simd {
   // generic compile-time check (Alexandrescu "Modern C++ Design" p.25)
   // ===========================================================================
 
+namespace internal {
+namespace types {
   template<bool> struct SIMDStaticAssert;
   template<> struct SIMDStaticAssert<true> {};
-#define SIMD_STATIC_ASSERT(EXPR) (SIMDStaticAssert<(EXPR) != 0>())
+} // namespace types
+} // namespace internal
+
+#define SIMD_STATIC_ASSERT(EXPR) \
+  (::ns_simd::internal::types::SIMDStaticAssert<(EXPR) != 0>())
 
   // ===========================================================================
   // size comparison of types (for compile-time check)
@@ -107,9 +113,18 @@ namespace ns_simd {
   //  I          x x
   //  F          x x
 
+  /**
+   * @brief Compile-time check that the left type is smaller or equal in size to
+   * the right type.
+   * 
+   * Only has specializations for types where the left type is smaller
+   * or equal in size to the right type. If the left type is larger, the
+   * compiler will complain about a missing specialization.
+   */
   template <typename Tleft, typename Tright>
   static SIMD_INLINE void typeSizeLEQ();
 
+  /// @cond false
   template <> SIMD_INLINE void typeSizeLEQ<SIMDSignedByte,SIMDSignedByte>() {}
   template <> SIMD_INLINE void typeSizeLEQ<SIMDSignedByte,SIMDByte>() {}
   template <> SIMD_INLINE void typeSizeLEQ<SIMDSignedByte,SIMDShort>() {}
@@ -139,34 +154,69 @@ namespace ns_simd {
 
   template <> SIMD_INLINE void typeSizeLEQ<SIMDFloat,SIMDInt>() {}
   template <> SIMD_INLINE void typeSizeLEQ<SIMDFloat,SIMDFloat>() {}
+  /// @endcond
 
   // ===========================================================================
   // signed/unsigned (for compile-time check)
   // ===========================================================================
 
+  /**
+   * @brief Compile-time check that the type is signed.
+   *
+   * Only has specializations for signed types. If the type is
+   * unsigned, the compiler will complain about a missing specialization.
+   */
   template <typename T> static SIMD_INLINE void signedType();
+  /// @cond false
   template <> SIMD_INLINE void signedType<SIMDSignedByte>() {}
   template <> SIMD_INLINE void signedType<SIMDShort>() {}
   template <> SIMD_INLINE void signedType<SIMDInt>() {}
   template <> SIMD_INLINE void signedType<SIMDFloat>() {}
+  /// @endcond
 
+  /**
+   * @brief Compile-time check that the type is unsigned.
+   * 
+   * Only has specializations for unsigned types. If the type is
+   * signed, the compiler will complain about a missing specialization.
+   */
   template <typename T> static SIMD_INLINE void unsignedType();
+  /// @cond false
   template <> SIMD_INLINE void unsignedType<SIMDByte>() {}
   template <> SIMD_INLINE void unsignedType<SIMDWord>() {}
+  /// @endcond
 
   // ===========================================================================
   // integer/float (for compile-time check)
   // ===========================================================================
 
+  /**
+   * @brief Compile-time check that the type is an integer type.
+   *
+   * Only has specializations for integer types. If the type is a
+   * floating-point type, the compiler will complain about a missing
+   * specialization.
+   */
   template <typename T> static SIMD_INLINE void integerType();
+  /// @cond false
   template <> SIMD_INLINE void integerType<SIMDByte>() {}
   template <> SIMD_INLINE void integerType<SIMDSignedByte>() {}
   template <> SIMD_INLINE void integerType<SIMDWord>() {}
   template <> SIMD_INLINE void integerType<SIMDShort>() {}
   template <> SIMD_INLINE void integerType<SIMDInt>() {}
+  /// @endcond
 
+  /**
+   * @brief Compile-time check that the type is a floating-point type.
+   *
+   * Only has specializations for floating-point types. If the type is
+   * an integer type, the compiler will complain about a missing
+   * specialization.
+   */
   template <typename T> static SIMD_INLINE void floatingPointType();
+  /// @cond false
   template <> SIMD_INLINE void floatingPointType<SIMDFloat>() {}
+  /// @endcond
 
   // ===========================================================================
   // SIMDTypeInfo
@@ -178,6 +228,8 @@ namespace ns_simd {
   // defaultFormat() returns a full format specifier with % and space, can be
   // used for tests
 
+namespace internal {
+namespace types {
   template <typename T>
   class SIMDTypeInfo;
 
@@ -297,6 +349,61 @@ namespace ns_simd {
       return f; 
     }
     typedef SIMDFloat NextLargerType; // no larger float type than SIMDFloat
+    typedef SIMDFloat UnsignedType; // no unsigned float type
+    typedef SIMDFloat SignedType;
+  };
+} // namespace types
+} // namespace internal
+
+  /**
+   * @brief Type information for SIMD types
+   */
+  template <typename T>
+  class SIMDTypeInfo
+  {
+  public:
+    /// @brief Returns the name of the type (e.g. "SIMDInt" for SIMDInt)
+    static SIMD_INLINE const char *name() {
+      return internal::types::SIMDTypeInfo<T>::name();
+    };
+    /// @brief Returns the format string for printf (e.g. "d" for SIMDInt)
+    static SIMD_INLINE const char *format() {
+      return internal::types::SIMDTypeInfo<T>::format();
+    };
+    /// @brief Returns the default format string for printf (e.g. "%d " for SIMDInt)
+    static SIMD_INLINE const char *defaultFormat() {
+      return internal::types::SIMDTypeInfo<T>::defaultFormat();
+    };
+    /// @brief Returns the hex format string for printf (e.g. "%08x " for SIMDInt)
+    static SIMD_INLINE const char *hexFormat() {
+      return internal::types::SIMDTypeInfo<T>::hexFormat();
+    }
+    /// @brief Whether the type is signed
+    static SIMD_CONSTEXPR bool isSigned =
+        internal::types::SIMDTypeInfo<T>::isSigned;
+    /// @brief Whether the type is an integer
+    static SIMD_CONSTEXPR bool isInteger =
+        internal::types::SIMDTypeInfo<T>::isInteger;
+    /// @brief Whether the type is a floating point type
+    static SIMD_CONSTEXPR bool isFloatingPoint =
+        internal::types::SIMDTypeInfo<T>::isFloatingPoint;
+    /// @brief Returns the minimum value of the type
+    static SIMD_INLINE T min() { return internal::types::SIMDTypeInfo<T>::min(); }
+    /// @brief Returns the maximum value of the type
+    static SIMD_INLINE T max() { return internal::types::SIMDTypeInfo<T>::max(); }
+    /// @brief Returns a value where all bits are 1
+    static SIMD_INLINE T trueval() {
+      return internal::types::SIMDTypeInfo<T>::trueval();
+    }
+    /// @brief The next larger type (e.g. SIMDWord for SIMDByte), or the same
+    /// type if there is no larger type
+    typedef typename internal::types::SIMDTypeInfo<T>::NextLargerType NextLargerType;
+    /// @brief The unsigned type (e.g. SIMDByte for SIMDSignedByte), or the same
+    /// type if there is no unsigned type
+    typedef typename internal::types::SIMDTypeInfo<T>::UnsignedType UnsignedType;
+    /// @brief The signed type (e.g. SIMDSignedByte for SIMDByte), or the same
+    /// type if there is no signed type
+    typedef typename internal::types::SIMDTypeInfo<T>::SignedType SignedType;
   };
 
   // ===========================================================================

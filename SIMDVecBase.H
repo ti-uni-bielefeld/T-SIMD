@@ -56,14 +56,25 @@
 #endif // else SIMDVEC_SANDBOX
 
 namespace ns_simd {
-
+  /**
+   * @brief Reinterprets a given SIMDVec as a SIMDVec with a different element
+   * type.
+   *
+   * @tparam Tout The element type of the resulting SIMDVec.
+   * @tparam Tin The element type of the given SIMDVec.
+   * @param a The SIMDVec to reinterpret.
+   * @return The reinterpreted SIMDVec.
+   */
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
-  reinterpret(const SIMDVec<Tin, SIMD_WIDTH> &a)
-  {
+  reinterpret(const SIMDVec<Tin, SIMD_WIDTH> &a) {
     return internal::base::reinterpret(a, internal::OutputType<Tout>());
   }
 
+  /**
+   * @brief Returns a SIMDVec with all elements set to zero.
+   * @return A SIMDVec with all elements set to zero.
+   */
   template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   setzero()
@@ -72,6 +83,11 @@ namespace ns_simd {
                              internal::Integer<SIMD_WIDTH>());
   }
 
+  /**
+   * @brief Returns a SIMDVec with all elements set to the same value.
+   * @param a The value to set all elements to.
+   * @return A SIMDVec with all elements set to the same value.
+   */
   template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   set1(T a)
@@ -79,7 +95,17 @@ namespace ns_simd {
     return internal::base::set1(a, internal::Integer<SIMD_WIDTH>());
   }
 
-  // template argument order reversed so that T can be omitted in instantiation
+  /**
+   * @brief Loads a SIMDVec from aligned memory.
+   *
+   * The memory location must be aligned to the @p SIMD_WIDTH.
+   *
+   * @note The template argument order of @p T and @p SIMD_WIDTH is reversed so
+   * that @p T can be omitted in instantiation.
+   *
+   * @param[in] p A pointer to the aligned memory location to load from.
+   * @return A SIMDVec with the loaded values.
+   */
   template <int SIMD_WIDTH_DEFAULT_NATIVE_FUNC, typename T>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   load(const T *const p)
@@ -87,7 +113,18 @@ namespace ns_simd {
     return internal::base::load(p, internal::Integer<SIMD_WIDTH>());
   }
 
-  // template argument order reversed so that T can be omitted in instantiation
+  /**
+   * @brief Loads a SIMDVec from unaligned memory.
+   *
+   * In contrast to load(const T *const p), the memory location does not need to
+   * be aligned to any boundary.
+   *
+   * @note The template argument order of @p T and @p SIMD_WIDTH is reversed so
+   * that @p T can be omitted in instantiation.
+   *
+   * @param[in] p A pointer to the memory location to load from.
+   * @return A SIMDVec with the loaded values.
+   */
   template <int SIMD_WIDTH_DEFAULT_NATIVE_FUNC, typename T>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   loadu(const T *const p)
@@ -95,6 +132,14 @@ namespace ns_simd {
     return internal::base::loadu(p, internal::Integer<SIMD_WIDTH>());
   }
 
+  /**
+   * @brief Stores a SIMDVec to aligned memory.
+   *
+   * The memory location must be aligned to the SIMD_WIDTH.
+   *
+   * @param[out] p A pointer to the aligned memory location to store to.
+   * @param a The SIMDVec to store.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   store(T *const p,
@@ -103,6 +148,15 @@ namespace ns_simd {
     internal::base::store(p, a);
   }
 
+  /**
+   * @brief Stores a SIMDVec to unaligned memory.
+   *
+   * In contrast to store(), the memory location does not need to be aligned to
+   * any boundary.
+   *
+   * @param[out] p A pointer to the memory location to store to.
+   * @param a The SIMDVec to store.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   storeu(T *const p,
@@ -111,6 +165,20 @@ namespace ns_simd {
     internal::base::storeu(p, a);
   }
 
+  /**
+   * @brief Stores a SIMDVec to aligned memory using a non-temporal memory
+   * hint.
+   *
+   * This function uses the @c _mm*_stream_* intrinsics on Intel and regular
+   * store intrinsics on NEON. A call to sfence() may be required in order for
+   * other threads/processors to see the stored values. This function may
+   * improve performance on some architectures compared to store().
+   *
+   * The memory location must be aligned to the @p SIMD_WIDTH.
+   *
+   * @param[out] p A pointer to the aligned memory location to store to.
+   * @param a The SIMDVec to store.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   stream_store(T *const p,
@@ -119,24 +187,55 @@ namespace ns_simd {
     internal::base::stream_store(p, a);
   }
 
+  /**
+   * @brief Load fence.
+   *
+   * Forces strong memory ordering (serialization) between load instructions
+   * preceding this instruction and load instructions following this
+   * instruction, ensuring the system completes all previous loads before
+   * executing subsequent loads.
+   */
   static SIMD_INLINE void
   lfence()
   {
     internal::base::lfence();
   }
 
+  /**
+   * @brief Store fence.
+   *
+   * Forces strong memory ordering (serialization) between store instructions
+   * preceding this instruction and store instructions following this
+   * instruction, ensuring the system completes all previous stores before
+   * executing subsequent stores.
+   */
   static SIMD_INLINE void
   sfence()
   {
     internal::base::sfence();
   }
 
+  /**
+   * @brief Memory fence.
+   *
+   * Forces strong memory ordering (serialization) between load and store
+   * instructions preceding this instruction and load and store instructions
+   * following this instruction, ensuring that the system completes all
+   * previous memory accesses before executing subsequent memory accesses.
+   */
   static SIMD_INLINE void
   mfence()
   {
     internal::base::mfence();
   }
 
+  /**
+   * @brief Extracts a single value from a SIMDVec.
+   *
+   * @tparam IMM The index of the value to extract.
+   * @param a The SIMDVec to extract from.
+   * @return The extracted value.
+   */
   template <int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE T
   extract(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -144,6 +243,14 @@ namespace ns_simd {
     return internal::base::extract<IMM>(a);
   }
 
+  /**
+   * @brief Adds the elements of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the sums of the elements of the two
+   * input vectors.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   add(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -152,6 +259,15 @@ namespace ns_simd {
     return internal::base::add(a, b);
   }
 
+  /**
+   * @brief Adds the elements of two SIMDVec's using saturated
+   * arithmetic.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the saturated sums of the elements of
+   * the two input vectors.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   adds(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -160,6 +276,14 @@ namespace ns_simd {
     return internal::base::adds(a, b);
   }
 
+  /**
+   * @brief Subtracts the elements of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the differences of the elements of the
+   * two input vectors.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   sub(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -168,6 +292,15 @@ namespace ns_simd {
     return internal::base::sub(a, b);
   }
 
+  /**
+   * @brief Subtracts the elements of two SIMDVec's using saturated
+   * arithmetic.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the saturated differences of the
+   * elements of the two input vectors.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   subs(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -176,6 +309,13 @@ namespace ns_simd {
     return internal::base::subs(a, b);
   }
 
+  /**
+   * @brief Negates the elements of a SIMDVec.
+   *
+   * @param a The SIMDVec to negate.
+   * @return A SIMDVec containing the negated elements of the input
+   * vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   neg(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -183,6 +323,14 @@ namespace ns_simd {
     return internal::base::neg(a);
   }
 
+  /**
+   * @brief Multiplies the elements of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the products of the elements of the
+   * two input vectors.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   mul(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -191,6 +339,14 @@ namespace ns_simd {
     return internal::base::mul(a, b);
   }
 
+  /**
+   * @brief Divides the elements of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the quotients of the elements of the
+   * two input vectors.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   div(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -199,6 +355,13 @@ namespace ns_simd {
     return internal::base::div(a, b);
   }
 
+  /**
+   * @brief Rounds the elements of a SIMDVec up to the nearest integer.
+   *
+   * @param a The SIMDVec to round.
+   * @return A SIMDVec containing the rounded elements of the input
+   * vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   ceil(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -206,6 +369,14 @@ namespace ns_simd {
     return internal::base::ceil(a);
   }
 
+  /**
+   * @brief Rounds the elements of a SIMDVec down to the nearest
+   * integer.
+   *
+   * @param a The SIMDVec to round.
+   * @return A SIMDVec containing the rounded elements of the input
+   * vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   floor(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -213,6 +384,13 @@ namespace ns_simd {
     return internal::base::floor(a);
   }
 
+  /**
+   * @brief Rounds the elements of a SIMDVec to the nearest integer.
+   *
+   * @param a The SIMDVec to round.
+   * @return A SIMDVec containing the rounded elements of the input
+   * vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   round(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -220,6 +398,14 @@ namespace ns_simd {
     return internal::base::round(a);
   }
 
+  /**
+   * @brief Truncates the elements of a SIMDVec to the nearest integer
+   * i.e. rounds towards zero.
+   *
+   * @param a The SIMDVec to truncate.
+   * @return A SIMDVec containing the truncated elements of the input
+   * vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   truncate(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -227,6 +413,14 @@ namespace ns_simd {
     return internal::base::truncate(a);
   }
 
+  /**
+   * @brief Computes the approximate reciprocal of the elements of a
+   * SIMDVec.
+   *
+   * @param a The SIMDVec to compute the reciprocal of.
+   * @return A SIMDVec containing the approximate reciprocal of the
+   * elements of the input vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   rcp(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -234,6 +428,14 @@ namespace ns_simd {
     return internal::base::rcp(a);
   }
 
+  /**
+   * @brief Computes the approximate reciprocal square root of the elements of a
+   * SIMDVec.
+   *
+   * @param a The SIMDVec to compute the reciprocal square root of.
+   * @return A SIMDVec containing the approximate reciprocal square
+   * root of the elements of the input vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   rsqrt(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -241,6 +443,16 @@ namespace ns_simd {
     return internal::base::rsqrt(a);
   }
 
+  /**
+   * @brief Computes the square root of the elements of a SIMDVec.
+   *
+   * This function may only compute an approximation on some
+   * architectures.
+   *
+   * @param a The SIMDVec to compute the square root of.
+   * @return A SIMDVec containing the square root of the elements of
+   * the input vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   sqrt(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -248,6 +460,14 @@ namespace ns_simd {
     return internal::base::sqrt(a);
   }
 
+  /**
+   * @brief Computes the minimum of the elements of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the minimum of the elements of the
+   * input vectors.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   min(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -256,6 +476,14 @@ namespace ns_simd {
     return internal::base::min(a, b);
   }
 
+  /**
+   * @brief Computes the maximum of the elements of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the maximum of the elements of the
+   * input vectors.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   max(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -264,6 +492,13 @@ namespace ns_simd {
     return internal::base::max(a, b);
   }
 
+  /**
+   * @brief Computes the absolute value of the elements of a SIMDVec.
+   *
+   * @param a The SIMDVec to compute the absolute value of.
+   * @return A SIMDVec containing the absolute value of the elements
+   * of the input vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   abs(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -271,9 +506,26 @@ namespace ns_simd {
     return internal::base::abs(a);
   }
 
-  // unpack NUM_ELEMS elements of type T
-  // PART=0: low half of input vectors,
-  // PART=1: high half of input vectors
+  /**
+   * @brief Interleaves blocks of elements from the high or low half of two
+   * SIMDVec's.
+   *
+   * This function interleaves blocks of elements from the high or low
+   * half of two SIMDVec's, starting with the lowest block of the
+   * selected half of the first input SIMDVec.
+   *
+   * To get both halves of the input vectors interleaved, use zip().
+   *
+   * Example: TODO?
+   *
+   * @tparam PART Selects which half of the input vectors to use. A value
+   * of 0 selects the low half, a value of 1 selects the high half.
+   * @tparam NUM_ELEMS The number of elements in a block. This must be a
+   * power of two (including 1) and be at most half of one SIMDVec.
+   * @param a The first input SIMDVec.
+   * @param b The second input SIMDVec.
+   * @return The interleaved SIMDVec.
+   */
   template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   unpack(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -283,7 +535,28 @@ namespace ns_simd {
                             internal::Bytes<NUM_ELEMS * sizeof(T)>());
   }
 
-  // unpack16
+  /**
+   * @brief Interleaves blocks of elements from the high or low half of each
+   * 16-byte lane of two SIMDVec's.
+   *
+   * This function interleaves blocks of elements from the high or low
+   * half of each 16-byte lane of two SIMDVec's, starting with the
+   * lowest block of the selected half of the first input SIMDVec.
+   *
+   * This function is the lane-oriented equivalent of unpack().
+   *
+   * To get both halves of the input vectors interleaved, use zip16().
+   *
+   * Example: TODO?
+   *
+   * @tparam PART Selects which half of the lanes of the input vectors to use.
+   * A value of 0 selects the low half, a value of 1 selects the high half.
+   * @tparam NUM_ELEMS The number of elements in a block. This must be a
+   * power of two (including 1) and be at most half of one SIMDVec.
+   * @param a The first input SIMDVec.
+   * @param b The second input SIMDVec.
+   * @return The interleaved SIMDVec.
+   */
   template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   unpack16(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -292,7 +565,14 @@ namespace ns_simd {
     return internal::base::unpack16<PART, NUM_ELEMS>(a, b);
   }
 
-  // extractLane
+  /**
+   * @brief Extracts a 16-byte lane from a SIMDVec as a SIMDVec < T, 16 >.
+   *
+   * @tparam IMM The lane to extract. Must be in the range
+   * [0, @p SIMD_WIDTH / 16).
+   * @param a The SIMDVec to extract a lane from.
+   * @return The extracted lane as a SIMDVec < T, 16 >.
+   */
   template <int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, 16>
   extractLane(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -300,7 +580,32 @@ namespace ns_simd {
     return internal::base::extractLane<IMM>(a);
   }
 
-  // zip (2 x unpack) NUM_ELEMS elements of type T
+  /**
+   * @brief Interleaves blocks of elements of two SIMDVec's.
+   *
+   * This function interleaves blocks of elements from two
+   * SIMDVec's, starting with the lowest block of the first input
+   * SIMDVec. The interleaved blocks are returned in two output
+   * SIMDVec's.
+   *
+   * This function is semantically equivalent to calling unpack() twice for
+   * both parts, but may be more efficient on some platforms (such as arm
+   * NEON).
+   *
+   * Example: TODO?
+   *
+   * @sa unpack()
+   * @sa unzip()
+   *
+   * @tparam NUM_ELEMS The number of elements in a block. This must be a
+   * power of two (including 1) and be at most half of one SIMDVec.
+   * @param a The first input SIMDVec.
+   * @param b The second input SIMDVec.
+   * @param[out] l The output SIMDVec containing the low half of the
+   * interleaved blocks.
+   * @param[out] h The output SIMDVec containing the high half of the
+   * interleaved blocks.
+   */
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   zip(const SIMDVec<T, SIMD_WIDTH> a,
@@ -311,7 +616,34 @@ namespace ns_simd {
     return internal::base::zip<NUM_ELEMS>(a, b, l, h);
   }
 
-  // zip16
+  /**
+   * @brief Interleaves blocks of elements of each 16-byte lane of two
+   * SIMDVec's.
+   *
+   * This function interleaves blocks of elements from the high or low
+   * half of each 16-byte lane of two SIMDVec's, starting with the
+   * lowest block of the selected half of the first input SIMDVec. The
+   * interleaved blocks are returned in two output SIMDVec's.
+   *
+   * This function is the lane-oriented equivalent of zip().
+   *
+   * This function is semantically equivalent to calling unpack16() twice for
+   * both parts, but may be more efficient on some platforms (such as arm
+   * NEON).
+   *
+   * Example: TODO?
+   *
+   * @sa unpack16()
+   *
+   * @tparam NUM_ELEMS The number of elements in a block. This must be a
+   * power of two (including 1) and be at most half of one SIMDVec.
+   * @param a The first input SIMDVec.
+   * @param b The second input SIMDVec.
+   * @param[out] l The output SIMDVec containing the low half of the
+   * interleaved blocks.
+   * @param[out] h The output SIMDVec containing the high half of the
+   * interleaved blocks.
+   */
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   zip16(const SIMDVec<T, SIMD_WIDTH> a,
@@ -322,7 +654,25 @@ namespace ns_simd {
     return internal::base::zip16<NUM_ELEMS>(a, b, l, h);
   }
 
-  // unzip (inverse of zip)
+  /**
+   * @brief Deinterleaves blocks of elements two SIMDVec's.
+   *
+   * This function deinterleaves blocks of elements from two
+   * SIMDVec's. This is the inverse of zip().
+   *
+   * Example: TODO?
+   *
+   * @sa zip()
+   *
+   * @tparam NUM_ELEMS The number of elements in a block. This must be a
+   * power of two (including 1) and be at most half of one SIMDVec.
+   * @param a The first input SIMDVec.
+   * @param b The second input SIMDVec.
+   * @param[out] l The output SIMDVec containing the low half of the
+   * deinterleaved blocks.
+   * @param[out] h The output SIMDVec containing the high half of the
+   * deinterleaved blocks.
+   */
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   unzip(const SIMDVec<T, SIMD_WIDTH> a,
@@ -334,7 +684,22 @@ namespace ns_simd {
                            internal::Bytes<NUM_ELEMS * sizeof(T)>());
   }
 
-  // unifies packs and packus, depending on Tout
+  /**
+   * @brief Packs two SIMDVec's into one by converting the elements
+   * into the next smaller type with saturation.
+   *
+   * Only supported for signed->signed and signed->unsigned
+   * conversions. SIMDFloat is converted to an integer type, as there
+   * is no 16-bit floating point type.
+   *
+   * @sa extend()
+   *
+   * @tparam Tout The type of the resulting SIMDVec. Must be the next
+   * smaller type of the elements of the input SIMDVec's.
+   * @tparam Tin The type of the input SIMDVec's.
+   * @param a, b The input SIMDVec's.
+   * @return A SIMDVec with the elements of a and b packed into one.
+   */
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
   packs(const SIMDVec<Tin, SIMD_WIDTH> &a,
@@ -343,17 +708,45 @@ namespace ns_simd {
     return internal::base::packs(a, b, internal::OutputType<Tout>());
   }
 
-  // generalized version of unpack-based type conversion: includes
-  // multistage extension (zero-extend or sign-extend, depending on
-  // type)
+  /**
+   * @brief Extends the elements of a SIMDVec to a larger or equally
+   * sized type.
+   *
+   * Supported are signed->signed, unsigned->unsigned and unsigned->signed
+   * conversions, but unsigned->signed conversions are only supported
+   * if the destination type is larger than the source type.
+   *
+   * The values are zero-extended or sign-extended, depending on the type.
+   *
+   * Multiple output vectors are produced, where the amount of output
+   * vectors is <tt>sizeof(Tout) / sizeof(Tin)</tt>.
+   *
+   * @sa packs()
+   *
+   * @tparam Tout The type to extend to.
+   * @tparam Tin The type to extend from.
+   * @param vIn The input SIMDVec.
+   * @param[out] vOut The output SIMDVec's.
+   */
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE void
   extend(const SIMDVec<Tin,SIMD_WIDTH> &vIn,
-	 SIMDVec<Tout,SIMD_WIDTH> *const vOut)
+	 SIMDVec<Tout,SIMD_WIDTH> vOut[sizeof(Tout) / sizeof(Tin)])
   {
     return internal::base::extend(vIn, vOut);
   }
 
+  /**
+   * @brief Shifts the elements of a SIMDVec right by a constant
+   * number of bits while shifting in the sign bit.
+   *
+   * @sa sra()
+   *
+   * @tparam IMM The number of bits to shift by.
+   * @param a The SIMDVec to shift.
+   * @return A SIMDVec containing the shifted elements of the input
+   * vector.
+   */
   template <int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   srai(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -361,6 +754,17 @@ namespace ns_simd {
     return internal::base::srai<IMM>(a);
   }
 
+  /**
+   * @brief Shifts the elements of a SIMDVec right by a constant
+   * number of bits while shifting in zeros.
+   *
+   * @sa srl()
+   *
+   * @tparam IMM The number of bits to shift by.
+   * @param a The SIMDVec to shift.
+   * @return A SIMDVec containing the shifted elements of the input
+   * vector.
+   */
   template <int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   srli(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -368,6 +772,17 @@ namespace ns_simd {
     return internal::base::srli<IMM>(a);
   }
 
+  /**
+   * @brief Shifts the elements of a SIMDVec left by a constant
+   * number of bits while shifting in zeros.
+   *
+   * @sa sll()
+   *
+   * @tparam IMM The number of bits to shift by.
+   * @param a The SIMDVec to shift.
+   * @return A SIMDVec containing the shifted elements of the input
+   * vector.
+   */
   template <int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   slli(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -377,6 +792,17 @@ namespace ns_simd {
 
   // 12. Jan 23 (Jonas Keller): added sra, srl and sll functions
 
+  /**
+   * @brief Shifts the elements of a SIMDVec right by a variable
+   * number of bits while shifting in the sign bit.
+   *
+   * @sa srai()
+   *
+   * @param a The SIMDVec to shift.
+   * @param count The number of bits to shift by.
+   * @return A SIMDVec containing the shifted elements of the input
+   * vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   sra(const SIMDVec<T, SIMD_WIDTH> &a, const uint8_t count)
@@ -384,6 +810,17 @@ namespace ns_simd {
     return internal::base::sra(a, count);
   }
 
+  /**
+   * @brief Shifts the elements of a SIMDVec right by a variable
+   * number of bits while shifting in zeros.
+   *
+   * @sa srli()
+   *
+   * @param a The SIMDVec to shift.
+   * @param count The number of bits to shift by.
+   * @return A SIMDVec containing the shifted elements of the input
+   * vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   srl(const SIMDVec<T, SIMD_WIDTH> &a, const uint8_t count)
@@ -391,6 +828,17 @@ namespace ns_simd {
     return internal::base::srl(a, count);
   }
 
+  /**
+   * @brief Shifts the elements of a SIMDVec left by a variable
+   * number of bits while shifting in zeros.
+   *
+   * @sa slli()
+   *
+   * @param a The SIMDVec to shift.
+   * @param count The number of bits to shift by.
+   * @return A SIMDVec containing the shifted elements of the input
+   * vector.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   sll(const SIMDVec<T, SIMD_WIDTH> &a, const uint8_t count)
@@ -398,8 +846,18 @@ namespace ns_simd {
     return internal::base::sll(a, count);
   }
 
-  // conversion without changes in the number of vector elements
-  // saturated version (but saturation only concerns float->int)
+  /**
+   * @brief Converts the elements of a SIMDVec between @ref SIMDInt
+   * and @ref SIMDFloat types
+   *
+   * The conversion @ref SIMDFloat -> @ref SIMDInt is saturated.
+   *
+   * @tparam Tout The type of the resulting SIMDVec. Must be one of
+   * SIMDInt or @ref SIMDFloat, but not the same as @p Tin.
+   * @tparam Tin The type of the input SIMDVec. Must be one of
+   * @ref SIMDInt or @ref SIMDFloat, but not the same as @p Tout.
+   * @param a The input SIMDVec.
+   */
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> 
   cvts(const SIMDVec<Tin, SIMD_WIDTH> &a)
@@ -407,7 +865,14 @@ namespace ns_simd {
     return internal::base::cvts(a, internal::OutputType<Tout>());
   }
 
-  // horizontal addition
+  /**
+   * @brief Horizontally adds adjacent elements of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the results of the horizontal
+   * additions.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   hadd(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -416,7 +881,15 @@ namespace ns_simd {
     return internal::base::hadd(a, b);
   }
 
-  // horizontal addition (with saturation)
+  /**
+   * @brief Horizontally adds adjacent elements of two SIMDVec's
+   * with saturation.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the results of the horizontal
+   * saturated additions.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   hadds(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -425,7 +898,13 @@ namespace ns_simd {
     return internal::base::hadds(a, b);
   }
 
-  // horizontal subtraction
+  /**
+   * @brief Horizontally subtracts adjacent elements of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the results of the horizontal subtractions.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   hsub(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -434,7 +913,15 @@ namespace ns_simd {
     return internal::base::hsub(a, b);
   }
 
-  // horizontal subtraction (with saturation)
+  /**
+   * @brief Horizontally subtracts adjacent elements of two SIMDVec's
+   * with saturation.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the results of the horizontal saturated
+   * subtractions.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   hsubs(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -443,7 +930,14 @@ namespace ns_simd {
     return internal::base::hsubs(a, b);
   }
 
-  // logical right shift by n elements, filling in zeros
+  /**
+   * @brief Shifts a SIMDVec right by a constant number of elements,
+   * shifting in zero elements.
+   *
+   * @tparam IMM The number of elements to shift by.
+   * @param a The SIMDVec to shift.
+   * @return The shifted SIMDVec.
+   */
   template <int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   srle(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -451,7 +945,14 @@ namespace ns_simd {
     return internal::base::srle<IMM>(a);
   }
 
-  // logical left shift by n elements, filling in zeros
+  /**
+   * @brief Shifts a SIMDVec left by a constant number of elements,
+   * shifting in zero elements.
+   *
+   * @tparam IMM The number of elements to shift by.
+   * @param a The SIMDVec to shift.
+   * @return The shifted SIMDVec.
+   */
   template <int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   slle(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -459,7 +960,16 @@ namespace ns_simd {
     return internal::base::slle<IMM>(a);
   }
 
-  // extraction of lowest element
+  /**
+   * @brief Extracts the lowest element of a SIMDVec.
+   *
+   * Semantically equivalent to @c extract<0>(a) , but may be more efficient.
+   *
+   * @sa extract()
+   *
+   * @param a The SIMDVec to extract from.
+   * @return The lowest element of the SIMDVec.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE T
   elem0(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -468,6 +978,17 @@ namespace ns_simd {
   }
 
   // alignr (with number of elements in imm):
+
+  /**
+   * @brief Concatenates two SIMDVec's, shifts the result right by a
+   * constant number of elements, and returns the low half of the
+   * result.
+   *
+   * @tparam IMM The number of elements to shift by.
+   * @param h The first SIMDVec. The high half of the concatenated SIMDVec.
+   * @param l The second SIMDVec. The low half of the concatenated SIMDVec.
+   * @return The low half of the shifted concatenated SIMDVec.
+   */
   template <int IMM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   alignre(const SIMDVec<T, SIMD_WIDTH> &h,
@@ -486,7 +1007,15 @@ namespace ns_simd {
                             internal::TypeIsIntSize<T>());
   }
 
-  // ifelse
+  /**
+   * @brief Selects elements from two SIMDVec's based on a condition SIMDVec.
+   *
+   * @param cond The condition SIMDVec. Each element must be either
+   * all 1 bits or all 0 bits, representing true or false, respectively.
+   * @param trueVal The SIMDVec to select from if the condition is true.
+   * @param falseVal The SIMDVec to select from if the condition is false.
+   * @return A SIMDVec containing the selected elements.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   ifelse(const SIMDVec<T, SIMD_WIDTH> &cond,
@@ -496,7 +1025,20 @@ namespace ns_simd {
     return internal::base::ifelse(cond, trueVal, falseVal);
   }
 
-  // compare <
+  /**
+   * @brief Compares corresponding elements of two SIMDVec's for less-than
+   * ( @c < ).
+   *
+   * @param a The first SIMDVec to compare.
+   * @param b The second SIMDVec to compare.
+   * @return A SIMDVec containing the results of the comparison,
+   * where each element is all 1 bits or all 0 bits, depending on whether
+   * the corresponding comparison returned true or false, respectively.
+   * @sa mask_cmplt(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &)
+   * @sa mask_cmplt(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   cmplt(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -505,7 +1047,20 @@ namespace ns_simd {
     return internal::base::cmplt(a, b);
   }
 
-  // compare <=
+  /**
+   * @brief Compares corresponding elements of two SIMDVec's for
+   * less-than-or-equal ( @c <= ).
+   *
+   * @param a The first SIMDVec to compare.
+   * @param b The second SIMDVec to compare.
+   * @return A SIMDVec containing the results of the comparison,
+   * where each element is all 1 bits or all 0 bits, depending on whether
+   * the corresponding comparison returned true or false, respectively.
+   * @sa mask_cmple(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &)
+   * @sa mask_cmple(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   cmple(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -514,7 +1069,20 @@ namespace ns_simd {
     return internal::base::cmple(a, b);
   }
 
-  // compare ==
+  /**
+   * @brief Compares corresponding elements of two SIMDVec's for
+   * equality ( @c == ).
+   *
+   * @param a The first SIMDVec to compare.
+   * @param b The second SIMDVec to compare.
+   * @return A SIMDVec containing the results of the comparison,
+   * where each element is all 1 bits or all 0 bits, depending on whether
+   * the corresponding comparison returned true or false, respectively.
+   * @sa mask_cmpeq(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &)
+   * @sa mask_cmpeq(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   cmpeq(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -523,7 +1091,20 @@ namespace ns_simd {
     return internal::base::cmpeq(a, b);
   }
 
-  // compare >=
+  /**
+   * @brief Compares corresponding elements of two SIMDVec's for
+   * greater-than-or-equal ( @c >= ).
+   *
+   * @param a The first SIMDVec to compare.
+   * @param b The second SIMDVec to compare.
+   * @return A SIMDVec containing the results of the comparison,
+   * where each element is all 1 bits or all 0 bits, depending on whether
+   * the corresponding comparison returned true or false, respectively.
+   * @sa mask_cmpge(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &)
+   * @sa mask_cmpge(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   cmpge(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -532,7 +1113,20 @@ namespace ns_simd {
     return internal::base::cmpge(a, b);
   }
 
-  // compare >
+  /**
+   * @brief Compares corresponding elements of two SIMDVec's for
+   * greater-than ( @c > ).
+   *
+   * @param a The first SIMDVec to compare.
+   * @param b The second SIMDVec to compare.
+   * @return A SIMDVec containing the results of the comparison,
+   * where each element is all 1 bits or all 0 bits, depending on whether
+   * the corresponding comparison returned true or false, respectively.
+   * @sa mask_cmpgt(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &)
+   * @sa mask_cmpgt(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   cmpgt(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -541,7 +1135,20 @@ namespace ns_simd {
     return internal::base::cmpgt(a, b);
   }
 
-  // compare !=
+  /**
+   * @brief Compares corresponding elements of two SIMDVec's for
+   * inequality ( @c != ).
+   *
+   * @param a The first SIMDVec to compare.
+   * @param b The second SIMDVec to compare.
+   * @return A SIMDVec containing the results of the comparison,
+   * where each element is all 1 bits or all 0 bits, depending on whether
+   * the corresponding comparison returned true or false, respectively.
+   * @sa mask_cmpne(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &)
+   * @sa mask_cmpne(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
+   * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   cmpneq(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -550,7 +1157,14 @@ namespace ns_simd {
     return internal::base::cmpneq(a, b);
   }
 
-  // bitwise and
+  /**
+   * @brief Computes the bitwise AND of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the bitwise AND of the two
+   * input SIMDVec's.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   and(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -559,7 +1173,14 @@ namespace ns_simd {
     return internal::base::and(a, b);
   }
 
-  // bitwise or
+  /**
+   * @brief Computes the bitwise OR of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the bitwise OR of the two
+   * input SIMDVec's.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   or(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -568,7 +1189,16 @@ namespace ns_simd {
     return internal::base::or(a, b);
   }
 
-  // bitwise andnot: (not a) and b
+  /**
+   * @brief Computes the bitwise ANDNOT of two SIMDVec's.
+   *
+   * The result is computed as (not @p a ) and @p b .
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the bitwise ANDNOT of the two
+   * input SIMDVec's.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   andnot(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -577,7 +1207,14 @@ namespace ns_simd {
     return internal::base::andnot(a, b);
   }
 
-  // bitwise xor
+  /**
+   * @brief Computes the bitwise XOR of two SIMDVec's.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the bitwise XOR of the two
+   * input SIMDVec's.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   xor(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -587,7 +1224,13 @@ namespace ns_simd {
   }
 
 
-  // bitwise not (work-arounds required)
+  /**
+   * @brief Computes the bitwise NOT of a SIMDVec.
+   *
+   * @param a The SIMDVec.
+   * @return A SIMDVec containing the bitwise NOT of the input
+   * SIMDVec.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   not(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -595,7 +1238,14 @@ namespace ns_simd {
     return internal::base::not(a);
   }
 
-  // avg
+  /**
+   * @brief Computes the average of the elements of two SIMDVec's, rounded up.
+   *
+   * @param a The first SIMDVec.
+   * @param b The second SIMDVec.
+   * @return A SIMDVec containing the rounded up average of the elements of
+   * the two input SIMDVec's.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   avg(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -604,7 +1254,12 @@ namespace ns_simd {
     return internal::base::avg(a, b);
   }
 
-  // test if all bits are zeros (false)
+  /**
+   * @brief Tests if all bits of a SIMDVec are zero.
+   *
+   * @param a The SIMDVec to test.
+   * @return 1 if all bits are zero, 0 otherwise.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE int
   test_all_zeros(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -612,7 +1267,12 @@ namespace ns_simd {
     return internal::base::test_all_zeros(a);
   }
 
-  // test if all bits are ones (true)
+  /**
+   * @brief Tests if all bits of a SIMDVec are one.
+   *
+   * @param a The SIMDVec to test.
+   * @return 1 if all bits are one, 0 otherwise.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE int
   test_all_ones(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -620,7 +1280,13 @@ namespace ns_simd {
     return internal::base::test_all_ones(a);
   }
 
-  // reverse order
+  /**
+   * @brief Reverses the order of the elements of a SIMDVec.
+   *
+   * @param a The SIMDVec to reverse.
+   * @return A SIMDVec containing the elements of the input
+   * SIMDVec in reverse order.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMDVec<T, SIMD_WIDTH>
   reverse(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -629,6 +1295,15 @@ namespace ns_simd {
   }
 
   // 27. Aug 22 (Jonas Keller): added msb2int
+
+  /**
+   * @brief Collects the most significant bit of each element of a SIMDVec into
+   * an integer.
+   *
+   * @param a The SIMDVec.
+   * @return An integer containing the most significant bit of each element
+   * of the input SIMDVec padded with zeros to 64 bits.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE uint64_t
   msb2int(const SIMDVec<T, SIMD_WIDTH> &a)
@@ -637,6 +1312,20 @@ namespace ns_simd {
   }
 
   // 09. Oct 22 (Jonas Keller): added int2msb
+
+  /**
+   * @brief Sets the most significant bit of each element of a SIMDVec to the
+   * corresponding bit of an integer.
+   *
+   * The bottom n bits of the input integer are used, where n is the number of
+   * elements in the SIMDVec. All other bits of the input are ignored.
+   *
+   * All other bits of the output elements are set to zero.
+   *
+   * @param a The integer.
+   * @return A SIMDVec with the most significant bit of each element set to the
+   * corresponding bit of the input integer.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   int2msb(const uint64_t a)
@@ -646,6 +1335,18 @@ namespace ns_simd {
   }
 
   // 09. Oct 22 (Jonas Keller): added int2bits
+
+  /**
+   * @brief Sets all bits of each element of a SIMDVec to the corresponding bit
+   * of an integer.
+   *
+   * The bottom n bits of the input integer are used, where n is the number of
+   * elements in the SIMDVec. All other bits of the input are ignored.
+   *
+   * @param a The integer.
+   * @return A SIMDVec with all bits of each element set to the corresponding
+   * bit of the input integer.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   int2bits(const uint64_t a)

@@ -23,7 +23,17 @@
 // 
 // ===========================================================================
 
-// standalone, can also be used independently of T-SIMD
+/** 
+ * @file SIMDAlloc.H
+ * @brief Aligned memory allocation and deallocation.
+ *
+ * This file contains functions for aligned memory allocation and deallocation.
+ *
+ * This file is standalone, i.e. it can also be used independently of T-SIMD.
+ *
+ * @author Ralf Möller
+ * @author Jonas Keller
+ */
 
 #ifndef _SIMDALLOC_H_
 #define _SIMDALLOC_H_
@@ -36,6 +46,18 @@
 #include <stdlib.h>
 #endif
 
+/**
+ * @brief Aligned memory allocation.
+ *
+ * This function allocates a block of memory of size bytes, aligned to the
+ * specified alignment.
+ *
+ * The allocated memory must be freed with simd_aligned_free().
+ * 
+ * @param alignment The alignment of the memory block in bytes.
+ * @param size The size of the memory block in bytes.
+ * @return A pointer to the allocated memory block.
+ */
 void *simd_aligned_malloc(size_t alignment, size_t size) {
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
@@ -48,6 +70,14 @@ void *simd_aligned_malloc(size_t alignment, size_t size) {
 #endif
 }
 
+/**
+ * @brief Aligned memory deallocation.
+ *
+ * This function frees a block of memory that was allocated with
+ * simd_aligned_malloc().
+ *
+ * @param ptr A pointer to the memory block to be freed.
+ */
 void simd_aligned_free(void *ptr) {
 #ifdef _WIN32
   _aligned_free(ptr);

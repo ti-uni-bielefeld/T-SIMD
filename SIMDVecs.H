@@ -50,6 +50,14 @@ namespace ns_simd {
   };
   
   // multiple SIMDVec
+
+  /**
+   * @brief A class containing multiple SIMDVec's.
+   * 
+   * @tparam NUM The number of SIMDVec's.
+   * @tparam T The type of the elements of the SIMDVec's.
+   * @tparam SIMD_WIDTH The number of bytes in a single SIMDVec.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   class SIMDVecs
   {
@@ -62,7 +70,7 @@ namespace ns_simd {
     // shorter version:
     enum { vecs = vectors, elems = elements };
     
-    SIMDVec<T,SIMD_WIDTH> vec[NUM];
+    SIMDVec<T,SIMD_WIDTH> vec[NUM]; ///< The SIMDVec's.
   };
   
   // wrapper functions working on SIMDVecs
@@ -139,6 +147,15 @@ namespace ns_simd {
     fwaddmul(vecsIn1.vec, vecsIn2.vec, w, fac, vecsOut.vec);
   }
 
+  /**
+   * @brief Loads SIMDVecs from aligned memory.
+   *
+   * The memory location must be aligned to the @p SIMD_WIDTH .
+   * 
+   * @tparam NUM The number of SIMDVec's in the SIMDVecs.
+   * @param[in] p The pointer to the aligned memory location.
+   * @param[out] inVecs The SIMDVecs class to load the SIMDVec's into.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   load(const T *const p, SIMDVecs<NUM,T,SIMD_WIDTH> &inVecs)
@@ -146,6 +163,16 @@ namespace ns_simd {
     load(p, inVecs.vec, inVecs.vectors);
   }
 
+  /**
+   * @brief Loads SIMDVecs from unaligned memory.
+   *
+   * In contrast to load(), the memory location does not need to be aligned to
+   * the @p SIMD_WIDTH .
+   *
+   * @tparam NUM The number of SIMDVec's in the SIMDVecs.
+   * @param[in] p The pointer to the memory location.
+   * @param[out] inVecs The SIMDVecs class to load the SIMDVec's into.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   loadu(const T *const p, SIMDVecs<NUM,T,SIMD_WIDTH> &inVecs)
@@ -153,6 +180,15 @@ namespace ns_simd {
     loadu(p, inVecs.vec, inVecs.vectors);
   }
   
+  /**
+   * @brief Stores SIMDVecs to aligned memory.
+   *
+   * The memory location must be aligned to the @p SIMD_WIDTH .
+   * 
+   * @tparam NUM The number of SIMDVec's in the SIMDVecs.
+   * @param[out] p The pointer to the aligned memory location.
+   * @param[in] outVecs The SIMDVecs to store.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   store(T *const p, const SIMDVecs<NUM,T, SIMD_WIDTH> &outVecs)
@@ -160,6 +196,16 @@ namespace ns_simd {
     store(p, outVecs.vec, outVecs.vectors);
   }
 
+  /**
+   * @brief Stores SIMDVecs to unaligned memory.
+   *
+   * In contrast to store(), the memory location does not need to be aligned to
+   * the @p SIMD_WIDTH .
+   *
+   * @tparam NUM The number of SIMDVec's in the SIMDVecs.
+   * @param[out] p The pointer to the memory location.
+   * @param[in] outVecs The SIMDVecs to store.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   storeu(T *const p, const SIMDVecs<NUM,T, SIMD_WIDTH> &outVecs)
@@ -344,6 +390,13 @@ namespace ns_simd {
     return hsubs(v.vec);
   }
 
+  /**
+   * @brief Adds the elements of two SIMDVecs.
+   *
+   * @param a The first SIMDVecs.
+   * @param b The second SIMDVecs.
+   * @return A SIMDVecs containing the sum of the elements of the two SIMDVecs.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVecs<NUM, T, SIMD_WIDTH>
   add(const SIMDVecs<NUM, T, SIMD_WIDTH> &a,
@@ -354,6 +407,14 @@ namespace ns_simd {
     return res;
   }
 
+  /**
+   * @brief Adds the elements of two SIMDVecs using saturated arithmetic.
+   *
+   * @param a The first SIMDVecs.
+   * @param b The second SIMDVecs.
+   * @return A SIMDVecs containing the saturated sum of the elements of the two
+   * SIMDVecs.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVecs<NUM, T, SIMD_WIDTH>
   adds(const SIMDVecs<NUM, T, SIMD_WIDTH> &a,
@@ -364,6 +425,14 @@ namespace ns_simd {
     return res;
   }
 
+  /**
+   * @brief Subtracts the elements of two SIMDVecs.
+   *
+   * @param a The first SIMDVecs.
+   * @param b The second SIMDVecs.
+   * @return A SIMDVecs containing the differences of the elements of the two
+   * SIMDVecs.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVecs<NUM, T, SIMD_WIDTH>
   sub(const SIMDVecs<NUM, T, SIMD_WIDTH> &a,
@@ -374,6 +443,14 @@ namespace ns_simd {
     return res;
   }
 
+  /**
+   * @brief Subtracts the elements of two SIMDVecs using saturated arithmetic.
+   *
+   * @param a The first SIMDVecs.
+   * @param b The second SIMDVecs.
+   * @return A SIMDVecs containing the saturated differences of the elements of
+   * the two SIMDVecs.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVecs<NUM, T, SIMD_WIDTH>
   subs(const SIMDVecs<NUM, T, SIMD_WIDTH> &a,
@@ -384,6 +461,14 @@ namespace ns_simd {
     return res;
   }
 
+  /**
+   * @brief Computes the minimum of the elements of two sets of SIMDVecs.
+   *
+   * @param a The first SIMDVecs.
+   * @param b The second SIMDVecs.
+   * @return A SIMDVecs containing the minimums of the elements of the two
+   * SIMDVecs.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVecs<NUM, T, SIMD_WIDTH>
   min(const SIMDVecs<NUM, T, SIMD_WIDTH> &a,
@@ -394,6 +479,14 @@ namespace ns_simd {
     return res;
   }
 
+  /**
+   * @brief Computes the maximum of the elements of two sets of SIMDVecs.
+   *
+   * @param a The first SIMDVecs.
+   * @param b The second SIMDVecs.
+   * @return A SIMDVecs containing the maximums of the elements of the two
+   * SIMDVecs.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVecs<NUM, T, SIMD_WIDTH>
   max(const SIMDVecs<NUM, T, SIMD_WIDTH> &a,
@@ -404,6 +497,11 @@ namespace ns_simd {
     return res;
   }
 
+  /**
+   * @brief Returns SIMDVecs with all elements set to zero.
+   * 
+   * @return A SIMDVecs containing all zeros.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVecs<NUM, T, SIMD_WIDTH>
   setzero()
@@ -413,6 +511,11 @@ namespace ns_simd {
     return res;
   }
 
+  /**
+   * @brief Sets all elements of SIMDVecs to zero.
+   * 
+   * @param[out] res The SIMDVecs to set to zero.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   setzero(SIMDVecs<NUM, T, SIMD_WIDTH> &res)
@@ -420,6 +523,12 @@ namespace ns_simd {
     for (int v = 0; v < NUM; v++) res.vec[v] = setzero<T,SIMD_WIDTH>();
   }
 
+  /**
+   * @brief Sets all elements of SIMDVecs to a given value.
+   * 
+   * @param a The value to set all elements to.
+   * @return A SIMDVecs containing all elements set to the given value.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVecs<NUM, T, SIMD_WIDTH>
   set1(T a)
@@ -429,6 +538,12 @@ namespace ns_simd {
     return res;
   }
 
+  /**
+   * @brief Sets all elements of SIMDVecs to a given value.
+   *
+   * @param[out] res The SIMDVecs to set to the given value.
+   * @param a The value to set all elements to.
+   */
   template <int NUM, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   set1(SIMDVecs<NUM, T, SIMD_WIDTH> &res, T a)

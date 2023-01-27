@@ -1,6 +1,8 @@
 .vscode/
 COMPILE_AND_TEST/
 build*/
+html/
+latex/
 *.tmp
 *.o
 *.ilk

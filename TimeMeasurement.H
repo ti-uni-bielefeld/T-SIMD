@@ -170,13 +170,23 @@ namespace ns_simd {
   }
   */
 
-   struct timespec getTimeSpec()
-   {
-     struct timespec ts;
-     assert(!clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts));
-     return ts;
-   }
-  
+  /**
+   * @brief Get the current value of this processes CPU time clock.
+   * 
+   * @return The current value of this processes CPU time clock.
+   */
+  struct timespec getTimeSpec()
+  {
+    struct timespec ts;
+    assert(!clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts));
+    return ts;
+  }
+
+  /**
+   * @brief Get the current value of the system-wide real-time clock.
+   *
+   * @return The current value of the system-wide real-time clock.
+   */
   struct timespec getTimeSpecMonotonic()
   {
     struct timespec ts;
@@ -187,6 +197,16 @@ namespace ns_simd {
   // https://www.gnu.org/
   //   software/libc/manual/html_node/Calculating-Elapsed-Time.html
   // adapted, computes x - y for timespec instead of timeval
+
+  /**
+   * @brief Subtracts two timespecs.
+   *
+   * @param[in] xx The first timespec.
+   * @param[in] yy The second timespec.
+   * @param[out] result The result of the subtraction.
+   *
+   * @return 1 if the difference is negative, otherwise 0.
+   */
   int
   timespec_subtract(const struct timespec &xx, 
 		    const struct timespec &yy,
@@ -212,12 +232,28 @@ namespace ns_simd {
   }
   
   // convert to us (intended for results of timespec_subtract!)
+
+  /**
+   * @brief Converts a timespec to microseconds. Intended for results of
+   * timespec_subtract.
+   *
+   * @param[in] x The timespec to convert.
+   *
+   * @return The timespec converted to microseconds.
+   */
   double
   timespec_usec(const struct timespec &x)
   {
     return double(1E6 * x.tv_sec + x.tv_nsec / 1E3);
   }
   
+  /**
+   * @brief Computes the difference between two timespec's in microseconds.
+   * 
+   * @param x The first timespec.
+   * @param y The second timespec.
+   * @return The difference between the two timespec's in microseconds.
+   */
   double
   timeSpecDiffUsec(const struct timespec &x,
 		   const struct timespec &y)
@@ -231,6 +267,17 @@ namespace ns_simd {
 
   // warning: may overflow if the difference is more than 2 seconds on platforms
   // where long is 32 bits
+
+  /**
+   * @brief Computes the difference between two timespec's in nanoseconds.
+   *
+   * @warning May overflow on platforms where long is 32 bits if the difference
+   * is more than 2 seconds.
+   *
+   * @param x The first timespec.
+   * @param y The second timespec.
+   * @return The difference between the two timespec's in nanoseconds.
+   */
   long int
   timeSpecDiffNsec(const struct timespec &x,
        const struct timespec &y)

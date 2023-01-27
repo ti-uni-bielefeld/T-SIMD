@@ -146,6 +146,19 @@ namespace ext {
   //   return (in == -0.0f) ? 0.0f : in;
   // }
 
+  /**
+   * @brief Writes the formatted elements of a SIMD vector to a file.
+   *
+   * The elements are formatted using the format string and written to
+   * the file using the fprintf function of the C standard library in the order
+   * they are stored in memory.
+   *
+   * @param f The file to write to.
+   * @param format The format string. Must be a valid format string to print a
+   * single element of the SIMD vector using the fprintf function of the C
+   * standard library.
+   * @param vec The SIMD vector to print.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   fprint(FILE *f, const char *format, const SIMDVec<T,SIMD_WIDTH> &vec)
@@ -166,6 +179,17 @@ namespace ext {
       fprintf(f, format, buf[i]);
   }
 
+  /**
+   * @brief Writes the formatted elements of a SIMD vector to stdout.
+   *
+   * Equivalent to calling fprint(FILE *f, const char *format,
+   * const SIMDVec<T,SIMD_WIDTH> &vec) with stdout as the file.
+   *
+   * @param format The format string. Must be a valid format string to print a
+   * single element of the SIMD vector using the fprintf function of the C
+   * standard library.
+   * @param vec The SIMD vector to print.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   print(const char *format, const SIMDVec<T,SIMD_WIDTH> &vec)
@@ -173,6 +197,21 @@ namespace ext {
     fprint(stdout, format, vec);
   }
 
+  /**
+   * @brief Writes the formatted elements of a SIMD vector to a file separated
+   * by a separator string.
+   *
+   * Equivalent to calling fprint(FILE *f, const char *format,
+   * const SIMDVec<T,SIMD_WIDTH> &vec) with a format string
+   * consisting of the format string and the separator string.
+   *
+   * @param f The file to write to.
+   * @param format The format string. Must be a valid format string to print a
+   * single element of the SIMD vector using the fprintf function of the C
+   * standard library.
+   * @param separator The separator string.
+   * @param vec The SIMD vector to print.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   fprint(FILE *f,
@@ -187,6 +226,20 @@ namespace ext {
     fprint(f, fmtSep.c_str(), vec);
   }
 
+  /**
+   * @brief Writes the formatted elements of a SIMD vector to stdout separated
+   * by a separator string.
+   *
+   * Equivalent to calling fprint(FILE *f, const char *format,
+   * const char *separator, const SIMDVec<T,SIMD_WIDTH> &vec) with stdout as
+   * the file.
+   *
+   * @param format The format string. Must be a valid format string to print a
+    * single element of the SIMD vector using the fprintf function of the C
+    * standard library.
+   * @param separator The separator string.
+   * @param vec The SIMD vector to print.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   print(const char *format, const char *separator, 
@@ -199,6 +252,16 @@ namespace ext {
   // multi-vector store and load
   // ===========================================================================
 
+  /**
+   * @brief Loads multiple successive SIMDVec's from aligned memory.
+   *
+   * The memory location must be aligned to the SIMD_WIDTH.
+   *
+   * @param[in] p A pointer to the aligned memory location to load from.
+   * @param[out] inVecs An array of SIMDVec's to store the loaded
+   * values in.
+   * @param numInVecs The number of SIMDVec's to load.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   load(const T *const p, SIMDVec<T, SIMD_WIDTH> *inVecs, int numInVecs)
@@ -209,6 +272,18 @@ namespace ext {
       inVecs[vi] = load<SIMD_WIDTH>(p + off);
   }
 
+  /**
+   * @brief Loads multiple successive SIMDVec's from unaligned memory.
+   *
+   * In contrast to load(const T *const p, SIMDVec<T, SIMD_WIDTH> *inVecs, int
+   * numInVecs), the memory location does not need to be aligned to any
+   * boundary.
+   *
+   * @param[in] p A pointer to the memory location to load from.
+   * @param[out] inVecs An array of SIMDVec's to store the loaded
+   * values in.
+   * @param numInVecs The number of SIMDVec's to load.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   loadu(const T *const p, SIMDVec<T, SIMD_WIDTH> *inVecs, int numInVecs)
@@ -219,6 +294,15 @@ namespace ext {
       inVecs[vi] = loadu<SIMD_WIDTH>(p + off);
   }
 
+  /**
+   * @brief Stores multiple successive SIMDVec's to aligned memory.
+   * 
+   * The memory location must be aligned to the SIMD_WIDTH.
+   *
+   * @param[out] p A pointer to the aligned memory location to store to.
+   * @param[in] outVecs An array of SIMDVec's to store.
+   * @param numOutVecs The number of SIMDVec's to store.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   store(T *const p, const SIMDVec<T, SIMD_WIDTH> *outVecs, int numOutVecs)
@@ -229,6 +313,17 @@ namespace ext {
       store(p + off, outVecs[vo]);
   }
 
+  /**
+   * @brief Stores multiple successive SIMDVec's to unaligned memory.
+   *
+   * In contrast to store(T *const p, const SIMDVec<T, SIMD_WIDTH> *outVecs, int
+   * numOutVecs), the memory location does not need to be aligned to any
+   * boundary.
+   *
+   * @param[out] p A pointer to the memory location to store to.
+   * @param[in] outVecs An array of SIMDVec's to store.
+   * @param numOutVecs The number of SIMDVec's to store.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   storeu(T *const p, const SIMDVec<T, SIMD_WIDTH> *outVecs, int numOutVecs)
@@ -240,6 +335,15 @@ namespace ext {
   }
 
   // store single vector multiple times
+  /**
+   * @brief Stores a single SIMDVec multiple times to aligned memory.
+   *
+   * The memory location must be aligned to the SIMD_WIDTH.
+   *
+   * @param[out] p A pointer to the aligned memory location to store to.
+   * @param[in] outVec The SIMDVec to store.
+   * @param numOutVecs The number of times to store the SIMDVec.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   store(T *const p, const SIMDVec<T, SIMD_WIDTH> &outVec, int numOutVecs)
@@ -251,6 +355,17 @@ namespace ext {
   }
 
   // store single vector multiple times (unaligned)
+  /**
+   * @brief Stores a single SIMDVec multiple times to unaligned memory.
+   *
+   * In contrast to store(T *const p, const SIMDVec<T, SIMD_WIDTH> &outVec, int
+   * numOutVecs), the memory location does not need to be aligned to any
+   * boundary.
+   *
+   * @param[out] p A pointer to the memory location to store to.
+   * @param[in] outVec The SIMDVec to store.
+   * @param numOutVecs The number of times to store the SIMDVec.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   storeu(T *const p, const SIMDVec<T, SIMD_WIDTH> &outVec, int numOutVecs)
@@ -388,6 +503,15 @@ namespace ext {
   // copy (load and store)
   // ===========================================================================
 
+  /**
+   * @brief Copies a single SIMDVec from one aligned memory location to
+   * another aligned memory location.
+   *
+   * Both memory locations must be aligned to the SIMD_WIDTH.
+   *
+   * @param[in] src A pointer to the aligned source memory location.
+   * @param[out] dst A pointer to the aligned destination memory location.
+   */
   template <int SIMD_WIDTH, typename T>
   static SIMD_INLINE void
   load_store(const T *const src, T *const dst)
@@ -396,6 +520,16 @@ namespace ext {
     store(dst, copy);
   }
 
+  /**
+   * @brief Copies a single SIMDVec from one unaligned memory location
+   * to another aligned memory location.
+   *
+   * The destination memory location must be aligned to the SIMD_WIDTH, the
+   * source memory location does not have to be aligned to any boundary.
+   *
+   * @param[in] src A pointer to the unaligned source memory location.
+   * @param[out] dst A pointer to the aligned destination memory location.
+   */
   template <int SIMD_WIDTH, typename T>
   static SIMD_INLINE void
   loadu_store(const T *const src, T *const dst)
@@ -404,6 +538,16 @@ namespace ext {
     store(dst, copy);
   }
 
+  /**
+   * @brief Copies a single SIMDVec from one aligned memory location to
+   * another unaligned memory location.
+   *
+   * The source memory location must be aligned to the SIMD_WIDTH, the
+   * destination memory location does not have to be aligned to any boundary.
+   *
+   * @param[in] src A pointer to the aligned source memory location.
+   * @param[out] dst A pointer to the unaligned destination memory location.
+   */
   template <int SIMD_WIDTH, typename T>
   static SIMD_INLINE void
   load_storeu(const T *const src, T *const dst)
@@ -412,6 +556,15 @@ namespace ext {
     storeu(dst, copy);
   }
 
+  /**
+   * @brief Copies a single SIMDVec from one unaligned memory location
+   * to another unaligned memory location.
+   *
+   * Both memory locations do not have to be aligned to any boundary.
+   *
+   * @param[in] src A pointer to the unaligned source memory location.
+   * @param[out] dst A pointer to the unaligned destination memory location.
+   */
   template <int SIMD_WIDTH, typename T>
   static SIMD_INLINE void
   loadu_storeu(const T *const src, T *const dst)
@@ -494,6 +647,27 @@ namespace ext {
 
   // hub
   // generalized version of packs: includes multistage packing
+
+  /**
+   * @brief Packs multiple SIMDVec's into a single SIMDVec by converting the
+   * elements into smaller or equally sized types.
+   *
+   * The number of input SIMDVec's is <tt>sizeof(Tin) / sizeof(Tout)</tt>.
+   *
+   * TODO: allowed types
+   *
+   * In contrast to packs(const SIMDVec<Tin, SIMD_WIDTH>&, const SIMDVec<Tin,
+   * SIMD_WIDTH>&), this function can handle multistage packing, i.e. the
+   * number of input can be different from 2.
+   *
+   * @sa packs(const SIMDVec<Tin, SIMD_WIDTH>&, const SIMDVec<Tin,
+   * SIMD_WIDTH>&)
+   *
+   * @tparam Tout The type of the resulting SIMDVec.
+   * @tparam Tin The type of the input SIMDVec's.
+   * @param[in] a An array of input SIMDVec's.
+   * @return A SIMDVec with the packed elements.
+   */
   template <typename Tout, typename Tin, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH>
   packs(const SIMDVec<Tin, SIMD_WIDTH> *const a)
@@ -1265,6 +1439,16 @@ namespace ext {
 } // namespace internal
 
   // function template
+
+  /**
+   * @brief Sums the elements of multiple SIMDVec's independently and returns a
+   * SIMDVec with the results.
+   * 
+   * @param[in] v Array of SIMDVec's to be summed. The number of SIMDVec's
+   * must be equal to the number of elements in a SIMDVec
+   * (<tt>SIMD_WIDTH / sizeof(T)</tt>).
+   * @return SIMDVec with the results of the horizontal sums.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
   hadd(const SIMDVec<T,SIMD_WIDTH> *const v)
@@ -1276,6 +1460,16 @@ namespace ext {
   }
   
   // function template
+
+  /**
+   * @brief Sums the elements of multiple SIMDVec's independently using
+   * saturated arithmetic and returns a SIMDVec with the results.
+   *
+   * @param[in] v Array of SIMDVec's to be summed. The number of SIMDVec's
+   * must be equal to the number of elements in a SIMDVec
+   * (<tt>SIMD_WIDTH / sizeof(T)</tt>).
+   * @return SIMDVec with the results of the saturated horizontal sums.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
   hadds(const SIMDVec<T,SIMD_WIDTH> *const v)
@@ -1413,7 +1607,12 @@ namespace ext {
 } // namespace ext
 } // namespace internal
 
-  // function template
+  /**
+   * @brief Adds all elements of a SIMDVec.
+   * 
+   * @param v The input SIMDVec.
+   * @return The sum of all elements of the SIMDVec.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE T
   hadd(const SIMDVec<T,SIMD_WIDTH> &v)
@@ -1421,7 +1620,12 @@ namespace ext {
     return elem0(internal::ext::Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hadd(v));
   }
 
-  // function template
+  /**
+   * @brief Adds all elements of a SIMDVec using saturated arithmetic.
+   * 
+   * @param v The SIMDVec to add all elements of.
+   * @return The saturated sum of all elements of the SIMDVec.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE T
   hadds(const SIMDVec<T,SIMD_WIDTH> &v)
@@ -1445,7 +1649,12 @@ namespace ext {
     return elem0(internal::ext::Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hsubs(v));
   }
 
-  // function template
+  /**
+   * @brief Calculates the minimum of all elements of a SIMDVec.
+   * 
+   * @param v The SIMDVec to calculate the minimum of all elements of.
+   * @return The minimum of all elements of the SIMDVec.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE T
   hmin(const SIMDVec<T,SIMD_WIDTH> &v)
@@ -1453,7 +1662,12 @@ namespace ext {
     return elem0(internal::ext::Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hmin(v));
   }
 
-  // function template
+  /**
+   * @brief Calculates the maximum of all elements of a SIMDVec.
+   * 
+   * @param v The SIMDVec to calculate the maximum of all elements of.
+   * @return The maximum of all elements of the SIMDVec.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE T
   hmax(const SIMDVec<T,SIMD_WIDTH> &v)
@@ -1599,6 +1813,21 @@ namespace ext {
   }
 
   // function template: full transpose
+
+  /**
+   * @brief Transposes a matrix held in an array of SIMDVec's.
+   *
+   * The matrix must be given as an array of SIMDVec's which are the rows of
+   * the matrix. The number of rows must be equal to the number of elements
+   * in a SIMDVec (<tt>SIMD_WIDTH/sizeof(T)</tt>), i.e. the matrix must be
+   * square.
+   *
+   * @param[in] inRows Pointer to array of SIMDVec's holding the matrix to be
+   * transposed. Must contain <tt>SIMD_WIDTH/sizeof(T)</tt> SIMDVec's.
+   * @param[out] outRows Pointer to array of SIMDVec's where the transposed
+   * matrix is stored. Must have space for <tt>SIMD_WIDTH/sizeof(T)</tt>
+   * SIMDVec's.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   transpose(const SIMDVec<T,SIMD_WIDTH> *const inRows,
@@ -2896,6 +3125,17 @@ namespace ext {
   // ===========================================================================
 
   // this is just a synonym for avg which is compatible with the auxiliary avgrd
+
+  /**
+   * @copybrief avg(const SIMDVec<T, SIMD_WIDTH> &,
+   * const SIMDVec<T, SIMD_WIDTH> &)
+   *
+   * Equivalent to avg(const SIMDVec<T, SIMD_WIDTH> &, const
+   * SIMDVec<T, SIMD_WIDTH> &).
+   *
+   * @copydetails avg(const SIMDVec<T, SIMD_WIDTH> &,
+   * const SIMDVec<T, SIMD_WIDTH> &)
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   avgru(const SIMDVec<T, SIMD_WIDTH> &a,
@@ -2910,6 +3150,8 @@ namespace ext {
 
   // 30. Jul 17 (rm): removed unnecessary tag dispatching for avgrd()
 
+namespace internal {
+namespace ext {
   // int types
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -2931,11 +3173,34 @@ namespace ext {
   {
     return mul(add(a, b), set1<SIMDFloat, SIMD_WIDTH>(0.5));
   }
+} // namespace ext
+} // namespace internal
+
+  /**
+   * @brief Computes the average of the elements of two SIMDVecs, rounding down.
+   *
+   * @param a First SIMDVec.
+   * @param b Second SIMDVec.
+   * @return A SIMDVec containing the rounded down average of the elements of
+   * the two input SIMDVec's.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  avgrd(const SIMDVec<T, SIMD_WIDTH> &a,
+        const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::ext::avgrd(a, b);
+  }
 
   // ===========================================================================
   // setones: set all bits to 1
   // ===========================================================================
 
+  /**
+   * @brief Sets all bits of a SIMDVec to 1.
+   * 
+   * @return A SIMDVec with all bits set to 1.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   setones()
@@ -3037,6 +3302,13 @@ namespace ext {
   
   // ---------- hubs ----------
 
+  /**
+   * @brief Sets all elements of a SIMDVec to the minimum value of the element
+   * type.
+   *
+   * @return A SIMDVec with all elements set to the minimum value of the element
+   * type.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   setmin()
@@ -3044,6 +3316,13 @@ namespace ext {
     return internal::ext::setmin<T,SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
   }
 
+  /**
+   * @brief Sets all elements of a SIMDVec to the maximum value of the element
+   * type.
+   *
+   * @return A SIMDVec with all elements set to the maximum value of the element
+   * type.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   setmax()
@@ -3051,6 +3330,11 @@ namespace ext {
     return internal::ext::setmax<T,SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
   }
 
+  /**
+   * @brief Sets all elements of a SIMDVec to the value 1.
+   *
+   * @return A SIMDVec with all elements set to the value 1.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   setunity()
@@ -3058,7 +3342,13 @@ namespace ext {
     return internal::ext::setunity<T,SIMD_WIDTH>(internal::TypeIsFloatingPoint<T>());
   }
 
-  // only for signed types
+  /**
+   * @brief Sets all elements of a SIMDVec to the value -1.
+   *
+   * Only available for signed integer and floating point types.
+   *
+   * @return A SIMDVec with all elements set to the value -1.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   setnegunity()
@@ -3069,7 +3359,17 @@ namespace ext {
   // ===========================================================================
   // ifelse with casts for compatible conditions
   // ===========================================================================
-  
+
+  /**
+   * @copybrief ifelse(const SIMDVec<T,SIMD_WIDTH> &,
+   * const SIMDVec<T,SIMD_WIDTH> &, const SIMDVec<T,SIMD_WIDTH> &)
+   *
+   * The element type of the condition vector must have the same size as the
+   * element type of the true and false value vectors.
+   *
+   * @copydetails ifelse(const SIMDVec<T,SIMD_WIDTH> &,
+   * const SIMDVec<T,SIMD_WIDTH> &, const SIMDVec<T,SIMD_WIDTH> &)
+   */
   template <typename Tcond, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
   ifelse(const SIMDVec<Tcond,SIMD_WIDTH> &cond,
@@ -3136,6 +3436,18 @@ namespace ext {
 } // namespace ext
 } // namespace internal
 
+  /**
+   * @brief Devides all elements of a SIMDVec by 2 and rounds the result to 0.
+   *
+   * Only rounds the result to 0 for integer types. For floating point types
+   * the result is not rounded.
+   *
+   * @param a The input SIMDVec.
+   *
+   * @return The result of the division.
+   *
+   * @sa div2rd()
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
   div2r0(const SIMDVec<T,SIMD_WIDTH> &a)
@@ -3195,6 +3507,18 @@ namespace ext {
 } // namespace ext
 } // namespace internal
 
+  /**
+   * @brief Devides all elements of a SIMDVec by 2 and rounds down the result.
+   *
+   * Only rounds down the result for integer types. For floating point types
+   * the result is not rounded.
+   *
+   * @param a The input SIMDVec.
+   *
+   * @return The result of the division.
+   *
+   * @sa div2r0()
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
   div2rd(const SIMDVec<T,SIMD_WIDTH> &a)
@@ -3209,6 +3533,16 @@ namespace ext {
   // contributed by Benedikt Volkmer
   // negate a, where b is negative
   // note: contrary to IEEE 754, this function considers -0.0f to be negative
+
+  /**
+   * @brief Negates the elements of a SIMDVec of SIMDFloat's where the corresponding
+   * element of a second SIMDVec of SIMDFloat's is negative.
+   * @note Contrary to IEEE 754, this function considers -0.0f to be negative.
+   *
+   * @param a The SIMDVec of SIMDFloat's to be negated.
+   * @param b The SIMDVec of SIMDFloat's that determines which elements of a are negated.
+   * @return The resulting SIMDVec of SIMDFloat's.
+   */
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
   sign(const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
@@ -3280,6 +3614,14 @@ namespace ext {
 } // namespace ext
 } // namespace internal
 
+  /**
+   * @brief Computes the absolute difference of the elements of two SIMDVec's.
+   *
+   * @param v1 The first SIMDVec.
+   * @param v2 The second SIMDVec.
+   * @return A SIMDVec containing the absolute difference of the elements of the
+   * two input SIMDVec's.
+   */
   template<typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
   absDiff(const SIMDVec<T, SIMD_WIDTH> &v1,
@@ -3514,30 +3856,52 @@ namespace ext {
   // - mul, div only for SIMDFloat
   // - neg only for signed types
 
+  /// @brief Addition operator. Maps to adds(). @sa adds()
   SIMDVEC_BINOP(operator+,adds)
+  /// @brief Subtraction operator. Maps to subs(). @sa subs()
   SIMDVEC_BINOP(operator-,subs)
+  /// @brief Multiplication operator. Maps to mul(). @sa mul()
   SIMDVEC_BINOP(operator*,mul)
+  /// @brief Division operator. Maps to div(). @sa div()
   SIMDVEC_BINOP(operator/,div)
+  /// @brief Bitwise AND operator. Maps to and(). @sa and()
   SIMDVEC_BINOP(operator&,and)
+  /// @brief Bitwise OR operator. Maps to or(). @sa or()
   SIMDVEC_BINOP(operator|,or)
+  /// @brief Bitwise XOR operator. Maps to xor(). @sa xor()
   SIMDVEC_BINOP(operator^,xor)
 
+  /// @brief Addition assignment operator. Maps to adds(). @sa adds()
   SIMDVEC_BINOPEQ(operator+=,adds)
+  /// @brief Subtraction assignment operator. Maps to subs(). @sa subs()
   SIMDVEC_BINOPEQ(operator-=,subs)
+  /// @brief Multiplication assignment operator. Maps to mul(). @sa mul()
   SIMDVEC_BINOPEQ(operator*=,mul)
+  /// @brief Division assignment operator. Maps to div(). @sa div()
   SIMDVEC_BINOPEQ(operator/=,div)
+  /// @brief Bitwise AND assignment operator. Maps to and(). @sa and()
   SIMDVEC_BINOPEQ(operator&=,and)
+  /// @brief Bitwise OR assignment operator. Maps to or(). @sa or()
   SIMDVEC_BINOPEQ(operator|=,or)
+  /// @brief Bitwise XOR assignment operator. Maps to xor(). @sa xor()
   SIMDVEC_BINOPEQ(operator^=,xor)
 
+  /// @brief Greater than operator. Maps to cmpgt(). @sa cmpgt()
   SIMDVEC_BINOP(operator>,cmpgt)
+  /// @brief Greater than or equal operator. Maps to cmpge(). @sa cmpge()
   SIMDVEC_BINOP(operator>=,cmpge)
+  /// @brief Equal to operator. Maps to cmpeq(). @sa cmpeq()
   SIMDVEC_BINOP(operator==,cmpeq)
+  /// @brief Not equal to operator. Maps to cmpneq(). @sa cmpneq()
   SIMDVEC_BINOP(operator!=,cmpneq)
+  /// @brief Less than or equal operator. Maps to cmple(). @sa cmple()
   SIMDVEC_BINOP(operator<=,cmple)
+  /// @brief Less than operator. Maps to cmplt(). @sa cmplt()
   SIMDVEC_BINOP(operator<,cmplt)
   
+  /// @brief Negation operator. Maps to neg(). @sa neg()
   SIMDVEC_UNOP(operator-,neg)
+  /// @brief Bitwise NOT operator. Maps to not(). @sa not()
   SIMDVEC_UNOP(operator~,not)
 } // namespace ns_simd
 

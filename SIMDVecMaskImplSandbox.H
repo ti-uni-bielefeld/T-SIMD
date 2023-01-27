@@ -38,6 +38,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifdef SIMDVEC_SANDBOX
+
 namespace ns_simd {
   // ===========================================================================
   // generic template for SIMDMask
@@ -1223,5 +1225,7 @@ namespace mask {
 } // namespace mask
 } // namespace internal
 } // namespace ns_simd
+
+#endif // SIMDVEC_SANDBOX
 
 #endif // _SIMD_VEC_MASK_IMPL_SANDBOX_H_

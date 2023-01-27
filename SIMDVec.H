@@ -28,6 +28,9 @@
 
 #include "SIMDDefs.H"
 
+/**
+ * @brief Namespace for T-SIMD.
+ */
 namespace ns_simd {
 
   // TODO: - absdiff also for unsigned types -> SSE lecture vecintrin66
@@ -49,8 +52,22 @@ namespace ns_simd {
   // 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
 
   // specialized for type of elements and number of bytes in the SIMD vector
+  /**
+   * @brief SIMD vector class, holds multiple elements of the same type.
+   * 
+   * @tparam T the type of the vector elements
+   * @tparam SIMD_WIDTH the number of bytes in the SIMD vector
+   */
   template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
   class SIMDVec;
+
+  /**
+   * @brief SIMD mask class consisting of as many bits as the corresponding
+   *        SIMDVec has elements.
+   *
+   * @tparam T the type of the elements of the corresponding SIMDVec
+   * @tparam SIMD_WIDTH the number of bytes in the corresponding SIMDVec
+   */
   template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
   class SIMDMask;
 

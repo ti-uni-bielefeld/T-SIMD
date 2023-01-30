@@ -105,7 +105,7 @@ template <typename Tout, typename T, int SIMD_WIDTH> struct MaskZ_cvts {
             template <typename, int> class Mask>
   static Vec<Tout, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &k,
                                      const Vec<T, SIMD_WIDTH> &a) {
-    return maskz_cvts(k, a);
+    return maskz_cvts<Tout>(k, a);
   }
 };
 

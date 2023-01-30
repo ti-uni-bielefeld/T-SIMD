@@ -5813,6 +5813,62 @@ namespace base {
     return reinterpret(int2bits(a, OutputType<SIMDInt>(), Integer<64>()),
                        OutputType<SIMDFloat>());
   }
+
+  // ---------------------------------------------------------------------------
+  // iota
+  // ---------------------------------------------------------------------------
+
+  // 30. Jan 23 (Jonas Keller): added iota
+
+  static SIMD_INLINE SIMDVec<SIMDByte,64>
+  iota(OutputType<SIMDByte>, Integer<64>)
+  {
+    return _mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51,
+                           50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38,
+                           37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25,
+                           24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,
+                           11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,64>
+  iota(OutputType<SIMDSignedByte>, Integer<64>)
+  {
+    return _mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51,
+                           50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38,
+                           37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25,
+                           24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,
+                           11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,64>
+  iota(OutputType<SIMDShort>, Integer<64>)
+  {
+    return _mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
+                            18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5,
+                            4, 3, 2, 1, 0);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,64>
+  iota(OutputType<SIMDWord>, Integer<64>)
+  {
+    return _mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
+                            18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5,
+                            4, 3, 2, 1, 0);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,64>
+  iota(OutputType<SIMDInt>, Integer<64>)
+  {
+    return _mm512_set_epi32(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
+                            0);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat,64>
+  iota(OutputType<SIMDFloat>, Integer<64>)
+  {
+    return _mm512_set_ps(15.0f, 14.0f, 13.0f, 12.0f, 11.0f, 10.0f, 9.0f, 8.0f,
+                         7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
+  }
 } // namespace base
 } // namespace internal
 } // namespace ns_simd

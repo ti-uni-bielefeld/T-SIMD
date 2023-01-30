@@ -2605,6 +2605,54 @@ namespace base {
   {
     return reinterpret(int2bits(a, OutputType<SIMDInt>(), Integer<16>()), OutputType<SIMDFloat>());
   }
+
+  // ---------------------------------------------------------------------------
+  // iota
+  // ---------------------------------------------------------------------------
+
+  // 30. Jan 23 (Jonas Keller): added iota
+
+  static SIMD_INLINE SIMDVec<SIMDByte,16>
+  iota(OutputType<SIMDByte>, Integer<16>)
+  {
+    uint8x16_t res = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    return res;
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  iota(OutputType<SIMDSignedByte>, Integer<16>)
+  {
+    int8x16_t res = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    return res;
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,16>
+  iota(OutputType<SIMDWord>, Integer<16>)
+  {
+    uint16x8_t res = {0, 1, 2, 3, 4, 5, 6, 7};
+    return res;
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,16>
+  iota(OutputType<SIMDShort>, Integer<16>)
+  {
+    int16x8_t res = {0, 1, 2, 3, 4, 5, 6, 7};
+    return res;
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,16>
+  iota(OutputType<SIMDInt>, Integer<16>)
+  {
+    uint32x4_t res = {0, 1, 2, 3};
+    return res;
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat,16>
+  iota(OutputType<SIMDFloat>, Integer<16>)
+  {
+    float32x4_t res = {0.0f, 1.0f, 2.0f, 3.0f};
+    return res;
+  }
 } // namespace base
 } // namespace internal
 } // namespace ns_simd

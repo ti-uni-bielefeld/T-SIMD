@@ -1354,6 +1354,25 @@ namespace ns_simd {
     return internal::base::int2bits(a, internal::OutputType<T>(),
                               internal::Integer<SIMD_WIDTH>());
   }
+
+  // 30. Jan 23 (Jonas Keller): added iota
+
+  /**
+   * @brief Creates a SIMDVec with sequentially increasing numbers, starting
+   * with 0.
+   *
+   * The sequence starts from the lowest element of the SIMDVec, i.e. the lowest
+   * element of the SIMDVec is set to 0, the next element to 1, and so on.
+   *
+   * @return A SIMDVec containing sequentially increasing numbers.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  iota()
+  {
+    return internal::base::iota(internal::OutputType<T>(),
+                                internal::Integer<SIMD_WIDTH>());
+  }
 }
 
 #endif // _SIMD_VEC_BASE_H_

@@ -791,6 +791,16 @@ namespace base {
     printf("int2bits<%s,%d>(U64)\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDVec<T,SIMD_WIDTH>();
   }
+
+  // 30. Jan 23 (Jonas Keller): added iota
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  iota(OutputType<T>, Integer<SIMD_WIDTH>)
+  {
+    printf("iota<%s,%d>()\n", SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+    return SIMDVec<T,SIMD_WIDTH>();
+  }
 } // namespace base
 } // namespace internal
 } // namespace ns_simd

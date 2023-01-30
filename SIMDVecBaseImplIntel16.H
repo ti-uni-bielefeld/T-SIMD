@@ -4261,6 +4261,49 @@ namespace base {
     return reinterpret(int2bits(a, OutputType<SIMDInt>(), Integer<16>()),
                        OutputType<SIMDFloat>());
   }
+
+  // ---------------------------------------------------------------------------
+  // iota
+  // ---------------------------------------------------------------------------
+
+  // 30. Jan 23 (Jonas Keller): added iota
+
+  static SIMD_INLINE SIMDVec<SIMDByte,16>
+  iota(OutputType<SIMDByte>, Integer<16>)
+  {
+    return _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,16>
+  iota(OutputType<SIMDSignedByte>, Integer<16>)
+  {
+    return _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDShort,16>
+  iota(OutputType<SIMDShort>, Integer<16>)
+  {
+    return _mm_set_epi16(7, 6, 5, 4, 3, 2, 1, 0);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDWord,16>
+  iota(OutputType<SIMDWord>, Integer<16>)
+  {
+    return _mm_set_epi16(7, 6, 5, 4, 3, 2, 1, 0);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDInt,16>
+  iota(OutputType<SIMDInt>, Integer<16>)
+  {
+    return _mm_set_epi32(3, 2, 1, 0);
+  }
+
+  static SIMD_INLINE SIMDVec<SIMDFloat,16>
+  iota(OutputType<SIMDFloat>, Integer<16>)
+  {
+    return _mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
+  }
+
 } // namespace base
 } // namespace internal
 } // namespace ns_simd

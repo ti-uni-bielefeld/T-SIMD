@@ -139,47 +139,77 @@ public:
 
 // 28. Dec 22 (Jonas Keller): Added MaskDeductor
 
+// 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
+// mask_set_true/false_low/high.
+
 template <template <typename, int> class MASK> struct MaskDeductor;
 
 template <> struct MaskDeductor<SIMDMask> {
   template <typename T, int SIMD_WIDTH>
   static SIMDMask<T, SIMD_WIDTH>
-  _setTrueLeft(const unsigned int x) {
-    return setTrueLeft<T, SIMD_WIDTH>(x);
+  _mask_set_true_low(const unsigned int x) {
+    return mask_set_true_low<T, SIMD_WIDTH>(x);
   }
 
   template <typename T, int SIMD_WIDTH>
   static SIMDMask<T, SIMD_WIDTH>
-  _setTrueRight(const unsigned int x) {
-    return setTrueRight<T, SIMD_WIDTH>(x);
+  _mask_set_true_high(const unsigned int x) {
+    return mask_set_true_high<T, SIMD_WIDTH>(x);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMDMask<T, SIMD_WIDTH>
+  _mask_set_false_low(const unsigned int x) {
+    return mask_set_false_low<T, SIMD_WIDTH>(x);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMDMask<T, SIMD_WIDTH>
+  _mask_set_false_high(const unsigned int x) {
+    return mask_set_false_high<T, SIMD_WIDTH>(x);
   }
 };
 
 template <> struct MaskDeductor<SIMDSerialMask> {
   template <typename T, int SIMD_WIDTH>
   static SIMDSerialMask<T, SIMD_WIDTH>
-  _setTrueLeft(const unsigned int x) {
+  _mask_set_true_low(const unsigned int x) {
+    if (x >= SIMDSerialMask<T, SIMD_WIDTH>::bits) {
+      return SIMDSerialMask<T, SIMD_WIDTH>(
+          ~UInt<SIMDSerialMask<T, SIMD_WIDTH>::bits>(0));
+    }
     SIMDSerialMask<T, SIMD_WIDTH> result;
-    for (unsigned int i = 0; i < result.bits; i++) {
-      // TODO: is this the right way around?
-      if (i >= x) {
-        result.setTrue(i);
-      }
+    for (unsigned int i = 0; i < x; i++) {
+      result.setTrue(i);
     }
     return result;
   }
 
   template <typename T, int SIMD_WIDTH>
   static SIMDSerialMask<T, SIMD_WIDTH>
-  _setTrueRight(const unsigned int x) {
+  _mask_set_true_high(const unsigned int x) {
+    if (x >= SIMDSerialMask<T, SIMD_WIDTH>::bits) {
+      return SIMDSerialMask<T, SIMD_WIDTH>(
+          ~UInt<SIMDSerialMask<T, SIMD_WIDTH>::bits>(0));
+    }
     SIMDSerialMask<T, SIMD_WIDTH> result;
-    for (unsigned int i = 0; i < result.bits; i++) {
-      // TODO: is this the right way around?
-      if (((long)i) < result.bits - ((long)x)) {
-        result.setTrue(i);
-      }
+    for (unsigned int i = SIMDSerialMask<T, SIMD_WIDTH>::bits - x;
+         i < SIMDSerialMask<T, SIMD_WIDTH>::bits; i++) {
+      result.setTrue(i);
     }
     return result;
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMDSerialMask<T, SIMD_WIDTH>
+  _mask_set_false_low(const unsigned int x) {
+    return ~_mask_set_true_low<T, SIMD_WIDTH>(x);
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMDSerialMask<T, SIMD_WIDTH>
+  _mask_set_false_high(const unsigned int x) {
+    return ~_mask_set_true_high<T, SIMD_WIDTH>(x);
   }
 };
 

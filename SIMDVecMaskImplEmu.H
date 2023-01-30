@@ -598,18 +598,45 @@ namespace mask {
     return (SIMDMask<T, SIMD_WIDTH>) slle<IMM>((SIMDVec<T, SIMD_WIDTH>) a);
   }
 
+  // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
+  // mask_set_true/false_low/high.
+
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  setTrueLeft(const unsigned int x)
-  {
-    return mask::kshiftli(mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>()), x);
+  mask_set_true_low(const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>) {
+    if (x >= SIMDVec<T, SIMD_WIDTH>::elems) {
+      return mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>());
+    }
+    return mask::mask_cmplt(iota<T, SIMD_WIDTH>(), set1<T, SIMD_WIDTH>(T(x)));
   }
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  setTrueRight(const unsigned int x)
-  {
-    return mask::kshiftri(mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>()), x);
+  mask_set_true_high(const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>) {
+    if (x >= SIMDVec<T, SIMD_WIDTH>::elems) {
+      return mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>());
+    }
+    return mask::mask_cmplt(reverse(iota<T, SIMD_WIDTH>()),
+                            set1<T, SIMD_WIDTH>(T(x)));
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_set_false_low(const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>) {
+    if (x >= SIMDVec<T, SIMD_WIDTH>::elems) {
+      return SIMDMask<T, SIMD_WIDTH>(0);
+    }
+    return mask::mask_cmpge(iota<T, SIMD_WIDTH>(), set1<T, SIMD_WIDTH>(T(x)));
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_set_false_high(const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>) {
+    if (x >= SIMDVec<T, SIMD_WIDTH>::elems) {
+      return SIMDMask<T, SIMD_WIDTH>(0);
+    }
+    return mask::mask_cmpge(reverse(iota<T, SIMD_WIDTH>()),
+                            set1<T, SIMD_WIDTH>(T(x)));
   }
 } // namespace mask
 } // namespace internal

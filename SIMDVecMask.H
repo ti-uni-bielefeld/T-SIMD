@@ -1537,18 +1537,71 @@ namespace ns_simd {
     return internal::mask::kshiftli(a, count);
   }
 
+  // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
+  // mask_set_true/false_low/high.
+
+  /**
+   * @brief Sets the lower @p x bits of a SIMDMask to true.
+   *
+   * The remaining bits are set to false.
+   *
+   * @param x The number of bits to set to true.
+   * @return The SIMDMask with the lower @p x bits set to true.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  setTrueLeft(const unsigned int x)
+  mask_set_true_low(const unsigned int x)
   {
-    return internal::mask::setTrueLeft<T, SIMD_WIDTH>(x);
+    return internal::mask::mask_set_true_low(x, internal::OutputType<T>(),
+                                             internal::Integer<SIMD_WIDTH>());
   }
 
+  /**
+   * @brief Sets the upper @p x bits of a SIMDMask to true.
+   *
+   * The remaining bits are set to false.
+   *
+   * @param x The number of bits to set to true.
+   * @return The SIMDMask with the upper @p x bits set to true.
+   */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  setTrueRight(const unsigned int x)
+  mask_set_true_high(const unsigned int x)
   {
-    return internal::mask::setTrueRight<T, SIMD_WIDTH>(x);
+    return internal::mask::mask_set_true_high(x, internal::OutputType<T>(),
+                                              internal::Integer<SIMD_WIDTH>());
+  }
+
+  /**
+   * @brief Sets the lower @p x bits of a SIMDMask to false.
+   *
+   * The remaining bits are set to true.
+   *
+   * @param x The number of bits to set to false.
+   * @return The SIMDMask with the lower @p x bits set to false.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_set_false_low(const unsigned int x)
+  {
+    return internal::mask::mask_set_false_low(x, internal::OutputType<T>(),
+                                              internal::Integer<SIMD_WIDTH>());
+  }
+
+  /**
+   * @brief Sets the upper @p x bits of a SIMDMask to false.
+   *
+   * The remaining bits are set to true.
+   *
+   * @param x The number of bits to set to false.
+   * @return The SIMDMask with the upper @p x bits set to false.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_set_false_high(const unsigned int x)
+  {
+    return internal::mask::mask_set_false_high(x, internal::OutputType<T>(),
+                                               internal::Integer<SIMD_WIDTH>());
   }
 }
 

@@ -1204,21 +1204,41 @@ namespace mask {
   }
 
   // 12. Jan 23 (Jonas Keller): add setTrueRight and setTrueLeft
+  // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
+  // mask_set_true/false_low/high.
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  setTrueLeft(const unsigned int x)
+  mask_set_true_low(const unsigned int x)
   {
-    printf("setTrueLeft<%s,%d>(%d)\n",
+    printf("mask_set_true_low<%s,%d>(%d)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);
     return SIMDMask<T,SIMD_WIDTH>();
   }
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  setTrueRight(const unsigned int x)
+  mask_set_true_high(const unsigned int x)
   {
-    printf("setTrueRight<%s,%d>(%d)\n",
+    printf("mask_set_true_high<%s,%d>(%d)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);
+    return SIMDMask<T,SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_set_false_low(const unsigned int x)
+  {
+    printf("mask_set_false_low<%s,%d>(%d)\n",
+     SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);
+    return SIMDMask<T,SIMD_WIDTH>();
+  }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_set_false_high(const unsigned int x)
+  {
+    printf("mask_set_false_high<%s,%d>(%d)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);
     return SIMDMask<T,SIMD_WIDTH>();
   }

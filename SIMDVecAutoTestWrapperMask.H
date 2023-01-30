@@ -440,26 +440,52 @@ template <int IMM, typename T, int SIMD_WIDTH> struct Kshiftri {
 };
 
 // 28. Dec 22 (Jonas Keller): added SetTrueLeft and SetTrueRight
+// 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
+// mask_set_true/false_low/high.
 
-template <typename T, int SIMD_WIDTH> struct SetTrueLeft {
-  static std::string name() { return t2s<T, SIMD_WIDTH>("setTrueLeft"); }
+template <typename T, int SIMD_WIDTH> struct Mask_set_true_low {
+  static std::string name() { return t2s<T, SIMD_WIDTH>("mask_set_true_low"); }
   static unsigned int randomizeInputUInt() {
-    return getRandomOrSpecialValueRanges<SIMDByte>();
+    return getRandomOrSpecialValueRanges<uint8_t>();
   }
   template <template <typename, int> class Mask>
   static Mask<T, SIMD_WIDTH> apply(unsigned int i) {
-    return MaskDeductor<Mask>::template _setTrueLeft<T, SIMD_WIDTH>(i);
+    return MaskDeductor<Mask>::template _mask_set_true_low<T, SIMD_WIDTH>(i);
   }
 };
 
-template <typename T, int SIMD_WIDTH> struct SetTrueRight {
-  static std::string name() { return t2s<T, SIMD_WIDTH>("setTrueRight"); }
+template <typename T, int SIMD_WIDTH> struct Mask_set_true_high {
+  static std::string name() { return t2s<T, SIMD_WIDTH>("mask_set_true_high"); }
   static unsigned int randomizeInputUInt() {
-    return getRandomOrSpecialValueRanges<SIMDByte>();
+    return getRandomOrSpecialValueRanges<uint8_t>();
   }
   template <template <typename, int> class Mask>
   static Mask<T, SIMD_WIDTH> apply(unsigned int i) {
-    return MaskDeductor<Mask>::template _setTrueRight<T, SIMD_WIDTH>(i);
+    return MaskDeductor<Mask>::template _mask_set_true_high<T, SIMD_WIDTH>(i);
+  }
+};
+
+template <typename T, int SIMD_WIDTH> struct Mask_set_false_low {
+  static std::string name() { return t2s<T, SIMD_WIDTH>("mask_set_false_low"); }
+  static unsigned int randomizeInputUInt() {
+    return getRandomOrSpecialValueRanges<uint8_t>();
+  }
+  template <template <typename, int> class Mask>
+  static Mask<T, SIMD_WIDTH> apply(unsigned int i) {
+    return MaskDeductor<Mask>::template _mask_set_false_low<T, SIMD_WIDTH>(i);
+  }
+};
+
+template <typename T, int SIMD_WIDTH> struct Mask_set_false_high {
+  static std::string name() {
+    return t2s<T, SIMD_WIDTH>("mask_set_false_high");
+  }
+  static unsigned int randomizeInputUInt() {
+    return getRandomOrSpecialValueRanges<uint8_t>();
+  }
+  template <template <typename, int> class Mask>
+  static Mask<T, SIMD_WIDTH> apply(unsigned int i) {
+    return MaskDeductor<Mask>::template _mask_set_false_high<T, SIMD_WIDTH>(i);
   }
 };
 

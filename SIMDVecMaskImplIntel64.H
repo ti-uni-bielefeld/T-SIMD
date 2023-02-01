@@ -26,6 +26,9 @@
 // 
 // ===========================================================================
 
+// 01. Feb 23 (Jonas Keller): implemented emulated float versions of some
+// functions in a more efficient way and also optimized some other small things
+
 #ifndef _SIMD_VEC_MASK_IMPL_INTEL_64_H_
 #define _SIMD_VEC_MASK_IMPL_INTEL_64_H_
 
@@ -188,21 +191,6 @@ namespace mask {
     return mask_ifelse(k, OP (a), src); \
   }
 
-  #define EMULATE_SOP_FLOAT_64(OP) \
-  static SIMD_INLINE SIMDVec<SIMDFloat, 64> \
-  maskz_ ## OP (const SIMDMask<SIMDFloat, 64> &k, \
-      const SIMDVec<SIMDFloat, 64> &a) \
-  { \
-    return OP (mask_ifelsezero(k, a)); \
-  } \
-  static SIMD_INLINE SIMDVec<SIMDFloat, 64> \
-  mask_ ## OP (const SIMDVec<SIMDFloat, 64> &src, \
-      const SIMDMask<SIMDFloat, 64> &k, \
-      const SIMDVec<SIMDFloat, 64> &a) \
-  { \
-    return mask_ifelse(k, maskz_ ## OP (k, a), src); \
-  }
-
   #define EMULATE_DOP_TYPE(OP, TYPE) \
   static SIMD_INLINE SIMDVec<TYPE, 64> \
   maskz_ ## OP (const SIMDMask<TYPE, 64> &k, \
@@ -230,7 +218,7 @@ namespace mask {
 	 const SIMDVec<TYPE, 64> &a, \
 	 const SIMDVec<TYPE, 64> &b) \
   { \
-    return _mm512_mask_blend_ ## SUF (cond, (__m512i) b, (__m512i) a); \
+    return _mm512_mask_blend_ ## SUF (cond, b, a); \
   }
   #define EMULATE_MASK_IFELSE(TYPE) \
   static SIMD_INLINE SIMDVec<TYPE, 64> \
@@ -253,18 +241,7 @@ namespace mask {
   EMULATE_MASK_IFELSE(SIMDShort)
 #endif
   MASK_IFELSE(SIMDInt, epi32)
-
-  //MASK_IFELSE(SIMDFloat, ps)
-  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
-  mask_ifelse(const SIMDMask<SIMDFloat, 64> &cond,
-         const SIMDVec<SIMDFloat, 64> &trueVal,
-         const SIMDVec<SIMDFloat, 64> &falseVal)
-  {
-    //__mmask64 k=cond;
-    //__m512i a=falseVal;
-    //__m512i b=trueVal;
-    return _mm512_mask_blend_ps (cond, falseVal, trueVal);
-  }
+  MASK_IFELSE(SIMDFloat, ps)
 
   // ---------------------------------------------------------------------------
   // mask_ifelsezero (mask_ifelsezero(cond, a) is the same as mask_ifelse(cond, a, setzero()), but may have faster implementations)
@@ -1022,49 +999,36 @@ namespace mask {
   EMULATE_SOP_TYPE(not, SIMDWord)
   EMULATE_SOP_TYPE(not, SIMDShort)
   EMULATE_SOP_TYPE(not, SIMDInt)
-  //EMULATE_SOP_FLOAT_64(not)
-  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
-  maskz_not (const SIMDMask<SIMDFloat, 64> &k,
-      const SIMDVec<SIMDFloat, 64> &a)
-  {
-    return not(mask_ifelse(k, a, reinterpret<SIMDFloat>(::ns_simd::set1<SIMDInt, 64>(0xffffffff))));
-  }
-  static SIMD_INLINE SIMDVec<SIMDFloat, 64>
-  mask_not (const SIMDVec<SIMDFloat, 64> &src,
-      const SIMDMask<SIMDFloat, 64> &k,
-      const SIMDVec<SIMDFloat, 64> &a)
-  {
-    return mask_ifelse(k, maskz_not (k, a), src);
-  }
+  EMULATE_SOP_TYPE(not, SIMDFloat)
 
   // ---------------------------------------------------------------------------
   // mask_neg (negate = two's complement or unary minus), only signed types v
   // ---------------------------------------------------------------------------
 
-  #define GENERATE_NEG(TYPE, SUF, ZERO) \
+  #define GENERATE_NEG(TYPE, SUF) \
   static SIMD_INLINE SIMDVec<TYPE, 64> \
   mask_neg (const SIMDVec<TYPE, 64> &src, \
       const SIMDMask<TYPE, 64> &k, \
       const SIMDVec<TYPE, 64> &a) \
   { \
-    return _mm512_mask_sub_ ## SUF (src, k, ZERO, a); \
+    return _mm512_mask_sub_ ## SUF (src, k, setzero<TYPE, 64>(), a); \
   } \
   static SIMD_INLINE SIMDVec<TYPE, 64> \
   maskz_neg (const SIMDMask<TYPE, 64> &k, \
       const SIMDVec<TYPE, 64> &a) \
   { \
-    return _mm512_maskz_sub_ ## SUF (k, ZERO, a); \
+    return _mm512_maskz_sub_ ## SUF (k, setzero<TYPE, 64>(), a); \
   }
 
 #ifdef __AVX512BW__
-  GENERATE_NEG(SIMDSignedByte, epi8, _mm512_setzero_si512())
-  GENERATE_NEG(SIMDShort, epi16, _mm512_setzero_si512())
+  GENERATE_NEG(SIMDSignedByte, epi8)
+  GENERATE_NEG(SIMDShort, epi16)
 #else
   EMULATE_SOP_TYPE(neg, SIMDSignedByte)
   EMULATE_SOP_TYPE(neg, SIMDShort)
 #endif
-  GENERATE_NEG(SIMDInt, epi32, _mm512_setzero_si512())
-  GENERATE_NEG(SIMDFloat, ps, _mm512_setzero_ps())
+  GENERATE_NEG(SIMDInt, epi32)
+  GENERATE_NEG(SIMDFloat, ps)
 
   // ---------------------------------------------------------------------------
   // mask_min v
@@ -1170,7 +1134,7 @@ namespace mask {
   maskz_ ## OP (const SIMDMask<TYPE, 64> &k, \
       const SIMDVec<TYPE,64> &a) \
   { \
-    return mask_ifelse(k, OP <IMM>(a), setzero<TYPE, 64>()); \
+    return mask_ifelsezero(k, OP <IMM>(a)); \
   }
 
   // ---------------------------------------------------------------------------
@@ -1710,7 +1674,7 @@ namespace mask {
   mask_test_all_zeros(const SIMDMask<TYPE, 64> &k, \
       const SIMDVec<TYPE, 64> &a) \
   { \
-    return test_all_zeros(mask_ifelse(k, a, setzero<TYPE, 64>())); \
+    return test_all_zeros(mask_ifelsezero(k, a)); \
   }
 
 #ifdef __AVX512BW__

@@ -85,6 +85,9 @@ optflags ?= -O3 -funroll-loops
 # play in template sandbox only: -DSIMDVEC_SANDBOX
 sandbox_defines ?= # -DSIMDVEC_SANDBOX
 
+# set this to something != 0 to only check syntax and not compile
+syntax_only ?= 0
+
 # user defines
 # - needed if we use constants in stdint.h: -D__STDC_LIMIT_MACROS
 # - save assembly code: -masm=intel -save-temps -fverbose-asm
@@ -115,8 +118,14 @@ userdefs_cpp    = -fno-operator-names
 crt_sec_features_flags = -D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1 \
 	-D_CRT_SECURE_NO_WARNINGS
 
+ifeq ($(syntax_only),0)
+syntax_defines =
+else
+syntax_defines = -fsyntax-only
+endif
+
 # all flags (split into c and cpp (c++)) to avoid preprocessor warnings
-flags_c        = $(userdefs_c) $(optflags) $(sandbox_defines) $(EXTRA_DEFINES)
+flags_c        = $(userdefs_c) $(optflags) $(sandbox_defines) $(EXTRA_DEFINES) $(syntax_defines)
 flags_cppstd  ?= $(userdefs_cppstd)
 flags_cpp      = $(flags_c) $(userdefs_cpp) $(flags_cppstd) $(crt_sec_features_flags)
 flags_arch    ?= $(userdefs_arch)
@@ -183,16 +192,22 @@ $(archspec_objects): %.o: %.C
 # https://www.gnu.org/software/make/manual/make.html#Static-Pattern
 
 $(binaries): %: %.o
-	@echo linking $@ from $< $(libraries)
-	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
+	@if [ $(syntax_only) -eq 0 ]; then \
+		echo linking $@ from $< $(libraries); \
+		$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries); \
+	fi
 
 $(autotest_binaries): %: %.o
-	@echo linking $@ from $< $(libraries)
-	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
+	@if [ $(syntax_only) -eq 0 ]; then \
+		echo linking $@ from $< $(libraries); \
+		$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries); \
+	fi
 
 $(archspec_binaries): %: %.o
-	@echo linking $@ from $< $(libraries)
-	@$(compiler) $(flags_archspec) $(flags_cpp) -o $@ $< $(libraries)
+	@if [ $(syntax_only) -eq 0 ]; then \
+		echo linking $@ from $< $(libraries); \
+		$(compiler) $(flags_archspec) $(flags_cpp) -o $@ $< $(libraries); \
+	fi
 
 #===========================================================================
 # other rules

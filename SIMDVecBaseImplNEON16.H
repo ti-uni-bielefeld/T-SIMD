@@ -2643,7 +2643,7 @@ namespace base {
   static SIMD_INLINE SIMDVec<SIMDInt,16>
   iota(OutputType<SIMDInt>, Integer<16>)
   {
-    uint32x4_t res = {0, 1, 2, 3};
+    int32x4_t res = {0, 1, 2, 3};
     return res;
   }
 

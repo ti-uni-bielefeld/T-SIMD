@@ -1209,7 +1209,7 @@ namespace mask {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  mask_set_true_low(const unsigned int x)
+  mask_set_true_low(const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>)
   {
     printf("mask_set_true_low<%s,%d>(%d)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);
@@ -1218,7 +1218,7 @@ namespace mask {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  mask_set_true_high(const unsigned int x)
+  mask_set_true_high(const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>)
   {
     printf("mask_set_true_high<%s,%d>(%d)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);
@@ -1227,7 +1227,7 @@ namespace mask {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  mask_set_false_low(const unsigned int x)
+  mask_set_false_low(const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>)
   {
     printf("mask_set_false_low<%s,%d>(%d)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);
@@ -1236,7 +1236,7 @@ namespace mask {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  mask_set_false_high(const unsigned int x)
+  mask_set_false_high(const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>)
   {
     printf("mask_set_false_high<%s,%d>(%d)\n",
      SIMDTypeInfo<T>::name(), SIMD_WIDTH, x);

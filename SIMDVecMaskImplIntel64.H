@@ -431,31 +431,15 @@ namespace mask {
 #endif
 
 #ifdef __AVX512BW__
-  GENERATE_LOAD(loadu, SIMDByte, epi8) //Workaround
-  GENERATE_LOAD(loadu, SIMDSignedByte, epi8) //Workaround
-  GENERATE_LOAD(loadu, SIMDWord, epi16) //Workaround
-  GENERATE_LOAD(loadu, SIMDShort, epi16) //Workaround
-#else
-  template <typename T>
-  static SIMD_INLINE SIMDVec<T,64>
-  mask_load(const SIMDVec<T,64> &src,
-	const SIMDMask<T,64> &k,
-	const T *const p)
-  {
-    //Align check is made in 256-bit versions of mask_load
-    return SIMDVec<T,64>(mask_load(src.lo(), base::x_mm512_lo_si256(k), p),
-			 mask_load(src.hi(), base::x_mm512_hi_si256(k), p+(32/sizeof(T))));
-  }
-  template <typename T>
-  static SIMD_INLINE SIMDVec<T,64>
-  maskz_load(const SIMDMask<T,64> &k,
-	const T *const p)
-  {
-    //Align check is made in 256-bit versions of maskz_load
-    return SIMDVec<T,64>(maskz_load(base::x_mm512_lo_si256(k), p),
-			 maskz_load(base::x_mm512_hi_si256(k), p+(32/sizeof(T))));
-  }
+  // there is no aligned load for 8 and 16 bit types, so we use loadu
+  GENERATE_LOAD(loadu, SIMDByte, epi8)
+  GENERATE_LOAD(loadu, SIMDSignedByte, epi8)
+  GENERATE_LOAD(loadu, SIMDWord, epi16)
+  GENERATE_LOAD(loadu, SIMDShort, epi16)
+  // use emulated loads in SIMDVecMaskImplEmu.H for 8 and 16 bit types if
+  // avx512bw is not available
 #endif
+
   GENERATE_LOAD(load, SIMDInt, epi32)
   GENERATE_LOAD(load, SIMDFloat, ps)
 
@@ -483,25 +467,10 @@ namespace mask {
   GENERATE_LOADU(SIMDSignedByte, epi8)
   GENERATE_LOADU(SIMDWord, epi16)
   GENERATE_LOADU(SIMDShort, epi16)
-#else
-  template <typename T>
-  static SIMD_INLINE SIMDVec<T,64>
-  mask_loadu(const SIMDVec<T,64> &src,
-	const SIMDMask<T,64> &k,
-	const T *const p)
-  {
-    return SIMDVec<T,64>(mask_loadu(src.lo(), x_mm512_lo_si256(k), p),
-			 mask_loadu(src.hi(), x_mm512_hi_si256(k), p+(32/sizeof(T))));
-  }
-  template <typename T>
-  static SIMD_INLINE SIMDVec<T,64>
-  maskz_loadu(const SIMDMask<T,64> &k,
-	const T *const p)
-  {
-    return SIMDVec<T,64>(maskz_loadu(x_mm512_lo_si256(k), p),
-			 maskz_loadu(x_mm512_hi_si256(k), p+(32/sizeof(T))));
-  }
+  // use emulated loads in SIMDVecMaskImplEmu.H for 8 and 16 bit types if
+  // avx512bw is not available
 #endif
+
   GENERATE_LOADU(SIMDInt, epi32)
   GENERATE_LOADU(SIMDFloat, ps)
 
@@ -535,22 +504,15 @@ namespace mask {
 #endif
 
 #ifdef __AVX512BW__
-  MASK_STORE(storeu, SIMDByte, epi8) //Workaround
-  MASK_STORE(storeu, SIMDSignedByte, epi8) //Workaround
-  MASK_STORE(storeu, SIMDWord, epi16) //Workaround
-  MASK_STORE(storeu, SIMDShort, epi16) //Workaround
-#else
-  template <typename T>
-  static SIMD_INLINE void
-  mask_store(T *const p,
-	const SIMDMask<T,64> &k,
-	const SIMDVec<T,64> &a)
-  {
-    // Align check is made in 256-bit versions of mask_store
-    mask_store(p, base::x_mm512_lo_si256(k), a.lo());
-    mask_store(p+(32/sizeof(T)), base::x_mm512_hi_si256(k), a.hi());
-  }
+  // there is no aligned store for 8 and 16 bit types, so we use storeu
+  MASK_STORE(storeu, SIMDByte, epi8)
+  MASK_STORE(storeu, SIMDSignedByte, epi8)
+  MASK_STORE(storeu, SIMDWord, epi16)
+  MASK_STORE(storeu, SIMDShort, epi16)
+  // use emulated stores in SIMDVecMaskImplEmu.H for 8 and 16 bit types if
+  // avx512bw is not available
 #endif
+
   MASK_STORE(store, SIMDInt, epi32)
   MASK_STORE(store, SIMDFloat, ps)
 
@@ -573,17 +535,10 @@ namespace mask {
   MASK_STOREU(SIMDSignedByte, epi8)
   MASK_STOREU(SIMDWord, epi16)
   MASK_STOREU(SIMDShort, epi16)
-#else
-  template <typename T>
-  static SIMD_INLINE void
-  mask_storeu(T *const p,
-	const SIMDMask<T,64> &k,
-	const SIMDVec<T,64> &a)
-  {
-    mask_storeu(p, x_mm512_lo_si256(k), a.lo());
-    mask_storeu(p+(32/sizeof(T)), x_mm512_hi_si256(k), a.hi());
-  }
+  // use emulated stores in SIMDVecMaskImplEmu.H for 8 and 16 bit types if
+  // avx512bw is not available
 #endif
+
   MASK_STOREU(SIMDInt, epi32)
   MASK_STOREU(SIMDFloat, ps)
 

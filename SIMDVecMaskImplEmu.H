@@ -207,7 +207,41 @@ namespace mask {
     return mask::mask_ifelse(reinterpret_mask(k), ::ns_simd::cvts<SIMDFloat>(a), src);
   }
 
-  //maskz_load is implemented with architecture specific intrinsics (in SIMDVecMaskImplIntel16/32/Neon16.H)
+  template <int SIMD_WIDTH, typename T>
+  static SIMD_INLINE bool
+  is_within_same_page(const T *const p)
+  {
+    const uintptr_t PAGE_SIZE = 4096; // smallest page size I found
+    const uintptr_t begin_page =
+        reinterpret_cast<uintptr_t>(p) & ~(PAGE_SIZE - 1);
+    const uintptr_t end_page =
+        reinterpret_cast<uintptr_t>(p + SIMDVec<T, SIMD_WIDTH>::elems - 1) &
+        ~(PAGE_SIZE - 1);
+    return begin_page == end_page;
+  }
+
+  template<typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_load(const SIMDMask<T, SIMD_WIDTH> &k, const T *const p)
+  {
+    // if k is all zeros nothing should be loaded
+    if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>)k)) {
+      return setzero<T, SIMD_WIDTH>();
+    }
+    // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+    // there is no risk of a page fault, so we load the whole vector and mask
+    // it. Otherwise, we load the vector element-wise.
+    if (is_within_same_page<SIMD_WIDTH>(p)) {
+      return mask::mask_ifelsezero(k, load<SIMD_WIDTH>(p));
+    }
+    SIMDVec<T, SIMD_WIDTH> result = setzero<T, SIMD_WIDTH>();
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+      if (k[i]) {
+        ((T *)&result)[i] = p[i];
+      }
+    }
+    return result;
+  }
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -215,7 +249,21 @@ namespace mask {
       const SIMDMask<T, SIMD_WIDTH> &k,
       const T *const p)
   {
-    return mask_ifelse(k, maskz_load(k, p), src);//There might be some potential for optimization here: if, e.g. the maskz uses inserts on a setzero, then the src could be used instead (saves the mask_ifelse)
+    // if k is all zeros nothing should be loaded
+    if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>)k)) {
+      return src;
+    }
+    // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+    // there is no risk of a page fault, so we load the whole vector and mask
+    // it. Otherwise, we load the vector element-wise.
+    if (is_within_same_page<SIMD_WIDTH>(p)) {
+      return mask::mask_ifelse(k, load<SIMD_WIDTH>(p), src);
+    }
+    SIMDVec<T, SIMD_WIDTH> result;
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+      ((T *)&result)[i] = k[i] ? p[i] : ((T *)&src)[i];
+    }
+    return result;
   }
   
   template <typename T, int SIMD_WIDTH>
@@ -223,7 +271,23 @@ namespace mask {
   maskz_loadu(const SIMDMask<T, SIMD_WIDTH> &k,
       const T *const p)
   {
-    return maskz_load(k, p);//The functions maskz_load uses (maskload, loadl, loadh) do not need any alignment
+    // if k is all zeros nothing should be loaded
+    if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>)k)) {
+      return setzero<T, SIMD_WIDTH>();
+    }
+    // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+    // there is no risk of a page fault, so we load the whole vector and mask
+    // it. Otherwise, we load the vector element-wise.
+    if (is_within_same_page<SIMD_WIDTH>(p)) {
+      return mask::mask_ifelsezero(k, loadu<SIMD_WIDTH>(p));
+    }
+    SIMDVec<T, SIMD_WIDTH> result = setzero<T, SIMD_WIDTH>();
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+      if (k[i]) {
+        ((T *)&result)[i] = p[i];
+      }
+    }
+    return result;
   }
   
   template <typename T, int SIMD_WIDTH>
@@ -232,17 +296,70 @@ namespace mask {
       const SIMDMask<T, SIMD_WIDTH> &k,
       const T *const p)
   {
-    return mask_ifelse(k, maskz_loadu(k, p), src);//There might be some potential for optimization here: if, e.g. the maskz uses inserts on a setzero, then the src could be used instead (saves the mask_ifelse)
+    // if k is all zeros nothing should be loaded
+    if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>)k)) {
+      return src;
+    }
+    // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+    // there is no risk of a page fault, so we load the whole vector and mask
+    // it. Otherwise, we load the vector element-wise.
+    if (is_within_same_page<SIMD_WIDTH>(p)) {
+      return mask::mask_ifelse(k, loadu<SIMD_WIDTH>(p), src);
+    }
+    SIMDVec<T, SIMD_WIDTH> result;
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+      ((T *)&result)[i] = k[i] ? p[i] : ((T *)&src)[i];
+    }
+    return result;
   }
 
-  //maskz_storeu does not exist/does not make sense
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  mask_store(T *const p,
+      const SIMDMask<T, SIMD_WIDTH> &k,
+      const SIMDVec<T, SIMD_WIDTH> &a) {
+    // if k is all zeros nothing should be stored
+    if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>)k)) {
+      return;
+    }
+    // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+    // there is no risk of a page fault, so we load the whole vector, mask it
+    // and store it back. Otherwise, we store the vector element-wise.
+    if (is_within_same_page<SIMD_WIDTH>(p)) {
+      store(p, mask::mask_ifelse(k, a, load<SIMD_WIDTH>(p)));
+      return;
+    }
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+      if (k[i]) {
+        p[i] = ((T *)&a)[i];
+      }
+    }
+  }
+
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
   mask_storeu(T *const p,
       const SIMDMask<T, SIMD_WIDTH> &k,
       const SIMDVec<T, SIMD_WIDTH> &a) {
-      return mask_store(p, k, a);
+    // if k is all zeros nothing should be stored
+    if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>)k)) {
+      return;
+    }
+    // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+    // there is no risk of a page fault, so we load the whole vector, mask it
+    // and store it back. Otherwise, we store the vector element-wise.
+    if (is_within_same_page<SIMD_WIDTH>(p)) {
+      storeu(p, mask::mask_ifelse(k, a, loadu<SIMD_WIDTH>(p)));
+      return;
+    }
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+      if (k[i]) {
+        p[i] = ((T *)&a)[i];
+      }
+    }
   }
+
+  // maskz_store(u) does not exist/does not make sense
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>

@@ -82,7 +82,7 @@ namespace ns_simd {
         default: return false;
       }
     }
-    bool operator==(const SIMDMask<SIMDByte, 16> &x) {
+    bool operator==(const SIMDMask<SIMDByte, 16> &x) const {
       return test_all_ones(cmpeq(SIMDVec<SIMDByte,16>(x), SIMDVec<SIMDByte,16>(k)));
     }
     SIMD_INLINE void
@@ -129,13 +129,13 @@ namespace ns_simd {
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
-    void *operator new(size_t size)
+    void *operator new(size_t size) const
     { return simd_aligned_malloc(sizeof(uint8x16_t), size); }
-    void operator delete(void *p)
+    void operator delete(void *p) const
     { simd_aligned_free(p); }
-    void *operator new[](size_t size)
+    void *operator new[](size_t size) const
     { return simd_aligned_malloc(sizeof(uint8x16_t), size); }
-    void operator delete[](void *p)
+    void operator delete[](void *p) const
     { simd_aligned_free(p); }
   };
 
@@ -172,7 +172,7 @@ namespace ns_simd {
         default: return false;
       }
     }
-    bool operator==(const SIMDMask<SIMDSignedByte, 16> &x) {
+    bool operator==(const SIMDMask<SIMDSignedByte, 16> &x) const {
       return test_all_ones(cmpeq(SIMDVec<SIMDSignedByte,16>(x), SIMDVec<SIMDSignedByte,16>(k)));
     }
     SIMD_INLINE void
@@ -219,13 +219,13 @@ namespace ns_simd {
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
-    void *operator new(size_t size)
+    void *operator new(size_t size) const
     { return simd_aligned_malloc(sizeof(int8x16_t), size); }
-    void operator delete(void *p)
+    void operator delete(void *p) const
     { simd_aligned_free(p); }
-    void *operator new[](size_t size)
+    void *operator new[](size_t size) const
     { return simd_aligned_malloc(sizeof(int8x16_t), size); }
-    void operator delete[](void *p)
+    void operator delete[](void *p) const
     { simd_aligned_free(p); }
   };
 
@@ -254,7 +254,7 @@ namespace ns_simd {
         default: return false;
       }
     }
-    bool operator==(const SIMDMask<SIMDWord, 16> &x) {
+    bool operator==(const SIMDMask<SIMDWord, 16> &x) const {
       return test_all_ones(cmpeq(SIMDVec<SIMDWord,16>(x), SIMDVec<SIMDWord,16>(k)));
     }
     SIMD_INLINE void
@@ -285,13 +285,13 @@ namespace ns_simd {
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
-    void *operator new(size_t size)
+    void *operator new(size_t size) const
     { return simd_aligned_malloc(sizeof(uint16x8_t), size); }
-    void operator delete(void *p)
+    void operator delete(void *p) const
     { simd_aligned_free(p); }
-    void *operator new[](size_t size)
+    void *operator new[](size_t size) const
     { return simd_aligned_malloc(sizeof(uint16x8_t), size); }
-    void operator delete[](void *p)
+    void operator delete[](void *p) const
     { simd_aligned_free(p); }
   };
 
@@ -320,7 +320,7 @@ namespace ns_simd {
         default: return false;
       }
     }
-    bool operator==(const SIMDMask<SIMDShort, 16> &x) {
+    bool operator==(const SIMDMask<SIMDShort, 16> &x) const {
       return test_all_ones(cmpeq(SIMDVec<SIMDShort,16>(x), SIMDVec<SIMDShort,16>(k)));
     }
     SIMD_INLINE void
@@ -351,13 +351,13 @@ namespace ns_simd {
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
-    void *operator new(size_t size)
+    void *operator new(size_t size) const
     { return simd_aligned_malloc(sizeof(int16x8_t), size); }
-    void operator delete(void *p)
+    void operator delete(void *p) const
     { simd_aligned_free(p); }
-    void *operator new[](size_t size)
+    void *operator new[](size_t size) const
     { return simd_aligned_malloc(sizeof(int16x8_t), size); }
-    void operator delete[](void *p)
+    void operator delete[](void *p) const
     { simd_aligned_free(p); }
   };
 
@@ -382,7 +382,7 @@ namespace ns_simd {
         default: return false;
       }
     }
-    bool operator==(const SIMDMask<SIMDInt, 16> &x) {
+    bool operator==(const SIMDMask<SIMDInt, 16> &x) const {
       return test_all_ones(cmpeq(SIMDVec<SIMDInt,16>(x), SIMDVec<SIMDInt,16>(k)));
     }
     SIMD_INLINE void
@@ -405,13 +405,13 @@ namespace ns_simd {
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
-    void *operator new(size_t size)
+    void *operator new(size_t size) const
     { return simd_aligned_malloc(sizeof(int32x4_t), size); }
-    void operator delete(void *p)
+    void operator delete(void *p) const
     { simd_aligned_free(p); }
-    void *operator new[](size_t size)
+    void *operator new[](size_t size) const
     { return simd_aligned_malloc(sizeof(int32x4_t), size); }
-    void operator delete[](void *p)
+    void operator delete[](void *p) const
     { simd_aligned_free(p); }
   };
 
@@ -436,7 +436,7 @@ namespace ns_simd {
         default: return false;
       }
     }
-    bool operator==(const SIMDMask<SIMDFloat, 16> &x) {
+    bool operator==(const SIMDMask<SIMDFloat, 16> &x) const {
       return test_all_ones(cmpeq(SIMDVec<SIMDInt,16>(vreinterpretq_s32_f32(x)), SIMDVec<SIMDInt,16>(vreinterpretq_s32_f32(k)))); //reinterprets because nan==nan is false but should be true
     }
     SIMD_INLINE void
@@ -461,13 +461,13 @@ namespace ns_simd {
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
-    void *operator new(size_t size)
+    void *operator new(size_t size) const
     { return simd_aligned_malloc(sizeof(float32x4_t), size); }
-    void operator delete(void *p)
+    void operator delete(void *p) const
     { simd_aligned_free(p); }
-    void *operator new[](size_t size)
+    void *operator new[](size_t size) const
     { return simd_aligned_malloc(sizeof(float32x4_t), size); }
-    void operator delete[](void *p)
+    void operator delete[](void *p) const
     { simd_aligned_free(p); }
   };
 

@@ -70,19 +70,19 @@ namespace ns_simd {
       }
       return ((1 << i) & msb2int(SIMDVec<T, 16>(k))) != 0;
     }
-    bool operator==(const SIMDMask<T, 16> &x) {
+    bool operator==(const SIMDMask<T, 16> &x) const {
       return _mm_movemask_epi8(_mm_cmpeq_epi8(k, x)) == 0xffff;
     }
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
-    void *operator new(size_t size)
+    void *operator new(size_t size) const
     { return simd_aligned_malloc(sizeof(__m128i), size); }
-    void operator delete(void *p)
+    void operator delete(void *p) const
     { simd_aligned_free(p); }
-    void *operator new[](size_t size)
+    void *operator new[](size_t size) const
     { return simd_aligned_malloc(sizeof(__m128i), size); }
-    void operator delete[](void *p)
+    void operator delete[](void *p) const
     { simd_aligned_free(p); }
   };
 
@@ -110,20 +110,20 @@ namespace ns_simd {
       }
       return ((1 << i) & msb2int(SIMDVec<SIMDFloat, 16>(k))) != 0;
     }
-    bool operator==(const SIMDMask<SIMDFloat, 16> &x) {
+    bool operator==(const SIMDMask<SIMDFloat, 16> &x) const {
       return _mm_movemask_epi8(_mm_cmpeq_epi8(_mm_castps_si128(k),
                                               _mm_castps_si128(x))) == 0xffff;
     }
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
-    void *operator new(size_t size)
+    void *operator new(size_t size) const
     { return simd_aligned_malloc(sizeof(__m128), size); }
-    void operator delete(void *p)
+    void operator delete(void *p) const
     { simd_aligned_free(p); }
-    void *operator new[](size_t size)
+    void *operator new[](size_t size) const
     { return simd_aligned_malloc(sizeof(__m128), size); }
-    void operator delete[](void *p)
+    void operator delete[](void *p) const
     { simd_aligned_free(p); }
   };
 

@@ -55,10 +55,10 @@ namespace ns_simd {
     SIMDMask(const __mmask ## MASK_SIZE &x) { k = x; } \
     SIMDMask& operator=(const __mmask ## MASK_SIZE &x) { k = x; return *this; } \
     operator __mmask ## MASK_SIZE () const { return k; } \
-    bool operator[](const uint8_t i) { \
+    bool operator[](const uint8_t i) const { \
       return ((1lu<<i)&k)!=0; \
     } \
-    bool operator==(const SIMDMask<TYPE, 64> &x) { \
+    bool operator==(const SIMDMask<TYPE, 64> &x) const { \
       return k==x; \
     } \
   };
@@ -81,19 +81,19 @@ namespace ns_simd {
     SIMDMask& operator=(const uint64_t &x) { k= int2bits<TYPE, 64>(x); return *this; } \
     operator uint64_t() const { return msb2int(SIMDVec<TYPE, 64>(k)); } \
     operator __m512i() const { return k; } \
-    bool operator[](const uint8_t i) { \
+    bool operator[](const uint8_t i) const { \
       return ((uint64_t(1)<<i)&msb2int(SIMDVec<TYPE, 64>(k)))!=0; \
     } \
-    bool operator==(const SIMDMask<TYPE, 64> &x) {\
+    bool operator==(const SIMDMask<TYPE, 64> &x) const {\
       return _mm512_cmpeq_epi64_mask(k, x)==0xff; \
     } \
-    void *operator new(size_t size) \
+    void *operator new(size_t size) const \
     { return simd_aligned_malloc(sizeof(__m256i), size); } \
-    void operator delete(void *p) \
+    void operator delete(void *p) const \
     { simd_aligned_free(p); } \
-    void *operator new[](size_t size) \
+    void *operator new[](size_t size) const \
     { return simd_aligned_malloc(sizeof(__m256i), size); } \
-    void operator delete[](void *p) \
+    void operator delete[](void *p) const \
     { simd_aligned_free(p); } \
   };
 

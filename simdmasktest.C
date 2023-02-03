@@ -546,7 +546,7 @@ uinttest_t random_continuous(uint8_t size) {
 #define TEST_FUNCTION_LOAD_TYPE(TYPE, SIMD_WIDTH, FORMAT)                      \
   {                                                                            \
     unsigned int csr0, csr1, csr2;                                             \
-    TYPE *buffer = (TYPE *)simd_aligned_malloc(SIMD_WIDTH, SIMD_WIDTH);        \
+    TYPE *buffer = (TYPE *)malloc(SIMD_WIDTH);                                 \
     if (buffer != NULL) {                                                      \
       uint8_t i;                                                               \
       for (i = 0; i < SIMD_WIDTH; i++) {                                       \
@@ -560,7 +560,7 @@ uinttest_t random_continuous(uint8_t size) {
       res1 = maskz_load(k, buffer);                                            \
       csr1 = getcsr();                                                         \
       setcsr(csr0);                                                            \
-      res2 = load<SIMD_WIDTH, TYPE>(buffer);                                   \
+      res2 = loadu<SIMD_WIDTH, TYPE>(buffer);                                  \
       csr2 = getcsr();                                                         \
       /*printf("%u\n", SIMD_WIDTH/sizeof(TYPE));*/                             \
       if (!vectorsEqual(res1, res2) || csr1 != csr2) {                         \
@@ -598,7 +598,7 @@ uinttest_t random_continuous(uint8_t size) {
       res1 = maskz_load(krand, buffer);                                        \
       csr1 = getcsr();                                                         \
       setcsr(csr0);                                                            \
-      res2 = mask_ifelse(krand, load<SIMD_WIDTH, TYPE>(buffer),                \
+      res2 = mask_ifelse(krand, loadu<SIMD_WIDTH, TYPE>(buffer),               \
                          setzero<TYPE, SIMD_WIDTH>());                         \
       csr2 = getcsr();                                                         \
       if (!vectorsEqual(res1, res2) || csr1 != csr2) {                         \
@@ -618,9 +618,9 @@ uinttest_t random_continuous(uint8_t size) {
           printf("Pass %s for %s \n", "load", #TYPE);                          \
       }                                                                        \
       setcsr(csr0);                                                            \
-      simd_aligned_free(buffer);                                               \
+      free(buffer);                                                            \
     } else {                                                                   \
-      puts("Error simd_aligned_malloc");                                       \
+      puts("Error malloc");                                                    \
     }                                                                          \
   }
 
@@ -630,16 +630,16 @@ uinttest_t random_continuous(uint8_t size) {
 #define TEST_FUNCTION_STORE_TYPE(TYPE, SIMD_WIDTH)                             \
   {                                                                            \
     SIMDVec<TYPE, SIMD_WIDTH> a = getRandomVector<TYPE, SIMD_WIDTH>();         \
-    TYPE *buffer1 = (TYPE *)simd_aligned_malloc(SIMD_WIDTH, SIMD_WIDTH);       \
-    TYPE *buffer2 = (TYPE *)simd_aligned_malloc(SIMD_WIDTH, SIMD_WIDTH);       \
+    TYPE *buffer1 = (TYPE *)malloc(SIMD_WIDTH);                                \
+    TYPE *buffer2 = (TYPE *)malloc(SIMD_WIDTH);                                \
     if (buffer1 != NULL && buffer2 != NULL) {                                  \
       SIMDMask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();        \
       unsigned int csr0 = getcsr();                                            \
       /*printf("Performing %s for %s\n", "store", #TYPE);*/                    \
-      mask_store(buffer1, k, a);                                               \
+      mask_storeu(buffer1, k, a);                                              \
       unsigned int csr1 = getcsr();                                            \
       setcsr(csr0);                                                            \
-      store(buffer2, a);                                                       \
+      storeu(buffer2, a);                                                      \
       unsigned int csr2 = getcsr();                                            \
       if (memcmp(buffer1, buffer2, SIMD_WIDTH) != 0 ||                         \
           csr1 != csr2) /* TODO problem with flags */                          \
@@ -652,14 +652,14 @@ uinttest_t random_continuous(uint8_t size) {
       }                                                                        \
       SIMDMask<TYPE, SIMD_WIDTH> kzero;                                        \
       setcsr(csr0);                                                            \
-      mask_store(                                                              \
+      mask_storeu(                                                             \
           (TYPE *)0, kzero,                                                    \
           a); /* As long as there is no segfault here, this is a success. */   \
       setcsr(csr0);                                                            \
-      simd_aligned_free(buffer1);                                              \
-      simd_aligned_free(buffer2);                                              \
+      free(buffer1);                                                           \
+      free(buffer2);                                                           \
     } else {                                                                   \
-      puts("Error simd_aligned_malloc");                                       \
+      puts("Error malloc");                                                    \
     }                                                                          \
   }
 

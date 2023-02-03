@@ -127,46 +127,6 @@ namespace ns_simd {
     void operator delete[](void *p) const
     { simd_aligned_free(p); }
   };
-
-namespace internal {
-namespace mask {
-  static SIMD_INLINE SIMDMask<SIMDByte, 32>
-  mask_all_ones(OutputType<SIMDByte>, Integer<32>)
-  {
-    return _mm256_set1_epi8(-1);
-  }
-  
-  static SIMD_INLINE SIMDMask<SIMDSignedByte, 32>
-  mask_all_ones(OutputType<SIMDSignedByte>, Integer<32>)
-  {
-    return _mm256_set1_epi8(-1);
-  }
-  
-  static SIMD_INLINE SIMDMask<SIMDWord, 32>
-  mask_all_ones(OutputType<SIMDWord>, Integer<32>)
-  {
-    return _mm256_set1_epi8(-1);
-  }
-  
-  static SIMD_INLINE SIMDMask<SIMDShort, 32>
-  mask_all_ones(OutputType<SIMDShort>, Integer<32>)
-  {
-    return _mm256_set1_epi8(-1);
-  }
-  
-  static SIMD_INLINE SIMDMask<SIMDInt, 32>
-  mask_all_ones(OutputType<SIMDInt>, Integer<32>)
-  {
-    return _mm256_set1_epi8(-1);
-  }
-  
-  static SIMD_INLINE SIMDMask<SIMDFloat, 32>
-  mask_all_ones(OutputType<SIMDFloat>, Integer<32>)
-  {
-    return _mm256_castsi256_ps(_mm256_set1_epi8(-1));
-  }
-} // namespace mask
-} // namespace internal
 } // namespace ns_simd
 
 #endif // ifdef __AVX__

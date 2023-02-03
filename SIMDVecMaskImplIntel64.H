@@ -1690,28 +1690,10 @@ namespace mask {
   MASK_ALL_ONES(SIMDSignedByte, 0xFFFFFFFFFFFFFFFF)
   MASK_ALL_ONES(SIMDWord, 0xFFFFFFFF)
   MASK_ALL_ONES(SIMDShort, 0xFFFFFFFF)
-#else
-  static SIMD_INLINE SIMDMask<SIMDByte, 64>
-  mask_all_ones(OutputType<SIMDByte>, Integer<64>)
-  {
-    return _mm512_set1_epi32(-1);
-  }
-  static SIMD_INLINE SIMDMask<SIMDSignedByte, 64>
-  mask_all_ones(OutputType<SIMDSignedByte>, Integer<64>)
-  {
-    return _mm512_set1_epi32(-1);
-  }
-  static SIMD_INLINE SIMDMask<SIMDWord, 64>
-  mask_all_ones(OutputType<SIMDWord>, Integer<64>)
-  {
-    return _mm512_set1_epi32(-1);
-  }
-  static SIMD_INLINE SIMDMask<SIMDShort, 64>
-  mask_all_ones(OutputType<SIMDShort>, Integer<64>)
-  {
-    return _mm512_set1_epi32(-1);
-  }
+  // use emulated functions in SIMDVecMaskImplEmu.H for 8 and 16 bit types if
+  // avx512bw is not available
 #endif
+
   MASK_ALL_ONES(SIMDInt, 0xFFFF)
   MASK_ALL_ONES(SIMDFloat, 0xFFFF)
 

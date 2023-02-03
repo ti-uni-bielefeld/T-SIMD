@@ -485,6 +485,14 @@ namespace mask {
   {
     return mask::mask_test_all_zeros(k, not(a)); //test_all_ones(mask_ifelse<T, SIMD_WIDTH>(k, a, () set1<SIMDByte, SIMD_WIDTH>(0xFF)));
   }
+
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_all_ones(OutputType<T>, Integer<SIMD_WIDTH>)
+  {
+    return (SIMDMask<T, SIMD_WIDTH>)set1<T, SIMD_WIDTH>(
+        SIMDTypeInfo<T>::trueval());
+  }
   
   #define EMULATE_DMASKOP(NAME) \
   template <typename T, int SIMD_WIDTH> \

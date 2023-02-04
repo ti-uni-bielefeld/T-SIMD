@@ -140,13 +140,13 @@ namespace base {
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
-    void *operator new(size_t size) const
+    void *operator new(size_t size)
     { return simd_aligned_malloc(bytes, size); }
-    void operator delete(void *p) const
+    void operator delete(void *p)
     { simd_aligned_free(p); }
-    void *operator new[](size_t size) const
+    void *operator new[](size_t size)
     { return simd_aligned_malloc(bytes, size); }
-    void operator delete[](void *p) const
+    void operator delete[](void *p)
     { simd_aligned_free(p); }
   };
 
@@ -178,13 +178,13 @@ namespace base {
     // 29. Nov 22 (Jonas Keller):
     // defined operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
-    void *operator new(size_t size) const
+    void *operator new(size_t size)
     { return simd_aligned_malloc(bytes, size); }
-    void operator delete(void *p) const
+    void operator delete(void *p)
     { simd_aligned_free(p); }
-    void *operator new[](size_t size) const
+    void *operator new[](size_t size)
     { return simd_aligned_malloc(bytes, size); }
-    void operator delete[](void *p) const
+    void operator delete[](void *p)
     { simd_aligned_free(p); }
   };
 

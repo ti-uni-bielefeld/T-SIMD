@@ -87,13 +87,13 @@ namespace ns_simd {
     bool operator==(const SIMDMask<TYPE, 64> &x) const {\
       return _mm512_cmpeq_epi64_mask(k, x)==0xff; \
     } \
-    void *operator new(size_t size) const \
+    void *operator new(size_t size) \
     { return simd_aligned_malloc(sizeof(__m256i), size); } \
-    void operator delete(void *p) const \
+    void operator delete(void *p) \
     { simd_aligned_free(p); } \
-    void *operator new[](size_t size) const \
+    void *operator new[](size_t size) \
     { return simd_aligned_malloc(sizeof(__m256i), size); } \
-    void operator delete[](void *p) const \
+    void operator delete[](void *p) \
     { simd_aligned_free(p); } \
   };
 

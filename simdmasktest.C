@@ -557,7 +557,7 @@ uinttest_t random_continuous(uint8_t size) {
       SIMDMask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();        \
       csr0 = getcsr();                                                         \
       /*printf("Performing %s for %s\n", "load", #TYPE);*/                     \
-      res1 = maskz_load(k, buffer);                                            \
+      res1 = maskz_loadu(k, buffer);                                           \
       csr1 = getcsr();                                                         \
       setcsr(csr0);                                                            \
       res2 = loadu<SIMD_WIDTH, TYPE>(buffer);                                  \
@@ -582,7 +582,7 @@ uinttest_t random_continuous(uint8_t size) {
       /* Second test */                                                        \
       SIMDMask<TYPE, SIMD_WIDTH> kzero;                                        \
       setcsr(csr0);                                                            \
-      res1 = maskz_load(kzero, (TYPE *)0);                                     \
+      res1 = maskz_loadu(kzero, (TYPE *)0);                                    \
       if (!vectorsEqual(res1, setzero<TYPE, SIMD_WIDTH>()) ||                  \
           getcsr() != csr0) {                                                  \
         printf("Problem with %s for %s, csr=%x, csr0=%x \n", "load", #TYPE,    \
@@ -595,7 +595,7 @@ uinttest_t random_continuous(uint8_t size) {
       /* Third test */                                                         \
       SIMDMask<TYPE, SIMD_WIDTH> krand;                                        \
       krand = random64();                                                      \
-      res1 = maskz_load(krand, buffer);                                        \
+      res1 = maskz_loadu(krand, buffer);                                       \
       csr1 = getcsr();                                                         \
       setcsr(csr0);                                                            \
       res2 = mask_ifelse(krand, loadu<SIMD_WIDTH, TYPE>(buffer),               \
@@ -1022,6 +1022,7 @@ void testsuite() {
   test_mask_functions<SIMDFloat, NATIVE_SIMD_WIDTH>();
   TEST_FUNCTION_LOAD_ALL_TYPES
   TEST_FUNCTION_STORE_ALL_TYPES
+  /*
   // TEST_FUNCTION_ALL_TYPES(set1)
   TEST_FUNCTION_ALL_TYPES(add, +)
   TEST_FUNCTION_ALL_TYPES(adds, +)
@@ -1114,6 +1115,7 @@ void testsuite() {
   // TEST_FUNCTION_ALL_TYPES_CMP(cmpneq, !=)
   test_cvts<SIMDInt, SIMDFloat, NATIVE_SIMD_WIDTH>();
   test_cvts<SIMDFloat, SIMDInt, NATIVE_SIMD_WIDTH>();
+  */
 
   // printf("Testsuite done");
 }

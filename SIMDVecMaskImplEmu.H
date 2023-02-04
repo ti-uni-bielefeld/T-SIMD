@@ -234,13 +234,15 @@ namespace mask {
     if (is_within_same_page<SIMD_WIDTH>(p)) {
       return mask::mask_ifelsezero(k, load<SIMD_WIDTH>(p));
     }
-    SIMDVec<T, SIMD_WIDTH> result = setzero<T, SIMD_WIDTH>();
-    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
-      if (k[i]) {
-        ((T *)&result)[i] = p[i];
-      }
+    if (test_all_ones((SIMDVec<T, SIMD_WIDTH>)k)) {
+      // if k is all ones, we can load the whole vector
+      return load<SIMD_WIDTH>(p);
     }
-    return result;
+    T result[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+      result[i] = k[i] ? p[i] : 0;
+    }
+    return load<SIMD_WIDTH>(result);
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -259,11 +261,17 @@ namespace mask {
     if (is_within_same_page<SIMD_WIDTH>(p)) {
       return mask::mask_ifelse(k, load<SIMD_WIDTH>(p), src);
     }
-    SIMDVec<T, SIMD_WIDTH> result;
-    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
-      ((T *)&result)[i] = k[i] ? p[i] : ((T *)&src)[i];
+    if (test_all_ones((SIMDVec<T, SIMD_WIDTH>)k)) {
+      // if k is all ones, we can load the whole vector
+      return load<SIMD_WIDTH>(p);
     }
-    return result;
+    T result[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+    T src_arr[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+    store<SIMD_WIDTH>(src_arr, src);
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+      result[i] = k[i] ? p[i] : src_arr[i];
+    }
+    return load<SIMD_WIDTH>(result);
   }
   
   template <typename T, int SIMD_WIDTH>
@@ -281,13 +289,15 @@ namespace mask {
     if (is_within_same_page<SIMD_WIDTH>(p)) {
       return mask::mask_ifelsezero(k, loadu<SIMD_WIDTH>(p));
     }
-    SIMDVec<T, SIMD_WIDTH> result = setzero<T, SIMD_WIDTH>();
-    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
-      if (k[i]) {
-        ((T *)&result)[i] = p[i];
-      }
+    if (test_all_ones((SIMDVec<T, SIMD_WIDTH>)k)) {
+      // if k is all ones, we can load the whole vector
+      return loadu<SIMD_WIDTH>(p);
     }
-    return result;
+    T result[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+      result[i] = k[i] ? p[i] : 0;
+    }
+    return load<SIMD_WIDTH>(result);
   }
   
   template <typename T, int SIMD_WIDTH>
@@ -306,11 +316,17 @@ namespace mask {
     if (is_within_same_page<SIMD_WIDTH>(p)) {
       return mask::mask_ifelse(k, loadu<SIMD_WIDTH>(p), src);
     }
-    SIMDVec<T, SIMD_WIDTH> result;
-    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
-      ((T *)&result)[i] = k[i] ? p[i] : ((T *)&src)[i];
+    if (test_all_ones((SIMDVec<T, SIMD_WIDTH>)k)) {
+      // if k is all ones, we can load the whole vector
+      return loadu<SIMD_WIDTH>(p);
     }
-    return result;
+    T result[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+    T src_arr[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+    store<SIMD_WIDTH>(src_arr, src);
+    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+      result[i] = k[i] ? p[i] : src_arr[i];
+    }
+    return load<SIMD_WIDTH>(result);
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -329,9 +345,16 @@ namespace mask {
       store(p, mask::mask_ifelse(k, a, load<SIMD_WIDTH>(p)));
       return;
     }
+    if (test_all_ones((SIMDVec<T, SIMD_WIDTH>)k)) {
+      // if k is all ones, we can store the whole vector
+      store(p, a);
+      return;
+    }
+    T a_arr[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+    store<SIMD_WIDTH>(a_arr, a);
     for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
       if (k[i]) {
-        p[i] = ((T *)&a)[i];
+        p[i] = a_arr[i];
       }
     }
   }
@@ -352,9 +375,16 @@ namespace mask {
       storeu(p, mask::mask_ifelse(k, a, loadu<SIMD_WIDTH>(p)));
       return;
     }
+    if (test_all_ones((SIMDVec<T, SIMD_WIDTH>)k)) {
+      // if k is all ones, we can store the whole vector
+      storeu(p, a);
+      return;
+    }
+    T a_arr[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+    store(a_arr, a);
     for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
       if (k[i]) {
-        p[i] = ((T *)&a)[i];
+        p[i] = a_arr[i];
       }
     }
   }

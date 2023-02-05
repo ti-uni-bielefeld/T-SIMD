@@ -36,7 +36,10 @@
 
 #else // SIMDVEC_SANDBOX
 
-#include "SIMDVecMaskImplArchSpec.H"
+#ifdef SIMDVEC_INTEL_ENABLE
+#include "SIMDVecMaskImplIntel64.H"
+#endif // SIMDVEC_INTEL_ENABLE
+
 #include "SIMDVecMaskImplEmu.H"
 
 #endif // else SIMDVEC_SANDBOX

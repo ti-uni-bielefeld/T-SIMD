@@ -96,12 +96,64 @@ mask_add(const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
 #include "SIMDVecBase.H"
-#include "SIMDVecMaskImplArchSpec.H"
+
+#ifdef SIMDVEC_INTEL_ENABLE
+#include "SIMDVecMaskImplIntel64.H"
+#endif // SIMDVEC_INTEL_ENABLE
 
 #include <math.h>
 #include <stdint.h>
 
 namespace ns_simd {
+  template <typename T, int SIMD_WIDTH>
+  class SIMDMask
+  {
+    SIMDVec<T, SIMD_WIDTH> mask;
+  public:
+    SIMDMask<T, SIMD_WIDTH>() {}
+    SIMD_INLINE SIMDMask<T, SIMD_WIDTH>(const SIMDVec<T, SIMD_WIDTH> &x)
+        : mask(x) {}
+    SIMD_INLINE SIMDMask<T, SIMD_WIDTH>(const uint64_t x)
+        : mask(int2bits<T, SIMD_WIDTH>(x)) {}
+    SIMD_INLINE SIMDMask<T, SIMD_WIDTH> &
+    operator=(const SIMDVec<T, SIMD_WIDTH> &x) {
+      mask = x;
+      return *this;
+    }
+    SIMD_INLINE SIMDMask<T, SIMD_WIDTH> &operator=(const uint64_t x) {
+      mask = int2bits<T, SIMD_WIDTH>(x);
+      return *this;
+    }
+    SIMD_INLINE operator SIMDVec<T, SIMD_WIDTH>() const { return mask; }
+    SIMD_INLINE operator uint64_t() const {
+      return msb2int<T, SIMD_WIDTH>(mask);
+    }
+    SIMD_INLINE bool operator[](const int i) const {
+      if (i < 0 || i >= SIMD_WIDTH) {
+        return false;
+      }
+      uint8_t mask_array[SIMD_WIDTH] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+      store((T *)mask_array, mask);
+      // check first byte of i-th element (the bytes of a single element should
+      // be the same)
+      return mask_array[i * sizeof(T)] != 0;
+    }
+    SIMD_INLINE bool operator==(const SIMDMask<T, SIMD_WIDTH> &other) const {
+      return test_all_zeros(
+          xor(reinterpret<SIMDInt>(mask), reinterpret<SIMDInt>(other.mask)));
+    }
+    // define operators new and delete to ensure proper alignment, since
+    // the default new and delete are not guaranteed to do so before C++17
+    void *operator new(size_t size) {
+      return simd_aligned_malloc(SIMD_WIDTH, size);
+    }
+    void operator delete(void *p) { simd_aligned_free(p); }
+    void *operator new[](size_t size) {
+      return simd_aligned_malloc(SIMD_WIDTH, size);
+    }
+    void operator delete[](void *p) { simd_aligned_free(p); }
+  };
+
 namespace internal {
 namespace mask {
   #define EMULATE_SOP(OP) \

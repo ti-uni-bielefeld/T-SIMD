@@ -1016,14 +1016,6 @@ namespace base {
     return _mm512_permutexvar_epi64(_mm512_set_epi64(7,3,6,2,5,1,4,0), a);
   }
 
-  static SIMD_INLINE __m512
-  x_mm512_transpose8x64_ps(__m512 a)
-  {
-    return 
-      _mm512_castsi512_ps
-      (x_mm512_transpose8x64_epi64(_mm512_castps_si512(a)));
-  }
-
   // ---------------------------------------------------------------------------
   // evenodd8x64 v
   // ---------------------------------------------------------------------------
@@ -1032,14 +1024,6 @@ namespace base {
   x_mm512_evenodd8x64_epi64(__m512i a)
   {
     return _mm512_permutexvar_epi64(_mm512_set_epi64(7,5,3,1,6,4,2,0), a);
-  }
-  
-  static SIMD_INLINE __m512
-  x_mm512_evenodd8x64_ps(__m512 a)
-  {
-    return 
-      _mm512_castsi512_ps
-      (x_mm512_evenodd8x64_epi64(_mm512_castps_si512(a)));
   }
 
   // ---------------------------------------------------------------------------
@@ -1125,34 +1109,7 @@ namespace base {
   
   // ---------------------------------------------------------------------------
   // non-existing avx512 functions emulated via avx v
-  // ---------------------------------------------------------------------------
-
-#define SIMD_X_AVX_INT_BINFCT_64(INTRIN)				\
-  static SIMD_INLINE __m512i						\
-  x_mm512_ ## INTRIN (__m512i a, __m512i b)				\
-  {									\
-    return x_mm512_combine_si256					\
-      (_mm256_ ## INTRIN (x_mm512_lo_si256(a), x_mm512_lo_si256(b)),	\
-       _mm256_ ## INTRIN (x_mm512_hi_si256(a), x_mm512_hi_si256(b)));	\
-  }									
-
-#define SIMD_X_AVX_PS_BINFCT_64(INTRIN)					\
-  static SIMD_INLINE __m512						\
-  x_mm512_ ## INTRIN (__m512 a, __m512 b)				\
-  {									\
-    return x_mm512_combine_ps						\
-      (_mm256_ ## INTRIN (x_mm512_lo_ps256(a), x_mm512_lo_ps256(b)),	\
-       _mm256_ ## INTRIN (x_mm512_hi_ps256(a), x_mm512_hi_ps256(b)));	\
-  }									
-
-  SIMD_X_AVX_INT_BINFCT_64(hadd_epi16)
-  SIMD_X_AVX_INT_BINFCT_64(hadd_epi32)
-  SIMD_X_AVX_PS_BINFCT_64(hadd_ps)
-  SIMD_X_AVX_INT_BINFCT_64(hadds_epi16)
-  SIMD_X_AVX_INT_BINFCT_64(hsub_epi16)
-  SIMD_X_AVX_INT_BINFCT_64(hsub_epi32)
-  SIMD_X_AVX_PS_BINFCT_64(hsub_ps)
-  SIMD_X_AVX_INT_BINFCT_64(hsubs_epi16)
+  // ---------------------------------------------------------------------------							
 
   // ---------------------------------------------------------------------------
   // x_mm512_movm_* v

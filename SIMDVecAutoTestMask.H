@@ -104,7 +104,7 @@ struct TesterMaskUnary {
 
     SIMDVec<T, SIMD_WIDTH> inputSrc, input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
@@ -115,7 +115,7 @@ struct TesterMaskUnary {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -163,7 +163,7 @@ struct TesterMaskZUnary {
 
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
@@ -173,7 +173,7 @@ struct TesterMaskZUnary {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -227,7 +227,7 @@ struct TesterMaskBinary {
 
     SIMDVec<T, SIMD_WIDTH> inputSrc, input1, input2;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
@@ -239,7 +239,7 @@ struct TesterMaskBinary {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -289,7 +289,7 @@ struct TesterMaskZBinary {
 
     SIMDVec<T, SIMD_WIDTH> input1, input2;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
@@ -300,7 +300,7 @@ struct TesterMaskZBinary {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -350,7 +350,7 @@ struct TesterMaskConditionBinary {
 
     SIMDVec<T, SIMD_WIDTH> input1, input2;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
@@ -361,7 +361,7 @@ struct TesterMaskConditionBinary {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -409,7 +409,7 @@ struct TesterMaskConditionUnary {
 
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
@@ -419,7 +419,7 @@ struct TesterMaskConditionUnary {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -472,7 +472,7 @@ struct TesterMaskUnaryTemplateType {
     SIMDVec<Tout, SIMD_WIDTH> inputSrc;
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
@@ -484,7 +484,7 @@ struct TesterMaskUnaryTemplateType {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -533,7 +533,7 @@ struct TesterMaskZUnaryTemplateType {
 
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
@@ -543,7 +543,7 @@ struct TesterMaskZUnaryTemplateType {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -594,7 +594,7 @@ struct TesterMaskScalar {
     SIMDVec<T, SIMD_WIDTH> inputSrc, input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
     T inputScalar = T();
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
@@ -606,7 +606,7 @@ struct TesterMaskScalar {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -652,7 +652,7 @@ struct TesterMaskZScalar {
 
     SIMDMask<T, SIMD_WIDTH> inputMask;
     T inputScalar = T();
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
@@ -662,7 +662,7 @@ struct TesterMaskZScalar {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -713,7 +713,7 @@ struct TesterMaskCmp {
 
     SIMDVec<T, SIMD_WIDTH> input1, input2;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
@@ -724,7 +724,7 @@ struct TesterMaskCmp {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -773,7 +773,7 @@ struct TesterCmpMask {
     printErrorStats(errors, trials);
 
     SIMDVec<T, SIMD_WIDTH> input1, input2;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
@@ -784,7 +784,7 @@ struct TesterCmpMask {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -830,7 +830,7 @@ struct TesterMaskUnaryInt {
 
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
@@ -839,7 +839,7 @@ struct TesterMaskUnaryInt {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -881,7 +881,7 @@ struct TesterUnaryK {
     printErrorStats(errors, trials);
 
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
@@ -890,7 +890,7 @@ struct TesterUnaryK {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -936,7 +936,7 @@ struct TesterBinaryK {
     printErrorStats(errors, trials);
 
     SIMDMask<T, SIMD_WIDTH> inputMask1, inputMask2;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask1);
@@ -946,7 +946,7 @@ struct TesterBinaryK {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
@@ -997,7 +997,7 @@ struct TesterMaskUnaryTI {
 
     SIMDVec<T, SIMD_WIDTH> input, inputSrc;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
@@ -1008,7 +1008,7 @@ struct TesterMaskUnaryTI {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
 
@@ -1076,7 +1076,7 @@ struct TesterMaskZUnaryTI {
 
     SIMDVec<T, SIMD_WIDTH> input;
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
@@ -1086,7 +1086,7 @@ struct TesterMaskZUnaryTI {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
 
@@ -1149,7 +1149,7 @@ struct TesterUnaryKTI {
     printErrorStats(errors, trials);
 
     SIMDMask<T, SIMD_WIDTH> inputMask;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
@@ -1158,7 +1158,7 @@ struct TesterUnaryKTI {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
 
@@ -1217,7 +1217,7 @@ struct TesterIntToMask {
     printErrorStats(errors, trials);
 
     int input = 0;
-    struct timespec start = getTimeSpec();
+    struct timespec start = getTimeSpecMonotonic();
     for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
@@ -1226,7 +1226,7 @@ struct TesterIntToMask {
         doNotOptimize(result);
       }
     }
-    struct timespec end = getTimeSpec();
+    struct timespec end = getTimeSpecMonotonic();
     long int time = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }

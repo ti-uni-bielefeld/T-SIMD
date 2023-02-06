@@ -640,7 +640,7 @@ namespace auto_test {
 	}
 	printErrorStats(errors, trials);
 
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       SIMDVec<T, SIMD_WIDTH> res =
@@ -648,7 +648,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -692,7 +692,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T, SIMD_WIDTH> input;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -701,7 +701,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -746,7 +746,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   T input = T();
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -755,7 +755,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -802,7 +802,7 @@ namespace auto_test {
   printErrorStats(errors, trials);
 
   uint64_t input = uint64_t();
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -811,7 +811,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -858,7 +858,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -866,7 +866,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -923,7 +923,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -931,7 +931,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -982,7 +982,7 @@ namespace auto_test {
         printErrorStats(errors, trials);
 
         SIMDVec<T,SIMD_WIDTH> input;
-        struct timespec start = getTimeSpec();
+        struct timespec start = getTimeSpecMonotonic();
         for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
           for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
             doNotOptimize(input);
@@ -990,7 +990,7 @@ namespace auto_test {
             doNotOptimize(res);
           }
         }
-        struct timespec end = getTimeSpec();
+        struct timespec end = getTimeSpecMonotonic();
         long int time = timeSpecDiffNsec(end, start);
         printTimeStats(time, repeats);
       }
@@ -1036,7 +1036,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -1044,7 +1044,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1089,7 +1089,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -1097,7 +1097,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1171,7 +1171,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -1179,7 +1179,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1257,7 +1257,7 @@ namespace auto_test {
         printErrorStats(errors, trials);
 
         SIMDVec<T,SIMD_WIDTH> input;
-        struct timespec start = getTimeSpec();
+        struct timespec start = getTimeSpecMonotonic();
         for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
           for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
             doNotOptimize(input);
@@ -1265,7 +1265,7 @@ namespace auto_test {
             doNotOptimize(res);
           }
         }
-        struct timespec end = getTimeSpec();
+        struct timespec end = getTimeSpecMonotonic();
         long int time = timeSpecDiffNsec(end, start);
         printTimeStats(time, repeats);
       }
@@ -1341,7 +1341,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input1, input2;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
@@ -1350,7 +1350,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1398,7 +1398,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input1, input2;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
@@ -1408,7 +1408,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1470,7 +1470,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -1479,7 +1479,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1533,7 +1533,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[nInVecs];
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -1541,7 +1541,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1596,7 +1596,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[nInVecs];
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -1604,7 +1604,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1676,7 +1676,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[n];
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -1685,7 +1685,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1761,7 +1761,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[numInVecs];
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -1770,7 +1770,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1849,7 +1849,7 @@ namespace auto_test {
 
   SIMDVec<T,SIMD_WIDTH> input[numInVecs];
   double inputD = 1.0;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -1859,7 +1859,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -1939,7 +1939,7 @@ namespace auto_test {
 
   SIMDVec<T,SIMD_WIDTH> input[numInVecs];
   double inputD1 = 1.0, inputD2 = 1.0;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -1950,7 +1950,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -2038,7 +2038,7 @@ namespace auto_test {
 
   SIMDVec<T,SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
   double inputD = 1.0;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
@@ -2049,7 +2049,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -2138,7 +2138,7 @@ namespace auto_test {
 
   SIMDVec<T,SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
   double inputD1 = 1.0, inputD2 = 1.0;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
@@ -2150,7 +2150,7 @@ namespace auto_test {
       doNotOptimize(res);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -2223,7 +2223,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input[numVecs];
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input);
@@ -2231,7 +2231,7 @@ namespace auto_test {
       doNotOptimize(input);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -2306,7 +2306,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input1, input2;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
@@ -2316,7 +2316,7 @@ namespace auto_test {
       doNotOptimize(result);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -2398,7 +2398,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input1, input2;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
@@ -2409,7 +2409,7 @@ namespace auto_test {
       doNotOptimize(result2);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -2487,7 +2487,7 @@ namespace auto_test {
 	printErrorStats(errors, trials);
 
   SIMDVec<T,SIMD_WIDTH> input1, input2;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
@@ -2497,7 +2497,7 @@ namespace auto_test {
       doNotOptimize(result);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }
@@ -2584,7 +2584,7 @@ namespace auto_test {
 
   SIMDVec<T,SIMD_WIDTH> input1, input2;
   SIMDVec<Tcond,SIMD_WIDTH> inputCond;
-  struct timespec start = getTimeSpec();
+  struct timespec start = getTimeSpecMonotonic();
   for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
     for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
       doNotOptimize(input1);
@@ -2595,7 +2595,7 @@ namespace auto_test {
       doNotOptimize(result);
     }
   }
-  struct timespec end = getTimeSpec();
+  struct timespec end = getTimeSpecMonotonic();
   long int time = timeSpecDiffNsec(end, start);
   printTimeStats(time, repeats);
       }

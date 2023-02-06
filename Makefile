@@ -204,9 +204,9 @@ $(archspec_binaries): %: %.o
 	@echo linking $@ from $< $(libraries)
 	@$(compiler) $(flags_archspec) $(flags_cpp) -o $@ $< $(libraries)
 else
-$(binaries): %: %.C
-$(autotest_binaries): %: %.C
-$(archspec_binaries): %: %.C
+$(binaries): %: %.o ;
+$(autotest_binaries): %: %.o ;
+$(archspec_binaries): %: %.o ;
 endif
 
 #===========================================================================
@@ -253,7 +253,7 @@ flags-info:
 
 # for compileAndTest to be compatible with PROG system
 .PHONY: platform_dirs dep
-platform_dirs:
-dep:
+platform_dirs: ;
+dep: ;
 
 -include $(depend_files)

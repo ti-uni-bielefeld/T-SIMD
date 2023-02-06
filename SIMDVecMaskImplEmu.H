@@ -670,13 +670,28 @@ namespace mask {
   // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
   // mask_set_true/false_low/high.
 
+  template <bool UP, typename T, int SIMD_WIDTH>
+  class MaskSetBuffer {
+  public:
+    T buffer[SIMDVec<T, SIMD_WIDTH>::elems*2];
+    MaskSetBuffer() {
+      for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+        buffer[i] = UP ? 0 : SIMDTypeInfo<T>::trueval();
+      }
+      for (int i = SIMDVec<T, SIMD_WIDTH>::elems; i < SIMDVec<T, SIMD_WIDTH>::elems*2; i++) {
+        buffer[i] = UP ? SIMDTypeInfo<T>::trueval() : 0;
+      }
+    }
+  };
+
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
   mask_set_true_low(const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>) {
     if (x >= SIMDVec<T, SIMD_WIDTH>::elems) {
       return mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>());
     }
-    return mask::mask_cmplt(iota<T, SIMD_WIDTH>(), set1<T, SIMD_WIDTH>(T(x)));
+    static MaskSetBuffer<false, T, SIMD_WIDTH> buffer;
+    return loadu<SIMD_WIDTH>(buffer.buffer + SIMDVec<T, SIMD_WIDTH>::elems - x);
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -685,8 +700,8 @@ namespace mask {
     if (x >= SIMDVec<T, SIMD_WIDTH>::elems) {
       return mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>());
     }
-    return mask::mask_cmplt(reverse(iota<T, SIMD_WIDTH>()),
-                            set1<T, SIMD_WIDTH>(T(x)));
+    static MaskSetBuffer<true, T, SIMD_WIDTH> buffer;
+    return loadu<SIMD_WIDTH>(buffer.buffer + x);
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -695,7 +710,8 @@ namespace mask {
     if (x >= SIMDVec<T, SIMD_WIDTH>::elems) {
       return SIMDMask<T, SIMD_WIDTH>(0);
     }
-    return mask::mask_cmpge(iota<T, SIMD_WIDTH>(), set1<T, SIMD_WIDTH>(T(x)));
+    static MaskSetBuffer<true, T, SIMD_WIDTH> buffer;
+    return loadu<SIMD_WIDTH>(buffer.buffer + SIMDVec<T, SIMD_WIDTH>::elems - x);
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -704,8 +720,8 @@ namespace mask {
     if (x >= SIMDVec<T, SIMD_WIDTH>::elems) {
       return SIMDMask<T, SIMD_WIDTH>(0);
     }
-    return mask::mask_cmpge(reverse(iota<T, SIMD_WIDTH>()),
-                            set1<T, SIMD_WIDTH>(T(x)));
+    static MaskSetBuffer<false, T, SIMD_WIDTH> buffer;
+    return loadu<SIMD_WIDTH>(buffer.buffer + x);
   }
 } // namespace mask
 } // namespace internal

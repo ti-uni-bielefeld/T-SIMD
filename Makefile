@@ -191,23 +191,23 @@ $(archspec_objects): %.o: %.C
 
 # https://www.gnu.org/software/make/manual/make.html#Static-Pattern
 
+ifeq ($(syntax_only),0)
 $(binaries): %: %.o
-	@if [ $(syntax_only) -eq 0 ]; then \
-		echo linking $@ from $< $(libraries); \
-		$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries); \
-	fi
+	@echo linking $@ from $< $(libraries)
+	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
 
 $(autotest_binaries): %: %.o
-	@if [ $(syntax_only) -eq 0 ]; then \
-		echo linking $@ from $< $(libraries); \
-		$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries); \
-	fi
+	@echo linking $@ from $< $(libraries)
+	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
 
 $(archspec_binaries): %: %.o
-	@if [ $(syntax_only) -eq 0 ]; then \
-		echo linking $@ from $< $(libraries); \
-		$(compiler) $(flags_archspec) $(flags_cpp) -o $@ $< $(libraries); \
-	fi
+	@echo linking $@ from $< $(libraries)
+	@$(compiler) $(flags_archspec) $(flags_cpp) -o $@ $< $(libraries)
+else
+$(binaries): %: %.C
+$(autotest_binaries): %: %.C
+$(archspec_binaries): %: %.C
+endif
 
 #===========================================================================
 # other rules
@@ -253,7 +253,7 @@ flags-info:
 
 # for compileAndTest to be compatible with PROG system
 .PHONY: platform_dirs dep
-platform_dirs: ;
-dep: ;
+platform_dirs:
+dep:
 
 -include $(depend_files)

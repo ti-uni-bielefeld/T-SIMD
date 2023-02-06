@@ -158,6 +158,18 @@ namespace mask {
   MASK_IFELSEZERO(SIMDFloat)
 
   // ---------------------------------------------------------------------------
+  // reinterpret_mask v
+  // ---------------------------------------------------------------------------
+
+  template <typename Tout, typename Tin>
+  static SIMD_INLINE SIMDMask<Tout, 64>
+  reinterpret_mask(const SIMDMask<Tin, 64> &k)
+  {
+    SIMD_STATIC_ASSERT(sizeof(Tout) == sizeof(Tin));
+    return SIMDMask<Tout, 64>(k.k);
+  }
+
+  // ---------------------------------------------------------------------------
   // masked convert (without changes in the number of of elements) v
   // ---------------------------------------------------------------------------
 

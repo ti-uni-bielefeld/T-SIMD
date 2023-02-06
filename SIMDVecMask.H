@@ -112,6 +112,23 @@ namespace ns_simd {
   }
 
   /**
+   * @brief Reinterprets a SIMDMask of one type as a SIMDMask of another type.
+   *
+   * The size of the element type of the SIMDMask must be the same.
+   *
+   * @tparam Tout The element type of the reinterpreted SIMDMask.
+   * @tparam Tin The element type of the SIMDMask to reinterpret.
+   * @param a The SIMDMask to reinterpret.
+   * @return The reinterpreted SIMDMask.
+   */
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<Tout, SIMD_WIDTH>
+  reinterpret_mask(const SIMDMask<Tin, SIMD_WIDTH> &a)
+  {
+    return internal::mask::reinterpret_mask<Tout, Tin, SIMD_WIDTH>(a);
+  }
+
+  /**
    * @brief Masked version of cvts(const SIMDVec<Tin, SIMD_WIDTH> &).
    */
   template <typename Tout, typename Tin, int SIMD_WIDTH>

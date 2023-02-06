@@ -210,18 +210,13 @@ namespace mask {
     return and((SIMDVec<T, SIMD_WIDTH>) k, trueVal);
   }
   
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<SIMDInt, SIMD_WIDTH>
-  reinterpret_mask(const SIMDMask<SIMDFloat, SIMD_WIDTH> &k)//TODO better name? more types?
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<Tout, SIMD_WIDTH>
+  reinterpret_mask(const SIMDMask<Tin, SIMD_WIDTH> &k)
   {
-      return SIMDMask<SIMDInt, SIMD_WIDTH>(reinterpret<SIMDInt>((SIMDVec<SIMDFloat, SIMD_WIDTH>) k));
-  }
-  
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<SIMDFloat, SIMD_WIDTH>
-  reinterpret_mask(const SIMDMask<SIMDInt, SIMD_WIDTH> &k)//TODO better name? more types?
-  {
-      return SIMDMask<SIMDFloat, SIMD_WIDTH>(reinterpret<SIMDFloat>((SIMDVec<SIMDInt, SIMD_WIDTH>) k));
+    SIMD_STATIC_ASSERT(sizeof(Tout) == sizeof(Tin));
+    return SIMDMask<Tout, SIMD_WIDTH>(
+        reinterpret<Tout>((SIMDVec<Tin, SIMD_WIDTH>)k));
   }
   
   //The types of the masks are kind of arbitrary
@@ -230,7 +225,7 @@ namespace mask {
   maskz_cvts(const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return mask::mask_ifelsezero(reinterpret_mask(k), ::ns_simd::cvts<SIMDInt>(a));
+    return mask::mask_ifelsezero(mask::reinterpret_mask<SIMDInt>(k), ::ns_simd::cvts<SIMDInt>(a));
   }
   
   template <int SIMD_WIDTH>
@@ -239,7 +234,7 @@ namespace mask {
       const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
       const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
   {
-    return mask::mask_ifelse(reinterpret_mask(k), ::ns_simd::cvts<SIMDInt>(a), src);
+    return mask::mask_ifelse(mask::reinterpret_mask<SIMDInt>(k), ::ns_simd::cvts<SIMDInt>(a), src);
   }
 
   template <int SIMD_WIDTH>
@@ -247,7 +242,7 @@ namespace mask {
   maskz_cvts(const SIMDMask<SIMDInt, SIMD_WIDTH> &k,
       const SIMDVec<SIMDInt, SIMD_WIDTH> &a)
   {
-    return mask::mask_ifelsezero(reinterpret_mask(k), ::ns_simd::cvts<SIMDFloat>(a));
+    return mask::mask_ifelsezero(mask::reinterpret_mask<SIMDFloat>(k), ::ns_simd::cvts<SIMDFloat>(a));
   }
 
   template <int SIMD_WIDTH>
@@ -256,7 +251,7 @@ namespace mask {
       const SIMDMask<SIMDInt, SIMD_WIDTH> &k,
       const SIMDVec<SIMDInt, SIMD_WIDTH> &a)
   {
-    return mask::mask_ifelse(reinterpret_mask(k), ::ns_simd::cvts<SIMDFloat>(a), src);
+    return mask::mask_ifelse(mask::reinterpret_mask<SIMDFloat>(k), ::ns_simd::cvts<SIMDFloat>(a), src);
   }
 
   template <int SIMD_WIDTH, typename T>

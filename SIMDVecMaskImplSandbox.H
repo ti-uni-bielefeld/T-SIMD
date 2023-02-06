@@ -94,7 +94,16 @@ namespace mask {
      SIMDTypeInfo<T>::name(), SIMD_WIDTH);
     return SIMDVec<T,SIMD_WIDTH>();
   }
-  
+
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<Tout, SIMD_WIDTH>
+  reinterpret_mask(const SIMDMask<Tin, SIMD_WIDTH>&)
+  {
+    printf("reinterpret_mask<%s,%s,%d>(M)\n",
+     SIMDTypeInfo<Tout>::name(), SIMDTypeInfo<Tin>::name(), SIMD_WIDTH);
+    return SIMDMask<Tout, SIMD_WIDTH>();
+  }
+
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<SIMDInt, SIMD_WIDTH>
   mask_cvts(const SIMDVec<SIMDInt, SIMD_WIDTH>&,

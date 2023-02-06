@@ -50,8 +50,11 @@ namespace ns_simd {
     __mmask ## MASK_SIZE k; \
     SIMDMask() { k=0; } \
     SIMDMask(const __mmask ## MASK_SIZE &x) { k = x; } \
+    SIMDMask(const SIMDVec<TYPE, 64> &x) { k = msb2int(x); } \
     SIMDMask& operator=(const __mmask ## MASK_SIZE &x) { k = x; return *this; } \
+    SIMDMask& operator=(const SIMDVec<TYPE, 64> &x) { k = msb2int(x); return *this; } \
     operator __mmask ## MASK_SIZE () const { return k; } \
+    operator SIMDVec<TYPE, 64> () const { return int2bits<TYPE, 64>(k); } \
     bool operator[](const uint8_t i) const { \
       return ((1lu<<i)&k)!=0; \
     } \

@@ -763,6 +763,12 @@ namespace auto_test {
     {
       return int2bits<T,SIMD_WIDTH>(a);
     }
+    // 07. Feb 23 (Jonas Keller): added iota
+    template <typename T, int SIMD_WIDTH>
+    static SIMD_INLINE SIMDVec<T,SIMD_WIDTH> _iota()
+    {
+      return iota<T,SIMD_WIDTH>();
+    }
   };
 
   // -------------------------------------------------------------------------
@@ -854,6 +860,16 @@ namespace auto_test {
       SIMDSerialVec<T,SIMD_WIDTH> v;
       for (int i = 0; i < v.elements; i++)
   v[i] = (a >> i) & 1 ? SIMDTypeInfo<T>::trueval() : T(0);
+      return v;
+    }
+    // 07. Feb 23 (Jonas Keller): added iota
+    template <typename T, int SIMD_WIDTH>
+    static SIMD_INLINE SIMDSerialVec<T,SIMD_WIDTH> _iota()
+    {
+      SIMDSerialVec<T,SIMD_WIDTH> v;
+      for (int i = 0; i < v.elements; i++) {
+        v[i] = T(i);
+      }
       return v;
     }
   private:

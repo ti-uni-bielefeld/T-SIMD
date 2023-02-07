@@ -2338,6 +2338,26 @@ namespace auto_test {
     }
   };
 
+  // 07. Feb 23 (Jonas Keller): added Iota
+
+  template <typename T, int SIMD_WIDTH>
+  struct Iota
+  {
+    static SIMD_INLINE std::string name() 
+    { return t2s<T,SIMD_WIDTH>("iota"); }
+    
+    static SIMD_INLINE void
+    randomizeInput(SIMDSerialVec<T,SIMD_WIDTH> &vec)
+    { vec.randomize(); }
+    
+    template <template <typename, int> class VEC>
+    static SIMD_INLINE VEC<T,SIMD_WIDTH>
+    apply()
+    {
+      return Deductor<VEC>::template _iota<T,SIMD_WIDTH>();
+    }
+  };
+
 } // namespace auto_test
 } // namespace ns_simd
 

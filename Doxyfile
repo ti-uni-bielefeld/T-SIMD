@@ -936,12 +936,8 @@ INPUT                  = \
                          SIMDVecBaseImplSandbox.H \
                          SIMDVecExt.H \
                          SIMDVecMask.H \
-                         SIMDVecMaskImplArchSpec.H \
                          SIMDVecMaskImplEmu.H \
-                         SIMDVecMaskImplIntel16.H \
-                         SIMDVecMaskImplIntel32.H \
                          SIMDVecMaskImplIntel64.H \
-                         SIMDVecMaskImplNEON16.H \
                          SIMDVecMaskImplSandbox.H \
                          SIMDVecs.H \
                          ssse3_compat.H \

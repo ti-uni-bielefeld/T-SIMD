@@ -18,6 +18,8 @@
 
 date
 
+set onlyCheckSyntax = 0
+
 set doitCompile = 1
 set doitAlsoCompileAutoTest = 1
 set doitRun = 1
@@ -81,10 +83,16 @@ else
   set autotest_target = ""
 endif
 
+if ($onlyCheckSyntax) then
+  set syntax_only_defines = "syntax_only=1"
+else
+  set syntax_only_defines = ""
+endif
+
 # set languange to english
 setenv LANG en_US.UTF-8
 
-make platform_dirs # only does something when run in PROG system
+make $syntax_only_defines platform_dirs # only does something when run in PROG system
 
 mkdir -p COMPILE_AND_TEST
 
@@ -93,9 +101,9 @@ if ($sandbox_test) then
   foreach sandbox_defines ("" "-DSIMDVEC_SANDBOX")
     echo "================= sandbox_defines $sandbox_defines ================="
     if ($doitCompile) then
-      make clean
-      make dep # only does something when run in PROG system
-      make -j ${COMPILE_AND_TEST_JOBS} sandbox_defines="$sandbox_defines" \
+      make $syntax_only_defines clean
+      make $syntax_only_defines dep # only does something when run in PROG system
+      make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} sandbox_defines="$sandbox_defines" \
         all_tsimd $autotest_target \
         >& "COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log"
     endif
@@ -107,9 +115,9 @@ if ($opt_test) then
   foreach opt_flags ("-O3 -funroll-loops")# "-O0"
     echo "==================== optflags $opt_flags ===================="
     if ($doitCompile) then
-      make clean
-      make dep # only does something when run in PROG system
-      make -j ${COMPILE_AND_TEST_JOBS} optflags="$opt_flags" \
+      make $syntax_only_defines clean
+      make $syntax_only_defines dep # only does something when run in PROG system
+      make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} optflags="$opt_flags" \
         all_tsimd $autotest_target \
         >& "COMPILE_AND_TEST/opt/compile_${opt_flags}.log"
       rehash
@@ -132,9 +140,9 @@ if ($opt_arch_test) then
     foreach opt_flags ("-O3 -funroll-loops") #"-O0"
       echo "======== flags_arch $arch_defines optflags $opt_flags ========"
       if ($doitCompile) then
-        make clean
-        make dep # only does something when run in PROG system
-        make -j ${COMPILE_AND_TEST_JOBS} flags_arch="$arch_defines" \
+        make $syntax_only_defines clean
+        make $syntax_only_defines dep # only does something when run in PROG system
+        make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} flags_arch="$arch_defines" \
           optflags="$opt_flags" all_tsimd $autotest_target \
           >& "COMPILE_AND_TEST/opt_arch/$arch/compile_$opt_flags.log"
       endif
@@ -143,7 +151,7 @@ if ($opt_arch_test) then
     echo "running tests for $arch"
     if ($doitRun) then
       rehash
-      make -j ${COMPILE_AND_TEST_JOBS} flags-info flags_arch="$arch_defines" \
+      make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} flags-info flags_arch="$arch_defines" \
 	      >& "COMPILE_AND_TEST/opt_arch/$arch/flags_info.log"
       if ($doitAlsoRunAutoTest) then
         ./build/simdvecautotest0 "" 10000 \
@@ -164,14 +172,14 @@ if ($cppstd_test) then
     set cppstd_defines = "-std=$cppstd"
     echo "================= flags_cppstd $cppstd_defines ================="
     if ($doitCompile) then
-      make clean
-      make dep # only does something when run in PROG system
+      make $syntax_only_defines clean
+      make $syntax_only_defines dep # only does something when run in PROG system
       if ($cppstd == "c++98") then
         set all_tsimd = "all_tsimd_cpp98"
       else
         set all_tsimd = "all_tsimd"
       endif
-      make -j ${COMPILE_AND_TEST_JOBS} flags_cppstd="$cppstd_defines" \
+      make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} flags_cppstd="$cppstd_defines" \
         $all_tsimd $autotest_target \
         >& "COMPILE_AND_TEST/cppstd/compile_${cppstd}.log"
       rehash
@@ -183,9 +191,9 @@ if ($default_compilation) then
   mkdir -p COMPILE_AND_TEST/default
   echo "================== default compilation ================="
   if ($doitCompile) then
-    make clean
-    make dep # only does something when run in PROG system
-    make -j ${COMPILE_AND_TEST_JOBS} all_tsimd $autotest_target \
+    make $syntax_only_defines clean
+    make $syntax_only_defines dep # only does something when run in PROG system
+    make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} all_tsimd $autotest_target \
       >& COMPILE_AND_TEST/default/compile.log
   endif
 endif
@@ -211,7 +219,7 @@ if ($errors) then
   endif
 endif
 
-make clean
+make $syntax_only_defines clean
 
 date
 

@@ -1662,6 +1662,15 @@ namespace auto_test {
     }
   }
 
+  // 07. Feb 23 (Jonas Keller): added swizzle3
+  template <int N, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE void
+  swizzle3(SIMDSerialVec<T, SIMD_WIDTH> *const v)
+  {
+    // does the same thing as swizzle2
+    swizzle2<N>(v);
+  }
+
   // 15. Oct 22 (Jonas Keller): added swizzle4
   template <int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void

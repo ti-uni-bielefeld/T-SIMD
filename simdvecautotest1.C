@@ -127,34 +127,14 @@ main(int argc, char *argv[])
   // NOTE: errors occur in fwaddmul if fused-multiply-add is available and used by compiler (-mfma)
   // NOTE: check flags with g++ -mavx2 (or -march=native) -Q --help=target
   TestAllTT<ArrayArrayDoubleDoubleArrayVoidTemplateType,SW,Fwaddmul>::test(repeats1, pattern);
-  Array<SIMDWord,SW,HaddMulti>::test(repeats1, pattern);
-  Array<SIMDShort,SW,HaddMulti>::test(repeats1, pattern);
-  Array<SIMDInt,SW,HaddMulti>::test(repeats1, pattern);
-  Array<SIMDFloat,SW,HaddMulti>::test(repeats1, pattern);
-  Array<SIMDShort,SW,HaddsMulti>::test(repeats1, pattern);
-  Array<SIMDInt,SW,HaddsMulti>::test(repeats1, pattern);
-  Array<SIMDFloat,SW,HaddsMulti>::test(repeats1, pattern);
-  Array<SIMDWord,SW,HsubMulti>::test(repeats1, pattern);
-  Array<SIMDShort,SW,HsubMulti>::test(repeats1, pattern);
-  Array<SIMDInt,SW,HsubMulti>::test(repeats1, pattern);
-  Array<SIMDFloat,SW,HsubMulti>::test(repeats1, pattern);
-  Array<SIMDShort,SW,HsubsMulti>::test(repeats1, pattern);
-  Array<SIMDInt,SW,HsubsMulti>::test(repeats1, pattern);
-  Array<SIMDFloat,SW,HsubsMulti>::test(repeats1, pattern);
-  UnaryScalarT<SIMDWord,SW,HaddSingle>::test(repeats1, pattern);
-  UnaryScalarT<SIMDShort,SW,HaddSingle>::test(repeats1, pattern);
-  UnaryScalarT<SIMDInt,SW,HaddSingle>::test(repeats1, pattern);
-  UnaryScalarT<SIMDFloat,SW,HaddSingle>::test(repeats1, pattern);  
-  UnaryScalarT<SIMDShort,SW,HaddsSingle>::test(repeats1, pattern);
-  UnaryScalarT<SIMDInt,SW,HaddsSingle>::test(repeats1, pattern);
-  UnaryScalarT<SIMDFloat,SW,HaddsSingle>::test(repeats1, pattern);  
-  UnaryScalarT<SIMDWord,SW,HsubSingle>::test(repeats1, pattern);
-  UnaryScalarT<SIMDShort,SW,HsubSingle>::test(repeats1, pattern);
-  UnaryScalarT<SIMDInt,SW,HsubSingle>::test(repeats1, pattern);
-  UnaryScalarT<SIMDFloat,SW,HsubSingle>::test(repeats1, pattern);  
-  UnaryScalarT<SIMDShort,SW,HsubsSingle>::test(repeats1, pattern);
-  UnaryScalarT<SIMDInt,SW,HsubsSingle>::test(repeats1, pattern);
-  UnaryScalarT<SIMDFloat,SW,HsubsSingle>::test(repeats1, pattern);  
+  TestAll<Array,SW,HaddMulti>::test(repeats1, pattern);
+  TestAll<Array,SW,HaddsMulti>::test(repeats1, pattern);
+  TestAll<Array,SW,HsubMulti>::test(repeats1, pattern);
+  TestAll<Array,SW,HsubsMulti>::test(repeats1, pattern);
+  TestAll<UnaryScalarT,SW,HaddSingle>::test(repeats1, pattern);
+  TestAll<UnaryScalarT,SW,HaddsSingle>::test(repeats1, pattern);
+  TestAll<UnaryScalarT,SW,HsubSingle>::test(repeats1, pattern);
+  TestAll<UnaryScalarT,SW,HsubsSingle>::test(repeats1, pattern);
   TestAll<UnaryScalarT,SW,HminSingle>::test(repeats1, pattern);
   TestAll<UnaryScalarT,SW,HmaxSingle>::test(repeats1, pattern);
   // TODO: partial transpose
@@ -172,6 +152,8 @@ main(int argc, char *argv[])
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,Swizzle>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,Swizzle2>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,Unswizzle2>::test(repeats1, pattern);
+  // 07. Feb 23 (Jonas Keller): added test for swizzle3
+  TestAllTI<ArrayVoidTemplateIntMinToMax,SW,Swizzle3>::test(repeats1, pattern);
   // 15. Oct 22 (Jonas Keller): added test for swizzle4 and unswizzle4
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,Swizzle4>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,Unswizzle4>::test(repeats1, pattern);

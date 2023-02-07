@@ -111,15 +111,12 @@ namespace ns_simd {
     SIMDVec<T, SIMD_WIDTH> mask;
   public:
     SIMDMask<T, SIMD_WIDTH>() {}
-    SIMD_INLINE SIMDMask<T, SIMD_WIDTH>(const SIMDVec<T, SIMD_WIDTH> &x)
-        : mask(x) {}
+    explicit SIMD_INLINE SIMDMask<T, SIMD_WIDTH>(
+      const SIMDVec<T, SIMD_WIDTH> &x)
+      : mask(x)
+    {}
     SIMD_INLINE SIMDMask<T, SIMD_WIDTH>(const uint64_t x)
         : mask(int2bits<T, SIMD_WIDTH>(x)) {}
-    SIMD_INLINE SIMDMask<T, SIMD_WIDTH> &
-    operator=(const SIMDVec<T, SIMD_WIDTH> &x) {
-      mask = x;
-      return *this;
-    }
     SIMD_INLINE SIMDMask<T, SIMD_WIDTH> &operator=(const uint64_t x) {
       mask = int2bits<T, SIMD_WIDTH>(x);
       return *this;
@@ -691,7 +688,8 @@ namespace mask {
       return mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>());
     }
     static MaskSetBuffer<false, T, SIMD_WIDTH> buffer;
-    return loadu<SIMD_WIDTH>(buffer.buffer + SIMDVec<T, SIMD_WIDTH>::elems - x);
+    return SIMDMask<T, SIMD_WIDTH>(
+      loadu<SIMD_WIDTH>(buffer.buffer + SIMDVec<T, SIMD_WIDTH>::elems - x));
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -701,7 +699,7 @@ namespace mask {
       return mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>());
     }
     static MaskSetBuffer<true, T, SIMD_WIDTH> buffer;
-    return loadu<SIMD_WIDTH>(buffer.buffer + x);
+    return SIMDMask<T, SIMD_WIDTH>(loadu<SIMD_WIDTH>(buffer.buffer + x));
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -711,7 +709,8 @@ namespace mask {
       return SIMDMask<T, SIMD_WIDTH>(0);
     }
     static MaskSetBuffer<true, T, SIMD_WIDTH> buffer;
-    return loadu<SIMD_WIDTH>(buffer.buffer + SIMDVec<T, SIMD_WIDTH>::elems - x);
+    return SIMDMask<T, SIMD_WIDTH>(
+      loadu<SIMD_WIDTH>(buffer.buffer + SIMDVec<T, SIMD_WIDTH>::elems - x));
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -721,7 +720,7 @@ namespace mask {
       return SIMDMask<T, SIMD_WIDTH>(0);
     }
     static MaskSetBuffer<false, T, SIMD_WIDTH> buffer;
-    return loadu<SIMD_WIDTH>(buffer.buffer + x);
+    return SIMDMask<T, SIMD_WIDTH>(loadu<SIMD_WIDTH>(buffer.buffer + x));
   }
 } // namespace mask
 } // namespace internal

@@ -121,14 +121,14 @@ main(int argc, char *argv[])
   TestAll<Binary,SW,Min>::test(repeats1, pattern);
   TestAll<Binary,SW,Max>::test(repeats1, pattern);
   TestSignedInt<Unary,SW,Abs>::test(repeats1, pattern);
-  TestAllTII<BinaryTemplateIntIntMinToMax,SW,Unpack_>::test(repeats1, pattern);
-  // 10. Oct 22 (Jonas Keller): added test for Unpack16_
-  TestAllTII<BinaryTemplateIntIntMinToMax,SW,Unpack16_>::test(repeats1, pattern);
+  TestAllTII<BinaryTemplateIntIntMinToMax,SW,Unpack>::test(repeats1, pattern);
+  // 10. Oct 22 (Jonas Keller): added test for Unpack16
+  TestAllTII<BinaryTemplateIntIntMinToMax,SW,Unpack16>::test(repeats1, pattern);
   // 10. Oct 22 (Jonas Keller): added test for ExtractLane
   TestAllTI<UnaryTemplateInt16MinToMax,SW,ExtractLane>::test(repeats1, pattern);
-  TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Zip_>::test(repeats1, pattern);
-  // 10. Oct 22 (Jonas Keller): added test for Zip16_
-  TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Zip16_>::test(repeats1, pattern);
+  TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Zip>::test(repeats1, pattern);
+  // 10. Oct 22 (Jonas Keller): added test for Zip16
+  TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Zip16>::test(repeats1, pattern);
   TestAllTI<BinaryBinaryTemplateIntMinToMax,SW,Unzip>::test(repeats1, pattern);
   BinaryTemplateType<SIMDSignedByte,SIMDShort,SW,Packs>::test(repeats1, pattern);
   BinaryTemplateType<SIMDShort,SIMDInt,SW,Packs>::test(repeats1, pattern);
@@ -172,7 +172,7 @@ main(int argc, char *argv[])
   TestAllTI<UnaryTemplateIntMinToMax,SW,Slle>::test(repeats1, pattern);
   TestAll<UnaryScalarT,SW,Elem0>::test(repeats1, pattern);
   TestAllTI<BinaryTemplateIntMinToMax,SW,Alignre>::test(repeats1, pattern);
-  TestAllTI<ArrayVoidTemplateIntMinToMax,SW,_Swizzle>::test(repeats1, pattern);
+  TestAllTI<ArrayVoidTemplateIntMinToMax,SW,Swizzle>::test(repeats1, pattern);
   TernaryConditionTemplateType<SIMDByte,SIMDByte,SW,Ifelse>::test(repeats1, pattern);
   TernaryConditionTemplateType<SIMDSignedByte,SIMDSignedByte,SW,Ifelse>::test(repeats1, pattern);
   TernaryConditionTemplateType<SIMDWord,SIMDWord,SW,Ifelse>::test(repeats1, pattern);

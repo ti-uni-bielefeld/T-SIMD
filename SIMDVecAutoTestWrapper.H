@@ -516,7 +516,7 @@ namespace auto_test {
 
   // SIMDVecExt.H has a template class Unpack, so we add an underscore
   template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
-  struct Unpack_
+  struct Unpack
   {
     static SIMD_INLINE std::string name()
     { return tii2s<PART,NUM_ELEMS,T,SIMD_WIDTH>("unpack"); }
@@ -546,7 +546,7 @@ namespace auto_test {
   // 10. Oct 22 (Jonas Keller): added Unpack16
   // SIMDVecExt.H has a template class Unpack16, so we add an underscore
   template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
-  struct Unpack16_
+  struct Unpack16
   {
     static SIMD_INLINE std::string name()
     { return tii2s<PART,NUM_ELEMS,T,SIMD_WIDTH>("unpack16"); }
@@ -599,7 +599,7 @@ namespace auto_test {
 
   // SIMDVecExt.H has a template class Zip, so we add an underscore
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
-  struct Zip_
+  struct Zip
   {
     static SIMD_INLINE std::string name()
     { return ti2s<NUM_ELEMS,T,SIMD_WIDTH>("zip"); }
@@ -626,7 +626,7 @@ namespace auto_test {
   // 10. Oct 22 (Jonas Keller): added Zip16
   // SIMDVecExt.H has a template class Zip16, so we add an underscore
   template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
-  struct Zip16_
+  struct Zip16
   {
     static SIMD_INLINE std::string name()
     { return ti2s<NUM_ELEMS,T,SIMD_WIDTH>("zip16"); }
@@ -1023,7 +1023,7 @@ namespace auto_test {
   };
 
   template <int I, typename T, int SIMD_WIDTH>
-  struct _Swizzle
+  struct Swizzle
   {
     static SIMD_INLINE std::string name()
     { return ti2s<I,T,SIMD_WIDTH>("swizzle"); }
@@ -1046,7 +1046,7 @@ namespace auto_test {
   };
 
   template <int I, typename T, int SIMD_WIDTH>
-  struct _Swizzle2
+  struct Swizzle2
   {
     static SIMD_INLINE std::string name()
     { return ti2s<I,T,SIMD_WIDTH>("swizzle2"); }
@@ -1070,7 +1070,7 @@ namespace auto_test {
   };
 
   template <int I, typename T, int SIMD_WIDTH>
-  struct _Unswizzle2
+  struct Unswizzle2
   {
     static SIMD_INLINE std::string name()
     { return ti2s<I,T,SIMD_WIDTH>("unswizzle2"); }
@@ -1095,7 +1095,7 @@ namespace auto_test {
 
   // 15. Oct 22 (Jonas Keller): added _Swizzle4
   template <int I, typename T, int SIMD_WIDTH>
-  struct _Swizzle4
+  struct Swizzle4
   {
     static SIMD_INLINE std::string name()
     { return ti2s<I,T,SIMD_WIDTH>("swizzle4"); }
@@ -1120,7 +1120,7 @@ namespace auto_test {
 
   // 15. Oct 22 (Jonas Keller): added _Unswizzle4
   template <int I, typename T, int SIMD_WIDTH>
-  struct _Unswizzle4
+  struct Unswizzle4
   {
     static SIMD_INLINE std::string name()
     { return ti2s<I,T,SIMD_WIDTH>("unswizzle4"); }
@@ -1808,7 +1808,7 @@ namespace auto_test {
 
   // SIMDVecExt.H has a template class Transpose, so we add an underscore
   template <typename T, int SIMD_WIDTH>
-  struct Transpose_
+  struct Transpose
   {
     static SIMD_INLINE std::string name() 
     { return t2s<T,SIMD_WIDTH>("transpose"); }
@@ -1827,7 +1827,7 @@ namespace auto_test {
   };
 
   template <typename T, int SIMD_WIDTH>
-  struct Transpose2_
+  struct Transpose2
   {
     static SIMD_INLINE std::string name() 
     { return t2s<T,SIMD_WIDTH>("transpose2"); }
@@ -1938,7 +1938,7 @@ namespace auto_test {
   };
 
   template <typename T, int SIMD_WIDTH>
-  struct Transpose0_
+  struct Transpose0
   {
     static SIMD_INLINE std::string name()
     { return t2s<T,SIMD_WIDTH>("transpose0"); }
@@ -1957,7 +1957,7 @@ namespace auto_test {
   };
 
   template <typename T, int SIMD_WIDTH>
-  struct Transpose16_
+  struct Transpose16
   {
     static SIMD_INLINE std::string name()
     { return t2s<T,SIMD_WIDTH>("transpose16"); }
@@ -1976,7 +1976,7 @@ namespace auto_test {
   };
 
   template <typename T, int SIMD_WIDTH>
-  struct Transpose3_
+  struct Transpose3
   {
     static SIMD_INLINE std::string name()
     { return t2s<T,SIMD_WIDTH>("transpose3"); }
@@ -1995,7 +1995,7 @@ namespace auto_test {
   };
 
   template <typename T, int SIMD_WIDTH>
-  struct Transpose4_
+  struct Transpose4
   {
     static SIMD_INLINE std::string name()
     { return t2s<T,SIMD_WIDTH>("transpose4"); }
@@ -2014,7 +2014,7 @@ namespace auto_test {
   };
 
   template <typename T, int SIMD_WIDTH>
-  struct Transpose5_
+  struct Transpose5
   {
     static SIMD_INLINE std::string name()
     { return t2s<T,SIMD_WIDTH>("transpose5"); }
@@ -2033,7 +2033,7 @@ namespace auto_test {
   };
 
   template <typename T, int SIMD_WIDTH>
-  struct Transpose1_16_
+  struct Transpose1_16
   {
     static SIMD_INLINE std::string name()
     { return t2s<T,SIMD_WIDTH>("transpose1_16"); }
@@ -2052,7 +2052,7 @@ namespace auto_test {
   };
 
   template <typename T, int SIMD_WIDTH>
-  struct Transpose6_
+  struct Transpose6
   {
     static SIMD_INLINE std::string name()
     { return t2s<T,SIMD_WIDTH>("transpose6"); }

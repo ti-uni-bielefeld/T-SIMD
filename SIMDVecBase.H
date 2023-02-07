@@ -1010,19 +1010,23 @@ namespace ns_simd {
   /**
    * @brief Selects elements from two SIMDVec's based on a condition SIMDVec.
    *
+   * The element type of the condition vector must have the same size as the
+   * element type of the true and false value vectors.
+   *
    * @param cond The condition SIMDVec. Each element must be either
    * all 1 bits or all 0 bits, representing true or false, respectively.
    * @param trueVal The SIMDVec to select from if the condition is true.
    * @param falseVal The SIMDVec to select from if the condition is false.
    * @return A SIMDVec containing the selected elements.
    */
-  template <typename T, int SIMD_WIDTH>
+  template <typename Tcond, typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  ifelse(const SIMDVec<T, SIMD_WIDTH> &cond,
+  ifelse(const SIMDVec<Tcond, SIMD_WIDTH> &cond,
 	 const SIMDVec<T, SIMD_WIDTH> &trueVal,
 	 const SIMDVec<T, SIMD_WIDTH> &falseVal)
   {
-    return internal::base::ifelse(cond, trueVal, falseVal);
+    SIMD_STATIC_ASSERT(sizeof(Tcond) == sizeof(T));
+    return internal::base::ifelse(reinterpret<T>(cond), trueVal, falseVal);
   }
 
   /**

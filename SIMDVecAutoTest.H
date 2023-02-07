@@ -607,6 +607,37 @@ namespace auto_test {
   };
 
   // ===========================================================================
+  // test for different type combs.: one add. templ. type arg. of the same size
+  // ===========================================================================
+
+  // 07. Feb (Jonas Keller): Added TestAllTTSameSize
+
+  template <template <typename, typename, int,
+          template <typename, typename, int> class, class> class Tester,
+      int SIMD_WIDTH,
+      template <typename, typename, int> class FCT,
+      class CMP = CmpEqual>
+  struct TestAllTTSameSize
+  {
+    static void
+    test(int repeats, const std::string &pattern)
+    {
+      Tester<SIMDByte,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDByte,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMDByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDSignedByte,SIMDSignedByte,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDWord,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMDWord,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDShort,SIMDShort,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDInt,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMDInt,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+      Tester<SIMDFloat,SIMDFloat,SIMD_WIDTH,FCT,CMP>::test(repeats, pattern);
+    }
+  };
+
+  // ===========================================================================
   // test of nullary commands
   // ===========================================================================
 

@@ -173,12 +173,7 @@ main(int argc, char *argv[])
   TestAll<UnaryScalarT,SW,Elem0>::test(repeats1, pattern);
   TestAllTI<BinaryTemplateIntMinToMax,SW,Alignre>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax,SW,Swizzle>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDByte,SIMDByte,SW,Ifelse>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDSignedByte,SIMDSignedByte,SW,Ifelse>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDWord,SIMDWord,SW,Ifelse>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDShort,SIMDShort,SW,Ifelse>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDInt,SIMDInt,SW,Ifelse>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDFloat,SIMDFloat,SW,Ifelse>::test(repeats1, pattern);
+  TestAllTTSameSize<TernaryConditionTemplateType,SW,Ifelse>::test(repeats1, pattern);
   TestAll<Binary,SW,Cmplt>::test(repeats1, pattern);
   TestAll<Binary,SW,Cmple>::test(repeats1, pattern);
   TestAll<Binary,SW,Cmpeq>::test(repeats1, pattern);

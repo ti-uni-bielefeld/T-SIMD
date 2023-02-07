@@ -205,12 +205,6 @@ main(int argc, char *argv[])
   ArrayTemplateType<SIMDWord,SIMDFloat,SW,PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<SIMDInt,SIMDFloat,SW,PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<SIMDFloat,SIMDFloat,SW,PacksMulti>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDByte,SIMDSignedByte,SW,Ifelse>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDSignedByte,SIMDByte,SW,Ifelse>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDWord,SIMDShort,SW,Ifelse>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDShort,SIMDWord,SW,Ifelse>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDInt,SIMDFloat,SW,Ifelse>::test(repeats1, pattern);
-  TernaryConditionTemplateType<SIMDFloat,SIMDInt,SW,Ifelse>::test(repeats1, pattern); 
   TestAll<Unary,SW,Div2r0>::test(repeats1, pattern);
   TestAll<Unary,SW,Div2rd>::test(repeats1, pattern);
   Binary<SIMDFloat,SW,Sign>::test(repeats1, pattern);

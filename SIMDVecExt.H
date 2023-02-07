@@ -3355,30 +3355,6 @@ namespace ext {
   {
     return internal::ext::setnegunity<T,SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
   }
-  
-  // ===========================================================================
-  // ifelse with casts for compatible conditions
-  // ===========================================================================
-
-  /**
-   * @copybrief ifelse(const SIMDVec<T,SIMD_WIDTH> &,
-   * const SIMDVec<T,SIMD_WIDTH> &, const SIMDVec<T,SIMD_WIDTH> &)
-   *
-   * The element type of the condition vector must have the same size as the
-   * element type of the true and false value vectors.
-   *
-   * @copydetails ifelse(const SIMDVec<T,SIMD_WIDTH> &,
-   * const SIMDVec<T,SIMD_WIDTH> &, const SIMDVec<T,SIMD_WIDTH> &)
-   */
-  template <typename Tcond, typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
-  ifelse(const SIMDVec<Tcond,SIMD_WIDTH> &cond,
-	 const SIMDVec<T,SIMD_WIDTH> &trueVal,
-	 const SIMDVec<T,SIMD_WIDTH> &falseVal)
-  {
-    SIMD_STATIC_ASSERT(sizeof(Tcond) == sizeof(T));
-    return ifelse(reinterpret<T>(cond), trueVal, falseVal);
-  }
 
   // ===========================================================================
   // div2r0: integer div. by 2 with round to 0 (for integers)

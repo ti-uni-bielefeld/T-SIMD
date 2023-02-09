@@ -2061,8 +2061,8 @@ namespace auto_test {
 	  double fac,
 	  SIMDSerialVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     const int numInVecs = NUM_INPUT_SIMDVECS(Tout, Tin);
     const int numInElems = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
     const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
@@ -2085,8 +2085,8 @@ namespace auto_test {
        double fac,
        SIMDSerialVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     const int numInVecs = NUM_INPUT_SIMDVECS(Tout, Tin);
     const int numInElems = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
     const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
@@ -2109,8 +2109,8 @@ namespace auto_test {
 	  double fac,
 	  SIMDSerialVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     const int numInVecs = NUM_INPUT_SIMDVECS(Tout, Tin);
     const int numInElems = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
     const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
@@ -2134,8 +2134,8 @@ namespace auto_test {
 	  double off,
 	  SIMDSerialVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     const int numInVecs = NUM_INPUT_SIMDVECS(Tout, Tin);
     const int numInElems = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
     const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
@@ -2160,8 +2160,8 @@ namespace auto_test {
 	   double fac,
 	   SIMDSerialVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     const int numInVecs = NUM_INPUT_SIMDVECS(Tout, Tin);
     const int numInElems = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
     const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);

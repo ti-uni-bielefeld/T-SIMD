@@ -762,8 +762,8 @@ namespace ext {
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     const int nIn = sizeof(Tin) / sizeof(Tout);
     const int fanIn = sizeof(SIMDFloat) / sizeof(Tin);
@@ -787,8 +787,8 @@ namespace ext {
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     const int nOut = sizeof(Tout) / sizeof(Tin);
     const int fanOut = sizeof(SIMDFloat) / sizeof(Tout);
@@ -812,8 +812,8 @@ namespace ext {
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     // sizeof(Tout) == sizeof(Tin)
     const int fanInOut = sizeof(SIMDFloat) / sizeof(Tin);
@@ -978,8 +978,8 @@ namespace ext {
                   SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     internal::ext::fdivMsigmoidmul<DIM, NVEC>(internal::CompareTypes<Tout,Tin>(),
                                vecsNum, vecsDenom, w, w0, fac, vecsOut);
   }
@@ -998,8 +998,8 @@ namespace ext {
        SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     const int nIn = sizeof(Tin) / sizeof(Tout);
     const int fanIn = sizeof(SIMDFloat) / sizeof(Tin);
@@ -1021,8 +1021,8 @@ namespace ext {
        SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     const int nOut = sizeof(Tout) / sizeof(Tin);
     const int fanOut = sizeof(SIMDFloat) / sizeof(Tout);
@@ -1044,8 +1044,8 @@ namespace ext {
        SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     // sizeof(Tout) == sizeof(Tin)
     const int fanInOut = sizeof(SIMDFloat) / sizeof(Tin);
@@ -1084,8 +1084,8 @@ namespace ext {
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> offF = set1<SIMDFloat,SIMD_WIDTH>(off);
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     const int nIn = sizeof(Tin) / sizeof(Tout);
@@ -1109,8 +1109,8 @@ namespace ext {
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> offF = set1<SIMDFloat,SIMD_WIDTH>(off);
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     const int nOut = sizeof(Tout) / sizeof(Tin);
@@ -1134,8 +1134,8 @@ namespace ext {
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> offF = set1<SIMDFloat,SIMD_WIDTH>(off);
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     // sizeof(Tout) == sizeof(Tin)
@@ -1178,8 +1178,8 @@ namespace ext {
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> offF = set1<SIMDFloat,SIMD_WIDTH>(off);
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     const int nIn = sizeof(Tin) / sizeof(Tout);
@@ -1203,8 +1203,8 @@ namespace ext {
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> offF = set1<SIMDFloat,SIMD_WIDTH>(off);
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     const int nOut = sizeof(Tout) / sizeof(Tin);
@@ -1228,8 +1228,8 @@ namespace ext {
 	  SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> offF = set1<SIMDFloat,SIMD_WIDTH>(off);
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     // sizeof(Tout) == sizeof(Tin)
@@ -1275,8 +1275,8 @@ namespace ext {
 	   SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> wF = set1<SIMDFloat,SIMD_WIDTH>(w);
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     const int nIn = sizeof(Tin) / sizeof(Tout);
@@ -1302,8 +1302,8 @@ namespace ext {
 	   SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> wF = set1<SIMDFloat,SIMD_WIDTH>(w);
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     const int nOut = sizeof(Tout) / sizeof(Tin);
@@ -1329,8 +1329,8 @@ namespace ext {
 	   SIMDVec<Tout, SIMD_WIDTH> *const vecsOut)
   {
     // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(SIMDFloat)
-    typeSizeLEQ<Tin,SIMDFloat>();
-    typeSizeLEQ<Tout,SIMDFloat>();
+    SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
+    SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
     SIMDVec<SIMDFloat,SIMD_WIDTH> wF = set1<SIMDFloat,SIMD_WIDTH>(w);
     SIMDVec<SIMDFloat,SIMD_WIDTH> facF = set1<SIMDFloat,SIMD_WIDTH>(fac);
     // sizeof(Tout) == sizeof(Tin)

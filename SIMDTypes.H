@@ -88,135 +88,86 @@ namespace ns_simd {
   // generic compile-time check (Alexandrescu "Modern C++ Design" p.25)
   // ===========================================================================
 
+#if DOXYGEN
+  /**
+  * @brief Compile-time assertion.
+  *
+  * This macro can be used to check a condition at compile time.
+  *
+  * @param EXPR The condition to check.
+  */
+#define SIMD_STATIC_ASSERT(EXPR)
+  /**
+   * @brief Compile-time assertion with message.
+   * 
+   * This macro can be used to check a condition at compile time with a
+   * message.
+   * 
+   * @param EXPR The condition to check.
+   * @param MSG A message to be displayed if the condition is false.
+   */
+#define SIMD_STATIC_ASSERT_MSG(EXPR, MSG)
+
+#else // DOXYGEN
+
+#if __cplusplus >= 201703L // at least C++17
+#define SIMD_STATIC_ASSERT(EXPR) static_assert(EXPR)
+#define SIMD_STATIC_ASSERT_MSG(EXPR, MSG) static_assert(EXPR, MSG)
+#elif __cplusplus >= 201103L // at least C++11
+#define SIMD_STATIC_ASSERT(EXPR) static_assert(EXPR, "")
+#define SIMD_STATIC_ASSERT_MSG(EXPR, MSG) static_assert(EXPR, MSG)
+#else // older C++
 namespace internal {
 namespace types {
   template<bool> struct SIMDStaticAssert;
   template<> struct SIMDStaticAssert<true> {};
 } // namespace types
 } // namespace internal
-
 #define SIMD_STATIC_ASSERT(EXPR) \
   (::ns_simd::internal::types::SIMDStaticAssert<(EXPR) != 0>())
+#define SIMD_STATIC_ASSERT_MSG(EXPR, MSG) \
+  (::ns_simd::internal::types::SIMDStaticAssert<(EXPR) != 0>())
+#endif
 
-  // ===========================================================================
-  // size comparison of types (for compile-time check)
-  // ===========================================================================
+#endif // DOXYGEN
 
-  // not elegant, but probably produces a well-readable error message
-
-  // left\right
-  //    SB B S W I F 
-  // SB  x x x x x x
-  //  B  x x x x x x
-  //  S      x x x x
-  //  W      x x x x
-  //  I          x x
-  //  F          x x
-
+#if DOXYGEN
   /**
-   * @brief Compile-time check that the left type is smaller or equal in size to
-   * the right type.
+   * @brief Compile-time check for type equality.
+   *
+   * This macro can be used to check if two types are equal at compile time.
    * 
-   * Only has specializations for types where the left type is smaller
-   * or equal in size to the right type. If the left type is larger, the
-   * compiler will complain about a missing specialization.
+   * @param TYPE1 The first type.
+   * @param TYPE2 The second type.
    */
-  template <typename Tleft, typename Tright>
-  static SIMD_INLINE void typeSizeLEQ();
+#define SIMD_TYPE_EQ(TYPE1, TYPE2)
 
-  /// @cond false
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDSignedByte,SIMDSignedByte>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDSignedByte,SIMDByte>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDSignedByte,SIMDShort>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDSignedByte,SIMDWord>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDSignedByte,SIMDInt>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDSignedByte,SIMDFloat>() {}
+#else // DOXYGEN
 
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDByte,SIMDSignedByte>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDByte,SIMDByte>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDByte,SIMDShort>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDByte,SIMDWord>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDByte,SIMDInt>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDByte,SIMDFloat>() {}
+#if __cplusplus >= 201103L // at least C++11
+#define SIMD_TYPE_EQ(TYPE1, TYPE2) (std::is_same<TYPE1, TYPE2>::value)
+#else
+namespace internal {
+namespace types {
+  template <typename T1, typename T2>
+  struct SIMDTypeEq
+  {
+    static const bool value = false;
+  };
 
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDShort,SIMDShort>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDShort,SIMDWord>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDShort,SIMDInt>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDShort,SIMDFloat>() {}
+  template <typename T>
+  struct SIMDTypeEq<T, T>
+  {
+    static const bool value = true;
+  };
+} // namespace types
+} // namespace internal
 
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDWord,SIMDShort>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDWord,SIMDWord>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDWord,SIMDInt>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDWord,SIMDFloat>() {}
+#define SIMD_TYPE_EQ(TYPE1, TYPE2) \
+  (::ns_simd::internal::types::SIMDTypeEq<TYPE1, TYPE2>::value)
+#endif
 
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDInt,SIMDInt>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDInt,SIMDFloat>() {}
-
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDFloat,SIMDInt>() {}
-  template <> SIMD_INLINE void typeSizeLEQ<SIMDFloat,SIMDFloat>() {}
-  /// @endcond
-
-  // ===========================================================================
-  // signed/unsigned (for compile-time check)
-  // ===========================================================================
-
-  /**
-   * @brief Compile-time check that the type is signed.
-   *
-   * Only has specializations for signed types. If the type is
-   * unsigned, the compiler will complain about a missing specialization.
-   */
-  template <typename T> static SIMD_INLINE void signedType();
-  /// @cond false
-  template <> SIMD_INLINE void signedType<SIMDSignedByte>() {}
-  template <> SIMD_INLINE void signedType<SIMDShort>() {}
-  template <> SIMD_INLINE void signedType<SIMDInt>() {}
-  template <> SIMD_INLINE void signedType<SIMDFloat>() {}
-  /// @endcond
-
-  /**
-   * @brief Compile-time check that the type is unsigned.
-   * 
-   * Only has specializations for unsigned types. If the type is
-   * signed, the compiler will complain about a missing specialization.
-   */
-  template <typename T> static SIMD_INLINE void unsignedType();
-  /// @cond false
-  template <> SIMD_INLINE void unsignedType<SIMDByte>() {}
-  template <> SIMD_INLINE void unsignedType<SIMDWord>() {}
-  /// @endcond
-
-  // ===========================================================================
-  // integer/float (for compile-time check)
-  // ===========================================================================
-
-  /**
-   * @brief Compile-time check that the type is an integer type.
-   *
-   * Only has specializations for integer types. If the type is a
-   * floating-point type, the compiler will complain about a missing
-   * specialization.
-   */
-  template <typename T> static SIMD_INLINE void integerType();
-  /// @cond false
-  template <> SIMD_INLINE void integerType<SIMDByte>() {}
-  template <> SIMD_INLINE void integerType<SIMDSignedByte>() {}
-  template <> SIMD_INLINE void integerType<SIMDWord>() {}
-  template <> SIMD_INLINE void integerType<SIMDShort>() {}
-  template <> SIMD_INLINE void integerType<SIMDInt>() {}
-  /// @endcond
-
-  /**
-   * @brief Compile-time check that the type is a floating-point type.
-   *
-   * Only has specializations for floating-point types. If the type is
-   * an integer type, the compiler will complain about a missing
-   * specialization.
-   */
-  template <typename T> static SIMD_INLINE void floatingPointType();
-  /// @cond false
-  template <> SIMD_INLINE void floatingPointType<SIMDFloat>() {}
-  /// @endcond
+#endif // DOXYGEN
 
   // ===========================================================================
   // SIMDTypeInfo

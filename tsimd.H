@@ -38,49 +38,58 @@
 
 #include "SIMDVecAll.H"
 
-// simd not allowed here
 namespace ns_simd {
 
   // we can use element types simd::Byte instead of SIMDByte etc.
-  typedef SIMDByte Byte; ///< Alias for @ref SIMDByte
-  typedef SIMDSignedByte SignedByte; ///< Alias for @ref SIMDSignedByte
-  typedef SIMDWord Word; ///< Alias for @ref SIMDWord
-  typedef SIMDShort Short; ///< Alias for @ref SIMDShort
-  typedef SIMDInt Int; ///< Alias for @ref SIMDInt
-  typedef SIMDFloat Float; ///< Alias for @ref SIMDFloat
+  /**
+   * @ingroup types
+   * @defgroup aliases Aliases For SIMD Types
+   * @brief Shorter names for SIMD types. Requires C++11.
+   *
+   * The file tsimd.H must be included to use these aliases.
+   *
+   * @{
+   */
+  typedef SIMDByte Byte; ///< Alias for @ref SIMDByte. Requires C++11.
+  typedef SIMDSignedByte SignedByte; ///< Alias for @ref SIMDSignedByte. Requires C++11.
+  typedef SIMDWord Word; ///< Alias for @ref SIMDWord. Requires C++11.
+  typedef SIMDShort Short; ///< Alias for @ref SIMDShort. Requires C++11.
+  typedef SIMDInt Int; ///< Alias for @ref SIMDInt. Requires C++11.
+  typedef SIMDFloat Float; ///< Alias for @ref SIMDFloat. Requires C++11.
 
   // we can use simd::Vec instead of SIMDVec (requires C++11)
   // 15. Oct 21 (rm): add NATIVE_SIMD_WIDTH
-  /// Alias for SIMDVec
+  /// Alias for SIMDVec. Requires C++11.
   template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
   using Vec = SIMDVec<T, SIMD_WIDTH>;
 
   // we can use simd::Vecs instead of SIMDVecs (requires C++11)
   // 15. Oct 21 (rm): add NATIVE_SIMD_WIDTH
-  /// Alias for SIMDVecs
+  /// Alias for SIMDVecs. Requires C++11.
   template <int NUM, typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
   using Vecs = SIMDVecs<NUM, T, SIMD_WIDTH>;
 
   // 05. Aug 22 (Jonas Keller): add simd::Mask alias for SIMDMask
   // we can use simd::Mask instead of SIMDMask (requires C++11)
-  /// Alias for SIMDMask
+  /// Alias for SIMDMask. Requires C++11.
   template <typename T, int SIMD_WIDTH = NATIVE_SIMD_WIDTH>
   using Mask = SIMDMask<T, SIMD_WIDTH>;
   
   // we can use simd::TypeInfo instead of SIMDTypeInfo (requires C++11)
-  /// Alias for SIMDTypeInfo
+  /// Alias for SIMDTypeInfo. Requires C++11.
   template <typename T>
   using TypeInfo = SIMDTypeInfo<T>;
 
   // we can use simd::Format instead of SIMDFormat (requires C++11)
-  /// Alias for SIMDFormat
+  /// Alias for SIMDFormat. Requires C++11.
   template <typename T>
   using Format = SIMDFormat<T>;
 
   // we can use simd::Decimal instead of SIMDDecimal (requires C++11)
-  /// Alias for SIMDDecimal
+  /// Alias for SIMDDecimal. Requires C++11.
   template <typename T>
   using Decimal = SIMDDecimal<T>;
+  /** @} */
  
 } // namespace ns_simd
 
@@ -88,7 +97,16 @@ namespace ns_simd {
 // shifted here:
 
 // introduce alias namespace "simd"
-/// Alias for ns_simd
+
+#ifdef DOXYGEN
+// doxygen doesn't understand namespace aliases
+/**
+ * @ingroup aliases
+ * @brief Alias for @ref ns_simd. Requires C++11.
+ */
+namespace simd {}
+#else
 namespace simd = ns_simd;
+#endif
 
 #endif

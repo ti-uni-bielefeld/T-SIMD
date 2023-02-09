@@ -36,6 +36,11 @@
 #include <string>
 
 namespace ns_simd {
+  /**
+   * @defgroup ext Extension Functions
+   * @brief Generic extension functions implemented using base-level functions.
+   * @{
+   */
 
   // ===========================================================================
   // helper functions for templates converting from Tin to Tout
@@ -114,6 +119,7 @@ namespace ext {
 
   // determine NATIVE_SIMD_REG_COUNT
   // https://stackoverflow.com/questions/62419256/how-can-i-determine-how-many-avx-registers-my-processor-has
+/// @cond
 #ifdef __x86_64__
 #ifdef __AVX512VL__
 #define NATIVE_SIMD_REG_COUNT 32
@@ -123,6 +129,7 @@ namespace ext {
 #else
 #define NATIVE_SIMD_REG_COUNT 8
 #endif
+/// @endcond
 
   // ===========================================================================
   // print functions (for tests)
@@ -145,6 +152,12 @@ namespace ext {
   // {
   //   return (in == -0.0f) ? 0.0f : in;
   // }
+
+  /**
+   * @defgroup print Print Functions
+   * @brief Functions to print the elements of a SIMDVec.
+   * @{
+   */
 
   /**
    * @brief Writes the formatted elements of a SIMD vector to a file.
@@ -248,9 +261,22 @@ namespace ext {
     fprint(stdout, format, separator, vec);
   }
 
+  /** @} */ // end of group print
+
+  /**
+   * @defgroup ext_memory Extension Memory Functions
+   * @brief Functions to load and store SIMDVec's from and to memory.
+   * @{
+   */
+
   // ===========================================================================
   // multi-vector store and load
   // ===========================================================================
+
+  /**
+   * @name Load and store functions for multiple SIMDVec's
+   * @{
+   */
 
   /**
    * @brief Loads multiple successive SIMDVec's from aligned memory.
@@ -499,9 +525,16 @@ namespace ext {
                       SIMD_WIDTH, 0, 0>::_store16(p, outVecs);
   }
 
+  /** @} */
+
   // ===========================================================================
   // copy (load and store)
   // ===========================================================================
+
+  /**
+   * @name Copy
+   * @{
+   */
 
   /**
    * @brief Copies a single SIMDVec from one aligned memory location to
@@ -572,6 +605,10 @@ namespace ext {
     SIMDVec<T, SIMD_WIDTH> copy = loadu<SIMD_WIDTH>(src);
     storeu(dst, copy);
   }
+
+  /** @} */
+
+  /** @} */ // end of group ext_memory
 
   // ===========================================================================
   // generalized packs
@@ -1358,9 +1395,20 @@ namespace ext {
     internal::ext::fwaddmul(internal::CompareTypes<Tout,Tin>(), vecsIn1, vecsIn2, w, fac, vecsOut);
   }
 
+  /**
+   * @defgroup ext_horizontal Additional Horizontal Functions
+   * @brief Additional Horizontal Functions
+   * @{
+   */
+
   // ===========================================================================
   // horizontal add/adds/sub/subs: generic form for multiple vector inputs
   // ===========================================================================
+
+  /**
+   * @name Horizontal addition and subtraction for multiple vector inputs
+   * @{
+   */
 
   // TODO: is there an easy way to implement multivec horizontal min/max?
   // TODO: (Hackers delight: min/max via doz = hsubs?)
@@ -1502,9 +1550,16 @@ namespace ext {
 		      (SIMD_WIDTH / sizeof(T)) / 2>::_hsubs(v);
   }
 
+  /** @} */
+
   // ===========================================================================
   // horizontal operations (generic form for single vector input)
   // ===========================================================================
+
+  /**
+   * @name Horizontal operations on a single SIMDVec
+   * @{
+   */
 
   // these operations are not fully parallel!
 
@@ -1674,6 +1729,338 @@ namespace ext {
   {
     return elem0(internal::ext::Horizontal1<T, SIMD_WIDTH, SIMD_WIDTH/sizeof(T)/2>::_hmax(v));
   }
+
+  /** @} */
+
+  /** @} */ // end of group ext_horizontal
+
+  /**
+   * @defgroup ext_math Additional Math Functions
+   * @{
+   */
+ 
+  // ===========================================================================
+  // avgru: synonym f. average with rounding up
+  // ===========================================================================
+
+  // this is just a synonym for avg which is compatible with the auxiliary avgrd
+
+  /**
+   * @copybrief avg(const SIMDVec<T, SIMD_WIDTH> &,
+   * const SIMDVec<T, SIMD_WIDTH> &)
+   *
+   * Equivalent to avg(const SIMDVec<T, SIMD_WIDTH> &, const
+   * SIMDVec<T, SIMD_WIDTH> &).
+   *
+   * @copydetails avg(const SIMDVec<T, SIMD_WIDTH> &,
+   * const SIMDVec<T, SIMD_WIDTH> &)
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  avgru(const SIMDVec<T, SIMD_WIDTH> &a,
+	const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return avg(a, b);
+  }
+
+  // ===========================================================================
+  // avgrd: average with rounding down
+  // ===========================================================================
+
+  // 30. Jul 17 (rm): removed unnecessary tag dispatching for avgrd()
+
+namespace internal {
+namespace ext {
+  // int types
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  avgrd(const SIMDVec<T, SIMD_WIDTH> &a,
+        const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    SIMDVec<T, SIMD_WIDTH> one = set1<T, SIMD_WIDTH>(1), as, bs, lsb;
+    lsb = and(and(a, b), one);
+    as = div2rd(a);
+    bs = div2rd(b);
+    return add(lsb, add(as, bs));
+  }
+
+  // NOTE: no rounding for floating-point types
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
+  avgrd(const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
+        const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
+  {
+    return mul(add(a, b), set1<SIMDFloat, SIMD_WIDTH>(0.5));
+  }
+} // namespace ext
+} // namespace internal
+
+  /**
+   * @brief Computes the average of the elements of two SIMDVecs, rounding down.
+   *
+   * @param a First SIMDVec.
+   * @param b Second SIMDVec.
+   * @return A SIMDVec containing the rounded down average of the elements of
+   * the two input SIMDVec's.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  avgrd(const SIMDVec<T, SIMD_WIDTH> &a,
+        const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::ext::avgrd(a, b);
+  }
+
+  // ===========================================================================
+  // div2r0: integer div. by 2 with round to 0 (for integers)
+  // ===========================================================================
+
+namespace internal {
+namespace ext {
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDByte,SIMD_WIDTH>
+  div2r0(const SIMDVec<SIMDByte,SIMD_WIDTH> &a)
+  {
+    return srli<1>(a); 
+  }
+
+  // 16. Oct 22 (Jonas Keller): added missing version for SIMDSignedByte
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,SIMD_WIDTH>
+  div2r0(const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &a)
+  {
+    // add 1 if number is negative
+    return srai<1>(add(a, srli<7>(a)));
+  }
+  
+
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDWord,SIMD_WIDTH>
+  div2r0(const SIMDVec<SIMDWord,SIMD_WIDTH> &a)
+  {
+    return srli<1>(a);
+  }
+
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDShort,SIMD_WIDTH>
+  div2r0(const SIMDVec<SIMDShort,SIMD_WIDTH> &a)
+  {
+    // add 1 if number is negative
+    return srai<1>(add(a, srli<15>(a)));
+  }
+
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDInt,SIMD_WIDTH>
+  div2r0(const SIMDVec<SIMDInt,SIMD_WIDTH> &a)
+  {
+    // add 1 if number is negative
+    return srai<1>(add(a, srli<31>(a)));
+  }
+
+  // NOTE: no rounding for float
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDFloat,SIMD_WIDTH>
+  div2r0(const SIMDVec<SIMDFloat,SIMD_WIDTH> &a)
+  {
+    return mul(set1<SIMDFloat,SIMD_WIDTH>(0.5f), a);
+  }
+} // namespace ext
+} // namespace internal
+
+  /**
+   * @brief Divides all elements of a SIMDVec by 2 and rounds the result to 0.
+   *
+   * Only rounds the result to 0 for integer types. For floating point types
+   * the result is not rounded.
+   *
+   * @param a The input SIMDVec.
+   *
+   * @return The result of the division.
+   *
+   * @sa div2rd()
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
+  div2r0(const SIMDVec<T,SIMD_WIDTH> &a)
+  {
+    return internal::ext::div2r0(a);
+  }
+
+  // ===========================================================================
+  // div2rd: integer division by two with rounding down (for integers)
+  // ===========================================================================
+
+namespace internal {
+namespace ext {
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDByte,SIMD_WIDTH>
+  div2rd(const SIMDVec<SIMDByte,SIMD_WIDTH> &a)
+  {
+    return srli<1>(a); 
+  }
+
+  // 16. Oct 22 (Jonas Keller): added missing version for SIMDSignedByte
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDSignedByte,SIMD_WIDTH>
+  div2rd(const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &a)
+  {
+    return srai<1>(a);
+  }
+
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDWord,SIMD_WIDTH>
+  div2rd(const SIMDVec<SIMDWord,SIMD_WIDTH> &a)
+  {
+    return srli<1>(a);
+  }
+
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDShort,SIMD_WIDTH>
+  div2rd(const SIMDVec<SIMDShort,SIMD_WIDTH> &a)
+  {
+    return srai<1>(a);
+  }
+
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDInt,SIMD_WIDTH>
+  div2rd(const SIMDVec<SIMDInt,SIMD_WIDTH> &a)
+  {
+    return srai<1>(a);
+  }
+
+  // NOTE: no rounding for float
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDFloat,SIMD_WIDTH>
+  div2rd(const SIMDVec<SIMDFloat,SIMD_WIDTH> &a)
+  {
+    return mul(set1<SIMDFloat,SIMD_WIDTH>(0.5f), a);
+  }
+} // namespace ext
+} // namespace internal
+
+  /**
+   * @brief Divides all elements of a SIMDVec by 2 and rounds down the result.
+   *
+   * Only rounds down the result for integer types. For floating point types
+   * the result is not rounded.
+   *
+   * @param a The input SIMDVec.
+   *
+   * @return The result of the division.
+   *
+   * @sa div2r0()
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
+  div2rd(const SIMDVec<T,SIMD_WIDTH> &a)
+  {
+    return internal::ext::div2rd(a);
+  }
+  	  
+  // ===========================================================================
+  // sign function (SIMDFloat only)
+  // ===========================================================================
+
+  // contributed by Benedikt Volkmer
+  // negate a, where b is negative
+  // note: contrary to IEEE 754, this function considers -0.0f to be negative
+
+  /**
+   * @brief Negates the elements of a SIMDVec of SIMDFloat's where the corresponding
+   * element of a second SIMDVec of SIMDFloat's is negative.
+   * @note Contrary to IEEE 754, this function considers -0.0f to be negative.
+   *
+   * @param a The SIMDVec of SIMDFloat's to be negated.
+   * @param b The SIMDVec of SIMDFloat's that determines which elements of a are negated.
+   * @return The resulting SIMDVec of SIMDFloat's.
+   */
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
+  sign(const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
+       const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
+  {
+    // -0.0F aka. 0x80000000 aka. 1000...b
+    return xor(a, and(set1<SIMDFloat, SIMD_WIDTH>(-0.0F), b));
+  }
+
+  // ===========================================================================
+  // absDiff function
+  // ===========================================================================
+
+  // contributed by Benedikt Volkmer
+  // 23. Mar 22 (rm): removed SFINAE enable_if construct
+  // (not compatible with C++98)
+  // Computes elementwise absolute difference of vectors
+
+namespace internal {
+namespace ext {
+
+  // Use these overloads of the function template if Type is unsigned
+  
+  template<int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDByte, SIMD_WIDTH>
+  absDiff(const SIMDVec<SIMDByte, SIMD_WIDTH> &v1,
+	  const SIMDVec<SIMDByte, SIMD_WIDTH> &v2) {
+    // Trick working around non-existing abs() for unsigned Type
+    return or(subs(v1, v2), subs(v2, v1));
+  }
+  
+  template<int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDWord, SIMD_WIDTH>
+  absDiff(const SIMDVec<SIMDWord, SIMD_WIDTH> &v1,
+	  const SIMDVec<SIMDWord, SIMD_WIDTH> &v2) {
+    // Trick working around non-existing abs() for unsigned Type
+    return or(subs(v1, v2), subs(v2, v1));
+  }
+  
+  // Use these overloads of the function template if Type is signed
+
+  template<int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDSignedByte, SIMD_WIDTH>
+  absDiff(const SIMDVec<SIMDSignedByte, SIMD_WIDTH> &v1,
+	  const SIMDVec<SIMDSignedByte, SIMD_WIDTH> &v2) {
+    return abs(sub(v1, v2));
+  }
+  
+  template<int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDShort, SIMD_WIDTH>
+  absDiff(const SIMDVec<SIMDShort, SIMD_WIDTH> &v1,
+	  const SIMDVec<SIMDShort, SIMD_WIDTH> &v2) {
+    return abs(sub(v1, v2));
+  }
+
+  template<int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDInt, SIMD_WIDTH>
+  absDiff(const SIMDVec<SIMDInt, SIMD_WIDTH> &v1,
+	  const SIMDVec<SIMDInt, SIMD_WIDTH> &v2) {
+    return abs(sub(v1, v2));
+  }
+
+  template<int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
+  absDiff(const SIMDVec<SIMDFloat, SIMD_WIDTH> &v1,
+	  const SIMDVec<SIMDFloat, SIMD_WIDTH> &v2) {
+    return abs(sub(v1, v2));
+  }
+} // namespace ext
+} // namespace internal
+
+  /**
+   * @brief Computes the absolute difference of the elements of two SIMDVec's.
+   *
+   * @param v1 The first SIMDVec.
+   * @param v2 The second SIMDVec.
+   * @return A SIMDVec containing the absolute difference of the elements of the
+   * two input SIMDVec's.
+   */
+  template<typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  absDiff(const SIMDVec<T, SIMD_WIDTH> &v1,
+    const SIMDVec<T, SIMD_WIDTH> &v2) {
+    return internal::ext::absDiff(v1, v2);
+  }
+
+   /** @} */ // end of group ext_math
 
   // ===========================================================================
   // transpose
@@ -3119,78 +3506,6 @@ namespace ext {
 	v[i] = v2[i];
     }
   }
- 
-  // ===========================================================================
-  // avgru: synonym f. average with rounding up
-  // ===========================================================================
-
-  // this is just a synonym for avg which is compatible with the auxiliary avgrd
-
-  /**
-   * @copybrief avg(const SIMDVec<T, SIMD_WIDTH> &,
-   * const SIMDVec<T, SIMD_WIDTH> &)
-   *
-   * Equivalent to avg(const SIMDVec<T, SIMD_WIDTH> &, const
-   * SIMDVec<T, SIMD_WIDTH> &).
-   *
-   * @copydetails avg(const SIMDVec<T, SIMD_WIDTH> &,
-   * const SIMDVec<T, SIMD_WIDTH> &)
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  avgru(const SIMDVec<T, SIMD_WIDTH> &a,
-	const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return avg(a, b);
-  }
-
-  // ===========================================================================
-  // avgrd: average with rounding down
-  // ===========================================================================
-
-  // 30. Jul 17 (rm): removed unnecessary tag dispatching for avgrd()
-
-namespace internal {
-namespace ext {
-  // int types
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  avgrd(const SIMDVec<T, SIMD_WIDTH> &a,
-        const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    SIMDVec<T, SIMD_WIDTH> one = set1<T, SIMD_WIDTH>(1), as, bs, lsb;
-    lsb = and(and(a, b), one);
-    as = div2rd(a);
-    bs = div2rd(b);
-    return add(lsb, add(as, bs));
-  }
-
-  // NOTE: no rounding for floating-point types
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
-  avgrd(const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
-        const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
-  {
-    return mul(add(a, b), set1<SIMDFloat, SIMD_WIDTH>(0.5));
-  }
-} // namespace ext
-} // namespace internal
-
-  /**
-   * @brief Computes the average of the elements of two SIMDVecs, rounding down.
-   *
-   * @param a First SIMDVec.
-   * @param b Second SIMDVec.
-   * @return A SIMDVec containing the rounded down average of the elements of
-   * the two input SIMDVec's.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  avgrd(const SIMDVec<T, SIMD_WIDTH> &a,
-        const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::ext::avgrd(a, b);
-  }
 
   // ===========================================================================
   // setones: set all bits to 1
@@ -3354,255 +3669,6 @@ namespace ext {
   setnegunity()
   {
     return internal::ext::setnegunity<T,SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
-  }
-
-  // ===========================================================================
-  // div2r0: integer div. by 2 with round to 0 (for integers)
-  // ===========================================================================
-
-namespace internal {
-namespace ext {
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDByte,SIMD_WIDTH>
-  div2r0(const SIMDVec<SIMDByte,SIMD_WIDTH> &a)
-  {
-    return srli<1>(a); 
-  }
-
-  // 16. Oct 22 (Jonas Keller): added missing version for SIMDSignedByte
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDSignedByte,SIMD_WIDTH>
-  div2r0(const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &a)
-  {
-    // add 1 if number is negative
-    return srai<1>(add(a, srli<7>(a)));
-  }
-  
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDWord,SIMD_WIDTH>
-  div2r0(const SIMDVec<SIMDWord,SIMD_WIDTH> &a)
-  {
-    return srli<1>(a);
-  }
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDShort,SIMD_WIDTH>
-  div2r0(const SIMDVec<SIMDShort,SIMD_WIDTH> &a)
-  {
-    // add 1 if number is negative
-    return srai<1>(add(a, srli<15>(a)));
-  }
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDInt,SIMD_WIDTH>
-  div2r0(const SIMDVec<SIMDInt,SIMD_WIDTH> &a)
-  {
-    // add 1 if number is negative
-    return srai<1>(add(a, srli<31>(a)));
-  }
-
-  // NOTE: no rounding for float
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDFloat,SIMD_WIDTH>
-  div2r0(const SIMDVec<SIMDFloat,SIMD_WIDTH> &a)
-  {
-    return mul(set1<SIMDFloat,SIMD_WIDTH>(0.5f), a);
-  }
-} // namespace ext
-} // namespace internal
-
-  /**
-   * @brief Devides all elements of a SIMDVec by 2 and rounds the result to 0.
-   *
-   * Only rounds the result to 0 for integer types. For floating point types
-   * the result is not rounded.
-   *
-   * @param a The input SIMDVec.
-   *
-   * @return The result of the division.
-   *
-   * @sa div2rd()
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
-  div2r0(const SIMDVec<T,SIMD_WIDTH> &a)
-  {
-    return internal::ext::div2r0(a);
-  }
-
-  // ===========================================================================
-  // div2rd: integer division by two with rounding down (for integers)
-  // ===========================================================================
-
-namespace internal {
-namespace ext {
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDByte,SIMD_WIDTH>
-  div2rd(const SIMDVec<SIMDByte,SIMD_WIDTH> &a)
-  {
-    return srli<1>(a); 
-  }
-
-  // 16. Oct 22 (Jonas Keller): added missing version for SIMDSignedByte
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDSignedByte,SIMD_WIDTH>
-  div2rd(const SIMDVec<SIMDSignedByte,SIMD_WIDTH> &a)
-  {
-    return srai<1>(a);
-  }
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDWord,SIMD_WIDTH>
-  div2rd(const SIMDVec<SIMDWord,SIMD_WIDTH> &a)
-  {
-    return srli<1>(a);
-  }
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDShort,SIMD_WIDTH>
-  div2rd(const SIMDVec<SIMDShort,SIMD_WIDTH> &a)
-  {
-    return srai<1>(a);
-  }
-
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDInt,SIMD_WIDTH>
-  div2rd(const SIMDVec<SIMDInt,SIMD_WIDTH> &a)
-  {
-    return srai<1>(a);
-  }
-
-  // NOTE: no rounding for float
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDFloat,SIMD_WIDTH>
-  div2rd(const SIMDVec<SIMDFloat,SIMD_WIDTH> &a)
-  {
-    return mul(set1<SIMDFloat,SIMD_WIDTH>(0.5f), a);
-  }
-} // namespace ext
-} // namespace internal
-
-  /**
-   * @brief Devides all elements of a SIMDVec by 2 and rounds down the result.
-   *
-   * Only rounds down the result for integer types. For floating point types
-   * the result is not rounded.
-   *
-   * @param a The input SIMDVec.
-   *
-   * @return The result of the division.
-   *
-   * @sa div2r0()
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T,SIMD_WIDTH>
-  div2rd(const SIMDVec<T,SIMD_WIDTH> &a)
-  {
-    return internal::ext::div2rd(a);
-  }
-  	  
-  // ===========================================================================
-  // sign function (SIMDFloat only)
-  // ===========================================================================
-
-  // contributed by Benedikt Volkmer
-  // negate a, where b is negative
-  // note: contrary to IEEE 754, this function considers -0.0f to be negative
-
-  /**
-   * @brief Negates the elements of a SIMDVec of SIMDFloat's where the corresponding
-   * element of a second SIMDVec of SIMDFloat's is negative.
-   * @note Contrary to IEEE 754, this function considers -0.0f to be negative.
-   *
-   * @param a The SIMDVec of SIMDFloat's to be negated.
-   * @param b The SIMDVec of SIMDFloat's that determines which elements of a are negated.
-   * @return The resulting SIMDVec of SIMDFloat's.
-   */
-  template <int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
-  sign(const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
-       const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
-  {
-    // -0.0F aka. 0x80000000 aka. 1000...b
-    return xor(a, and(set1<SIMDFloat, SIMD_WIDTH>(-0.0F), b));
-  }
-
-  // ===========================================================================
-  // absDiff function
-  // ===========================================================================
-
-  // contributed by Benedikt Volkmer
-  // 23. Mar 22 (rm): removed SFINAE enable_if construct
-  // (not compatible with C++98)
-  // Computes elementwise absolute difference of vectors
-
-namespace internal {
-namespace ext {
-
-  // Use these overloads of the function template if Type is unsigned
-  
-  template<int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDByte, SIMD_WIDTH>
-  absDiff(const SIMDVec<SIMDByte, SIMD_WIDTH> &v1,
-	  const SIMDVec<SIMDByte, SIMD_WIDTH> &v2) {
-    // Trick working around non-existing abs() for unsigned Type
-    return or(subs(v1, v2), subs(v2, v1));
-  }
-  
-  template<int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDWord, SIMD_WIDTH>
-  absDiff(const SIMDVec<SIMDWord, SIMD_WIDTH> &v1,
-	  const SIMDVec<SIMDWord, SIMD_WIDTH> &v2) {
-    // Trick working around non-existing abs() for unsigned Type
-    return or(subs(v1, v2), subs(v2, v1));
-  }
-  
-  // Use these overloads of the function template if Type is signed
-
-  template<int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDSignedByte, SIMD_WIDTH>
-  absDiff(const SIMDVec<SIMDSignedByte, SIMD_WIDTH> &v1,
-	  const SIMDVec<SIMDSignedByte, SIMD_WIDTH> &v2) {
-    return abs(sub(v1, v2));
-  }
-  
-  template<int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDShort, SIMD_WIDTH>
-  absDiff(const SIMDVec<SIMDShort, SIMD_WIDTH> &v1,
-	  const SIMDVec<SIMDShort, SIMD_WIDTH> &v2) {
-    return abs(sub(v1, v2));
-  }
-
-  template<int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDInt, SIMD_WIDTH>
-  absDiff(const SIMDVec<SIMDInt, SIMD_WIDTH> &v1,
-	  const SIMDVec<SIMDInt, SIMD_WIDTH> &v2) {
-    return abs(sub(v1, v2));
-  }
-
-  template<int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
-  absDiff(const SIMDVec<SIMDFloat, SIMD_WIDTH> &v1,
-	  const SIMDVec<SIMDFloat, SIMD_WIDTH> &v2) {
-    return abs(sub(v1, v2));
-  }
-} // namespace ext
-} // namespace internal
-
-  /**
-   * @brief Computes the absolute difference of the elements of two SIMDVec's.
-   *
-   * @param v1 The first SIMDVec.
-   * @param v2 The second SIMDVec.
-   * @return A SIMDVec containing the absolute difference of the elements of the
-   * two input SIMDVec's.
-   */
-  template<typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  absDiff(const SIMDVec<T, SIMD_WIDTH> &v1,
-    const SIMDVec<T, SIMD_WIDTH> &v2) {
-    return internal::ext::absDiff(v1, v2);
   }
 
   // ===========================================================================
@@ -3794,11 +3860,13 @@ namespace ext {
     internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
     transpose2(transVecs, vecs);
   }
+
+  /** @} */ // end of group ext
   
   // ===========================================================================
   // operators
   // ===========================================================================
-  
+
   // C++ Coding Standards p.49 (item 27)
 
 #define SIMDVEC_BINOPEQ(OP,FCT)					\
@@ -3831,6 +3899,12 @@ namespace ext {
   // limitations:
   // - mul, div only for SIMDFloat
   // - neg only for signed types
+
+  /**
+   * @defgroup operators Operators
+   * @brief Operators for SIMDVec's
+   * @{
+   */
 
   /// @brief Addition operator. Maps to adds(). @sa adds()
   SIMDVEC_BINOP(operator+,adds)
@@ -3879,6 +3953,8 @@ namespace ext {
   SIMDVEC_UNOP(operator-,neg)
   /// @brief Bitwise NOT operator. Maps to not(). @sa not()
   SIMDVEC_UNOP(operator~,not)
+
+  /** @} */ // end of group operators
 } // namespace ns_simd
 
 #endif

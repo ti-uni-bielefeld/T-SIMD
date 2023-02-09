@@ -15,7 +15,7 @@
 // licensor, and the software may not be distributed by the licensee; see
 // the license agreement for details.
 // 
-// (C) Ralf Möller
+// (C) Jonas Keller, Ralf Möller
 //     Computer Engineering
 //     Faculty of Technology
 //     Bielefeld University
@@ -45,36 +45,36 @@
 #endif // else SIMDVEC_SANDBOX
 
 namespace ns_simd {
-
   /**
-   * @class internal_masked_version
-   *
-   * Elements are copied from the source SIMDVec if the corresponding mask bit
-   * is not set.
-   *
-   * @param src The source SIMDVec.
-   * @param k The mask.
+   * @defgroup mask Masked Functions
+   * @{
    */
 
-  /**
-   * @class internal_zero_masked_version
-   *
-   * Elements are zeroed out if the corresponding mask bit is not set.
-   *
-   * @param k The mask.
-   */
+  // ===========================================================================
+  // functions without a group
+  // ===========================================================================
 
   /**
-   * @brief Creates a SIMDMask with all elements set to true.
-   *
-   * @return A SIMDMask with all elements set to true.
+   * @brief Masked version of set1(const T).
    */
-  template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  mask_all_ones()
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_set1(const SIMDVec<T, SIMD_WIDTH> &src,
+            const SIMDMask<T, SIMD_WIDTH> &k,
+            const T a)
   {
-    return internal::mask::mask_all_ones(internal::OutputType<T>(),
-                                   internal::Integer<SIMD_WIDTH>());
+    return internal::mask::mask_set1(src, k, a);
+  }
+
+  /**
+   * @brief Zero-masked version of set1(const T).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_set1(const SIMDMask<T, SIMD_WIDTH> &k,
+             const T a)
+  {
+    return internal::mask::maskz_set1(k, a);
   }
 
   /**
@@ -112,23 +112,6 @@ namespace ns_simd {
   }
 
   /**
-   * @brief Reinterprets a SIMDMask of one type as a SIMDMask of another type.
-   *
-   * The size of the element type of the SIMDMask must be the same.
-   *
-   * @tparam Tout The element type of the reinterpreted SIMDMask.
-   * @tparam Tin The element type of the SIMDMask to reinterpret.
-   * @param a The SIMDMask to reinterpret.
-   * @return The reinterpreted SIMDMask.
-   */
-  template <typename Tout, typename Tin, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<Tout, SIMD_WIDTH>
-  reinterpret_mask(const SIMDMask<Tin, SIMD_WIDTH> &a)
-  {
-    return internal::mask::reinterpret_mask<Tout, Tin, SIMD_WIDTH>(a);
-  }
-
-  /**
    * @brief Masked version of cvts(const SIMDVec<Tin, SIMD_WIDTH> &).
    */
   template <typename Tout, typename Tin, int SIMD_WIDTH>
@@ -152,30 +135,357 @@ namespace ns_simd {
   }
 
   /**
-   * @brief Masked version of set1(const T).
+   * @brief Masked version of
+   * div2r0(const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_set1(const SIMDVec<T, SIMD_WIDTH> &src,
-            const SIMDMask<T, SIMD_WIDTH> &k,
-            const T a)
+  mask_div2r0(const SIMDVec<T, SIMD_WIDTH> &src,
+              const SIMDMask<T, SIMD_WIDTH> &k,
+              const SIMDVec<T, SIMD_WIDTH> &a)
   {
-    return internal::mask::mask_set1(src, k, a);
+    return internal::mask::mask_div2r0(src, k, a);
   }
 
   /**
-   * @brief Zero-masked version of set1(const T).
+   * @brief Zero-masked version of
+   * div2r0(const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_set1(const SIMDMask<T, SIMD_WIDTH> &k,
-             const T a)
+  maskz_div2r0(const SIMDMask<T, SIMD_WIDTH> &k,
+               const SIMDVec<T, SIMD_WIDTH> &a)
   {
-    return internal::mask::maskz_set1(k, a);
+    return internal::mask::maskz_div2r0(k, a);
   }
 
   /**
-   * @brief Masked version of load(const T *const).
+   * @brief Masked version of
+   * div2rd(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_div2rd(const SIMDVec<T, SIMD_WIDTH> &src,
+              const SIMDMask<T, SIMD_WIDTH> &k,
+              const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::mask_div2rd(src, k, a);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * div2rd(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_div2rd(const SIMDMask<T, SIMD_WIDTH> &k,
+               const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::maskz_div2rd(k, a);
+  }
+
+  /**
+   * @defgroup mask_functions Pure Mask Functions
+   * @brief Functions that operate on masks themselves.
+   * @{
+   */
+
+  /**
+   * @brief Reinterprets a SIMDMask of one type as a SIMDMask of another type.
+   *
+   * The size of the element type of the SIMDMask must be the same.
+   *
+   * @tparam Tout The element type of the reinterpreted SIMDMask.
+   * @tparam Tin The element type of the SIMDMask to reinterpret.
+   * @param a The SIMDMask to reinterpret.
+   * @return The reinterpreted SIMDMask.
+   */
+  template <typename Tout, typename Tin, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<Tout, SIMD_WIDTH>
+  reinterpret_mask(const SIMDMask<Tin, SIMD_WIDTH> &a)
+  {
+    return internal::mask::reinterpret_mask<Tout, Tin, SIMD_WIDTH>(a);
+  }
+
+  /**
+   * @brief Adds two SIMDMask's together as if they were integers.
+   *
+   * @param a The first SIMDMask.
+   * @param b The second SIMDMask.
+   * @return The sum of the two SIMDMask's.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  kadd(const SIMDMask<T, SIMD_WIDTH> &a,
+       const SIMDMask<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::kadd(a, b);
+  }
+
+  /**
+   * @name Bitwise functions
+   * @{
+   */
+
+  /**
+   * @brief Computes the bitwise AND of two SIMDMask's.
+   *
+   * @param a The first SIMDMask.
+   * @param b The second SIMDMask.
+   * @return The bitwise AND of the two SIMDMask's.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  kand(const SIMDMask<T, SIMD_WIDTH> &a,
+       const SIMDMask<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::kand(a, b);
+  }
+
+  /**
+   * @brief Computes bitwise ANDNOT of two SIMDMask's.
+   *
+   * The result is computed as (not a) and b.
+   * 
+   * @param a The first SIMDMask.
+   * @param b The second SIMDMask.
+   * @return The bitwise ANDNOT of the two SIMDMask's.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  kandn(const SIMDMask<T, SIMD_WIDTH> &a,
+        const SIMDMask<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::kandn(a, b);
+  }
+
+  /**
+   * @brief Computes the bitwise OR of two SIMDMask's.
+   *
+   * @param a The first SIMDMask.
+   * @param b The second SIMDMask.
+   * @return The bitwise OR of the two SIMDMask's.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  kor(const SIMDMask<T, SIMD_WIDTH> &a,
+      const SIMDMask<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::kor(a, b);
+  }
+
+  /**
+   * @brief Computes the bitwise XOR of two SIMDMask's.
+   * 
+   * @param a The first SIMDMask.
+   * @param b The second SIMDMask.
+   * @return The bitwise XOR of the two SIMDMask's.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  kxor(const SIMDMask<T, SIMD_WIDTH> &a,
+       const SIMDMask<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::kxor(a, b);
+  }
+
+  /**
+   * @brief Computes the bitwise XNOR of two SIMDMask's.
+   * 
+   * @param a The first SIMDMask.
+   * @param b The second SIMDMask.
+   * @return The bitwise XNOR of the two SIMDMask's.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  kxnor(const SIMDMask<T, SIMD_WIDTH> &a,
+        const SIMDMask<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::kxnor(a, b);
+  }
+
+  /**
+   * @brief Computes the bitwise NOT of a SIMDMask.
+   * 
+   * @param a The SIMDMask.
+   * @return The bitwise NOT of the SIMDMask.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  knot(const SIMDMask<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::knot(a);
+  }
+
+  /** @} */
+
+  /**
+   * @name Shift functions
+   * @{
+   */
+
+  /**
+   * @brief Shifts the bits of a SIMDMask to the right by a
+   *        constant number of bits.
+   *
+   * @param a The SIMDMask.
+   * @tparam COUNT The number of bits to shift.
+   * @return The shifted SIMDMask.
+   */
+  template <unsigned int COUNT, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  kshiftri(const SIMDMask<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::kshiftri<COUNT>(a);
+  }
+
+  /**
+   * @brief Shifts the bits of a SIMDMask to the left by a
+   *        constant number of bits.
+   *
+   * @param a The SIMDMask.
+   * @tparam COUNT The number of bits to shift.
+   * @return The shifted SIMDMask.
+   */
+  template <unsigned int COUNT, typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  kshiftli(const SIMDMask<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::kshiftli<COUNT>(a);
+  }
+
+  /**
+   * @brief Shifts the bits of a SIMDMask to the right by a
+   *        variable number of bits.
+   *
+   * @param a The SIMDMask.
+   * @param count The number of bits to shift.
+   * @return The shifted SIMDMask.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  kshiftri(const SIMDMask<T, SIMD_WIDTH> &a,
+           const uint64_t count)
+  {
+    return internal::mask::kshiftri(a, count);
+  }
+
+  /**
+   * @brief Shifts the bits of a SIMDMask to the left by a
+   *        variable number of bits.
+   *
+   * @param a The SIMDMask.
+   * @param count The number of bits to shift.
+   * @return The shifted SIMDMask.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  kshiftli(const SIMDMask<T, SIMD_WIDTH> &a,
+           const uint64_t count)
+  {
+    return internal::mask::kshiftli(a, count);
+  }
+
+  /** @} */
+
+  /**
+   * @name Mask initialization functions
+   * @{
+   */
+
+  /**
+   * @brief Creates a SIMDMask with all elements set to true.
+   *
+   * @return A SIMDMask with all elements set to true.
+   */
+  template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_all_ones()
+  {
+    return internal::mask::mask_all_ones(internal::OutputType<T>(),
+                                   internal::Integer<SIMD_WIDTH>());
+  }
+
+  // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
+  // mask_set_true/false_low/high.
+
+  /**
+   * @brief Sets the lower @p x bits of a SIMDMask to true.
+   *
+   * The remaining bits are set to false.
+   *
+   * @param x The number of bits to set to true.
+   * @return The SIMDMask with the lower @p x bits set to true.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_set_true_low(const unsigned int x)
+  {
+    return internal::mask::mask_set_true_low(x, internal::OutputType<T>(),
+                                             internal::Integer<SIMD_WIDTH>());
+  }
+
+  /**
+   * @brief Sets the upper @p x bits of a SIMDMask to true.
+   *
+   * The remaining bits are set to false.
+   *
+   * @param x The number of bits to set to true.
+   * @return The SIMDMask with the upper @p x bits set to true.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_set_true_high(const unsigned int x)
+  {
+    return internal::mask::mask_set_true_high(x, internal::OutputType<T>(),
+                                              internal::Integer<SIMD_WIDTH>());
+  }
+
+  /**
+   * @brief Sets the lower @p x bits of a SIMDMask to false.
+   *
+   * The remaining bits are set to true.
+   *
+   * @param x The number of bits to set to false.
+   * @return The SIMDMask with the lower @p x bits set to false.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_set_false_low(const unsigned int x)
+  {
+    return internal::mask::mask_set_false_low(x, internal::OutputType<T>(),
+                                              internal::Integer<SIMD_WIDTH>());
+  }
+
+  /**
+   * @brief Sets the upper @p x bits of a SIMDMask to false.
+   *
+   * The remaining bits are set to true.
+   *
+   * @param x The number of bits to set to false.
+   * @return The SIMDMask with the upper @p x bits set to false.
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
+  mask_set_false_high(const unsigned int x)
+  {
+    return internal::mask::mask_set_false_high(x, internal::OutputType<T>(),
+                                               internal::Integer<SIMD_WIDTH>());
+  }
+
+  /** @} */
+
+  /** @} */ // end of group mask_functions
+
+  /**
+   * @defgroup mask_memory Masked Memory Functions
+   * @brief Functions for masked loading and storing SIMDVec's from and to
+   * memory.
+   * @{
+   */
+
+  /**
+   * @brief Masked versions of load(const T *const).
    *
    * Does not touch memory if the corresponding mask element is false, so may
    * be used to prevent page faults where a non-masked load would cause a
@@ -263,6 +573,15 @@ namespace ns_simd {
   {
     internal::mask::mask_storeu(p, k, a);
   }
+
+  /** @} */ // end of group mask_memory
+
+  /**
+   * @defgroup mask_arithmetic Masked Arithmetic Functions
+   * @brief Masked arithmetic functions on SIMDVec's, like addition,
+   * multiplication, etc.
+   * @{
+   */
 
   /**
    * @brief Masked version of
@@ -428,6 +747,345 @@ namespace ns_simd {
 
   /**
    * @brief Masked version of
+   * avg(const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_avg(const SIMDVec<T, SIMD_WIDTH> &src,
+           const SIMDMask<T, SIMD_WIDTH> &k,
+           const SIMDVec<T, SIMD_WIDTH> &a,
+           const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::mask_avg(src, k, a, b);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * avg(const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_avg(const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a,
+            const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::maskz_avg(k, a, b);
+  }
+
+  /**
+   * @name Horizontal functions
+   * @{
+   */
+
+  /**
+   * @brief Masked version of
+   * hadd(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_hadd(const SIMDVec<T, SIMD_WIDTH> &src,
+            const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a,
+            const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::mask_hadd(src, k, a, b);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * hadd(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_hadd(const SIMDMask<T, SIMD_WIDTH> &k,
+             const SIMDVec<T, SIMD_WIDTH> &a,
+             const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::maskz_hadd(k, a, b);
+  }
+
+  /**
+   * @brief Masked version of
+   * hadds(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_hadds(const SIMDVec<T, SIMD_WIDTH> &src,
+            const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a,
+            const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::mask_hadds(src, k, a, b);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * hadds(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_hadds(const SIMDMask<T, SIMD_WIDTH> &k,
+             const SIMDVec<T, SIMD_WIDTH> &a,
+             const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::maskz_hadds(k, a, b);
+  }
+
+  /**
+   * @brief Masked version of
+   * hsub(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_hsub(const SIMDVec<T, SIMD_WIDTH> &src,
+            const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a,
+            const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::mask_hsub(src, k, a, b);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * hsub(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_hsub(const SIMDMask<T, SIMD_WIDTH> &k,
+             const SIMDVec<T, SIMD_WIDTH> &a,
+             const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::maskz_hsub(k, a, b);
+  }
+
+  /**
+   * @brief Masked version of
+   * hsubs(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_hsubs(const SIMDVec<T, SIMD_WIDTH> &src,
+            const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a,
+            const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::mask_hsubs(src, k, a, b);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * hsubs(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_hsubs(const SIMDMask<T, SIMD_WIDTH> &k,
+             const SIMDVec<T, SIMD_WIDTH> &a,
+             const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::maskz_hsubs(k, a, b);
+  }
+
+  /** @} */
+
+  /** @} */ // end of group mask_arithmetic
+
+  /**
+   * @defgroup mask_math_functions Masked Elementary Math Functions
+   * @brief Masked elementary mathematical functions on SIMDVec's, such as sqrt,
+   * rcp, etc.
+   * @{
+   */
+
+  /**
+   * @brief Masked version of
+   * rcp(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_rcp(const SIMDVec<T, SIMD_WIDTH> &src,
+           const SIMDMask<T, SIMD_WIDTH> &k,
+           const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::mask_rcp(src, k, a);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * rcp(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_rcp(const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::maskz_rcp(k, a);
+  }
+
+  /**
+   * @brief Masked version of
+   * rsqrt(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_rsqrt(const SIMDVec<T, SIMD_WIDTH> &src,
+             const SIMDMask<T, SIMD_WIDTH> &k,
+             const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::mask_rsqrt(src, k, a);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * rsqrt(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_rsqrt(const SIMDMask<T, SIMD_WIDTH> &k,
+              const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::maskz_rsqrt(k, a);
+  }
+
+  /**
+   * @brief Masked version of
+   * sqrt(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_sqrt(const SIMDVec<T, SIMD_WIDTH> &src,
+            const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::mask_sqrt(src, k, a);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * sqrt(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_sqrt(const SIMDMask<T, SIMD_WIDTH> &k,
+             const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::maskz_sqrt(k, a);
+  }
+
+  /** @} */ // end of group mask_math_functions
+
+  /**
+   * @defgroup mask_special_math Masked Special Math Functions
+   * @brief Masked special math functions on SIMDVec's, such as min, max,
+   * rounding, etc.
+   * @{
+   */
+
+  /**
+   * @brief Masked version of
+   * min(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_min(const SIMDVec<T, SIMD_WIDTH> &src,
+           const SIMDMask<T, SIMD_WIDTH> &k,
+           const SIMDVec<T, SIMD_WIDTH> &a,
+           const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::mask_min(src, k, a, b);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * min(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_min(const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a,
+            const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::maskz_min(k, a, b);
+  }
+
+  /**
+   * @brief Masked version of
+   * max(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_max(const SIMDVec<T, SIMD_WIDTH> &src,
+           const SIMDMask<T, SIMD_WIDTH> &k,
+           const SIMDVec<T, SIMD_WIDTH> &a,
+           const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::mask_max(src, k, a, b);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * max(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_max(const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a,
+            const SIMDVec<T, SIMD_WIDTH> &b)
+  {
+    return internal::mask::maskz_max(k, a, b);
+  }
+
+  /**
+   * @brief Masked version of
+   * neg(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_neg(const SIMDVec<T, SIMD_WIDTH> &src,
+           const SIMDMask<T, SIMD_WIDTH> &k,
+           const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::mask_neg(src, k, a);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * neg(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_neg(const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::maskz_neg(k, a);
+  }
+
+  /**
+   * @brief Masked version of
+   * abs(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  mask_abs(const SIMDVec<T, SIMD_WIDTH> &src,
+           const SIMDMask<T, SIMD_WIDTH> &k,
+           const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::mask_abs(src, k, a);
+  }
+
+  /**
+   * @brief Zero-masked version of
+   * abs(const SIMDVec<T, SIMD_WIDTH> &).
+   */
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
+  maskz_abs(const SIMDMask<T, SIMD_WIDTH> &k,
+            const SIMDVec<T, SIMD_WIDTH> &a)
+  {
+    return internal::mask::maskz_abs(k, a);
+  }
+
+  /**
+   * @brief Masked version of
    * ceil(const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
@@ -526,105 +1184,13 @@ namespace ns_simd {
     return internal::mask::maskz_truncate(k, a);
   }
 
-  /**
-   * @brief Masked version of
-   * rcp(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_rcp(const SIMDVec<T, SIMD_WIDTH> &src,
-           const SIMDMask<T, SIMD_WIDTH> &k,
-           const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::mask_rcp(src, k, a);
-  }
+  /** @} */ // end of group mask_special_math
 
   /**
-   * @brief Zero-masked version of
-   * rcp(const SIMDVec<T, SIMD_WIDTH> &).
+   * @defgroup mask_logic Masked Logical Functions
+   * @brief Masked logical functions on SIMDVec's.
+   * @{
    */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_rcp(const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::maskz_rcp(k, a);
-  }
-
-  /**
-   * @brief Masked version of
-   * rsqrt(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_rsqrt(const SIMDVec<T, SIMD_WIDTH> &src,
-             const SIMDMask<T, SIMD_WIDTH> &k,
-             const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::mask_rsqrt(src, k, a);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * rsqrt(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_rsqrt(const SIMDMask<T, SIMD_WIDTH> &k,
-              const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::maskz_rsqrt(k, a);
-  }
-
-  /**
-   * @brief Masked version of
-   * sqrt(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_sqrt(const SIMDVec<T, SIMD_WIDTH> &src,
-            const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::mask_sqrt(src, k, a);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * sqrt(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_sqrt(const SIMDMask<T, SIMD_WIDTH> &k,
-             const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::maskz_sqrt(k, a);
-  }
-
-  /**
-   * @brief Masked version of
-   * abs(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_abs(const SIMDVec<T, SIMD_WIDTH> &src,
-           const SIMDMask<T, SIMD_WIDTH> &k,
-           const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::mask_abs(src, k, a);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * abs(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_abs(const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::maskz_abs(k, a);
-  }
 
   /**
    * @brief Masked version of
@@ -759,134 +1325,13 @@ namespace ns_simd {
     return internal::mask::maskz_not(k, a);
   }
 
-  /**
-   * @brief Masked version of
-   * neg(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_neg(const SIMDVec<T, SIMD_WIDTH> &src,
-           const SIMDMask<T, SIMD_WIDTH> &k,
-           const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::mask_neg(src, k, a);
-  }
+  /** @} */ // end of group mask_logic
 
   /**
-   * @brief Zero-masked version of
-   * neg(const SIMDVec<T, SIMD_WIDTH> &).
+   * @defgroup mask_shift Masked Bitwise Shift Functions
+   * @brief Masked bitwise shift functions on SIMDVec's.
+   * @{
    */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_neg(const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::maskz_neg(k, a);
-  }
-
-  /**
-   * @brief Masked version of
-   * min(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_min(const SIMDVec<T, SIMD_WIDTH> &src,
-           const SIMDMask<T, SIMD_WIDTH> &k,
-           const SIMDVec<T, SIMD_WIDTH> &a,
-           const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::mask_min(src, k, a, b);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * min(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_min(const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a,
-            const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::maskz_min(k, a, b);
-  }
-
-  /**
-   * @brief Masked version of
-   * max(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_max(const SIMDVec<T, SIMD_WIDTH> &src,
-           const SIMDMask<T, SIMD_WIDTH> &k,
-           const SIMDVec<T, SIMD_WIDTH> &a,
-           const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::mask_max(src, k, a, b);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * max(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_max(const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a,
-            const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::maskz_max(k, a, b);
-  }
-
-  /**
-   * @brief Masked version of
-   * div2r0(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_div2r0(const SIMDVec<T, SIMD_WIDTH> &src,
-              const SIMDMask<T, SIMD_WIDTH> &k,
-              const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::mask_div2r0(src, k, a);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * div2r0(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_div2r0(const SIMDMask<T, SIMD_WIDTH> &k,
-               const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::maskz_div2r0(k, a);
-  }
-
-  /**
-   * @brief Masked version of
-   * div2rd(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_div2rd(const SIMDVec<T, SIMD_WIDTH> &src,
-              const SIMDMask<T, SIMD_WIDTH> &k,
-              const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::mask_div2rd(src, k, a);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * div2rd(const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_div2rd(const SIMDMask<T, SIMD_WIDTH> &k,
-               const SIMDVec<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::maskz_div2rd(k, a);
-  }
 
   /**
    * @brief Masked version of
@@ -963,113 +1408,15 @@ namespace ns_simd {
     return internal::mask::maskz_slli<IMM>(k, a);
   }
 
-  /**
-   * @brief Masked version of
-   * hadd(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_hadd(const SIMDVec<T, SIMD_WIDTH> &src,
-            const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a,
-            const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::mask_hadd(src, k, a, b);
-  }
+  // TODO: add masked versions of sra, srl and sll
+
+  /** @} */ // end of group mask_shift
 
   /**
-   * @brief Zero-masked version of
-   * hadd(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   * @defgroup mask_cmp Masked Comparison Functions
+   * @brief Functions for masked comparing elements of SIMDVec's.
+   * @{
    */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_hadd(const SIMDMask<T, SIMD_WIDTH> &k,
-             const SIMDVec<T, SIMD_WIDTH> &a,
-             const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::maskz_hadd(k, a, b);
-  }
-
-  /**
-   * @brief Masked version of
-   * hadds(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_hadds(const SIMDVec<T, SIMD_WIDTH> &src,
-            const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a,
-            const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::mask_hadds(src, k, a, b);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * hadds(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_hadds(const SIMDMask<T, SIMD_WIDTH> &k,
-             const SIMDVec<T, SIMD_WIDTH> &a,
-             const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::maskz_hadds(k, a, b);
-  }
-
-  /**
-   * @brief Masked version of
-   * hsub(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_hsub(const SIMDVec<T, SIMD_WIDTH> &src,
-            const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a,
-            const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::mask_hsub(src, k, a, b);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * hsub(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_hsub(const SIMDMask<T, SIMD_WIDTH> &k,
-             const SIMDVec<T, SIMD_WIDTH> &a,
-             const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::maskz_hsub(k, a, b);
-  }
-
-  /**
-   * @brief Masked version of
-   * hsubs(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_hsubs(const SIMDVec<T, SIMD_WIDTH> &src,
-            const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a,
-            const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::mask_hsubs(src, k, a, b);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * hsubs(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_hsubs(const SIMDMask<T, SIMD_WIDTH> &k,
-             const SIMDVec<T, SIMD_WIDTH> &a,
-             const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::maskz_hsubs(k, a, b);
-  }
 
   /**
    * @brief Masked comparison between corresponding elements of two SIMDVec's
@@ -1328,33 +1675,6 @@ namespace ns_simd {
   }
 
   /**
-   * @brief Masked version of
-   * avg(const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  mask_avg(const SIMDVec<T, SIMD_WIDTH> &src,
-           const SIMDMask<T, SIMD_WIDTH> &k,
-           const SIMDVec<T, SIMD_WIDTH> &a,
-           const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::mask_avg(src, k, a, b);
-  }
-
-  /**
-   * @brief Zero-masked version of
-   * avg(const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b).
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  maskz_avg(const SIMDMask<T, SIMD_WIDTH> &k,
-            const SIMDVec<T, SIMD_WIDTH> &a,
-            const SIMDVec<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::maskz_avg(k, a, b);
-  }
-
-  /**
    * @brief Tests if all elements of an SIMDVec are zero, while
    * ignoring elements where the corresponding bit in an SIMDMask is
    * zero.
@@ -1390,239 +1710,9 @@ namespace ns_simd {
     return internal::mask::mask_test_all_ones(k, a);
   }
 
-  /**
-   * @brief Adds two SIMDMask's together as if they were integers.
-   *
-   * @param a The first SIMDMask.
-   * @param b The second SIMDMask.
-   * @return The sum of the two SIMDMask's.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kadd(const SIMDMask<T, SIMD_WIDTH> &a,
-       const SIMDMask<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::kadd(a, b);
-  }
+  /** @} */ // end of group mask_cmp
 
-  /**
-   * @brief Computes the bitwise AND of two SIMDMask's.
-   *
-   * @param a The first SIMDMask.
-   * @param b The second SIMDMask.
-   * @return The bitwise AND of the two SIMDMask's.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kand(const SIMDMask<T, SIMD_WIDTH> &a,
-       const SIMDMask<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::kand(a, b);
-  }
-
-  /**
-   * @brief Computes bitwise ANDNOT of two SIMDMask's.
-   *
-   * The result is computed as (not a) and b.
-   * 
-   * @param a The first SIMDMask.
-   * @param b The second SIMDMask.
-   * @return The bitwise ANDNOT of the two SIMDMask's.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kandn(const SIMDMask<T, SIMD_WIDTH> &a,
-        const SIMDMask<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::kandn(a, b);
-  }
-
-  /**
-   * @brief Computes the bitwise OR of two SIMDMask's.
-   *
-   * @param a The first SIMDMask.
-   * @param b The second SIMDMask.
-   * @return The bitwise OR of the two SIMDMask's.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kor(const SIMDMask<T, SIMD_WIDTH> &a,
-      const SIMDMask<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::kor(a, b);
-  }
-
-  /**
-   * @brief Computes the bitwise XOR of two SIMDMask's.
-   * 
-   * @param a The first SIMDMask.
-   * @param b The second SIMDMask.
-   * @return The bitwise XOR of the two SIMDMask's.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kxor(const SIMDMask<T, SIMD_WIDTH> &a,
-       const SIMDMask<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::kxor(a, b);
-  }
-
-  /**
-   * @brief Computes the bitwise XNOR of two SIMDMask's.
-   * 
-   * @param a The first SIMDMask.
-   * @param b The second SIMDMask.
-   * @return The bitwise XNOR of the two SIMDMask's.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kxnor(const SIMDMask<T, SIMD_WIDTH> &a,
-        const SIMDMask<T, SIMD_WIDTH> &b)
-  {
-    return internal::mask::kxnor(a, b);
-  }
-
-  /**
-   * @brief Computes the bitwise NOT of a SIMDMask.
-   * 
-   * @param a The SIMDMask.
-   * @return The bitwise NOT of the SIMDMask.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  knot(const SIMDMask<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::knot(a);
-  }
-
-  /**
-   * @brief Shifts the bits of a SIMDMask to the right by a
-   *        constant number of bits.
-   *
-   * @param a The SIMDMask.
-   * @tparam IMM The number of bits to shift.
-   * @return The shifted SIMDMask.
-   */
-  template <unsigned int IMM, typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kshiftri(const SIMDMask<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::kshiftri<IMM>(a);
-  }
-
-  /**
-   * @brief Shifts the bits of a SIMDMask to the left by a
-   *        constant number of bits.
-   *
-   * @param a The SIMDMask.
-   * @tparam IMM The number of bits to shift.
-   * @return The shifted SIMDMask.
-   */
-  template <unsigned int IMM, typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kshiftli(const SIMDMask<T, SIMD_WIDTH> &a)
-  {
-    return internal::mask::kshiftli<IMM>(a);
-  }
-
-  /**
-   * @brief Shifts the bits of a SIMDMask to the right by a
-   *        variable number of bits.
-   *
-   * @param a The SIMDMask.
-   * @param count The number of bits to shift.
-   * @return The shifted SIMDMask.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kshiftri(const SIMDMask<T, SIMD_WIDTH> &a,
-           const uint64_t count)
-  {
-    return internal::mask::kshiftri(a, count);
-  }
-
-  /**
-   * @brief Shifts the bits of a SIMDMask to the left by a
-   *        variable number of bits.
-   *
-   * @param a The SIMDMask.
-   * @param count The number of bits to shift.
-   * @return The shifted SIMDMask.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  kshiftli(const SIMDMask<T, SIMD_WIDTH> &a,
-           const uint64_t count)
-  {
-    return internal::mask::kshiftli(a, count);
-  }
-
-  // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
-  // mask_set_true/false_low/high.
-
-  /**
-   * @brief Sets the lower @p x bits of a SIMDMask to true.
-   *
-   * The remaining bits are set to false.
-   *
-   * @param x The number of bits to set to true.
-   * @return The SIMDMask with the lower @p x bits set to true.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  mask_set_true_low(const unsigned int x)
-  {
-    return internal::mask::mask_set_true_low(x, internal::OutputType<T>(),
-                                             internal::Integer<SIMD_WIDTH>());
-  }
-
-  /**
-   * @brief Sets the upper @p x bits of a SIMDMask to true.
-   *
-   * The remaining bits are set to false.
-   *
-   * @param x The number of bits to set to true.
-   * @return The SIMDMask with the upper @p x bits set to true.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  mask_set_true_high(const unsigned int x)
-  {
-    return internal::mask::mask_set_true_high(x, internal::OutputType<T>(),
-                                              internal::Integer<SIMD_WIDTH>());
-  }
-
-  /**
-   * @brief Sets the lower @p x bits of a SIMDMask to false.
-   *
-   * The remaining bits are set to true.
-   *
-   * @param x The number of bits to set to false.
-   * @return The SIMDMask with the lower @p x bits set to false.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  mask_set_false_low(const unsigned int x)
-  {
-    return internal::mask::mask_set_false_low(x, internal::OutputType<T>(),
-                                              internal::Integer<SIMD_WIDTH>());
-  }
-
-  /**
-   * @brief Sets the upper @p x bits of a SIMDMask to false.
-   *
-   * The remaining bits are set to true.
-   *
-   * @param x The number of bits to set to false.
-   * @return The SIMDMask with the upper @p x bits set to false.
-   */
-  template <typename T, int SIMD_WIDTH>
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
-  mask_set_false_high(const unsigned int x)
-  {
-    return internal::mask::mask_set_false_high(x, internal::OutputType<T>(),
-                                               internal::Integer<SIMD_WIDTH>());
-  }
+  /** @} */ // end of group mask
 }
 
 #endif // _SIMD_VEC_MASK_H_

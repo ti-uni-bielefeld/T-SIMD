@@ -53,6 +53,7 @@ namespace ns_simd {
 
   // specialized for type of elements and number of bytes in the SIMD vector
   /**
+   * @ingroup types
    * @brief SIMD vector class, holds multiple elements of the same type.
    * 
    * @tparam T the type of the vector elements
@@ -62,6 +63,7 @@ namespace ns_simd {
   class SIMDVec;
 
   /**
+   * @ingroup types
    * @brief SIMD mask class consisting of as many bits as the corresponding
    *        SIMDVec has elements.
    *

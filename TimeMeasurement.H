@@ -156,6 +156,22 @@ int clock_gettime(clockid_t clock_id, struct timespec *tp) {
 #endif
 
 namespace ns_simd {
+  /**
+   * @defgroup time_measurements Time Measurement Functions
+   * @brief Functions for measuring time.
+   *
+   * These may be useful to measure the time spent for a section of code.
+   *
+   * Example:
+   * @code
+   * struct timespec start = getTimeSpecMonotonic();
+   * // do something
+   * struct timespec end = getTimeSpecMonotonic();
+   * long int diff_ns = diffTimeSpecNsec(end, start);
+   * std::cout << "Time spent: " << diff_ns << "ns" << std::endl;
+   * @endcode
+   * @{
+   */
 
   /* long long not supported everywhere
   signed long long 
@@ -172,6 +188,9 @@ namespace ns_simd {
 
   /**
    * @brief Get the current value of this processes CPU time clock.
+   *
+   * @warning This clock has a resolution of 100ns on some systems
+   * (e.g. Windows).
    * 
    * @return The current value of this processes CPU time clock.
    */
@@ -286,6 +305,8 @@ namespace ns_simd {
     timespec_subtract(x, y, diff);
     return 1000000000L * diff.tv_sec + diff.tv_nsec;
   }
+
+  /** @} */ // end of group time_measurements
   
 } // namespace
 

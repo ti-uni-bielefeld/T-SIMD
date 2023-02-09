@@ -33,6 +33,11 @@
 #include <string.h>
 
 namespace ns_simd {
+  /**
+   * @defgroup types Basic SIMD Types
+   * @brief Basic types used for SIMD programming.
+   * @{
+   */
   
   // ===========================================================================
   // data types
@@ -42,47 +47,49 @@ namespace ns_simd {
   // constants are copied from stdint.h so that we don't have to fiddle
   // with __STDC_LIMIT_MACROS
 
-  // unsigned byte
+  /**
+   * @name Basic element types
+   * @{
+   */
   typedef uint8_t SIMDByte; ///< Unsigned 8-bit integer
+  typedef int8_t SIMDSignedByte; ///< Signed 8-bit integer
+  typedef uint16_t SIMDWord; ///< Unsigned 16-bit integer
+  typedef int16_t SIMDShort; ///< Signed 16-bit integer
+  typedef int32_t SIMDInt; ///< Signed 32-bit integer
+  typedef float SIMDFloat; ///< Single-precision floating point number (32-bit)
+  /** @} */
+
+  /**
+   * @name Pointer types
+   * @{
+   */
+  typedef SIMDByte* SIMDBytePtr; ///< Pointer to @ref SIMDByte
+  typedef SIMDSignedByte* SIMDSignedBytePtr; ///< Pointer to @ref SIMDSignedByte
+  typedef SIMDWord* SIMDWordPtr; ///< Pointer to @ref SIMDWord
+  typedef SIMDShort* SIMDShortPtr; ///< Pointer to @ref SIMDShort
+  typedef SIMDInt* SIMDIntPtr; ///< Pointer to @ref SIMDInt
+  typedef SIMDFloat* SIMDFloatPtr; ///< Pointer to @ref SIMDFloat
+  /** @} */
+
+  /// @cond
 #define SIMDBYTE_MAX (255)
 #define SIMDBYTE_TRUE (255)
-  typedef SIMDByte* SIMDBytePtr; ///< Pointer to @ref SIMDByte
-
-  // signed byte
-  typedef int8_t SIMDSignedByte; ///< Signed 8-bit integer
 #define SIMDSIGNEDBYTE_MIN (-128)
 #define SIMDSIGNEDBYTE_MAX (127)
 #define SIMDSIGNEDBYTE_TRUE (-1)
-  typedef SIMDSignedByte* SIMDSignedBytePtr; ///< Pointer to @ref SIMDSignedByte
-
-  // unsigned word (16 bit)
-  typedef uint16_t SIMDWord; ///< Unsigned 16-bit integer
 #define SIMDWORD_MAX (65535)
 #define SIMDWORD_TRUE (65535)
-  typedef SIMDWord* SIMDWordPtr; ///< Pointer to @ref SIMDWord
-
-  // signed word (16 bit)
-  typedef int16_t SIMDShort; ///< Signed 16-bit integer
 #define SIMDSHORT_MIN (-32768)
 #define SIMDSHORT_MAX (32767)
 #define SIMDSHORT_TRUE (-1)
-  typedef SIMDShort* SIMDShortPtr; ///< Pointer to @ref SIMDShort
-
-  // signed int (32 bit)
-  typedef int32_t SIMDInt; ///< Signed 32-bit integer
 #define SIMDINT_MIN (-2147483647-1)
 #define SIMDINT_MAX (2147483647)
 #define SIMDINT_TRUE (-1)
-  typedef SIMDInt* SIMDIntPtr; ///< Pointer to @ref SIMDInt
-
-  // float
-  typedef float SIMDFloat; ///< Single-precision floating point number (32-bit)
 #define SIMDFLOAT_MIN (-3.402823466E+38F)
 #define SIMDFLOAT_MAX (3.402823466E+38F)
-  typedef SIMDFloat* SIMDFloatPtr; ///< Pointer to @ref SIMDFloat
-
   // 0x7fffff80
 #define MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 2147483520.0f
+  /// @endcond
 
   // ===========================================================================
   // generic compile-time check (Alexandrescu "Modern C++ Design" p.25)
@@ -402,11 +409,13 @@ namespace types {
     }
   };
 
+  /** @} */ // end of group types
+
+namespace internal {
   // ===========================================================================
   // tag dispatching
   // ===========================================================================
 
-namespace internal {
   // int2type trick from 
   // Andrei Alexandrescu: Modern C++ Design (Addison Wesley)
 

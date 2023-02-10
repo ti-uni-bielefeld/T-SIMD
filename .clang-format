@@ -101,7 +101,7 @@ ForEachMacros:
   - BOOST_FOREACH
 IfMacros:
   - KJ_IF_MAYBE
-IncludeBlocks: Preserve
+IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: '^"(llvm|llvm-c|clang|clang-c)/'
     Priority: 2

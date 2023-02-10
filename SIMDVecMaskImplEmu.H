@@ -137,7 +137,7 @@ namespace ns_simd {
     }
     SIMD_INLINE bool operator==(const SIMDMask<T, SIMD_WIDTH> &other) const {
       return test_all_zeros(
-          xor(reinterpret<SIMDInt>(mask), reinterpret<SIMDInt>(other.mask)));
+          xor_(reinterpret<SIMDInt>(mask), reinterpret<SIMDInt>(other.mask)));
     }
     // define operators new and delete to ensure proper alignment, since
     // the default new and delete are not guaranteed to do so before C++17
@@ -153,27 +153,29 @@ namespace ns_simd {
 
 namespace internal {
 namespace mask {
-  #define EMULATE_SOP(OP) \
+  #define EMULATE_SOP_NAME(OP, OP_NAME) \
   template <typename T, int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> \
-  maskz_ ## OP (const SIMDMask<T, SIMD_WIDTH> &k, \
+  maskz_ ## OP_NAME (const SIMDMask<T, SIMD_WIDTH> &k, \
       const SIMDVec<T, SIMD_WIDTH> &a) \
   { \
     return mask::mask_ifelsezero(k, OP (a)); \
   } \
   template <typename T, int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> \
-  mask_ ## OP(const SIMDVec<T, SIMD_WIDTH> &src, \
+  mask_ ## OP_NAME (const SIMDVec<T, SIMD_WIDTH> &src, \
       const SIMDMask<T, SIMD_WIDTH> &k, \
       const SIMDVec<T, SIMD_WIDTH> &a) \
   { \
     return mask::mask_ifelse(k, OP (a), src); \
   }
 
-  #define EMULATE_DOP(OP) \
+  #define EMULATE_SOP(OP) EMULATE_SOP_NAME(OP, OP)
+
+  #define EMULATE_DOP_NAME(OP, OP_NAME) \
   template <typename T, int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> \
-  maskz_ ## OP (const SIMDMask<T, SIMD_WIDTH> &k, \
+  maskz_ ## OP_NAME (const SIMDMask<T, SIMD_WIDTH> &k, \
       const SIMDVec<T, SIMD_WIDTH> &a, \
       const SIMDVec<T, SIMD_WIDTH> &b) \
   { \
@@ -181,13 +183,15 @@ namespace mask {
   } \
   template <typename T, int SIMD_WIDTH> \
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> \
-  mask_ ## OP(const SIMDVec<T, SIMD_WIDTH> &src, \
+  mask_ ## OP_NAME (const SIMDVec<T, SIMD_WIDTH> &src, \
       const SIMDMask<T, SIMD_WIDTH> &k, \
       const SIMDVec<T, SIMD_WIDTH> &a, \
       const SIMDVec<T, SIMD_WIDTH> &b) \
   { \
     return mask::mask_ifelse(k, OP (a, b), src); \
   }
+
+  #define EMULATE_DOP(OP) EMULATE_DOP_NAME(OP, OP)
   
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -204,7 +208,7 @@ namespace mask {
   mask_ifelsezero(const SIMDMask<T, SIMD_WIDTH> &k,
       const SIMDVec<T, SIMD_WIDTH> &trueVal)
   {
-    return and((SIMDVec<T, SIMD_WIDTH>) k, trueVal);
+    return and_((SIMDVec<T, SIMD_WIDTH>) k, trueVal);
   }
   
   template <typename Tout, typename Tin, int SIMD_WIDTH>
@@ -478,11 +482,11 @@ namespace mask {
   
   EMULATE_SOP(abs)
   
-  EMULATE_DOP(and)
-  EMULATE_DOP(or)
+  EMULATE_DOP_NAME(and_, and)
+  EMULATE_DOP_NAME(or_, or)
   EMULATE_DOP(andnot)
-  EMULATE_DOP(xor)
-  EMULATE_SOP(not)
+  EMULATE_DOP_NAME(xor_, xor)
+  EMULATE_SOP_NAME(not_, not)
   EMULATE_SOP(neg)
   EMULATE_DOP(min)
   EMULATE_DOP(max)
@@ -557,7 +561,7 @@ namespace mask {
   mask_test_all_ones(const SIMDMask<T, SIMD_WIDTH> &k,
       const SIMDVec<T, SIMD_WIDTH> &a)
   {
-    return mask::mask_test_all_zeros(k, not(a)); //test_all_ones(mask_ifelse<T, SIMD_WIDTH>(k, a, () set1<SIMDByte, SIMD_WIDTH>(0xFF)));
+    return mask::mask_test_all_zeros(k, not_(a)); //test_all_ones(mask_ifelse<T, SIMD_WIDTH>(k, a, () set1<SIMDByte, SIMD_WIDTH>(0xFF)));
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -574,7 +578,7 @@ namespace mask {
   k ## NAME (const SIMDMask<T, SIMD_WIDTH> &a, \
       const SIMDMask<T, SIMD_WIDTH> &b) \
   { \
-    return (SIMDMask<T, SIMD_WIDTH>) NAME ((SIMDVec<T, SIMD_WIDTH>) a, (SIMDVec<T, SIMD_WIDTH>) b); \
+    return (SIMDMask<T, SIMD_WIDTH>) NAME ## _ ((SIMDVec<T, SIMD_WIDTH>) a, (SIMDVec<T, SIMD_WIDTH>) b); \
   }
 
   EMULATE_DMASKOP(and)
@@ -593,13 +597,13 @@ namespace mask {
   EMULATE_DMASKOP(xor)
   
   //EMULATE_DMASKOP(xnor)
-  // there is not xnor-function for vectors, so we have to do: not(xor(a, b))
+  // there is not xnor-function for vectors, so we have to do: not_(xor_(a, b))
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
   kxnor (const SIMDMask<T, SIMD_WIDTH> &a,
       const SIMDMask<T, SIMD_WIDTH> &b)
   {
-    return (SIMDMask<T, SIMD_WIDTH>) not(xor((SIMDVec<T, SIMD_WIDTH>) a, (SIMDVec<T, SIMD_WIDTH>) b));
+    return (SIMDMask<T, SIMD_WIDTH>) not_(xor_((SIMDVec<T, SIMD_WIDTH>) a, (SIMDVec<T, SIMD_WIDTH>) b));
   }
   
   template <typename T, int SIMD_WIDTH>
@@ -616,7 +620,7 @@ namespace mask {
   static SIMD_INLINE SIMDMask<T, SIMD_WIDTH>
   knot(const SIMDMask<T, SIMD_WIDTH> &a)
   {
-    return (SIMDMask<T, SIMD_WIDTH>) not((SIMDVec<T, SIMD_WIDTH>) a);
+    return (SIMDMask<T, SIMD_WIDTH>) not_((SIMDVec<T, SIMD_WIDTH>) a);
   }
 
   //shift with flexible parameter (not template), probably slower than template-version

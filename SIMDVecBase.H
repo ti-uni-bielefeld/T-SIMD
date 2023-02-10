@@ -807,6 +807,9 @@ namespace ns_simd {
   /**
    * @brief Computes the bitwise AND of two SIMDVec's.
    *
+   * @note This function is called @c "and_" instead of @c "and" because the
+   * latter is a reserved word in C++.
+   *
    * @param a The first SIMDVec.
    * @param b The second SIMDVec.
    * @return A SIMDVec containing the bitwise AND of the two
@@ -814,14 +817,17 @@ namespace ns_simd {
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  and(const SIMDVec<T, SIMD_WIDTH> &a,
+  and_(const SIMDVec<T, SIMD_WIDTH> &a,
       const SIMDVec<T, SIMD_WIDTH> &b)
   {
-    return internal::base::and(a, b);
+    return internal::base::and_(a, b);
   }
 
   /**
    * @brief Computes the bitwise OR of two SIMDVec's.
+   *
+   * @note This function is called @c "or_" instead of @c "or" because the
+   * latter is a reserved word in C++.
    *
    * @param a The first SIMDVec.
    * @param b The second SIMDVec.
@@ -830,10 +836,10 @@ namespace ns_simd {
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  or(const SIMDVec<T, SIMD_WIDTH> &a,
+  or_(const SIMDVec<T, SIMD_WIDTH> &a,
      const SIMDVec<T, SIMD_WIDTH> &b)
   {
-    return internal::base::or(a, b);
+    return internal::base::or_(a, b);
   }
 
   /**
@@ -857,6 +863,9 @@ namespace ns_simd {
   /**
    * @brief Computes the bitwise XOR of two SIMDVec's.
    *
+   * @note This function is called @c "xor_" instead of @c "xor" because the
+   * latter is a reserved word in C++.
+   *
    * @param a The first SIMDVec.
    * @param b The second SIMDVec.
    * @return A SIMDVec containing the bitwise XOR of the two
@@ -864,15 +873,17 @@ namespace ns_simd {
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  xor(const SIMDVec<T, SIMD_WIDTH> &a,
+  xor_(const SIMDVec<T, SIMD_WIDTH> &a,
       const SIMDVec<T, SIMD_WIDTH> &b)
   {
-    return internal::base::xor(a, b);
+    return internal::base::xor_(a, b);
   }
-
 
   /**
    * @brief Computes the bitwise NOT of a SIMDVec.
+   *
+   * @note This function is called @c "not_" instead of @c "not" because the
+   * latter is a reserved word in C++.
    *
    * @param a The SIMDVec.
    * @return A SIMDVec containing the bitwise NOT of the input
@@ -880,9 +891,9 @@ namespace ns_simd {
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  not(const SIMDVec<T, SIMD_WIDTH> &a)
+  not_(const SIMDVec<T, SIMD_WIDTH> &a)
   {
-    return internal::base::not(a);
+    return internal::base::not_(a);
   }
 
   /** @} */ // end of group logic

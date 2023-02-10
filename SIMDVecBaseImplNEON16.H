@@ -2316,7 +2316,7 @@ namespace base {
   andnot(const SIMDVec<T,16> &a,
 	 const SIMDVec<T,16> &b)
   {
-    return and(not(a), b);
+    return and_(not_(a), b);
   }
 
   // -------------------------------------------------------------------------
@@ -2333,7 +2333,7 @@ namespace base {
   SIMDVEC_NEON_UNARY_ALLINT(not,vmvnq)
 
   static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  not(const SIMDVec<SIMDFloat,16> &a)
+  not_(const SIMDVec<SIMDFloat,16> &a)
   {
     return vreinterpretq_f32_s32(vmvnq_s32(vreinterpretq_s32_f32(a)));
   }
@@ -2388,7 +2388,7 @@ namespace base {
   static SIMD_INLINE int
   test_all_ones(const SIMDVec<T,16> &a)
   {
-    return test_all_zeros(not(a));
+    return test_all_zeros(not_(a));
   }
 
   // -------------------------------------------------------------------------

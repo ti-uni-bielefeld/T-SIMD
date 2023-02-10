@@ -3813,7 +3813,7 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,16>
-  and(const SIMDVec<T,16> &a,
+  and_(const SIMDVec<T,16> &a,
       const SIMDVec<T,16> &b)
   {
     return _mm_and_si128(a, b);
@@ -3821,7 +3821,7 @@ namespace base {
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  and(const SIMDVec<SIMDFloat,16> &a,
+  and_(const SIMDVec<SIMDFloat,16> &a,
       const SIMDVec<SIMDFloat,16> &b)
   {
     return _mm_and_ps(a, b);
@@ -3834,7 +3834,7 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,16>
-  or(const SIMDVec<T,16> &a,
+  or_(const SIMDVec<T,16> &a,
      const SIMDVec<T,16> &b)
   {
     return _mm_or_si128(a, b);
@@ -3842,7 +3842,7 @@ namespace base {
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  or(const SIMDVec<SIMDFloat,16> &a,
+  or_(const SIMDVec<SIMDFloat,16> &a,
      const SIMDVec<SIMDFloat,16> &b)
   {
     return _mm_or_ps(a, b);
@@ -3876,7 +3876,7 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,16>
-  xor(const SIMDVec<T,16> &a,
+  xor_(const SIMDVec<T,16> &a,
       const SIMDVec<T,16> &b)
   {
     return _mm_xor_si128(a, b);
@@ -3884,7 +3884,7 @@ namespace base {
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  xor(const SIMDVec<SIMDFloat,16> &a,
+  xor_(const SIMDVec<SIMDFloat,16> &a,
       const SIMDVec<SIMDFloat,16> &b)
   {
     return _mm_xor_ps(a, b);
@@ -3897,14 +3897,14 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,16>
-  not(const SIMDVec<T,16> &a)
+  not_(const SIMDVec<T,16> &a)
   {
     return x_mm_not_si128(a);
   }
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,16>
-  not(const SIMDVec<SIMDFloat,16> &a)
+  not_(const SIMDVec<SIMDFloat,16> &a)
   {
     return x_mm_not_ps(a);
   }
@@ -3962,7 +3962,7 @@ namespace base {
       const SIMDVec<SIMDInt,16> &b)
   {
     SIMDVec<SIMDInt,16> one = set1(SIMDInt(1), Integer<16>()), as, bs, lsb;
-    lsb = and(or(a, b), one);
+    lsb = and_(or_(a, b), one);
     as = srai<1>(a);
     bs = srai<1>(b);
     return add(lsb, add(as, bs));

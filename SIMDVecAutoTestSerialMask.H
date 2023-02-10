@@ -83,7 +83,7 @@ public:
     mask = 0;
     // avoids comparison with SIMDTypeInfo::trueval, which fails for
     // SIMDFloat (NaN)
-    SIMDSerialVec<T, SIMD_WIDTH> negX = not(x);
+    SIMDSerialVec<T, SIMD_WIDTH> negX = not_(x);
     for (int i = 0; i < x.elements; i++) {
       if (negX[i] == T(0)) {
         mask = mask | (UInt<bits>(1) << i);
@@ -310,25 +310,33 @@ static void mask_store(T *const p, const SIMDSerialMask<T, 64> &k,
   mask_storeu(p, k, a);
 }
 
-#define GENERATE_SERIAL_MASK_UNARY(OP)                                         \
+#define GENERATE_SERIAL_MASK_UNARY_NAME(OP, OP_NAME)                           \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMDSerialVec<T, SIMD_WIDTH> mask_##OP(                               \
+  static SIMDSerialVec<T, SIMD_WIDTH> mask_##OP_NAME(                          \
       const SIMDSerialVec<T, SIMD_WIDTH> &src,                                 \
       const SIMDSerialMask<T, SIMD_WIDTH> &k,                                  \
       const SIMDSerialVec<T, SIMD_WIDTH> &a) {                                 \
     return mask_ifelse(k, OP(a), src);                                         \
   }
 
-#define GENERATE_SERIAL_MASKZ_UNARY(OP)                                        \
+#define GENERATE_SERIAL_MASK_UNARY(OP) GENERATE_SERIAL_MASK_UNARY_NAME(OP, OP)
+
+#define GENERATE_SERIAL_MASKZ_UNARY_NAME(OP, OP_NAME)                          \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMDSerialVec<T, SIMD_WIDTH> maskz_##OP(                              \
+  static SIMDSerialVec<T, SIMD_WIDTH> maskz_##OP_NAME(                         \
       const SIMDSerialMask<T, SIMD_WIDTH> &k,                                  \
       const SIMDSerialVec<T, SIMD_WIDTH> &a) {                                 \
     return mask_ifelsezero(k, OP(a));                                          \
   }
 
-#define GENERATE_SERIAL_MASK_MASKZ_UNARY(OP)                                   \
-  GENERATE_SERIAL_MASK_UNARY(OP)                                               \
+#define GENERATE_SERIAL_MASKZ_UNARY(OP) GENERATE_SERIAL_MASKZ_UNARY_NAME(OP, OP)
+
+#define GENERATE_SERIAL_MASK_MASKZ_UNARY_NAME(OP, OP_NAME) \
+  GENERATE_SERIAL_MASK_UNARY_NAME(OP, OP_NAME) \
+  GENERATE_SERIAL_MASKZ_UNARY_NAME(OP, OP_NAME)
+
+#define GENERATE_SERIAL_MASK_MASKZ_UNARY(OP) \
+  GENERATE_SERIAL_MASK_UNARY(OP) \
   GENERATE_SERIAL_MASKZ_UNARY(OP)
 
 #define GENERATE_SERIAL_MASK_UNARY_TI(OP)                                      \
@@ -352,9 +360,9 @@ static void mask_store(T *const p, const SIMDSerialMask<T, 64> &k,
   GENERATE_SERIAL_MASK_UNARY_TI(OP)                                            \
   GENERATE_SERIAL_MASKZ_UNARY_TI(OP)
 
-#define GENERATE_SERIAL_MASK_BINARY(OP)                                        \
+#define GENERATE_SERIAL_MASK_BINARY_NAME(OP, OP_NAME)                          \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMDSerialVec<T, SIMD_WIDTH> mask_##OP(                               \
+  static SIMDSerialVec<T, SIMD_WIDTH> mask_##OP_NAME(                          \
       const SIMDSerialVec<T, SIMD_WIDTH> &src,                                 \
       const SIMDSerialMask<T, SIMD_WIDTH> &k,                                  \
       const SIMDSerialVec<T, SIMD_WIDTH> &a,                                   \
@@ -362,17 +370,26 @@ static void mask_store(T *const p, const SIMDSerialMask<T, 64> &k,
     return mask_ifelse(k, OP(a, b), src);                                      \
   }
 
-#define GENERATE_SERIAL_MASKZ_BINARY(OP)                                       \
+#define GENERATE_SERIAL_MASK_BINARY(OP) GENERATE_SERIAL_MASK_BINARY_NAME(OP, OP)
+
+#define GENERATE_SERIAL_MASKZ_BINARY_NAME(OP, OP_NAME)                         \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMDSerialVec<T, SIMD_WIDTH> maskz_##OP(                              \
+  static SIMDSerialVec<T, SIMD_WIDTH> maskz_##OP_NAME(                         \
       const SIMDSerialMask<T, SIMD_WIDTH> &k,                                  \
       const SIMDSerialVec<T, SIMD_WIDTH> &a,                                   \
       const SIMDSerialVec<T, SIMD_WIDTH> &b) {                                 \
     return mask_ifelsezero(k, OP(a, b));                                       \
   }
 
-#define GENERATE_SERIAL_MASK_MASKZ_BINARY(OP)                                  \
-  GENERATE_SERIAL_MASK_BINARY(OP)                                              \
+#define GENERATE_SERIAL_MASKZ_BINARY(OP) \
+  GENERATE_SERIAL_MASKZ_BINARY_NAME(OP, OP)
+
+#define GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(OP, OP_NAME) \
+  GENERATE_SERIAL_MASK_BINARY_NAME(OP, OP_NAME) \
+  GENERATE_SERIAL_MASKZ_BINARY_NAME(OP, OP_NAME)
+
+#define GENERATE_SERIAL_MASK_MASKZ_BINARY(OP) \
+  GENERATE_SERIAL_MASK_BINARY(OP) \
   GENERATE_SERIAL_MASKZ_BINARY(OP)
 
 GENERATE_SERIAL_MASK_MASKZ_BINARY(add)
@@ -394,11 +411,11 @@ GENERATE_SERIAL_MASK_MASKZ_UNARY(rsqrt)
 GENERATE_SERIAL_MASK_MASKZ_UNARY(sqrt)
 GENERATE_SERIAL_MASK_MASKZ_UNARY(abs)
 
-GENERATE_SERIAL_MASK_MASKZ_BINARY(and)
-GENERATE_SERIAL_MASK_MASKZ_BINARY(or)
+GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(and_, and)
+GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(or_, or)
 GENERATE_SERIAL_MASK_MASKZ_BINARY(andnot)
-GENERATE_SERIAL_MASK_MASKZ_BINARY(xor)
-GENERATE_SERIAL_MASK_MASKZ_UNARY(not )
+GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(xor_, xor)
+GENERATE_SERIAL_MASK_MASKZ_UNARY_NAME(not_, not)
 
 GENERATE_SERIAL_MASK_MASKZ_UNARY(neg)
 

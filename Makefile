@@ -110,7 +110,7 @@ userdefs_arch   = -march=native -mfpmath=sse
 userdefs_avx512 = -mavx512f -mavx512bw -mavx512dq -mavx512vl -mpopcnt
 userdefs_c      = -Wall -Wextra -Wpedantic -ggdb -fno-var-tracking
 userdefs_cppstd = -std=c++17
-userdefs_cpp    = -fno-operator-names
+userdefs_cpp    =
 
 # 20. Sep 22 (Jonas Keller): use secure template overloads on Windows and disable
 # warnings about unsafe functions

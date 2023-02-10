@@ -1300,7 +1300,7 @@ namespace mask {
       const SIMDVec<SIMDInt,64> &b)
   {
     SIMDVec<SIMDInt,64> one = ::ns_simd::set1<SIMDInt,64>(1), as, bs, lsb;
-    lsb = and(or(a, b), one);
+    lsb = and_(or_(a, b), one);
     as = srai<1>(a);
     bs = srai<1>(b);
     return mask_add(src, k, lsb, add(as, bs));
@@ -1312,7 +1312,7 @@ namespace mask {
       const SIMDVec<SIMDInt,64> &b)
   {
     SIMDVec<SIMDInt,64> one = ::ns_simd::set1<SIMDInt,64>(1), as, bs, lsb;
-    lsb = and(or(a, b), one);
+    lsb = and_(or_(a, b), one);
     as = srai<1>(a);
     bs = srai<1>(b);
     return maskz_add(k, lsb, add(as, bs));

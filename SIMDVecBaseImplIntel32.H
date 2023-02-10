@@ -5078,7 +5078,7 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,32>
-  and(const SIMDVec<T,32> &a,
+  and_(const SIMDVec<T,32> &a,
       const SIMDVec<T,32> &b)
   {
 #ifdef __AVX2__
@@ -5092,7 +5092,7 @@ namespace base {
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,32>
-  and(const SIMDVec<SIMDFloat,32> &a,
+  and_(const SIMDVec<SIMDFloat,32> &a,
       const SIMDVec<SIMDFloat,32> &b)
   {
     return _mm256_and_ps(a, b);
@@ -5105,7 +5105,7 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,32>
-  or(const SIMDVec<T,32> &a,
+  or_(const SIMDVec<T,32> &a,
      const SIMDVec<T,32> &b)
   {
 #ifdef __AVX2__
@@ -5119,7 +5119,7 @@ namespace base {
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,32>
-  or(const SIMDVec<SIMDFloat,32> &a,
+  or_(const SIMDVec<SIMDFloat,32> &a,
      const SIMDVec<SIMDFloat,32> &b)
   {
     return _mm256_or_ps(a, b);
@@ -5159,7 +5159,7 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,32>
-  xor(const SIMDVec<T,32> &a,
+  xor_(const SIMDVec<T,32> &a,
       const SIMDVec<T,32> &b)
   {
 #ifdef __AVX2__
@@ -5173,7 +5173,7 @@ namespace base {
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,32>
-  xor(const SIMDVec<SIMDFloat,32> &a,
+  xor_(const SIMDVec<SIMDFloat,32> &a,
       const SIMDVec<SIMDFloat,32> &b)
   {
     return _mm256_xor_ps(a, b);
@@ -5186,14 +5186,14 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,32>
-  not(const SIMDVec<T,32> &a)
+  not_(const SIMDVec<T,32> &a)
   {
     return x_mm256_not_si256(a);
   }
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,32>
-  not(const SIMDVec<SIMDFloat,32> &a)
+  not_(const SIMDVec<SIMDFloat,32> &a)
   {
     return x_mm256_not_ps(a);
   }
@@ -5267,7 +5267,7 @@ namespace base {
       const SIMDVec<SIMDInt,32> &b)
   {
     SIMDVec<SIMDInt,32> one = set1(SIMDInt(1), Integer<32>()), as, bs, lsb;
-    lsb = and(or(a, b), one);
+    lsb = and_(or_(a, b), one);
     as = srai<1>(a);
     bs = srai<1>(b);
     return add(lsb, add(as, bs));

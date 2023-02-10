@@ -1249,10 +1249,10 @@ main()
   
   SIMDVec<SIMDFloat,SW> _zero = setzero<SIMDFloat,SW>();
   SIMDVec<SIMDFloat,SW> _ones = setones<SIMDFloat,SW>();
-  printf("xor(zero, zero) = "); print("%g ", xor(_zero, _zero)); puts("");
-  printf("xor(zero, ones) = "); print("%g ", xor(_zero, _ones)); puts("");
-  printf("xor(ones, zero) = "); print("%g ", xor(_ones, _zero)); puts("");
-  printf("xor(ones, ones) = "); print("%g ", xor(_ones, _ones)); puts("");
+  printf("xor_(zero, zero) = "); print("%g ", xor_(_zero, _zero)); puts("");
+  printf("xor_(zero, ones) = "); print("%g ", xor_(_zero, _ones)); puts("");
+  printf("xor_(ones, zero) = "); print("%g ", xor_(_ones, _zero)); puts("");
+  printf("xor_(ones, ones) = "); print("%g ", xor_(_ones, _ones)); puts("");
  
   puts("\n*********** test of cvts ************\n");
   

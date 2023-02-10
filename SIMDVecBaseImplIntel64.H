@@ -5178,7 +5178,7 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,64>
-  and(const SIMDVec<T,64> &a,
+  and_(const SIMDVec<T,64> &a,
       const SIMDVec<T,64> &b)
   {
     return _mm512_and_si512(a, b);
@@ -5186,7 +5186,7 @@ namespace base {
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,64>
-  and(const SIMDVec<SIMDFloat,64> &a,
+  and_(const SIMDVec<SIMDFloat,64> &a,
       const SIMDVec<SIMDFloat,64> &b)
   {
     return x_mm512_and_ps(a, b);
@@ -5199,7 +5199,7 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,64>
-  or(const SIMDVec<T,64> &a,
+  or_(const SIMDVec<T,64> &a,
      const SIMDVec<T,64> &b)
   {
     return _mm512_or_si512(a, b);
@@ -5207,7 +5207,7 @@ namespace base {
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,64>
-  or(const SIMDVec<SIMDFloat,64> &a,
+  or_(const SIMDVec<SIMDFloat,64> &a,
      const SIMDVec<SIMDFloat,64> &b)
   {
     return x_mm512_or_ps(a, b);
@@ -5241,7 +5241,7 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,64>
-  xor(const SIMDVec<T,64> &a,
+  xor_(const SIMDVec<T,64> &a,
       const SIMDVec<T,64> &b)
   {
     return _mm512_xor_si512(a, b);
@@ -5249,7 +5249,7 @@ namespace base {
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,64>
-  xor(const SIMDVec<SIMDFloat,64> &a,
+  xor_(const SIMDVec<SIMDFloat,64> &a,
       const SIMDVec<SIMDFloat,64> &b)
   {
     return x_mm512_xor_ps(a, b);
@@ -5262,14 +5262,14 @@ namespace base {
   // all integer versions
   template <typename T>
   static SIMD_INLINE SIMDVec<T,64>
-  not(const SIMDVec<T,64> &a)
+  not_(const SIMDVec<T,64> &a)
   {
     return x_mm512_not_si512(a);
   }
 
   // float version
   static SIMD_INLINE SIMDVec<SIMDFloat,64>
-  not(const SIMDVec<SIMDFloat,64> &a)
+  not_(const SIMDVec<SIMDFloat,64> &a)
   {
     return x_mm512_not_ps(a);
   }
@@ -5343,7 +5343,7 @@ namespace base {
       const SIMDVec<SIMDInt,64> &b)
   {
     SIMDVec<SIMDInt,64> one = set1(SIMDInt(1), Integer<64>()), as, bs, lsb;
-    lsb = and(or(a, b), one);
+    lsb = and_(or_(a, b), one);
     as = srai<1>(a);
     bs = srai<1>(b);
     return add(lsb, add(as, bs));
@@ -5399,7 +5399,7 @@ namespace base {
   static SIMD_INLINE int
   test_all_ones(const SIMDVec<T,64> &a)
   {
-    return test_all_zeros(not(a));
+    return test_all_zeros(not_(a));
   }
 
   // ---------------------------------------------------------------------------

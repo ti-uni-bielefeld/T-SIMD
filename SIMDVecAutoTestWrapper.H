@@ -1290,7 +1290,7 @@ namespace auto_test {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply(const VEC<T,SIMD_WIDTH> &a, const VEC<T,SIMD_WIDTH> &b)
     {
-      return and(a, b);
+      return and_(a, b);
     }
   };
 
@@ -1308,7 +1308,7 @@ namespace auto_test {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply(const VEC<T,SIMD_WIDTH> &a, const VEC<T,SIMD_WIDTH> &b)
     {
-      return or(a, b);
+      return or_(a, b);
     }
   };
 
@@ -1344,7 +1344,7 @@ namespace auto_test {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply(const VEC<T,SIMD_WIDTH> &a, const VEC<T,SIMD_WIDTH> &b)
     {
-      return xor(a, b);
+      return xor_(a, b);
     }
   };
 
@@ -1362,7 +1362,7 @@ namespace auto_test {
     static SIMD_INLINE VEC<T,SIMD_WIDTH>
     apply(const VEC<T,SIMD_WIDTH> &a)
     {
-      return not(a);
+      return not_(a);
     }
   };
 

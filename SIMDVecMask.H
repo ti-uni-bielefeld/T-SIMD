@@ -1197,7 +1197,7 @@ namespace ns_simd {
 
   /**
    * @brief Masked version of
-   * and(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   * and_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -1211,7 +1211,7 @@ namespace ns_simd {
 
   /**
    * @brief Zero-masked version of
-   * and(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   * and_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -1224,7 +1224,7 @@ namespace ns_simd {
 
   /**
    * @brief Masked version of
-   * or(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   * or_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -1238,7 +1238,7 @@ namespace ns_simd {
 
   /**
    * @brief Zero-masked version of
-   * or(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   * or_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -1278,7 +1278,7 @@ namespace ns_simd {
 
   /**
    * @brief Masked version of
-   * xor(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   * xor_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -1292,7 +1292,7 @@ namespace ns_simd {
 
   /**
    * @brief Zero-masked version of
-   * xor(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+   * xor_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -1305,7 +1305,7 @@ namespace ns_simd {
 
   /**
    * @brief Masked version of
-   * not(const SIMDVec<T, SIMD_WIDTH> &).
+   * not_(const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
@@ -1318,7 +1318,7 @@ namespace ns_simd {
 
   /**
    * @brief Zero-masked version of
-   * not(const SIMDVec<T, SIMD_WIDTH> &).
+   * not_(const SIMDVec<T, SIMD_WIDTH> &).
    */
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>

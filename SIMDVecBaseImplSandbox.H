@@ -655,7 +655,7 @@ namespace base {
   // bitwise and
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  and(const SIMDVec<T, SIMD_WIDTH> &,
+  and_(const SIMDVec<T, SIMD_WIDTH> &,
       const SIMDVec<T, SIMD_WIDTH> &)
   {
     printf("and<%s,%d>(V,V)\n",
@@ -666,7 +666,7 @@ namespace base {
   // bitwise or
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  or(const SIMDVec<T, SIMD_WIDTH> &,
+  or_(const SIMDVec<T, SIMD_WIDTH> &,
      const SIMDVec<T, SIMD_WIDTH> &)
   {
     printf("or<%s,%d>(V,V)\n",
@@ -688,7 +688,7 @@ namespace base {
   // bitwise xor
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  xor(const SIMDVec<T, SIMD_WIDTH> &,
+  xor_(const SIMDVec<T, SIMD_WIDTH> &,
       const SIMDVec<T, SIMD_WIDTH> &)
   {
     printf("xor<%s,%d>(V,V)\n",
@@ -700,7 +700,7 @@ namespace base {
   // bitwise not (work-arounds required)
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDVec<T, SIMD_WIDTH>
-  not(const SIMDVec<T, SIMD_WIDTH> &)
+  not_(const SIMDVec<T, SIMD_WIDTH> &)
   {
     printf("not<%s,%d>(V)\n",
 	   SIMDTypeInfo<T>::name(), SIMD_WIDTH);

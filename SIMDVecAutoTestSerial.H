@@ -1700,7 +1700,7 @@ namespace auto_test {
     SIMDSerialVec<T, SIMD_WIDTH> res;
     // avoids comparison with SIMDTypeInfo::trueval, which fails for
     // SIMDFloat (NaN)
-    SIMDSerialVec<Tcond, SIMD_WIDTH> negCond = not(cond);
+    SIMDSerialVec<Tcond, SIMD_WIDTH> negCond = not_(cond);
     for (int i = 0; i < res.elements; i++)
       if (negCond[i] == Tcond(0))
 	res[i] = trueVal[i];
@@ -1781,7 +1781,7 @@ namespace auto_test {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH> 
-  and(const SIMDSerialVec<T, SIMD_WIDTH> &a,
+  and_(const SIMDSerialVec<T, SIMD_WIDTH> &a,
       const SIMDSerialVec<T, SIMD_WIDTH> &b)
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
@@ -1792,16 +1792,16 @@ namespace auto_test {
 
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
-  and(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a,
+  and_(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a,
       const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &b)
   {
     SIMDSerialVec<SIMDInt, SIMD_WIDTH> ai(a), bi(b);
-    return SIMDSerialVec<SIMDFloat, SIMD_WIDTH>(and(ai, bi));
+    return SIMDSerialVec<SIMDFloat, SIMD_WIDTH>(and_(ai, bi));
   }
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH> 
-  or(const SIMDSerialVec<T, SIMD_WIDTH> &a,
+  or_(const SIMDSerialVec<T, SIMD_WIDTH> &a,
      const SIMDSerialVec<T, SIMD_WIDTH> &b)
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
@@ -1812,11 +1812,11 @@ namespace auto_test {
 
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
-  or(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a,
+  or_(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a,
      const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &b)
   {
     SIMDSerialVec<SIMDInt, SIMD_WIDTH> ai(a), bi(b);
-    return SIMDSerialVec<SIMDFloat, SIMD_WIDTH>(or(ai, bi));
+    return SIMDSerialVec<SIMDFloat, SIMD_WIDTH>(or_(ai, bi));
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -1841,7 +1841,7 @@ namespace auto_test {
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH> 
-  xor(const SIMDSerialVec<T, SIMD_WIDTH> &a,
+  xor_(const SIMDSerialVec<T, SIMD_WIDTH> &a,
      const SIMDSerialVec<T, SIMD_WIDTH> &b)
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
@@ -1852,16 +1852,16 @@ namespace auto_test {
 
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
-  xor(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a,
+  xor_(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a,
       const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &b)
   {
     SIMDSerialVec<SIMDInt, SIMD_WIDTH> ai(a), bi(b);
-    return SIMDSerialVec<SIMDFloat, SIMD_WIDTH>(xor(ai, bi));
+    return SIMDSerialVec<SIMDFloat, SIMD_WIDTH>(xor_(ai, bi));
   }
 
   template <typename T, int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH> 
-  not(const SIMDSerialVec<T, SIMD_WIDTH> &a)
+  not_(const SIMDSerialVec<T, SIMD_WIDTH> &a)
   {
     SIMDSerialVec<T, SIMD_WIDTH> c;
     for (int i = 0; i < c.elements; i++)
@@ -1871,10 +1871,10 @@ namespace auto_test {
 
   template <int SIMD_WIDTH>
   static SIMD_INLINE SIMDSerialVec<SIMDFloat, SIMD_WIDTH>
-  not(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a)
+  not_(const SIMDSerialVec<SIMDFloat, SIMD_WIDTH> &a)
   {
     SIMDSerialVec<SIMDInt, SIMD_WIDTH> ai(a);
-    return SIMDSerialVec<SIMDFloat, SIMD_WIDTH>(not(ai));
+    return SIMDSerialVec<SIMDFloat, SIMD_WIDTH>(not_(ai));
   }
 
   // int types except SIMDInt
@@ -1942,7 +1942,7 @@ namespace auto_test {
   {
     // avoids comparison with SIMDTypeInfo::trueval, which fails for
     // SIMDFloat (NaN)
-    SIMDSerialVec<T, SIMD_WIDTH> aNot = not(a);
+    SIMDSerialVec<T, SIMD_WIDTH> aNot = not_(a);
     for (int i = 0; i < a.elements; i++)
       if (aNot[i] != T(0))
 	return 0;

@@ -32,6 +32,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#if __cplusplus >= 201103L
+#include <type_traits>
+#endif
+
 namespace ns_simd {
   /**
    * @defgroup types Basic SIMD Types

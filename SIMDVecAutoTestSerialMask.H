@@ -26,8 +26,6 @@
 #ifndef _SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_
 #define _SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_
 
-#include "SIMDTypes.H"
-#include "SIMDVec.H"
 #include "SIMDVecAutoTestSerial.H"
 #include "SIMDVecExt.H"
 #include "SIMDVecMask.H"

@@ -92,6 +92,7 @@ mask_add(const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
 #ifndef _SIMD_VEC_MASK_IMPL_EMU_H_
 #define _SIMD_VEC_MASK_IMPL_EMU_H_
 
+#include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
@@ -101,7 +102,6 @@ mask_add(const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
 #include "SIMDVecMaskImplIntel64.H"
 #endif // SIMDVEC_INTEL_ENABLE
 
-#include <math.h>
 #include <stdint.h>
 
 namespace ns_simd {

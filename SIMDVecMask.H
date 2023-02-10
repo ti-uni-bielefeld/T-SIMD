@@ -28,6 +28,9 @@
 
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
+#include "SIMDVec.H"
+
+#include <stdint.h>
 
 #ifdef SIMDVEC_SANDBOX
 

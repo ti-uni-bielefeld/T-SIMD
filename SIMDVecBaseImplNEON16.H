@@ -2298,14 +2298,14 @@ namespace base {
   // -------------------------------------------------------------------------
 
   SIMDVEC_NEON_BINARY_FLOAT_BY_INT(vandq)
-  SIMDVEC_NEON_BINARY_ALL(and,vandq)
+  SIMDVEC_NEON_BINARY_ALL(and_,vandq)
 
   // -------------------------------------------------------------------------
   // or
   // -------------------------------------------------------------------------
 
   SIMDVEC_NEON_BINARY_FLOAT_BY_INT(vorrq)
-  SIMDVEC_NEON_BINARY_ALL(or,vorrq)
+  SIMDVEC_NEON_BINARY_ALL(or_,vorrq)
 
   // -------------------------------------------------------------------------
   // andnot
@@ -2324,13 +2324,13 @@ namespace base {
   // -------------------------------------------------------------------------
 
   SIMDVEC_NEON_BINARY_FLOAT_BY_INT(veorq)
-  SIMDVEC_NEON_BINARY_ALL(xor,veorq)
+  SIMDVEC_NEON_BINARY_ALL(xor_,veorq)
 
   // -------------------------------------------------------------------------
   // not
   // -------------------------------------------------------------------------
 
-  SIMDVEC_NEON_UNARY_ALLINT(not,vmvnq)
+  SIMDVEC_NEON_UNARY_ALLINT(not_,vmvnq)
 
   static SIMD_INLINE SIMDVec<SIMDFloat,16>
   not_(const SIMDVec<SIMDFloat,16> &a)

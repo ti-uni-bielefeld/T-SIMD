@@ -72,10 +72,6 @@ namespace ns_simd {
    */
   template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
   class SIMDMask;
-
-  // swizzle table
-  template <int N, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
-  struct SwizzleTable;
 }
 
 #endif

@@ -451,8 +451,7 @@ using namespace ns_simd;
       printf("\n");							\
     }									\
     printf("\n");							\
-    SwizzleTable<N,TYPE,SW> t;						\
-    swizzle(t, v);							\
+    swizzle<N>(v);							\
     for (int i = 0; i < N; i++, bufp += nElems) {			\
       printf("v[%d] = ", i);						\
       print(FORMAT, v[i]);						\
@@ -1200,8 +1199,7 @@ main()
 #define SWIZZLETYPE SIMDWord
   SIMDVecs<NSWIZZLE,SWIZZLETYPE,SW> swizzleVecs;
   setzero(swizzleVecs);
-  SwizzleTable<NSWIZZLE,SWIZZLETYPE,SW> swizzleTable;
-  swizzle(swizzleTable, swizzleVecs);
+  swizzle<NSWIZZLE>(swizzleVecs);
 #define TRANSPOSETYPE SIMDWord
 #define NTRANSPOSE (SW/sizeof(TRANSPOSETYPE))
 #define NUMTRANSPOSEROWS 5

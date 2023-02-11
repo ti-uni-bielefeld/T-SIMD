@@ -1041,7 +1041,7 @@ namespace auto_test {
     static SIMD_INLINE void
     apply(VEC<T,SIMD_WIDTH> *const v)
     {
-      _swizzle<I>(v);
+      swizzle<I>(v);
     }    
   };
 

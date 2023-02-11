@@ -4137,74 +4137,10 @@ namespace base {
   {
     return slle<IMM>(a, IsPosInGivenRange<SIMDVec<T,64>::elements, IMM>());
   }
-} // namespace base
-} // namespace internal
   
   // ---------------------------------------------------------------------------
   // swizzle v
   // ---------------------------------------------------------------------------
-
-  // ---------- swizzle tables ----------
-
-  // TODO: N as template parameter is short but a bit dangerous (if N
-  // TODO: exceeds range 1..5)
-
-  template <int N>
-  struct SwizzleTable<N,SIMDByte,64>
-  {
-    SIMDVec<SIMDByte,64> mask;
-    SwizzleTable() {
-      mask = internal::base::x_mm512_duplicate_si128(
-          internal::base::load(internal::base::swizzleByteMask16_[N], internal::Integer<16>()));
-    }
-  };
-
-  template <int N>
-  struct SwizzleTable<N,SIMDSignedByte,64>
-  {
-    SIMDVec<SIMDByte,64> mask;
-    SwizzleTable() {
-      mask = internal::base::x_mm512_duplicate_si128(
-          internal::base::load(internal::base::swizzleByteMask16_[N], internal::Integer<16>()));
-    }
-  };
-
-  template <int N>
-  struct SwizzleTable<N,SIMDWord,64>
-  {
-    SIMDVec<SIMDByte,64> mask;
-    SwizzleTable() {
-      mask = internal::base::x_mm512_duplicate_si128(
-          internal::base::load(internal::base::swizzleWordMask16_[N], internal::Integer<16>()));
-    }
-  };
-
-  template <int N>
-  struct SwizzleTable<N,SIMDShort,64>
-  {
-    SIMDVec<SIMDByte,64> mask;
-    SwizzleTable() {
-      mask = internal::base::x_mm512_duplicate_si128(
-          internal::base::load(internal::base::swizzleWordMask16_[N], internal::Integer<16>()));
-    }
-  };
-
-  // no mask required
-  template <int N>
-  struct SwizzleTable<N,SIMDInt,64>
-  {
-    SwizzleTable() {}
-  };
-
-  // no mask required
-  template <int N>
-  struct SwizzleTable<N,SIMDFloat,64>
-  {
-    SwizzleTable() {}
-  };
-
-namespace internal {
-namespace base {
   // ---------- swizzle aux functions -----------
 
   // alignoff is the element-wise offset (relates to size of byte)
@@ -4230,8 +4166,7 @@ namespace base {
   // all types
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<1, T, 64> &,
-	  SIMDVec<T, 64> *const,
+  swizzle(SIMDVec<T, 64> *const,
 	  Integer<1>,
 	  TypeIsIntSize<T>)
   {
@@ -4243,16 +4178,16 @@ namespace base {
   // SIMDByte, SIMDSignedByte
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<2, T, 64> &t,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<2>,
 	  IsIntSize<true,1>)
   {
     SIMDVec<T, 64> vs[2];
     swizzle_64_16<2>(v, vs);
+    __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<2, T>());
     __m512i s[2];
     for (int j = 0; j < 2; j++)
-      s[j] = x_mm512_shuffle_epi8(vs[j], t.mask);
+      s[j] = x_mm512_shuffle_epi8(vs[j], mask);
     v[0] = _mm512_unpacklo_epi64(s[0], s[1]);
     v[1] = _mm512_unpackhi_epi64(s[0], s[1]);
   }
@@ -4260,16 +4195,16 @@ namespace base {
   // SIMDWord, SIMDShort
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<2, T, 64> &t,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<2>,
 	  IsIntSize<true,2>)
   {
     SIMDVec<T, 64> vs[2];
     swizzle_64_16<2>(v, vs);
+    __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<2, T>());
     __m512i s[2];
     for (int j = 0; j < 2; j++)
-      s[j] = x_mm512_shuffle_epi8(vs[j], t.mask);
+      s[j] = x_mm512_shuffle_epi8(vs[j], mask);
     v[0] = _mm512_unpacklo_epi64(s[0], s[1]);
     v[1] = _mm512_unpackhi_epi64(s[0], s[1]);
   }
@@ -4278,8 +4213,7 @@ namespace base {
   // TODO: swizzle<2,SIMDInt,...>: which version is faster?
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<2, T, 64> &,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<2>,
 	  IsIntSize<true,4>)
   {
@@ -4306,8 +4240,7 @@ namespace base {
   // SIMDFloat
   // same code as for SIMDInt
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<2, SIMDFloat, 64> &,
-	  SIMDVec<SIMDFloat, 64> *const v,
+  swizzle(SIMDVec<SIMDFloat, 64> *const v,
 	  Integer<2>,
 	  IsIntSize<false,4>)
   {
@@ -4324,17 +4257,17 @@ namespace base {
   // SIMDByte, SIMDSignedByte
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<3, T, 64> &t,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<3>,
 	  IsIntSize<true,1>)
   {
     SIMDVec<T ,64> vs[3];
     swizzle_64_16<3>(v, vs);
-    __m512i s0 = align_shuffle_byte_512<0> (vs[0], vs[1], t.mask);
-    __m512i s1 = align_shuffle_byte_512<12>(vs[0], vs[1], t.mask);
-    __m512i s2 = align_shuffle_byte_512<8> (vs[1], vs[2], t.mask);
-    __m512i s3 = align_shuffle_byte_512<4> (vs[2], vs[0], t.mask);
+    __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<3, T>());
+    __m512i s0 = align_shuffle_byte_512<0> (vs[0], vs[1], mask);
+    __m512i s1 = align_shuffle_byte_512<12>(vs[0], vs[1], mask);
+    __m512i s2 = align_shuffle_byte_512<8> (vs[1], vs[2], mask);
+    __m512i s3 = align_shuffle_byte_512<4> (vs[2], vs[0], mask);
     /* s3: v[0] is a dummy */
     __m512i l01 = _mm512_unpacklo_epi32(s0, s1);
     __m512i h01 = _mm512_unpackhi_epi32(s0, s1);
@@ -4348,17 +4281,17 @@ namespace base {
   // SIMDWord, SIMDShort
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<3, T, 64> &t,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<3>,
 	  IsIntSize<true,2>)
   {
     SIMDVec<T, 64> vs[3];
     swizzle_64_16<3>(v, vs);
-    __m512i s0 = align_shuffle_word_512<0>(vs[0], vs[1], t.mask);
-    __m512i s1 = align_shuffle_word_512<6>(vs[0], vs[1], t.mask);
-    __m512i s2 = align_shuffle_word_512<4>(vs[1], vs[2], t.mask);
-    __m512i s3 = align_shuffle_word_512<2>(vs[2], vs[0], t.mask);
+    __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<3, T>());
+    __m512i s0 = align_shuffle_word_512<0>(vs[0], vs[1], mask);
+    __m512i s1 = align_shuffle_word_512<6>(vs[0], vs[1], mask);
+    __m512i s2 = align_shuffle_word_512<4>(vs[1], vs[2], mask);
+    __m512i s3 = align_shuffle_word_512<2>(vs[2], vs[0], mask);
     // s3: v[0] is a dummy
     __m512i l01 = _mm512_unpacklo_epi32(s0, s1);
     __m512i h01 = _mm512_unpackhi_epi32(s0, s1);
@@ -4375,8 +4308,7 @@ namespace base {
   // https://software.intel.com/en-us/articles/3d-vector-normalization-using-256-bit-intel-advanced-vector-extensions-intel-avx
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<3, T, 64> &,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<3>,
 	  IsIntSize<true,4>)
   {
@@ -4405,8 +4337,7 @@ namespace base {
   // https://software.intel.com/en-us/articles/3d-vector-normalization-using-512-bit-intel-advanced-vector-extensions-intel-avx
   // same code as for SIMDInt
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<3, SIMDFloat, 64> &,
-	  SIMDVec<SIMDFloat, 64> *const v,
+  swizzle(SIMDVec<SIMDFloat, 64> *const v,
 	  Integer<3>,
 	  IsIntSize<false,4>)
   {
@@ -4430,16 +4361,16 @@ namespace base {
   // SIMDByte, SIMDSignedByte
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<4, T, 64> &t,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<4>,
 	  IsIntSize<true,1>)
   {
     SIMDVec<T, 64> vs[4];
     swizzle_64_16<4>(v, vs);
+    __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<4, T>());
     __m512i s[4];
     for (int j = 0; j < 4; j++)
-      s[j] = x_mm512_shuffle_epi8(vs[j], t.mask);
+      s[j] = x_mm512_shuffle_epi8(vs[j], mask);
     __m512i l01 = _mm512_unpacklo_epi32(s[0], s[1]);
     __m512i h01 = _mm512_unpackhi_epi32(s[0], s[1]);
     __m512i l23 = _mm512_unpacklo_epi32(s[2], s[3]);
@@ -4453,16 +4384,16 @@ namespace base {
   // SIMDWord, SIMDShort
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<4, T, 64> &t,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<4>,
 	  IsIntSize<true,2>)
   {
     SIMDVec<T, 64> vs[4];
     swizzle_64_16<4>(v, vs);
+    __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<4, T>());
     __m512i s[4];
     for (int j = 0; j < 4; j++)
-      s[j] = x_mm512_shuffle_epi8(vs[j], t.mask);
+      s[j] = x_mm512_shuffle_epi8(vs[j], mask);
     __m512i l01 = _mm512_unpacklo_epi32(s[0], s[1]);
     __m512i h01 = _mm512_unpackhi_epi32(s[0], s[1]);
     __m512i l23 = _mm512_unpacklo_epi32(s[2], s[3]);
@@ -4476,8 +4407,7 @@ namespace base {
   // SIMDInt
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<4, T, 64> &,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<4>,
 	  IsIntSize<true,4>)
   {
@@ -4496,8 +4426,7 @@ namespace base {
 
   // SIMDFloat
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<4, SIMDFloat, 64> &,
-	  SIMDVec<SIMDFloat, 64> *const v,
+  swizzle(SIMDVec<SIMDFloat, 64> *const v,
 	  Integer<4>,
 	  IsIntSize<false,4>)
   {
@@ -4519,21 +4448,21 @@ namespace base {
   // SIMDByte, SIMDSignedByte
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<5, T, 64> &t,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<5>,
 	  IsIntSize<true,1>)
   {
     SIMDVec<T, 64> vs[5];
     swizzle_64_16<5>(v, vs);
-    __m512i s0 = align_shuffle_byte_512<0> (vs[0], vs[1], t.mask);
-    __m512i s1 = align_shuffle_byte_512<10>(vs[0], vs[1], t.mask);
-    __m512i s2 = align_shuffle_byte_512<4> (vs[1], vs[2], t.mask);
-    __m512i s3 = align_shuffle_byte_512<14>(vs[1], vs[2], t.mask);
-    __m512i s4 = align_shuffle_byte_512<8> (vs[2], vs[3], t.mask);
-    __m512i s5 = align_shuffle_byte_512<2> (vs[3], vs[4], t.mask);
-    __m512i s6 = align_shuffle_byte_512<12>(vs[3], vs[4], t.mask);
-    __m512i s7 = align_shuffle_byte_512<6> (vs[4], vs[0], t.mask);
+    __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<5, T>());
+    __m512i s0 = align_shuffle_byte_512<0> (vs[0], vs[1], mask);
+    __m512i s1 = align_shuffle_byte_512<10>(vs[0], vs[1], mask);
+    __m512i s2 = align_shuffle_byte_512<4> (vs[1], vs[2], mask);
+    __m512i s3 = align_shuffle_byte_512<14>(vs[1], vs[2], mask);
+    __m512i s4 = align_shuffle_byte_512<8> (vs[2], vs[3], mask);
+    __m512i s5 = align_shuffle_byte_512<2> (vs[3], vs[4], mask);
+    __m512i s6 = align_shuffle_byte_512<12>(vs[3], vs[4], mask);
+    __m512i s7 = align_shuffle_byte_512<6> (vs[4], vs[0], mask);
     /* s7: v[0] is a dummy */
     __m512i l01 = x_mm512_unpacklo_epi16(s0, s1);
     __m512i h01 = x_mm512_unpackhi_epi16(s0, s1);
@@ -4559,21 +4488,21 @@ namespace base {
   // SIMDWord, SIMDShort
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<5, T, 64> &t,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<5>,
 	  IsIntSize<true,2>)
   {
     SIMDVec<T, 64> vs[5];
     swizzle_64_16<5>(v, vs);
-    __m512i s0 = align_shuffle_word_512<0>(vs[0], vs[1], t.mask);
-    __m512i s1 = align_shuffle_word_512<3>(vs[0], vs[1], t.mask);
-    __m512i s2 = align_shuffle_word_512<2>(vs[1], vs[2], t.mask);
-    __m512i s3 = align_shuffle_word_512<5>(vs[1], vs[2], t.mask);
-    __m512i s4 = align_shuffle_word_512<4>(vs[2], vs[3], t.mask);
-    __m512i s5 = align_shuffle_word_512<7>(vs[2], vs[3], t.mask);
-    __m512i s6 = align_shuffle_word_512<6>(vs[3], vs[4], t.mask);
-    __m512i s7 = align_shuffle_word_512<1>(vs[4], vs[0], t.mask);
+    __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<5, T>());
+    __m512i s0 = align_shuffle_word_512<0>(vs[0], vs[1], mask);
+    __m512i s1 = align_shuffle_word_512<3>(vs[0], vs[1], mask);
+    __m512i s2 = align_shuffle_word_512<2>(vs[1], vs[2], mask);
+    __m512i s3 = align_shuffle_word_512<5>(vs[1], vs[2], mask);
+    __m512i s4 = align_shuffle_word_512<4>(vs[2], vs[3], mask);
+    __m512i s5 = align_shuffle_word_512<7>(vs[2], vs[3], mask);
+    __m512i s6 = align_shuffle_word_512<6>(vs[3], vs[4], mask);
+    __m512i s7 = align_shuffle_word_512<1>(vs[4], vs[0], mask);
     // s7: v[0] is a dummy
     __m512i l02 = _mm512_unpacklo_epi32(s0, s2);
     __m512i h02 = _mm512_unpackhi_epi32(s0, s2);
@@ -4591,8 +4520,7 @@ namespace base {
   // SIMDInt
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<5, T, 64> &,
-	  SIMDVec<T, 64> *const v,
+  swizzle(SIMDVec<T, 64> *const v,
 	  Integer<5>,
 	  IsIntSize<true,4>)
   {
@@ -4648,8 +4576,7 @@ namespace base {
   // SIMDFloat
   // same code as for SIMDInt, modified
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<5, SIMDFloat, 64> &,
-	  SIMDVec<SIMDFloat, 64> *const v,
+  swizzle(SIMDVec<SIMDFloat, 64> *const v,
 	  Integer<5>,
 	  IsIntSize<false,4>)
   {

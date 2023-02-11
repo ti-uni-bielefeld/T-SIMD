@@ -2002,31 +2002,31 @@ namespace base {
   // n=5,sizeof=index
   static const SIMDByte* swizzleMask16_5[5] =
     { NULL, swizzleMask16_5_1, swizzleMask16_5_2, NULL, swizzleMask16_5_4 };
-
-} // namespace base
-} // namespace internal
   
   // ---------- swizzle tables ----------
+
+  template <int NUM, typename T, int SIMD_WIDTH>
+  struct SwizzleTable;
 
   // n = 2, 3, 4
 #define SIMDVEC_NEON_SWIZZLE_TABLE(NUM,T,NEON_SUF)			\
   template <> struct SwizzleTable<NUM,T,16>				\
   {									\
-    typedef internal::base::SIMDVecNeon<T>::ScalarType ScalarType;			\
-    typedef internal::base::SIMDVecNeonArray64<NUM,T>::Type TableLoadType;		\
-    typedef internal::base::SIMDVecNeonArray64<NUM,SIMDByte>::Type TableType;		\
-    typedef internal::base::SIMDVecNeon<SIMDByte>::Type64 TableValType;			\
+    typedef SIMDVecNeon<T>::ScalarType ScalarType;			\
+    typedef SIMDVecNeonArray64<NUM,T>::Type TableLoadType;		\
+    typedef SIMDVecNeonArray64<NUM,SIMDByte>::Type TableType;		\
+    typedef SIMDVecNeon<SIMDByte>::Type64 TableValType;			\
     TableType table;							\
     SwizzleTable()							\
     {									\
       TableLoadType loadTable =						\
-	vld ## NUM ## _ ## NEON_SUF((ScalarType*) internal::base::swizzleMask16);	\
+	vld ## NUM ## _ ## NEON_SUF((ScalarType*) swizzleMask16);	\
       for (int i = 0; i < NUM; i++)					\
         table.val[i] = vreinterpret_u8_ ## NEON_SUF(loadTable.val[i]);	\
     }									\
     void print(FILE *f = stdout)					\
     {									\
-      internal::base::SIMDVecNeon<SIMDByte>::ScalarType buf[8] SIMD_ATTR_ALIGNED(8);	\
+      SIMDVecNeon<SIMDByte>::ScalarType buf[8] SIMD_ATTR_ALIGNED(8);	\
       for (int i = 0; i < NUM; i++) {					\
 	vst1_u8(buf, table.val[i]);					\
 	for (int j = 0; j < 8; j++)					\
@@ -2039,14 +2039,14 @@ namespace base {
   // n = 5
   template <typename T> struct SwizzleTable<5,T,16>
   {
-    typedef typename internal::base::SIMDVecNeon<SIMDByte>::ScalarType ScalarType;
-    typedef typename internal::base::SIMDVecNeonArray64<3,SIMDByte>::Type TableType;
-    typedef typename internal::base::SIMDVecNeon<SIMDByte>::Type64 TableValType;	
+    typedef typename SIMDVecNeon<SIMDByte>::ScalarType ScalarType;
+    typedef typename SIMDVecNeonArray64<3,SIMDByte>::Type TableType;
+    typedef typename SIMDVecNeon<SIMDByte>::Type64 TableValType;	
     // two tables for n=3
     TableType table[2];
     SwizzleTable() 
     { 
-      ScalarType* mask = (ScalarType*) internal::base::swizzleMask16_5[sizeof(T)]; 
+      ScalarType* mask = (ScalarType*) swizzleMask16_5[sizeof(T)]; 
       for (int i = 0, off = 0; i < 3; i++, off += 8) {
 	// first half (applied to vectors 0,1,2)
 	table[0].val[i] = vld1_u8(mask + off);
@@ -2056,7 +2056,7 @@ namespace base {
     }
     void print(FILE *f = stdout)
     {
-      internal::base::SIMDVecNeon<SIMDByte>::ScalarType buf[8] SIMD_ATTR_ALIGNED(8);
+      SIMDVecNeon<SIMDByte>::ScalarType buf[8] SIMD_ATTR_ALIGNED(8);
       for (int j = 0; j < 2; j++)
 	for (int i = 0; i < 3; i++) {				     
 	  vst1_u8(buf, table[j].val[i]);				     
@@ -2080,9 +2080,6 @@ namespace base {
   SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(SIMDInt,s32)
   SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(SIMDFloat,f32)
 
-namespace internal {
-namespace base {
-
   // ---------- swizzle (AoS to SoA) ----------
   
   // e.g. NUM==3:
@@ -2102,11 +2099,11 @@ namespace base {
 #define SIMDVEC_NEON_SWIZZLE(NUM)					\
   template <typename T>							\
   static SIMD_INLINE void						\
-  swizzle(const SwizzleTable<NUM, T, 16> &t,				\
-	  SIMDVec<T, 16> *const v,					\
+  swizzle(SIMDVec<T, 16> *const v,					\
 	  Integer<NUM>,							\
 	  TypeIsIntSize<T>)						\
   {									\
+    static const SwizzleTable<NUM, T, 16> t;        \
     typename SwizzleTable<NUM, T, 16>::TableType vu[2];			\
     for (int i = 0, k = 0; i < 2; i++)					\
       for (int j = 0; j < NUM; j++, k++) {				\
@@ -2126,8 +2123,7 @@ namespace base {
 
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<1, T, 16> &,
-	  SIMDVec<T, 16> *const,
+  swizzle(SIMDVec<T, 16> *const,
 	  Integer<1>,
 	  TypeIsIntSize<T>)
   {
@@ -2150,8 +2146,7 @@ namespace base {
 
   template <typename T>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<5, T, 16> &t,
-	  SIMDVec<T, 16> *const v,
+  swizzle(SIMDVec<T, 16> *const v,
 	  Integer<5>,
 	  TypeIsIntSize<T>)
   {
@@ -2186,6 +2181,7 @@ namespace base {
     //     | t.table[0].val[2]|             | t.table[0].val[2]|
     //                  | t.table[1].val[2] |           | t.table[1].val[2] | 
 
+    static const SwizzleTable<5, T, 16> t;
     typename SwizzleTable<5, T, 16>::TableType vu[4];
     // input half-vector index starts at k0
     int k0[4] = {0, 2, 5, 7};

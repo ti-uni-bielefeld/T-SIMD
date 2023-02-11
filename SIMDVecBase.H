@@ -1252,10 +1252,9 @@ namespace ns_simd {
   // swizzle (AoS to SoA), in-place, with template parameter N
   template <int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<N, T, SIMD_WIDTH> &t,
-	  SIMDVec<T, SIMD_WIDTH> *const v)
+  swizzle(SIMDVec<T, SIMD_WIDTH> *const v)
   {
-    internal::base::swizzle(t, v, internal::Integer<N>(),
+    internal::base::swizzle(v, internal::Integer<N>(),
                             internal::TypeIsIntSize<T>());
   }
 

@@ -421,9 +421,9 @@ template <template <typename, int> class Store, typename T, int SIMD_WIDTH,
 class Store16<Store, T, SIMD_WIDTH, NUMROWS, ROW, STORE_STOP, 16, SRC_OFF,
               DST_OFF>
 {
-  enum { STEP = SIMD_WIDTH / 16 };
-  enum { VO = SRC_OFF + ROW * STEP };
-  enum { OFF = (DST_OFF + ROW) * NUMROWS };
+  static constexpr int STEP = SIMD_WIDTH / 16;
+  static constexpr int VO   = SRC_OFF + ROW * STEP;
+  static constexpr int OFF  = (DST_OFF + ROW) * NUMROWS;
 
 public:
   static SIMD_INLINE void _store16(T *const p,
@@ -1941,9 +1941,11 @@ template <template <int, int, typename, int> class Unpack, typename T,
           int INDEX, int NLOHI, int ELEMS>
 class Transpose1
 {
-  enum { PART = (NLOHI & 0x01), NEXT = (NLOHI >> 1) };
-  enum { LIDX = INDEX, RIDX = INDEX + ELEMS };
-  enum { HALF = ELEMS / 2 };
+  static constexpr int PART = (NLOHI & 0x01);
+  static constexpr int NEXT = (NLOHI >> 1);
+  static constexpr int LIDX = INDEX;
+  static constexpr int RIDX = INDEX + ELEMS;
+  static constexpr int HALF = ELEMS / 2;
 
 public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _transpose1(
@@ -1964,7 +1966,7 @@ template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int INDEX, int NLOHI>
 class Transpose1<Unpack, T, SIMD_WIDTH, INDEX, NLOHI, 1>
 {
-  enum { PART = (NLOHI & 0x01) };
+  static constexpr int PART = (NLOHI & 0x01);
 
 public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _transpose1(
@@ -2114,9 +2116,9 @@ template <typename T, int SIMD_WIDTH, int NUMROWS, int ROW, int ROW_STOP,
 class TransposePostprocess16<T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16, SRC_OFF,
                              DST_OFF>
 {
-  enum { STEP = SIMD_WIDTH / 16 };
-  enum { SRC_ROW = SRC_OFF + ROW * STEP };
-  enum { DST_ROW = DST_OFF + ROW };
+  static constexpr int STEP    = SIMD_WIDTH / 16;
+  static constexpr int SRC_ROW = SRC_OFF + ROW * STEP;
+  static constexpr int DST_ROW = DST_OFF + ROW;
 
 public:
   static SIMD_INLINE void _transpose(const Vec<T, SIMD_WIDTH> *const inRows,
@@ -2160,8 +2162,8 @@ public:
 template <typename T, int SIMD_WIDTH>
 class TransposePostprocess<Unpack16, T, SIMD_WIDTH>
 {
-  enum { NUMROWS = SIMD_WIDTH / sizeof(T) };
-  enum { ROW_STOP = 16 / sizeof(T) };
+  static constexpr int NUMROWS  = SIMD_WIDTH / sizeof(T);
+  static constexpr int ROW_STOP = 16 / sizeof(T);
 
 public:
   static SIMD_INLINE void _transpose(const Vec<T, SIMD_WIDTH> *const inRows,
@@ -2265,9 +2267,9 @@ template <template <int, int, typename, int> class Unpack, typename T,
 class Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16, SRC_OFF,
                   DST_OFF>
 {
-  enum { STEP = SIMD_WIDTH / 16 };
-  enum { SRC_ROW = SRC_OFF + ROW * STEP };
-  enum { DST_ROW = DST_OFF + ROW };
+  static constexpr int STEP    = SIMD_WIDTH / 16;
+  static constexpr int SRC_ROW = SRC_OFF + ROW * STEP;
+  static constexpr int DST_ROW = DST_OFF + ROW;
 
 public:
   static SIMD_INLINE void _transpose(const Vec<T, SIMD_WIDTH> *inRows,
@@ -2477,7 +2479,8 @@ template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int SRC, int DST>
 class Swizzle4Once
 {
-  enum { SRC2 = SRC + N, DST2 = DST + 1 };
+  static constexpr int SRC2 = SRC + N;
+  static constexpr int DST2 = DST + 1;
 
 public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> *v,
@@ -2541,7 +2544,7 @@ template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int FINAL_REPS>
 class Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 {
-  enum { ROW_STOP = 2 * N };
+  static constexpr int ROW_STOP = 2 * N;
 
 public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> *v,
@@ -2564,9 +2567,9 @@ template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int FINALBLKSIZE>
 class Swizzle4
 {
-  enum { ORIG_REPS = (int) floorlog2(FINALBLKSIZE) + 1 };
-  enum { FINAL_REPS = ORIG_REPS / 2 };
-  enum { ODD = (ORIG_REPS & 0x01) };
+  static constexpr int ORIG_REPS  = (int) floorlog2(FINALBLKSIZE) + 1;
+  static constexpr int FINAL_REPS = ORIG_REPS / 2;
+  static constexpr int ODD        = (ORIG_REPS & 0x01);
 
 public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> *v)
@@ -2673,10 +2676,10 @@ public:
 template <typename T, int SIMD_WIDTH, int N>
 class Unswizzle4
 {
-  enum { FINALBLKSIZE = Vec<T, SIMD_WIDTH>::elements };
-  enum { ORIG_REPS = (int) floorlog2(FINALBLKSIZE) + 1 };
-  enum { FINAL_REPS = ORIG_REPS / 2 };
-  enum { ODD = (ORIG_REPS & 0x01) };
+  static constexpr int FINALBLKSIZE = Vec<T, SIMD_WIDTH>::elements;
+  static constexpr int ORIG_REPS    = (int) floorlog2(FINALBLKSIZE) + 1;
+  static constexpr int FINAL_REPS   = ORIG_REPS / 2;
+  static constexpr int ODD          = (ORIG_REPS & 0x01);
 
 public:
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> *v)
@@ -2732,7 +2735,8 @@ namespace ext {
 template <typename T, int SIMD_WIDTH, int N, int SRC, int DST, int LANE_ELEMS>
 class Swizzle4Postprocess16Once
 {
-  enum { SRC2 = SRC + 1, DST2 = DST + N };
+  static constexpr int SRC2 = SRC + 1;
+  static constexpr int DST2 = DST + N;
 
 public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> *v,
@@ -2800,7 +2804,7 @@ template <typename T, int SIMD_WIDTH, int N, int LANE_ELEMS, int FINAL_REPS>
 class Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
                             FINAL_REPS, 1>
 {
-  enum { ROW_STOP = 2 * N };
+  static constexpr int ROW_STOP = 2 * N;
 
 public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> *v,
@@ -2827,10 +2831,10 @@ public:
 template <typename T, int SIMD_WIDTH, int N>
 class Swizzle4Postprocess<Zip16, T, SIMD_WIDTH, N>
 {
-  enum { ORIG_REPS = (int) floorlog2(SIMD_WIDTH) - 4 };
-  enum { FINAL_REPS = ORIG_REPS / 2 };
-  enum { ODD = (ORIG_REPS & 0x01) };
-  enum { LANE_ELEMS = 16 / sizeof(T) };
+  static constexpr int ORIG_REPS  = (int) floorlog2(SIMD_WIDTH) - 4;
+  static constexpr int FINAL_REPS = ORIG_REPS / 2;
+  static constexpr int ODD        = (ORIG_REPS & 0x01);
+  static constexpr int LANE_ELEMS = 16 / sizeof(T);
 
 public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> *v)
@@ -2873,21 +2877,18 @@ template <template <int, int, typename, int> class Unpack, typename T,
           int UNPACK_REP, int UNPACK_REPS, int SUB_BASE, int SUB>
 class TransposeRcUnpackSingle
 {
-  enum {
-    UNPACK_PART = ((PROCESS_ROW >> (UNPACK_REPS - UNPACK_REP - 1)) & 0x01)
-  };
-  enum {
-    UNPACK_PART_NEXT =
-      (((PROCESS_ROW + 1) >> (UNPACK_REPS - UNPACK_REP - 1)) & 0x01)
-  };
-  enum { SRC1 = (PROCESS_ROW - SUB) * 2 };
-  enum { SRC2 = (PROCESS_ROW - SUB) * 2 + 1 };
+  static constexpr int UNPACK_PART =
+    (PROCESS_ROW >> (UNPACK_REPS - UNPACK_REP - 1)) & 0x01;
+  static constexpr int UNPACK_PART_NEXT =
+    ((PROCESS_ROW + 1) >> (UNPACK_REPS - UNPACK_REP - 1)) & 0x01;
+  static constexpr int SRC1 = (PROCESS_ROW - SUB) * 2;
+  static constexpr int SRC2 = (PROCESS_ROW - SUB) * 2 + 1;
 
   // wrong numbering of rows
-  // enum { HALF_ROWS = PROCESS_ROWS / 2 };
-  // enum { UNPACK_PART = PROCESS_ROW / HALF_ROWS };
-  // enum { SRC1 = ((PROCESS_ROW * 2) % PROCESS_ROWS) };
-  // enum { SRC2 = ((PROCESS_ROW * 2) % PROCESS_ROWS) + 1 };
+  // static constexpr int HALF_ROWS = PROCESS_ROWS / 2 ;
+  // static constexpr int UNPACK_PART = PROCESS_ROW / HALF_ROWS ;
+  // static constexpr int SRC1 = ((PROCESS_ROW * 2) % PROCESS_ROWS) ;
+  // static constexpr int SRC2 = ((PROCESS_ROW * 2) % PROCESS_ROWS) + 1 ;
 
 public:
   static SIMD_INLINE void _transpose(const Vec<T, SIMD_WIDTH> *const inRows,
@@ -2991,7 +2992,7 @@ template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
           int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF, int VO, int LANE>
 class TransposeRcStoreLane
 {
-  enum { VEC_ELEMS_OUT = Vec<T, SIMD_WIDTH>::elems };
+  static constexpr int VEC_ELEMS_OUT = Vec<T, SIMD_WIDTH>::elems;
 
 public:
   static SIMD_INLINE void _store(T *const outArray, Vec<T, SIMD_WIDTH> *outRows)
@@ -3021,7 +3022,7 @@ template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
           int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF, int VO>
 class TransposeRcStoreLanes
 {
-  enum { VEC_ELEMS_OUT = Vec<T, SIMD_WIDTH>::elems };
+  static constexpr int VEC_ELEMS_OUT = Vec<T, SIMD_WIDTH>::elems;
 
 public:
   static SIMD_INLINE void _store(T *const outArray, Vec<T, SIMD_WIDTH> *outRows)
@@ -3053,8 +3054,8 @@ template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
           int PROCESS_ROWS, int UNPACK_REPS>
 class TransposeRcStore
 {
-  enum { ELEMS_PER_LANE = 16 / sizeof(T) };
-  enum { STORE_OFF = PROCESS_REP * ELEMS_PER_LANE };
+  static constexpr int ELEMS_PER_LANE = 16 / sizeof(T);
+  static constexpr int STORE_OFF      = PROCESS_REP * ELEMS_PER_LANE;
 
 public:
   static SIMD_INLINE void _store(T *const outArray, Vec<T, SIMD_WIDTH> *outRows)
@@ -3087,8 +3088,9 @@ template <template <int, int, typename, int> class Unpack, typename T,
           int UNPACK_REPS, int UNPACK_ODD>
 class TransposeRcRep
 {
-  enum { LOAD_OFF = PROCESS_REP * PROCESS_ROWS * SIMD_WIDTH / sizeof(T) };
-  enum { SUB_BASE = 1 << (floorlog2(PROCESS_ROWS) - 1) };
+  static constexpr int LOAD_OFF =
+    PROCESS_REP * PROCESS_ROWS * SIMD_WIDTH / sizeof(T);
+  static constexpr int SUB_BASE = 1 << (floorlog2(PROCESS_ROWS) - 1);
 
 public:
   static SIMD_INLINE void _transpose(const T *const inArray, T *const outArray)
@@ -3138,17 +3140,14 @@ template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH>
 class TransposeRc
 {
-  enum { SIMD_REGS = NATIVE_SIMD_REG_COUNT / 2 };
-  enum { NUM_ROWS = SIMD_WIDTH / sizeof(T) };
-  enum {
-    PROCESS_REPS = (int) NUM_ROWS > (int) SIMD_REGS ? SIMD_WIDTH / 16 : 1
-  };
-  enum { PROCESS_ROWS = NUM_ROWS / PROCESS_REPS };
-  enum {
-    UNPACK_REPS =
-      PROCESS_REPS == 1 ? floorlog2(PROCESS_ROWS) : floorlog2(16 / sizeof(T))
-  };
-  enum { UNPACK_ODD = (UNPACK_REPS & 0x01) };
+  static constexpr int SIMD_REGS = NATIVE_SIMD_REG_COUNT / 2;
+  static constexpr int NUM_ROWS  = SIMD_WIDTH / sizeof(T);
+  static constexpr int PROCESS_REPS =
+    (int) NUM_ROWS > (int) SIMD_REGS ? SIMD_WIDTH / 16 : 1;
+  static constexpr int PROCESS_ROWS = NUM_ROWS / PROCESS_REPS;
+  static constexpr int UNPACK_REPS =
+    PROCESS_REPS == 1 ? floorlog2(PROCESS_ROWS) : floorlog2(16 / sizeof(T));
+  static constexpr int UNPACK_ODD = (UNPACK_REPS & 0x01);
 
 public:
   static SIMD_INLINE void _transpose(const T *const inArray, T *const outArray)

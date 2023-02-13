@@ -73,10 +73,10 @@ class Vec<T, 16>
 {
 public:
   typedef T Type;
+  static constexpr int elements = 16 / sizeof(T);
+  static constexpr int elems    = elements;
+  static constexpr int bytes    = 16;
   __m128i xmm;
-  enum { elements = 16 / sizeof(T), bytes = 16 };
-  // shorter version:
-  enum { elems = elements };
   Vec() {}
   Vec(const __m128i &x) { xmm = x; }
   Vec &operator=(const __m128i &x)
@@ -103,10 +103,10 @@ class Vec<Float, 16>
 {
 public:
   typedef Float Type;
+  static constexpr int elements = 16 / sizeof(Float);
+  static constexpr int elems    = elements;
+  static constexpr int bytes    = 16;
   __m128 xmm;
-  enum { elements = 16 / sizeof(Float), bytes = 16 };
-  // shorter version:
-  enum { elems = elements };
   Vec() {}
   Vec(const __m128 &x) { xmm = x; }
   Vec &operator=(const __m128 &x)

@@ -50,9 +50,9 @@ class Vec
 {
 public:
   typedef T Type;
-  enum { elements = SIMD_WIDTH / sizeof(T), bytes = SIMD_WIDTH };
-  // shorter version:
-  enum { elems = elements };
+  static constexpr int elements = SIMD_WIDTH / sizeof(T);
+  static constexpr int elems    = elements;
+  static constexpr int bytes    = SIMD_WIDTH;
   Vec() {}
 };
 

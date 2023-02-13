@@ -163,10 +163,10 @@ class Vec<T, 16>
 public:
   typedef T Type;
   typedef typename internal::base::SIMDVecNeon<T>::Type RegType;
+  static constexpr int elements = 16 / sizeof(T);
+  static constexpr int elems    = elements;
+  static constexpr int bytes    = 16;
   RegType reg;
-  enum { elements = 16 / sizeof(T), bytes = 16 };
-  // shorter version:
-  enum { elems = elements };
   Vec() {}
   Vec(const RegType &x) { reg = x; }
   Vec &operator=(const RegType &x)

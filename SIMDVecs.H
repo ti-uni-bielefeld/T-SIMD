@@ -43,10 +43,10 @@ template <typename Tout, typename Tin>
 class NumVecs
 {
 public:
-  enum {
-    in  = (sizeof(Tout) < sizeof(Tin)) ? (sizeof(Tin) / sizeof(Tout)) : 1,
-    out = (sizeof(Tout) > sizeof(Tin)) ? (sizeof(Tout) / sizeof(Tin)) : 1
-  };
+  static constexpr int in =
+    (sizeof(Tout) < sizeof(Tin)) ? (sizeof(Tin) / sizeof(Tout)) : 1;
+  static constexpr int out =
+    (sizeof(Tout) > sizeof(Tin)) ? (sizeof(Tout) / sizeof(Tin)) : 1;
 };
 
 // multiple Vec
@@ -62,13 +62,12 @@ template <int NUM, typename T, int SIMD_WIDTH>
 class Vecs
 {
 public:
-  enum {
-    vectors  = NUM,
-    elements = NUM * Vec<T, SIMD_WIDTH>::elements,
-    bytes    = NUM * Vec<T, SIMD_WIDTH>::bytes
-  };
+  static constexpr int vectors  = NUM;
+  static constexpr int elements = NUM * Vec<T, SIMD_WIDTH>::elements;
+  static constexpr int bytes    = NUM * Vec<T, SIMD_WIDTH>::bytes;
   // shorter version:
-  enum { vecs = vectors, elems = elements };
+  static constexpr int vecs  = vectors;
+  static constexpr int elems = elements;
 
   Vec<T, SIMD_WIDTH> vec[NUM]; ///< The Vec's.
 };

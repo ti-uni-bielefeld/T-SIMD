@@ -103,7 +103,7 @@ template <typename T, int SIMD_WIDTH>
 class SerialMask
 {
 public:
-  enum { bits = Vec<T, SIMD_WIDTH>::elems };
+  static constexpr int bits = Vec<T, SIMD_WIDTH>::elems;
   UInt<bits> mask;
 
   SerialMask() : mask(0) {}

@@ -114,10 +114,10 @@ class Vec<T, 64>
 {
 public:
   typedef T Type;
+  static constexpr int elements = 64 / sizeof(T);
+  static constexpr int elems    = elements;
+  static constexpr int bytes    = 64;
   __m512i zmm;
-  enum { elements = 64 / sizeof(T), bytes = 64 };
-  // shorter version:
-  enum { elems = elements };
   Vec() {}
   Vec(const __m512i &x) { zmm = x; }
   Vec &operator=(const __m512i &x)
@@ -157,10 +157,10 @@ class Vec<Float, 64>
 {
 public:
   typedef Float Type;
+  static constexpr int elements = 64 / sizeof(Float);
+  static constexpr int elems    = elements;
+  static constexpr int bytes    = 64;
   __m512 zmm;
-  enum { elements = 64 / sizeof(Float), bytes = 64 };
-  // shorter version:
-  enum { elems = elements };
   Vec() {}
   Vec(const __m512 &x) { zmm = x; }
   Vec &operator=(const __m512 &x)
@@ -3470,8 +3470,9 @@ template <int IMM, typename T>
 static SIMD_INLINE Vec<T, 64> alignre(const Vec<T, 64> &h, const Vec<T, 64> &l,
                                       IsPosInRange<true, true>)
 {
-  enum { byteShift = IMM * sizeof(T), laneShift = byteShift / 16 };
-  Vec<T, 64> L = (byteShift < 64) ? l : h;
+  const auto byteShift = IMM * sizeof(T);
+  const auto laneShift = byteShift / 16;
+  Vec<T, 64> L         = (byteShift < 64) ? l : h;
   Vec<T, 64> H = (byteShift < 64) ? h : setzero(OutputType<T>(), Integer<64>());
   return alignr_16<(byteShift % 16)>(align_64_16<(laneShift % 4 + 1)>(L, H),
                                      align_64_16<(laneShift % 4)>(L, H));

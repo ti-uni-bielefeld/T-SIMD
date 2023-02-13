@@ -72,9 +72,9 @@ template <typename T, int SIMD_WIDTH>
 class SerialVec
 {
 public:
-  enum { elements = Vec<T, SIMD_WIDTH>::elems, bytes = SIMD_WIDTH };
-  // shorter version:
-  enum { elems = elements };
+  static constexpr int elements = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr int elems    = elements;
+  static constexpr int bytes    = SIMD_WIDTH;
 
   T vec[elements] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
 

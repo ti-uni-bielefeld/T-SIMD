@@ -1,29 +1,29 @@
 // ===========================================================================
-// 
+//
 // SIMDAlloc.H --
 // allocation code
-// 
+//
 // This source code file is part of the following software:
-// 
+//
 //    - the low-level C++ template SIMD library
-//    - the SIMD implementation of the MinWarping and the 2D-Warping methods 
+//    - the SIMD implementation of the MinWarping and the 2D-Warping methods
 //      for local visual homing.
-// 
+//
 // The software is provided based on the accompanying license agreement
 // in the file LICENSE or LICENSE.doc. The software is provided "as is"
 // without any warranty by the licensor and without any liability of the
 // licensor, and the software may not be distributed by the licensee; see
 // the license agreement for details.
-// 
+//
 // (C) Ralf Möller
 //     Computer Engineering
 //     Faculty of Technology
 //     Bielefeld University
 //     www.ti.uni-bielefeld.de
-// 
+//
 // ===========================================================================
 
-/** 
+/**
  * @file SIMDAlloc.H
  * @brief Aligned memory allocation and deallocation.
  *
@@ -53,19 +53,18 @@
  * specified alignment.
  *
  * The allocated memory must be freed with simd_aligned_free().
- * 
+ *
  * @param alignment The alignment of the memory block in bytes.
  * @param size The size of the memory block in bytes.
  * @return A pointer to the allocated memory block.
  */
-void *simd_aligned_malloc(size_t alignment, size_t size) {
+void *simd_aligned_malloc(size_t alignment, size_t size)
+{
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
 #else
   void *ptr = NULL;
-  if (posix_memalign(&ptr, alignment, size) != 0) {
-    return NULL;
-  }
+  if (posix_memalign(&ptr, alignment, size) != 0) { return NULL; }
   return ptr;
 #endif
 }
@@ -78,7 +77,8 @@ void *simd_aligned_malloc(size_t alignment, size_t size) {
  *
  * @param ptr A pointer to the memory block to be freed.
  */
-void simd_aligned_free(void *ptr) {
+void simd_aligned_free(void *ptr)
+{
 #ifdef _WIN32
   _aligned_free(ptr);
 #else

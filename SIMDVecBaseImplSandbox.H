@@ -56,10 +56,6 @@ namespace ns_simd {
     SIMDVec() {}
   };
 
-  // swizzle table (empty)
-  template <int N, typename T, int SIMD_WIDTH>
-  struct SwizzleTable {};
-
 namespace internal {
 namespace base {
 
@@ -565,8 +561,7 @@ namespace base {
   // swizzle (AoS to SoA), in-place, with template parameter N
   template <int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<N, T, SIMD_WIDTH> &,
-	  SIMDVec<T, SIMD_WIDTH> *const,
+  swizzle(SIMDVec<T, SIMD_WIDTH> *const,
 	  Integer<N>,
 	  TypeIsIntSize<T>)
   {

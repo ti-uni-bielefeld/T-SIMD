@@ -896,22 +896,6 @@ namespace auto_test {
   };
 
   // =========================================================================
-  // _swizzle/2, _unswizzle2 wrapper for SIMDVec
-  // =========================================================================
-
-  // _swizzle wrapper for SIMDVec (SwizzleTable used internally, for tests only)
-  template <int N, typename T, int SIMD_WIDTH>
-  static SIMD_INLINE void
-  _swizzle(SIMDVec<T, SIMD_WIDTH> *const v)
-  {
-    SwizzleTable<N, T, SIMD_WIDTH> t;
-    swizzle(t, v);
-  }
-
-  // 15. Oct 22 (Jonas Keller): removed wrappers _swizzle2 and _unswizzle2, they
-  // are not needed
-
-  // =========================================================================
   // template functions
   // =========================================================================
 
@@ -1618,7 +1602,7 @@ namespace auto_test {
 
   template <int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
-  _swizzle(SIMDSerialVec<T, SIMD_WIDTH> *const v)
+  swizzle(SIMDSerialVec<T, SIMD_WIDTH> *const v)
   {
     const int n = SIMDSerialVec<T, SIMD_WIDTH>::elements;
     SIMDSerialVec<T, SIMD_WIDTH> u[N];

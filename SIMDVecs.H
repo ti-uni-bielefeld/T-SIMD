@@ -255,10 +255,9 @@ namespace ns_simd {
 
   template <int N, typename T, int SIMD_WIDTH>
   static SIMD_INLINE void
-  swizzle(const SwizzleTable<N, T, SIMD_WIDTH> &t,
-	  SIMDVecs<N, T, SIMD_WIDTH> &v)
+  swizzle(SIMDVecs<N, T, SIMD_WIDTH> &v)
   {
-    swizzle(t, v.vec);
+    swizzle<N>(v.vec);
   }
 
   // inRows passed by-value to allow in-place transpose

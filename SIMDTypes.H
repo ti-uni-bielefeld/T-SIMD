@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <string.h>
 
-namespace ns_simd {
+namespace simd {
 /**
  * @defgroup types Basic SIMD Types
  * @brief Basic types used for SIMD programming.
@@ -51,24 +51,12 @@ namespace ns_simd {
  * @name Basic element types
  * @{
  */
-typedef uint8_t SIMDByte;      ///< Unsigned 8-bit integer
-typedef int8_t SIMDSignedByte; ///< Signed 8-bit integer
-typedef uint16_t SIMDWord;     ///< Unsigned 16-bit integer
-typedef int16_t SIMDShort;     ///< Signed 16-bit integer
-typedef int32_t SIMDInt;       ///< Signed 32-bit integer
-typedef float SIMDFloat; ///< Single-precision floating point number (32-bit)
-/** @} */
-
-/**
- * @name Pointer types
- * @{
- */
-typedef SIMDByte *SIMDBytePtr;             ///< Pointer to @ref SIMDByte
-typedef SIMDSignedByte *SIMDSignedBytePtr; ///< Pointer to @ref SIMDSignedByte
-typedef SIMDWord *SIMDWordPtr;             ///< Pointer to @ref SIMDWord
-typedef SIMDShort *SIMDShortPtr;           ///< Pointer to @ref SIMDShort
-typedef SIMDInt *SIMDIntPtr;               ///< Pointer to @ref SIMDInt
-typedef SIMDFloat *SIMDFloatPtr;           ///< Pointer to @ref SIMDFloat
+typedef uint8_t Byte;      ///< Unsigned 8-bit integer
+typedef int8_t SignedByte; ///< Signed 8-bit integer
+typedef uint16_t Word;     ///< Unsigned 16-bit integer
+typedef int16_t Short;     ///< Signed 16-bit integer
+typedef int32_t Int;       ///< Signed 32-bit integer
+typedef float Float;       ///< Single-precision floating point number (32-bit)
 /** @} */
 
 /// @cond
@@ -128,7 +116,7 @@ typedef SIMDFloat *SIMDFloatPtr;           ///< Pointer to @ref SIMDFloat
 #endif // DOXYGEN
 
 // ===========================================================================
-// SIMDTypeInfo
+// TypeInfo
 // ===========================================================================
 
 // NOTE: min() and max() are functions since "floating-point literals are not
@@ -140,126 +128,126 @@ typedef SIMDFloat *SIMDFloatPtr;           ///< Pointer to @ref SIMDFloat
 namespace internal {
 namespace types {
 template <typename T>
-class SIMDTypeInfo;
+class TypeInfo;
 
 template <>
-class SIMDTypeInfo<SIMDByte>
+class TypeInfo<Byte>
 {
 public:
-  static SIMD_INLINE const char *name() { return "SIMDByte"; };
+  static SIMD_INLINE const char *name() { return "Byte"; };
   static SIMD_INLINE const char *format() { return "u"; };
   static SIMD_INLINE const char *defaultFormat() { return "%u "; };
   static SIMD_INLINE const char *hexFormat() { return "%02x "; }
   static constexpr bool isSigned        = false;
   static constexpr bool isInteger       = true;
   static constexpr bool isFloatingPoint = false;
-  static SIMD_INLINE SIMDByte min() { return 0; }
-  static SIMD_INLINE SIMDByte max() { return SIMDBYTE_MAX; }
-  static SIMD_INLINE SIMDByte trueval() { return SIMDBYTE_TRUE; }
-  typedef SIMDWord NextLargerType;
-  typedef SIMDByte UnsignedType;
-  typedef SIMDSignedByte SignedType;
+  static SIMD_INLINE Byte min() { return 0; }
+  static SIMD_INLINE Byte max() { return SIMDBYTE_MAX; }
+  static SIMD_INLINE Byte trueval() { return SIMDBYTE_TRUE; }
+  typedef Word NextLargerType;
+  typedef Byte UnsignedType;
+  typedef SignedByte SignedType;
 };
 
 template <>
-class SIMDTypeInfo<SIMDSignedByte>
+class TypeInfo<SignedByte>
 {
 public:
-  static SIMD_INLINE const char *name() { return "SIMDSignedByte"; };
+  static SIMD_INLINE const char *name() { return "SignedByte"; };
   static SIMD_INLINE const char *format() { return "d"; };
   static SIMD_INLINE const char *defaultFormat() { return "%d "; };
   static SIMD_INLINE const char *hexFormat() { return "%02x "; }
   static constexpr bool isSigned        = true;
   static constexpr bool isInteger       = true;
   static constexpr bool isFloatingPoint = false;
-  static SIMD_INLINE SIMDSignedByte min() { return SIMDSIGNEDBYTE_MIN; }
-  static SIMD_INLINE SIMDSignedByte max() { return SIMDSIGNEDBYTE_MAX; }
-  static SIMD_INLINE SIMDSignedByte trueval() { return SIMDSIGNEDBYTE_TRUE; }
-  typedef SIMDShort NextLargerType;
-  typedef SIMDByte UnsignedType;
-  typedef SIMDSignedByte SignedType;
+  static SIMD_INLINE SignedByte min() { return SIMDSIGNEDBYTE_MIN; }
+  static SIMD_INLINE SignedByte max() { return SIMDSIGNEDBYTE_MAX; }
+  static SIMD_INLINE SignedByte trueval() { return SIMDSIGNEDBYTE_TRUE; }
+  typedef Short NextLargerType;
+  typedef Byte UnsignedType;
+  typedef SignedByte SignedType;
 };
 
 template <>
-class SIMDTypeInfo<SIMDWord>
+class TypeInfo<Word>
 {
 public:
-  static SIMD_INLINE const char *name() { return "SIMDWord"; };
+  static SIMD_INLINE const char *name() { return "Word"; };
   static SIMD_INLINE const char *format() { return "u"; };
   static SIMD_INLINE const char *defaultFormat() { return "%u "; };
   static SIMD_INLINE const char *hexFormat() { return "%04x "; }
   static constexpr bool isSigned        = false;
   static constexpr bool isInteger       = true;
   static constexpr bool isFloatingPoint = false;
-  static SIMD_INLINE SIMDWord min() { return 0; }
-  static SIMD_INLINE SIMDWord max() { return SIMDWORD_MAX; }
-  static SIMD_INLINE SIMDWord trueval() { return SIMDWORD_TRUE; }
-  typedef SIMDInt NextLargerType; // no larger unsigned type, use SIMDInt
-  typedef SIMDWord UnsignedType;
-  typedef SIMDShort SignedType;
+  static SIMD_INLINE Word min() { return 0; }
+  static SIMD_INLINE Word max() { return SIMDWORD_MAX; }
+  static SIMD_INLINE Word trueval() { return SIMDWORD_TRUE; }
+  typedef Int NextLargerType; // no larger unsigned type, use Int
+  typedef Word UnsignedType;
+  typedef Short SignedType;
 };
 
 template <>
-class SIMDTypeInfo<SIMDShort>
+class TypeInfo<Short>
 {
 public:
-  static SIMD_INLINE const char *name() { return "SIMDShort"; };
+  static SIMD_INLINE const char *name() { return "Short"; };
   static SIMD_INLINE const char *format() { return "d"; };
   static SIMD_INLINE const char *defaultFormat() { return "%d "; };
   static SIMD_INLINE const char *hexFormat() { return "%04x "; }
   static constexpr bool isSigned        = true;
   static constexpr bool isInteger       = true;
   static constexpr bool isFloatingPoint = false;
-  static SIMD_INLINE SIMDShort min() { return SIMDSHORT_MIN; }
-  static SIMD_INLINE SIMDShort max() { return SIMDSHORT_MAX; }
-  static SIMD_INLINE SIMDShort trueval() { return SIMDSHORT_TRUE; }
-  typedef SIMDInt NextLargerType;
-  typedef SIMDWord UnsignedType;
-  typedef SIMDShort SignedType;
+  static SIMD_INLINE Short min() { return SIMDSHORT_MIN; }
+  static SIMD_INLINE Short max() { return SIMDSHORT_MAX; }
+  static SIMD_INLINE Short trueval() { return SIMDSHORT_TRUE; }
+  typedef Int NextLargerType;
+  typedef Word UnsignedType;
+  typedef Short SignedType;
 };
 
 template <>
-class SIMDTypeInfo<SIMDInt>
+class TypeInfo<Int>
 {
 public:
-  static SIMD_INLINE const char *name() { return "SIMDInt"; };
+  static SIMD_INLINE const char *name() { return "Int"; };
   static SIMD_INLINE const char *format() { return "d"; };
   static SIMD_INLINE const char *defaultFormat() { return "%d "; };
   static SIMD_INLINE const char *hexFormat() { return "%08x "; }
   static constexpr bool isSigned        = true;
   static constexpr bool isInteger       = true;
   static constexpr bool isFloatingPoint = false;
-  static SIMD_INLINE SIMDInt min() { return SIMDINT_MIN; }
-  static SIMD_INLINE SIMDInt max() { return SIMDINT_MAX; }
-  static SIMD_INLINE SIMDInt trueval() { return SIMDINT_TRUE; }
-  typedef SIMDInt NextLargerType; // no larger integer type than SIMDInt
-  typedef uint32_t UnsignedType;  // not a SIMD type
-  typedef SIMDInt SignedType;
+  static SIMD_INLINE Int min() { return SIMDINT_MIN; }
+  static SIMD_INLINE Int max() { return SIMDINT_MAX; }
+  static SIMD_INLINE Int trueval() { return SIMDINT_TRUE; }
+  typedef Int NextLargerType;    // no larger integer type than Int
+  typedef uint32_t UnsignedType; // not a SIMD type
+  typedef Int SignedType;
 };
 
 template <>
-class SIMDTypeInfo<SIMDFloat>
+class TypeInfo<Float>
 {
 public:
-  static SIMD_INLINE const char *name() { return "SIMDFloat"; };
+  static SIMD_INLINE const char *name() { return "Float"; };
   static SIMD_INLINE const char *format() { return "g"; };
   static SIMD_INLINE const char *defaultFormat() { return "%g "; };
   static constexpr bool isSigned        = true;
   static constexpr bool isInteger       = false;
   static constexpr bool isFloatingPoint = true;
-  static SIMD_INLINE SIMDFloat min() { return SIMDFLOAT_MIN; }
-  static SIMD_INLINE SIMDFloat max() { return SIMDFLOAT_MAX; }
+  static SIMD_INLINE Float min() { return SIMDFLOAT_MIN; }
+  static SIMD_INLINE Float max() { return SIMDFLOAT_MAX; }
   // very inconvenient: how can I specify a float constant with all bits 1?
-  static SIMD_INLINE SIMDFloat trueval()
+  static SIMD_INLINE Float trueval()
   {
-    SIMDInt i = SIMDINT_TRUE;
-    SIMDFloat f;
+    Int i = SIMDINT_TRUE;
+    Float f;
     memcpy(&f, &i, sizeof(f));
     return f;
   }
-  typedef SIMDFloat NextLargerType; // no larger float type than SIMDFloat
-  typedef SIMDFloat UnsignedType;   // no unsigned float type
-  typedef SIMDFloat SignedType;
+  typedef Float NextLargerType; // no larger float type than Float
+  typedef Float UnsignedType;   // no unsigned float type
+  typedef Float SignedType;
 };
 } // namespace types
 } // namespace internal
@@ -268,72 +256,71 @@ public:
  * @brief Type information for SIMD types
  */
 template <typename T>
-class SIMDTypeInfo
+class TypeInfo
 {
 public:
-  /// @brief Returns the name of the type (e.g. "SIMDInt" for SIMDInt)
+  /// @brief Returns the name of the type (e.g. "Int" for Int)
   static SIMD_INLINE const char *name()
   {
-    return internal::types::SIMDTypeInfo<T>::name();
+    return internal::types::TypeInfo<T>::name();
   };
-  /// @brief Returns the format string for printf (e.g. "d" for SIMDInt)
+  /// @brief Returns the format string for printf (e.g. "d" for Int)
   static SIMD_INLINE const char *format()
   {
-    return internal::types::SIMDTypeInfo<T>::format();
+    return internal::types::TypeInfo<T>::format();
   };
   /// @brief Returns the default format string for printf (e.g. "%d " for
-  /// SIMDInt)
+  /// Int)
   static SIMD_INLINE const char *defaultFormat()
   {
-    return internal::types::SIMDTypeInfo<T>::defaultFormat();
+    return internal::types::TypeInfo<T>::defaultFormat();
   };
-  /// @brief Returns the hex format string for printf (e.g. "%08x " for SIMDInt)
+  /// @brief Returns the hex format string for printf (e.g. "%08x " for Int)
   static SIMD_INLINE const char *hexFormat()
   {
-    return internal::types::SIMDTypeInfo<T>::hexFormat();
+    return internal::types::TypeInfo<T>::hexFormat();
   }
   /// @brief Whether the type is signed
-  static constexpr bool isSigned = internal::types::SIMDTypeInfo<T>::isSigned;
+  static constexpr bool isSigned = internal::types::TypeInfo<T>::isSigned;
   /// @brief Whether the type is an integer
-  static constexpr bool isInteger = internal::types::SIMDTypeInfo<T>::isInteger;
+  static constexpr bool isInteger = internal::types::TypeInfo<T>::isInteger;
   /// @brief Whether the type is a floating point type
   static constexpr bool isFloatingPoint =
-    internal::types::SIMDTypeInfo<T>::isFloatingPoint;
+    internal::types::TypeInfo<T>::isFloatingPoint;
   /// @brief Returns the minimum value of the type
-  static SIMD_INLINE T min() { return internal::types::SIMDTypeInfo<T>::min(); }
+  static SIMD_INLINE T min() { return internal::types::TypeInfo<T>::min(); }
   /// @brief Returns the maximum value of the type
-  static SIMD_INLINE T max() { return internal::types::SIMDTypeInfo<T>::max(); }
+  static SIMD_INLINE T max() { return internal::types::TypeInfo<T>::max(); }
   /// @brief Returns a value where all bits are 1
   static SIMD_INLINE T trueval()
   {
-    return internal::types::SIMDTypeInfo<T>::trueval();
+    return internal::types::TypeInfo<T>::trueval();
   }
-  /// @brief The next larger type (e.g. SIMDWord for SIMDByte), or the same
+  /// @brief The next larger type (e.g. Word for Byte), or the same
   /// type if there is no larger type
-  typedef
-    typename internal::types::SIMDTypeInfo<T>::NextLargerType NextLargerType;
-  /// @brief The unsigned type (e.g. SIMDByte for SIMDSignedByte), or the same
+  typedef typename internal::types::TypeInfo<T>::NextLargerType NextLargerType;
+  /// @brief The unsigned type (e.g. Byte for SignedByte), or the same
   /// type if there is no unsigned type
-  typedef typename internal::types::SIMDTypeInfo<T>::UnsignedType UnsignedType;
-  /// @brief The signed type (e.g. SIMDSignedByte for SIMDByte), or the same
+  typedef typename internal::types::TypeInfo<T>::UnsignedType UnsignedType;
+  /// @brief The signed type (e.g. SignedByte for Byte), or the same
   /// type if there is no signed type
-  typedef typename internal::types::SIMDTypeInfo<T>::SignedType SignedType;
+  typedef typename internal::types::TypeInfo<T>::SignedType SignedType;
 };
 
 // ===========================================================================
 // formatting
 // ===========================================================================
 
-// note that for T=SIMDFloat, SIMDTypeInfo<T>::format() returns "g",
+// note that for T=Float, TypeInfo<T>::format() returns "g",
 // for which precision encodes the number of significant digits,
 // not the number of fractional digits
 template <typename T>
-class SIMDFormat
+class Format
 {
 public:
   char format[256];
 
-  SIMDFormat(int fieldWidth = -1, int precision = -1)
+  Format(int fieldWidth = -1, int precision = -1)
   {
     char fieldWidthStr[16], precisionStr[16];
     if (fieldWidth >= 0)
@@ -344,27 +331,27 @@ public:
       sprintf(precisionStr, ".%d", precision);
     else
       strcpy(precisionStr, "");
-    if (SIMDTypeInfo<T>::isInteger)
+    if (TypeInfo<T>::isInteger)
       // integer format, precision is ignored
-      sprintf(format, "%%%s%s", fieldWidthStr, SIMDTypeInfo<T>::format());
+      sprintf(format, "%%%s%s", fieldWidthStr, TypeInfo<T>::format());
     else
       // float format, precision is used
       sprintf(format, "%%%s%s%s", fieldWidthStr, precisionStr,
-              SIMDTypeInfo<T>::format());
+              TypeInfo<T>::format());
   }
 };
 
 // a crude way to format SIMD* types as decimal number, can be used in
 // fprintf (use %s format specification)
 template <typename T>
-class SIMDDecimal
+class Decimal
 {
 public:
   char str[256];
 
-  SIMDDecimal(T value, int fieldWidth = -1, int precision = -1)
+  Decimal(T value, int fieldWidth = -1, int precision = -1)
   {
-    sprintf(str, SIMDFormat<T>(fieldWidth, precision).format, value);
+    sprintf(str, Format<T>(fieldWidth, precision).format, value);
   }
 };
 
@@ -384,7 +371,7 @@ struct IsFloatingPoint
 
 template <typename T>
 struct TypeIsFloatingPoint
-  : public IsFloatingPoint<SIMDTypeInfo<T>::isFloatingPoint>
+  : public IsFloatingPoint<TypeInfo<T>::isFloatingPoint>
 {};
 
 template <bool IS_INT, int SIZE>
@@ -392,7 +379,7 @@ struct IsIntSize
 {};
 
 template <typename T>
-struct TypeIsIntSize : public IsIntSize<SIMDTypeInfo<T>::isInteger, sizeof(T)>
+struct TypeIsIntSize : public IsIntSize<TypeInfo<T>::isInteger, sizeof(T)>
 {};
 
 template <bool IS_INT, bool IS_SIGNED>
@@ -401,7 +388,7 @@ struct IsIntIsSigned
 
 template <typename T>
 struct TypeIsIntIsSigned
-  : public IsIntIsSigned<SIMDTypeInfo<T>::isInteger, SIMDTypeInfo<T>::isSigned>
+  : public IsIntIsSigned<TypeInfo<T>::isInteger, TypeInfo<T>::isSigned>
 {};
 
 template <int N>
@@ -518,6 +505,6 @@ typedef Compare<false, true, true> CompareGreaterOrEqual;
 typedef Compare<false, false, true> CompareGreater;
 } // namespace internal
 
-} // namespace ns_simd
+} // namespace simd
 
 #endif

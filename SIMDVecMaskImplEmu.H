@@ -36,20 +36,20 @@
 // which for example leads to the following code for masked addition:
 /*
 template <int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
-maskz_add(const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
-          const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
-          const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<Float, SIMD_WIDTH>
+maskz_add(const Mask<Float, SIMD_WIDTH> &k,
+          const Vec<Float, SIMD_WIDTH> &a,
+          const Vec<Float, SIMD_WIDTH> &b)
 {
-  return add(mask_ifelse(k, a, setzero<SIMDFloat, SIMD_WIDTH>()),
-             mask_ifelse(k, b, setzero<SIMDFloat, SIMD_WIDTH>()));
+  return add(mask_ifelse(k, a, setzero<Float, SIMD_WIDTH>()),
+             mask_ifelse(k, b, setzero<Float, SIMD_WIDTH>()));
 }
 template <int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
-mask_add(const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
-         const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
-         const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
-         const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<Float, SIMD_WIDTH>
+mask_add(const Vec<Float, SIMD_WIDTH> &src,
+         const Mask<Float, SIMD_WIDTH> &k,
+         const Vec<Float, SIMD_WIDTH> &a,
+         const Vec<Float, SIMD_WIDTH> &b)
 {
   return mask_ifelse(k, maskz_add(k, a, b), src);
 }
@@ -57,19 +57,19 @@ mask_add(const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
 // which calls mask_ifelse 3 times for one call of mask_add, instead of
 /*
 template <int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
-maskz_add(const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
-          const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
-          const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<Float, SIMD_WIDTH>
+maskz_add(const Mask<Float, SIMD_WIDTH> &k,
+          const Vec<Float, SIMD_WIDTH> &a,
+          const Vec<Float, SIMD_WIDTH> &b)
 {
-  return mask_ifelse(k, add(a, b), setzero<SIMDFloat, SIMD_WIDTH>());
+  return mask_ifelse(k, add(a, b), setzero<Float, SIMD_WIDTH>());
 }
 template <int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH>
-mask_add(const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
-         const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
-         const SIMDVec<SIMDFloat, SIMD_WIDTH> &a,
-         const SIMDVec<SIMDFloat, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<Float, SIMD_WIDTH>
+mask_add(const Vec<Float, SIMD_WIDTH> &src,
+         const Mask<Float, SIMD_WIDTH> &k,
+         const Vec<Float, SIMD_WIDTH> &a,
+         const Vec<Float, SIMD_WIDTH> &b)
 {
   return mask_ifelse(k, add(a, b), k);
 }
@@ -104,26 +104,26 @@ mask_add(const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
 
 #include <stdint.h>
 
-namespace ns_simd {
+namespace simd {
 template <typename T, int SIMD_WIDTH>
-class SIMDMask
+class Mask
 {
-  SIMDVec<T, SIMD_WIDTH> mask;
+  Vec<T, SIMD_WIDTH> mask;
 
 public:
-  SIMDMask<T, SIMD_WIDTH>() {}
-  explicit SIMD_INLINE SIMDMask<T, SIMD_WIDTH>(const SIMDVec<T, SIMD_WIDTH> &x)
+  Mask<T, SIMD_WIDTH>() {}
+  explicit SIMD_INLINE Mask<T, SIMD_WIDTH>(const Vec<T, SIMD_WIDTH> &x)
     : mask(x)
   {}
-  SIMD_INLINE SIMDMask<T, SIMD_WIDTH>(const uint64_t x)
+  SIMD_INLINE Mask<T, SIMD_WIDTH>(const uint64_t x)
     : mask(int2bits<T, SIMD_WIDTH>(x))
   {}
-  SIMD_INLINE SIMDMask<T, SIMD_WIDTH> &operator=(const uint64_t x)
+  SIMD_INLINE Mask<T, SIMD_WIDTH> &operator=(const uint64_t x)
   {
     mask = int2bits<T, SIMD_WIDTH>(x);
     return *this;
   }
-  SIMD_INLINE operator SIMDVec<T, SIMD_WIDTH>() const { return mask; }
+  SIMD_INLINE operator Vec<T, SIMD_WIDTH>() const { return mask; }
   SIMD_INLINE operator uint64_t() const { return msb2int<T, SIMD_WIDTH>(mask); }
   SIMD_INLINE bool operator[](const int i) const
   {
@@ -134,10 +134,10 @@ public:
     // be the same)
     return mask_array[i * sizeof(T)] != 0;
   }
-  SIMD_INLINE bool operator==(const SIMDMask<T, SIMD_WIDTH> &other) const
+  SIMD_INLINE bool operator==(const Mask<T, SIMD_WIDTH> &other) const
   {
     return test_all_zeros(
-      xor_(reinterpret<SIMDInt>(mask), reinterpret<SIMDInt>(other.mask)));
+      xor_(reinterpret<Int>(mask), reinterpret<Int>(other.mask)));
   }
   // define operators new and delete to ensure proper alignment, since
   // the default new and delete are not guaranteed to do so before C++17
@@ -157,15 +157,15 @@ namespace internal {
 namespace mask {
 #define EMULATE_SOP_NAME(OP, OP_NAME)                                          \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_##OP_NAME(                   \
-    const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)         \
+  static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_##OP_NAME(                       \
+    const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a)                 \
   {                                                                            \
     return mask::mask_ifelsezero(k, OP(a));                                    \
   }                                                                            \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_##OP_NAME(                    \
-    const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,       \
-    const SIMDVec<T, SIMD_WIDTH> &a)                                           \
+  static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_##OP_NAME(                        \
+    const Vec<T, SIMD_WIDTH> &src, const Mask<T, SIMD_WIDTH> &k,               \
+    const Vec<T, SIMD_WIDTH> &a)                                               \
   {                                                                            \
     return mask::mask_ifelse(k, OP(a), src);                                   \
   }
@@ -174,16 +174,16 @@ namespace mask {
 
 #define EMULATE_DOP_NAME(OP, OP_NAME)                                          \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_##OP_NAME(                   \
-    const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,         \
-    const SIMDVec<T, SIMD_WIDTH> &b)                                           \
+  static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_##OP_NAME(                       \
+    const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a,                 \
+    const Vec<T, SIMD_WIDTH> &b)                                               \
   {                                                                            \
     return mask::mask_ifelsezero(k, OP(a, b));                                 \
   }                                                                            \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_##OP_NAME(                    \
-    const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,       \
-    const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)          \
+  static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_##OP_NAME(                        \
+    const Vec<T, SIMD_WIDTH> &src, const Mask<T, SIMD_WIDTH> &k,               \
+    const Vec<T, SIMD_WIDTH> &a, const Vec<T, SIMD_WIDTH> &b)                  \
   {                                                                            \
     return mask::mask_ifelse(k, OP(a, b), src);                                \
   }
@@ -191,65 +191,62 @@ namespace mask {
 #define EMULATE_DOP(OP) EMULATE_DOP_NAME(OP, OP)
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_ifelse(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &trueVal,
-  const SIMDVec<T, SIMD_WIDTH> &falseVal)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelse(
+  const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &trueVal,
+  const Vec<T, SIMD_WIDTH> &falseVal)
 {
-  return ifelse((SIMDVec<T, SIMD_WIDTH>) k, trueVal, falseVal);
+  return ifelse((Vec<T, SIMD_WIDTH>) k, trueVal, falseVal);
 }
 
 // 04. Aug 22 (Jonas Keller): added mask_ifelsezero
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_ifelsezero(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &trueVal)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelsezero(
+  const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &trueVal)
 {
-  return and_((SIMDVec<T, SIMD_WIDTH>) k, trueVal);
+  return and_((Vec<T, SIMD_WIDTH>) k, trueVal);
 }
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<Tout, SIMD_WIDTH> reinterpret_mask(
-  const SIMDMask<Tin, SIMD_WIDTH> &k)
+static SIMD_INLINE Mask<Tout, SIMD_WIDTH> reinterpret_mask(
+  const Mask<Tin, SIMD_WIDTH> &k)
 {
   SIMD_STATIC_ASSERT(sizeof(Tout) == sizeof(Tin));
-  return SIMDMask<Tout, SIMD_WIDTH>(
-    reinterpret<Tout>((SIMDVec<Tin, SIMD_WIDTH>) k));
+  return Mask<Tout, SIMD_WIDTH>(reinterpret<Tout>((Vec<Tin, SIMD_WIDTH>) k));
 }
 
 // The types of the masks are kind of arbitrary
 template <int SIMD_WIDTH>
-SIMD_INLINE SIMDVec<SIMDInt, SIMD_WIDTH> maskz_cvts(
-  const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
-  const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
+SIMD_INLINE Vec<Int, SIMD_WIDTH> maskz_cvts(const Mask<Float, SIMD_WIDTH> &k,
+                                            const Vec<Float, SIMD_WIDTH> &a)
 {
-  return mask::mask_ifelsezero(mask::reinterpret_mask<SIMDInt>(k),
-                               ::ns_simd::cvts<SIMDInt>(a));
+  return mask::mask_ifelsezero(mask::reinterpret_mask<Int>(k),
+                               ::simd::cvts<Int>(a));
 }
 
 template <int SIMD_WIDTH>
-SIMD_INLINE SIMDVec<SIMDInt, SIMD_WIDTH> mask_cvts(
-  const SIMDVec<SIMDInt, SIMD_WIDTH> &src,
-  const SIMDMask<SIMDFloat, SIMD_WIDTH> &k,
-  const SIMDVec<SIMDFloat, SIMD_WIDTH> &a)
+SIMD_INLINE Vec<Int, SIMD_WIDTH> mask_cvts(const Vec<Int, SIMD_WIDTH> &src,
+                                           const Mask<Float, SIMD_WIDTH> &k,
+                                           const Vec<Float, SIMD_WIDTH> &a)
 {
-  return mask::mask_ifelse(mask::reinterpret_mask<SIMDInt>(k),
-                           ::ns_simd::cvts<SIMDInt>(a), src);
+  return mask::mask_ifelse(mask::reinterpret_mask<Int>(k), ::simd::cvts<Int>(a),
+                           src);
 }
 
 template <int SIMD_WIDTH>
-SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH> maskz_cvts(
-  const SIMDMask<SIMDInt, SIMD_WIDTH> &k, const SIMDVec<SIMDInt, SIMD_WIDTH> &a)
+SIMD_INLINE Vec<Float, SIMD_WIDTH> maskz_cvts(const Mask<Int, SIMD_WIDTH> &k,
+                                              const Vec<Int, SIMD_WIDTH> &a)
 {
-  return mask::mask_ifelsezero(mask::reinterpret_mask<SIMDFloat>(k),
-                               ::ns_simd::cvts<SIMDFloat>(a));
+  return mask::mask_ifelsezero(mask::reinterpret_mask<Float>(k),
+                               ::simd::cvts<Float>(a));
 }
 
 template <int SIMD_WIDTH>
-SIMD_INLINE SIMDVec<SIMDFloat, SIMD_WIDTH> mask_cvts(
-  const SIMDVec<SIMDFloat, SIMD_WIDTH> &src,
-  const SIMDMask<SIMDInt, SIMD_WIDTH> &k, const SIMDVec<SIMDInt, SIMD_WIDTH> &a)
+SIMD_INLINE Vec<Float, SIMD_WIDTH> mask_cvts(const Vec<Float, SIMD_WIDTH> &src,
+                                             const Mask<Int, SIMD_WIDTH> &k,
+                                             const Vec<Int, SIMD_WIDTH> &a)
 {
-  return mask::mask_ifelse(mask::reinterpret_mask<SIMDFloat>(k),
-                           ::ns_simd::cvts<SIMDFloat>(a), src);
+  return mask::mask_ifelse(mask::reinterpret_mask<Float>(k),
+                           ::simd::cvts<Float>(a), src);
 }
 
 template <int SIMD_WIDTH, typename T>
@@ -259,160 +256,159 @@ static SIMD_INLINE bool is_within_same_page(const T *const p)
   const uintptr_t begin_page =
     reinterpret_cast<uintptr_t>(p) & ~(PAGE_SIZE - 1);
   const uintptr_t end_page =
-    reinterpret_cast<uintptr_t>(p + SIMDVec<T, SIMD_WIDTH>::elems - 1) &
+    reinterpret_cast<uintptr_t>(p + Vec<T, SIMD_WIDTH>::elems - 1) &
     ~(PAGE_SIZE - 1);
   return begin_page == end_page;
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_load(
-  const SIMDMask<T, SIMD_WIDTH> &k, const T *const p)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_load(const Mask<T, SIMD_WIDTH> &k,
+                                                 const T *const p)
 {
   // if k is all zeros nothing should be loaded
-  if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>) k)) {
+  if (test_all_zeros((Vec<T, SIMD_WIDTH>) k)) {
     return setzero<T, SIMD_WIDTH>();
   }
-  // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+  // If p till p+Vec<T, SIMD_WIDTH>::elems-1 is within the same page,
   // there is no risk of a page fault, so we load the whole vector and mask
   // it. Otherwise, we load the vector element-wise.
   if (is_within_same_page<SIMD_WIDTH>(p)) {
     return mask::mask_ifelsezero(k, load<SIMD_WIDTH>(p));
   }
-  if (test_all_ones((SIMDVec<T, SIMD_WIDTH>) k)) {
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
     // if k is all ones, we can load the whole vector
     return load<SIMD_WIDTH>(p);
   }
-  T result[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+  T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     result[i] = k[i] ? p[i] : 0;
   }
   return load<SIMD_WIDTH>(result);
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_load(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const T *const p)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_load(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const T *const p)
 {
   // if k is all zeros nothing should be loaded
-  if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>) k)) { return src; }
-  // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+  if (test_all_zeros((Vec<T, SIMD_WIDTH>) k)) { return src; }
+  // If p till p+Vec<T, SIMD_WIDTH>::elems-1 is within the same page,
   // there is no risk of a page fault, so we load the whole vector and mask
   // it. Otherwise, we load the vector element-wise.
   if (is_within_same_page<SIMD_WIDTH>(p)) {
     return mask::mask_ifelse(k, load<SIMD_WIDTH>(p), src);
   }
-  if (test_all_ones((SIMDVec<T, SIMD_WIDTH>) k)) {
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
     // if k is all ones, we can load the whole vector
     return load<SIMD_WIDTH>(p);
   }
-  T result[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  T src_arr[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  T src_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   store<SIMD_WIDTH>(src_arr, src);
-  for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+  for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     result[i] = k[i] ? p[i] : src_arr[i];
   }
   return load<SIMD_WIDTH>(result);
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_loadu(
-  const SIMDMask<T, SIMD_WIDTH> &k, const T *const p)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_loadu(const Mask<T, SIMD_WIDTH> &k,
+                                                  const T *const p)
 {
   // if k is all zeros nothing should be loaded
-  if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>) k)) {
+  if (test_all_zeros((Vec<T, SIMD_WIDTH>) k)) {
     return setzero<T, SIMD_WIDTH>();
   }
-  // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+  // If p till p+Vec<T, SIMD_WIDTH>::elems-1 is within the same page,
   // there is no risk of a page fault, so we load the whole vector and mask
   // it. Otherwise, we load the vector element-wise.
   if (is_within_same_page<SIMD_WIDTH>(p)) {
     return mask::mask_ifelsezero(k, loadu<SIMD_WIDTH>(p));
   }
-  if (test_all_ones((SIMDVec<T, SIMD_WIDTH>) k)) {
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
     // if k is all ones, we can load the whole vector
     return loadu<SIMD_WIDTH>(p);
   }
-  T result[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+  T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     result[i] = k[i] ? p[i] : 0;
   }
   return load<SIMD_WIDTH>(result);
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_loadu(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const T *const p)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_loadu(const Vec<T, SIMD_WIDTH> &src,
+                                                 const Mask<T, SIMD_WIDTH> &k,
+                                                 const T *const p)
 {
   // if k is all zeros nothing should be loaded
-  if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>) k)) { return src; }
-  // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+  if (test_all_zeros((Vec<T, SIMD_WIDTH>) k)) { return src; }
+  // If p till p+Vec<T, SIMD_WIDTH>::elems-1 is within the same page,
   // there is no risk of a page fault, so we load the whole vector and mask
   // it. Otherwise, we load the vector element-wise.
   if (is_within_same_page<SIMD_WIDTH>(p)) {
     return mask::mask_ifelse(k, loadu<SIMD_WIDTH>(p), src);
   }
-  if (test_all_ones((SIMDVec<T, SIMD_WIDTH>) k)) {
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
     // if k is all ones, we can load the whole vector
     return loadu<SIMD_WIDTH>(p);
   }
-  T result[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  T src_arr[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  T src_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   store<SIMD_WIDTH>(src_arr, src);
-  for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+  for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     result[i] = k[i] ? p[i] : src_arr[i];
   }
   return load<SIMD_WIDTH>(result);
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void mask_store(T *const p, const SIMDMask<T, SIMD_WIDTH> &k,
-                                   const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE void mask_store(T *const p, const Mask<T, SIMD_WIDTH> &k,
+                                   const Vec<T, SIMD_WIDTH> &a)
 {
   // if k is all zeros nothing should be stored
-  if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>) k)) { return; }
-  // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+  if (test_all_zeros((Vec<T, SIMD_WIDTH>) k)) { return; }
+  // If p till p+Vec<T, SIMD_WIDTH>::elems-1 is within the same page,
   // there is no risk of a page fault, so we load the whole vector, mask it
   // and store it back. Otherwise, we store the vector element-wise.
   if (is_within_same_page<SIMD_WIDTH>(p)) {
     store(p, mask::mask_ifelse(k, a, load<SIMD_WIDTH>(p)));
     return;
   }
-  if (test_all_ones((SIMDVec<T, SIMD_WIDTH>) k)) {
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
     // if k is all ones, we can store the whole vector
     store(p, a);
     return;
   }
-  T a_arr[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  T a_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   store<SIMD_WIDTH>(a_arr, a);
-  for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+  for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     if (k[i]) { p[i] = a_arr[i]; }
   }
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void mask_storeu(T *const p,
-                                    const SIMDMask<T, SIMD_WIDTH> &k,
-                                    const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE void mask_storeu(T *const p, const Mask<T, SIMD_WIDTH> &k,
+                                    const Vec<T, SIMD_WIDTH> &a)
 {
   // if k is all zeros nothing should be stored
-  if (test_all_zeros((SIMDVec<T, SIMD_WIDTH>) k)) { return; }
-  // If p till p+SIMDVec<T, SIMD_WIDTH>::elems-1 is within the same page,
+  if (test_all_zeros((Vec<T, SIMD_WIDTH>) k)) { return; }
+  // If p till p+Vec<T, SIMD_WIDTH>::elems-1 is within the same page,
   // there is no risk of a page fault, so we load the whole vector, mask it
   // and store it back. Otherwise, we store the vector element-wise.
   if (is_within_same_page<SIMD_WIDTH>(p)) {
     storeu(p, mask::mask_ifelse(k, a, loadu<SIMD_WIDTH>(p)));
     return;
   }
-  if (test_all_ones((SIMDVec<T, SIMD_WIDTH>) k)) {
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
     // if k is all ones, we can store the whole vector
     storeu(p, a);
     return;
   }
-  T a_arr[SIMDVec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  T a_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   store(a_arr, a);
-  for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
+  for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     if (k[i]) { p[i] = a_arr[i]; }
   }
 }
@@ -420,17 +416,17 @@ static SIMD_INLINE void mask_storeu(T *const p,
 // maskz_store(u) does not exist/does not make sense
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_set1(
-  const SIMDMask<T, SIMD_WIDTH> &k, const T a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_set1(const Mask<T, SIMD_WIDTH> &k,
+                                                 const T a)
 {
-  return mask::mask_ifelsezero(k, ::ns_simd::set1<T, SIMD_WIDTH>(a));
+  return mask::mask_ifelsezero(k, ::simd::set1<T, SIMD_WIDTH>(a));
 }
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_set1(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const T a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_set1(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const T a)
 {
-  return mask::mask_ifelse(k, ::ns_simd::set1<T, SIMD_WIDTH>(a), src);
+  return mask::mask_ifelse(k, ::simd::set1<T, SIMD_WIDTH>(a), src);
 }
 
 EMULATE_DOP(add)
@@ -473,15 +469,15 @@ EMULATE_SOP(div2rd)
 
 #define EMULATE_SHIFT(OP)                                                      \
   template <int IMM, typename T, int SIMD_WIDTH>                               \
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_##OP(                        \
-    const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)         \
+  static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_##OP(                            \
+    const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a)                 \
   {                                                                            \
     return mask::mask_ifelsezero(k, OP<IMM>(a));                               \
   }                                                                            \
   template <int IMM, typename T, int SIMD_WIDTH>                               \
-  static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_##OP(                         \
-    const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,       \
-    const SIMDVec<T, SIMD_WIDTH> &a)                                           \
+  static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_##OP(                             \
+    const Vec<T, SIMD_WIDTH> &src, const Mask<T, SIMD_WIDTH> &k,               \
+    const Vec<T, SIMD_WIDTH> &a)                                               \
   {                                                                            \
     return mask::mask_ifelse(k, OP<IMM>(a), src);                              \
   }
@@ -500,17 +496,17 @@ EMULATE_DOP(hsubs)
 // that only take two vector parameters and no mask parameter
 #define EMULATE_CMP(OP)                                                        \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_##OP(                        \
-    const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,         \
-    const SIMDVec<T, SIMD_WIDTH> &b)                                           \
+  static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_##OP(                            \
+    const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a,                 \
+    const Vec<T, SIMD_WIDTH> &b)                                               \
   {                                                                            \
-    return SIMDMask<T, SIMD_WIDTH>(mask::mask_ifelsezero(k, OP(a, b)));        \
+    return Mask<T, SIMD_WIDTH>(mask::mask_ifelsezero(k, OP(a, b)));            \
   }                                                                            \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_##OP(                        \
-    const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)          \
+  static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_##OP(                            \
+    const Vec<T, SIMD_WIDTH> &a, const Vec<T, SIMD_WIDTH> &b)                  \
   {                                                                            \
-    return SIMDMask<T, SIMD_WIDTH>(OP(a, b));                                  \
+    return Mask<T, SIMD_WIDTH>(OP(a, b));                                      \
   }
 
 EMULATE_CMP(cmplt)
@@ -523,36 +519,35 @@ EMULATE_CMP(cmpneq)
 EMULATE_DOP(avg)
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int mask_test_all_zeros(const SIMDMask<T, SIMD_WIDTH> &k,
-                                           const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE int mask_test_all_zeros(const Mask<T, SIMD_WIDTH> &k,
+                                           const Vec<T, SIMD_WIDTH> &a)
 {
   return test_all_zeros(mask::mask_ifelsezero(k, a));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int mask_test_all_ones(const SIMDMask<T, SIMD_WIDTH> &k,
-                                          const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE int mask_test_all_ones(const Mask<T, SIMD_WIDTH> &k,
+                                          const Vec<T, SIMD_WIDTH> &a)
 {
   return mask::mask_test_all_zeros(
     k, not_(a)); // test_all_ones(mask_ifelse<T, SIMD_WIDTH>(k, a, ()
-                 // set1<SIMDByte, SIMD_WIDTH>(0xFF)));
+                 // set1<Byte, SIMD_WIDTH>(0xFF)));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_all_ones(OutputType<T>,
-                                                         Integer<SIMD_WIDTH>)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_all_ones(OutputType<T>,
+                                                     Integer<SIMD_WIDTH>)
 {
-  return (SIMDMask<T, SIMD_WIDTH>) set1<T, SIMD_WIDTH>(
-    SIMDTypeInfo<T>::trueval());
+  return (Mask<T, SIMD_WIDTH>) set1<T, SIMD_WIDTH>(TypeInfo<T>::trueval());
 }
 
 #define EMULATE_DMASKOP(NAME)                                                  \
   template <typename T, int SIMD_WIDTH>                                        \
-  static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> k##NAME(                          \
-    const SIMDMask<T, SIMD_WIDTH> &a, const SIMDMask<T, SIMD_WIDTH> &b)        \
+  static SIMD_INLINE Mask<T, SIMD_WIDTH> k##NAME(const Mask<T, SIMD_WIDTH> &a, \
+                                                 const Mask<T, SIMD_WIDTH> &b) \
   {                                                                            \
-    return (SIMDMask<T, SIMD_WIDTH>) NAME##_((SIMDVec<T, SIMD_WIDTH>) a,       \
-                                             (SIMDVec<T, SIMD_WIDTH>) b);      \
+    return (Mask<T, SIMD_WIDTH>) NAME##_((Vec<T, SIMD_WIDTH>) a,               \
+                                         (Vec<T, SIMD_WIDTH>) b);              \
   }
 
 EMULATE_DMASKOP(and)
@@ -560,11 +555,11 @@ EMULATE_DMASKOP(and)
 // EMULATE_DMASKOP(andn)
 //  function name should be "kandn" but the vector function is "andnot"
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kandn(
-  const SIMDMask<T, SIMD_WIDTH> &a, const SIMDMask<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kandn(const Mask<T, SIMD_WIDTH> &a,
+                                             const Mask<T, SIMD_WIDTH> &b)
 {
-  return (SIMDMask<T, SIMD_WIDTH>) andnot((SIMDVec<T, SIMD_WIDTH>) a,
-                                          (SIMDVec<T, SIMD_WIDTH>) b);
+  return (Mask<T, SIMD_WIDTH>) andnot((Vec<T, SIMD_WIDTH>) a,
+                                      (Vec<T, SIMD_WIDTH>) b);
 }
 
 EMULATE_DMASKOP(or)
@@ -573,67 +568,64 @@ EMULATE_DMASKOP(xor)
 // EMULATE_DMASKOP(xnor)
 //  there is not xnor-function for vectors, so we have to do: not_(xor_(a, b))
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kxnor(
-  const SIMDMask<T, SIMD_WIDTH> &a, const SIMDMask<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kxnor(const Mask<T, SIMD_WIDTH> &a,
+                                             const Mask<T, SIMD_WIDTH> &b)
 {
-  return (SIMDMask<T, SIMD_WIDTH>) not_(
-    xor_((SIMDVec<T, SIMD_WIDTH>) a, (SIMDVec<T, SIMD_WIDTH>) b));
+  return (Mask<T, SIMD_WIDTH>) not_(
+    xor_((Vec<T, SIMD_WIDTH>) a, (Vec<T, SIMD_WIDTH>) b));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kadd(
-  const SIMDMask<T, SIMD_WIDTH> &a, const SIMDMask<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kadd(const Mask<T, SIMD_WIDTH> &a,
+                                            const Mask<T, SIMD_WIDTH> &b)
 {
-  SIMDMask<T, SIMD_WIDTH> ret;
+  Mask<T, SIMD_WIDTH> ret;
   ret = (((uintmax_t) a) + ((uintmax_t) b));
   return ret;
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> knot(
-  const SIMDMask<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> knot(const Mask<T, SIMD_WIDTH> &a)
 {
-  return (SIMDMask<T, SIMD_WIDTH>) not_((SIMDVec<T, SIMD_WIDTH>) a);
+  return (Mask<T, SIMD_WIDTH>) not_((Vec<T, SIMD_WIDTH>) a);
 }
 
 // shift with flexible parameter (not template), probably slower than
 // template-version
 // TODO faster implementation with switch-case possible?
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kshiftri(
-  const SIMDMask<T, SIMD_WIDTH> &a, uintmax_t count)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftri(const Mask<T, SIMD_WIDTH> &a,
+                                                uintmax_t count)
 {
   // 04. Aug 22 (Jonas Keller):
   // return zero if count is larger than sizeof(uintmax_t)*8 - 1, since then
   // the >> operator is undefined, but kshift should return zero
   // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
   if (count >= sizeof(uintmax_t) * 8) { return 0; }
-  return (SIMDMask<T, SIMD_WIDTH>) (((uintmax_t) a) >> count);
+  return (Mask<T, SIMD_WIDTH>) (((uintmax_t) a) >> count);
 }
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kshiftli(
-  const SIMDMask<T, SIMD_WIDTH> &a, uintmax_t count)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftli(const Mask<T, SIMD_WIDTH> &a,
+                                                uintmax_t count)
 {
   // 04. Aug 22 (Jonas Keller):
   // return zero if count is larger than sizeof(uintmax_t)*8 - 1, since then
   // the << operator is undefined, but kshift should return zero
   // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
   if (count >= sizeof(uintmax_t) * 8) { return 0; }
-  return (SIMDMask<T, SIMD_WIDTH>) (((uintmax_t) a) << count);
+  return (Mask<T, SIMD_WIDTH>) (((uintmax_t) a) << count);
 }
 
 // shift with template parameter
 template <unsigned int IMM, typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kshiftri(
-  const SIMDMask<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftri(const Mask<T, SIMD_WIDTH> &a)
 {
-  return (SIMDMask<T, SIMD_WIDTH>) srle<IMM>((SIMDVec<T, SIMD_WIDTH>) a);
+  return (Mask<T, SIMD_WIDTH>) srle<IMM>((Vec<T, SIMD_WIDTH>) a);
 }
 template <unsigned int IMM, typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kshiftli(
-  const SIMDMask<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftli(const Mask<T, SIMD_WIDTH> &a)
 {
-  return (SIMDMask<T, SIMD_WIDTH>) slle<IMM>((SIMDVec<T, SIMD_WIDTH>) a);
+  return (Mask<T, SIMD_WIDTH>) slle<IMM>((Vec<T, SIMD_WIDTH>) a);
 }
 
 // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
@@ -643,62 +635,66 @@ template <bool UP, typename T, int SIMD_WIDTH>
 class MaskSetBuffer
 {
 public:
-  T buffer[SIMDVec<T, SIMD_WIDTH>::elems * 2];
+  T buffer[Vec<T, SIMD_WIDTH>::elems * 2];
   MaskSetBuffer()
   {
-    for (int i = 0; i < SIMDVec<T, SIMD_WIDTH>::elems; i++) {
-      buffer[i] = UP ? 0 : SIMDTypeInfo<T>::trueval();
+    for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
+      buffer[i] = UP ? 0 : TypeInfo<T>::trueval();
     }
-    for (int i = SIMDVec<T, SIMD_WIDTH>::elems;
-         i < SIMDVec<T, SIMD_WIDTH>::elems * 2; i++) {
-      buffer[i] = UP ? SIMDTypeInfo<T>::trueval() : 0;
+    for (int i = Vec<T, SIMD_WIDTH>::elems; i < Vec<T, SIMD_WIDTH>::elems * 2;
+         i++) {
+      buffer[i] = UP ? TypeInfo<T>::trueval() : 0;
     }
   }
 };
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_set_true_low(
-  const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_low(const unsigned int x,
+                                                         OutputType<T>,
+                                                         Integer<SIMD_WIDTH>)
 {
-  if (x >= SIMDVec<T, SIMD_WIDTH>::elems) {
+  if (x >= Vec<T, SIMD_WIDTH>::elems) {
     return mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>());
   }
   static MaskSetBuffer<false, T, SIMD_WIDTH> buffer;
-  return SIMDMask<T, SIMD_WIDTH>(
-    loadu<SIMD_WIDTH>(buffer.buffer + SIMDVec<T, SIMD_WIDTH>::elems - x));
+  return Mask<T, SIMD_WIDTH>(
+    loadu<SIMD_WIDTH>(buffer.buffer + Vec<T, SIMD_WIDTH>::elems - x));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_set_true_high(
-  const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_high(const unsigned int x,
+                                                          OutputType<T>,
+                                                          Integer<SIMD_WIDTH>)
 {
-  if (x >= SIMDVec<T, SIMD_WIDTH>::elems) {
+  if (x >= Vec<T, SIMD_WIDTH>::elems) {
     return mask_all_ones(OutputType<T>(), Integer<SIMD_WIDTH>());
   }
   static MaskSetBuffer<true, T, SIMD_WIDTH> buffer;
-  return SIMDMask<T, SIMD_WIDTH>(loadu<SIMD_WIDTH>(buffer.buffer + x));
+  return Mask<T, SIMD_WIDTH>(loadu<SIMD_WIDTH>(buffer.buffer + x));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_set_false_low(
-  const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_low(const unsigned int x,
+                                                          OutputType<T>,
+                                                          Integer<SIMD_WIDTH>)
 {
-  if (x >= SIMDVec<T, SIMD_WIDTH>::elems) { return SIMDMask<T, SIMD_WIDTH>(0); }
+  if (x >= Vec<T, SIMD_WIDTH>::elems) { return Mask<T, SIMD_WIDTH>(0); }
   static MaskSetBuffer<true, T, SIMD_WIDTH> buffer;
-  return SIMDMask<T, SIMD_WIDTH>(
-    loadu<SIMD_WIDTH>(buffer.buffer + SIMDVec<T, SIMD_WIDTH>::elems - x));
+  return Mask<T, SIMD_WIDTH>(
+    loadu<SIMD_WIDTH>(buffer.buffer + Vec<T, SIMD_WIDTH>::elems - x));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_set_false_high(
-  const unsigned int x, OutputType<T>, Integer<SIMD_WIDTH>)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x,
+                                                           OutputType<T>,
+                                                           Integer<SIMD_WIDTH>)
 {
-  if (x >= SIMDVec<T, SIMD_WIDTH>::elems) { return SIMDMask<T, SIMD_WIDTH>(0); }
+  if (x >= Vec<T, SIMD_WIDTH>::elems) { return Mask<T, SIMD_WIDTH>(0); }
   static MaskSetBuffer<false, T, SIMD_WIDTH> buffer;
-  return SIMDMask<T, SIMD_WIDTH>(loadu<SIMD_WIDTH>(buffer.buffer + x));
+  return Mask<T, SIMD_WIDTH>(loadu<SIMD_WIDTH>(buffer.buffer + x));
 }
 } // namespace mask
 } // namespace internal
-} // namespace ns_simd
+} // namespace simd
 
 #endif // _SIMD_VEC_MASK_IMPL_EMU_H_

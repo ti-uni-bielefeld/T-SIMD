@@ -156,7 +156,7 @@ int clock_gettime(clockid_t clock_id, struct timespec *tp)
 }
 #endif
 
-namespace ns_simd {
+namespace simd {
 /**
  * @defgroup time_measurements Time Measurement Functions
  * @brief Functions for measuring time.
@@ -302,6 +302,6 @@ long int timeSpecDiffNsec(const struct timespec &x, const struct timespec &y)
 
 /** @} */ // end of group time_measurements
 
-} // namespace ns_simd
+} // namespace simd
 
 #endif

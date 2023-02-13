@@ -26,6 +26,6 @@
 #ifndef _SIMD_EXPERIMENTAL_H_
 #define _SIMD_EXPERIMENTAL_H_
 
-namespace ns_simd {} // namespace ns_simd
+namespace simd {} // namespace simd
 
 #endif

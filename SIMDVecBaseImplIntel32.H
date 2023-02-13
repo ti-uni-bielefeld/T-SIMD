@@ -42,7 +42,7 @@
 
 #ifdef __AVX__
 
-namespace ns_simd {
+namespace simd {
 
 // ===========================================================================
 // NOTES:
@@ -51,7 +51,7 @@ namespace ns_simd {
 //   http://stackoverflow.com/questions/26807285/...
 //   ...are-static-static-local-sse-avx-variables-blocking-a-xmm-ymm-register
 //
-// - for some data types (SIMDInt, SIMDFloat) there are no saturated versions
+// - for some data types (Int, Float) there are no saturated versions
 //   of add/sub instructions; in this case we use the unsaturated version;
 //   the user is responsible to avoid overflows
 //
@@ -69,12 +69,12 @@ namespace ns_simd {
 // ===========================================================================
 
 // ===========================================================================
-// SIMDVec integer specialization for AVX2
+// Vec integer specialization for AVX2
 // ===========================================================================
 
 // partial specialization for SIMD_WIDTH = 32
 template <typename T>
-class SIMDVec<T, 32>
+class Vec<T, 32>
 {
 public:
   typedef T Type;
@@ -82,24 +82,21 @@ public:
   enum { elements = 32 / sizeof(T), bytes = 32 };
   // shorter version:
   enum { elems = elements };
-  SIMDVec() {}
-  SIMDVec(const __m256i &x) { ymm = x; }
-  SIMDVec &operator=(const __m256i &x)
+  Vec() {}
+  Vec(const __m256i &x) { ymm = x; }
+  Vec &operator=(const __m256i &x)
   {
     ymm = x;
     return *this;
   }
   operator __m256i() const { return ymm; }
   // for avx2 emulation
-  SIMDVec(const SIMDVec<T, 16> &lo, const SIMDVec<T, 16> &hi)
+  Vec(const Vec<T, 16> &lo, const Vec<T, 16> &hi)
   {
     ymm = _mm256_set_m128i(hi, lo);
   }
-  SIMD_INLINE SIMDVec<T, 16> lo() const { return _mm256_castsi256_si128(ymm); }
-  SIMD_INLINE SIMDVec<T, 16> hi() const
-  {
-    return _mm256_extractf128_si256(ymm, 1);
-  }
+  SIMD_INLINE Vec<T, 16> lo() const { return _mm256_castsi256_si128(ymm); }
+  SIMD_INLINE Vec<T, 16> hi() const { return _mm256_extractf128_si256(ymm, 1); }
   // 29. Nov 22 (Jonas Keller):
   // defined operators new and delete to ensure proper alignment, since
   // the default new and delete are not guaranteed to do so before C++17
@@ -110,36 +107,33 @@ public:
 };
 
 // ===========================================================================
-// SIMDVec float specialization for AVX
+// Vec float specialization for AVX
 // ===========================================================================
 
 template <>
-class SIMDVec<SIMDFloat, 32>
+class Vec<Float, 32>
 {
 public:
-  typedef SIMDFloat Type;
+  typedef Float Type;
   __m256 ymm;
-  enum { elements = 32 / sizeof(SIMDFloat), bytes = 32 };
+  enum { elements = 32 / sizeof(Float), bytes = 32 };
   // shorter version:
   enum { elems = elements };
-  SIMDVec() {}
-  SIMDVec(const __m256 &x) { ymm = x; }
-  SIMDVec &operator=(const __m256 &x)
+  Vec() {}
+  Vec(const __m256 &x) { ymm = x; }
+  Vec &operator=(const __m256 &x)
   {
     ymm = x;
     return *this;
   }
   operator __m256() const { return ymm; }
   // for avx2 emulation
-  SIMDVec(const SIMDVec<SIMDFloat, 16> &lo, const SIMDVec<SIMDFloat, 16> &hi)
+  Vec(const Vec<Float, 16> &lo, const Vec<Float, 16> &hi)
   {
     ymm = _mm256_set_m128(hi, lo);
   }
-  SIMD_INLINE SIMDVec<SIMDFloat, 16> lo() const
-  {
-    return _mm256_castps256_ps128(ymm);
-  }
-  SIMD_INLINE SIMDVec<SIMDFloat, 16> hi() const
+  SIMD_INLINE Vec<Float, 16> lo() const { return _mm256_castps256_ps128(ymm); }
+  SIMD_INLINE Vec<Float, 16> hi() const
   {
     return _mm256_extractf128_ps(ymm, 1);
   }
@@ -234,16 +228,16 @@ static SIMD_INLINE __m256 x_mm256_permute2x128_ps(__m256 a, __m256 b)
 
 // all integer versions
 template <int N, typename T>
-static SIMD_INLINE SIMDVec<T, 32> permute_32_16(const SIMDVec<T, 32> &a,
-                                                const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> permute_32_16(const Vec<T, 32> &a,
+                                            const Vec<T, 32> &b)
 {
   return x_mm256_permute2x128_si256<N>(a, b);
 }
 
 // float version
 template <int N>
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> permute_32_16(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> permute_32_16(const Vec<Float, 32> &a,
+                                                const Vec<Float, 32> &b)
 {
   return x_mm256_permute2x128_ps<N>(a, b);
 }
@@ -284,8 +278,8 @@ template <int N, typename T, int I>
 class Swizzle_32_16
 {
 public:
-  static SIMD_INLINE void _swizzle_32_16(const SIMDVec<T, 32> *const vIn,
-                                         SIMDVec<T, 32> *const vOut)
+  static SIMD_INLINE void _swizzle_32_16(const Vec<T, 32> *const vIn,
+                                         Vec<T, 32> *const vOut)
   {
     // example: N=3                                         v     v
     // I=0: permute_32_16(vIn[0], vIn[1], _MM_SHUFFLE(0, 2+ 1, 0, 0));
@@ -310,16 +304,16 @@ template <int N, typename T>
 class Swizzle_32_16<N, T, N>
 {
 public:
-  static SIMD_INLINE void _swizzle_32_16(const SIMDVec<T, 32> *const,
-                                         SIMDVec<T, 32> *const)
+  static SIMD_INLINE void _swizzle_32_16(const Vec<T, 32> *const,
+                                         Vec<T, 32> *const)
   {}
 };
 
 // swizzle lanes (for implementation of swizzle functions)
 // from Stan Melax: 3D Vector Normalization... (adapted)
 template <int N, typename T>
-static SIMD_INLINE void swizzle_32_16(const SIMDVec<T, 32> *const vIn,
-                                      SIMDVec<T, 32> *const vOut)
+static SIMD_INLINE void swizzle_32_16(const Vec<T, 32> *const vIn,
+                                      Vec<T, 32> *const vOut)
 {
   Swizzle_32_16<N, T, 0>::_swizzle_32_16(vIn, vOut);
 }
@@ -330,8 +324,7 @@ static SIMD_INLINE void swizzle_32_16(const SIMDVec<T, 32> *const vIn,
 
 // IMM in {0,1}
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDFloat, 16> x_mm256_extractf128(
-  const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 16> x_mm256_extractf128(const Vec<Float, 32> &a)
 {
   return _mm256_extractf128_ps(a, IMM);
 }
@@ -657,7 +650,7 @@ template <int IMM>
 static SIMD_INLINE int x_mm256_extract_epi32(__m256i a,
                                              IsPosInRange<true, true>)
 {
-  // TODO: extract: is conversion from return type int to SIMDInt always safe?
+  // TODO: extract: is conversion from return type int to Int always safe?
   return _mm256_extract_epi32(a, IMM);
 }
 
@@ -1297,7 +1290,7 @@ SIMDVEC_INTEL_X_INT_UNFCT_IMM_PSPD_32(shuffle, epi32, ps)
 // ###########################################################################
 
 // ===========================================================================
-// SIMDVec template function specializations or overloading for AVX
+// Vec template function specializations or overloading for AVX
 // ===========================================================================
 
 // ---------------------------------------------------------------------------
@@ -1306,27 +1299,27 @@ SIMDVEC_INTEL_X_INT_UNFCT_IMM_PSPD_32(shuffle, epi32, ps)
 
 // between all integer types
 template <typename Tdst, typename Tsrc>
-static SIMD_INLINE SIMDVec<Tdst, 32> reinterpret(const SIMDVec<Tsrc, 32> &vec,
-                                                 OutputType<Tdst>)
+static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Tsrc, 32> &vec,
+                                             OutputType<Tdst>)
 {
   // 26. Nov 22 (Jonas Keller): reinterpret_cast is technically undefined
-  // behavior, so just rewrapping the vector register in a new SIMDVec instead
-  // return reinterpret_cast<const SIMDVec<Tdst,32>&>(vec);
-  return SIMDVec<Tdst, 32>(vec.ymm);
+  // behavior, so just rewrapping the vector register in a new Vec instead
+  // return reinterpret_cast<const Vec<Tdst,32>&>(vec);
+  return Vec<Tdst, 32>(vec.ymm);
 }
 
 // from float to any integer type
 template <typename Tdst>
-static SIMD_INLINE SIMDVec<Tdst, 32> reinterpret(
-  const SIMDVec<SIMDFloat, 32> &vec, OutputType<Tdst>)
+static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Float, 32> &vec,
+                                             OutputType<Tdst>)
 {
   return _mm256_castps_si256(vec);
 }
 
 // from any integer type to float
 template <typename Tsrc>
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> reinterpret(
-  const SIMDVec<Tsrc, 32> &vec, OutputType<SIMDFloat>)
+static SIMD_INLINE Vec<Float, 32> reinterpret(const Vec<Tsrc, 32> &vec,
+                                              OutputType<Float>)
 {
   return _mm256_castsi256_ps(vec);
 }
@@ -1334,8 +1327,8 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> reinterpret(
 /*
 // between identical types
 template <typename T>
-static SIMD_INLINE SIMDVec<T,32>
-reinterpret(const SIMDVec<T,32>& vec, OutputType<T>)
+static SIMD_INLINE Vec<T,32>
+reinterpret(const Vec<T,32>& vec, OutputType<T>)
 {
   return vec;
 }
@@ -1343,8 +1336,8 @@ reinterpret(const SIMDVec<T,32>& vec, OutputType<T>)
 
 // BUGFIX:  1. Aug 17 (rm): remove code above, added this one
 // between float and float
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> reinterpret(
-  const SIMDVec<SIMDFloat, 32> &vec, OutputType<SIMDFloat>)
+static SIMD_INLINE Vec<Float, 32> reinterpret(const Vec<Float, 32> &vec,
+                                              OutputType<Float>)
 {
   return vec;
 }
@@ -1360,8 +1353,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> reinterpret(
 // convertible to int32 without overflow (0x7fffffbf = 2147483520);
 // negative values cannot overflow (they are clamped to invalid int
 // which is the most negative int32)
-static SIMD_INLINE SIMDVec<SIMDInt, 32> cvts(const SIMDVec<SIMDFloat, 32> &a,
-                                             OutputType<SIMDInt>)
+static SIMD_INLINE Vec<Int, 32> cvts(const Vec<Float, 32> &a, OutputType<Int>)
 {
   // TODO: analyze much more complex solution for cvts at
   // TODO: http://stackoverflow.com/questions/9157373/
@@ -1371,8 +1363,7 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> cvts(const SIMDVec<SIMDFloat, 32> &a,
 }
 
 // saturation is not necessary in this case
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> cvts(const SIMDVec<SIMDInt, 32> &a,
-                                               OutputType<SIMDFloat>)
+static SIMD_INLINE Vec<Float, 32> cvts(const Vec<Int, 32> &a, OutputType<Float>)
 {
   return _mm256_cvtepi32_ps(a);
 }
@@ -1381,38 +1372,33 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> cvts(const SIMDVec<SIMDInt, 32> &a,
 // setzero
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> setzero(OutputType<SIMDByte>,
-                                                 Integer<32>)
+static SIMD_INLINE Vec<Byte, 32> setzero(OutputType<Byte>, Integer<32>)
 {
   return _mm256_setzero_si256();
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> setzero(
-  OutputType<SIMDSignedByte>, Integer<32>)
+static SIMD_INLINE Vec<SignedByte, 32> setzero(OutputType<SignedByte>,
+                                               Integer<32>)
 {
   return _mm256_setzero_si256();
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> setzero(OutputType<SIMDWord>,
-                                                 Integer<32>)
+static SIMD_INLINE Vec<Word, 32> setzero(OutputType<Word>, Integer<32>)
 {
   return _mm256_setzero_si256();
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> setzero(OutputType<SIMDShort>,
-                                                  Integer<32>)
+static SIMD_INLINE Vec<Short, 32> setzero(OutputType<Short>, Integer<32>)
 {
   return _mm256_setzero_si256();
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> setzero(OutputType<SIMDInt>,
-                                                Integer<32>)
+static SIMD_INLINE Vec<Int, 32> setzero(OutputType<Int>, Integer<32>)
 {
   return _mm256_setzero_si256();
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> setzero(OutputType<SIMDFloat>,
-                                                  Integer<32>)
+static SIMD_INLINE Vec<Float, 32> setzero(OutputType<Float>, Integer<32>)
 {
   return _mm256_setzero_ps();
 }
@@ -1421,33 +1407,32 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> setzero(OutputType<SIMDFloat>,
 // set1
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> set1(SIMDByte a, Integer<32>)
+static SIMD_INLINE Vec<Byte, 32> set1(Byte a, Integer<32>)
 {
   return _mm256_set1_epi8(a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> set1(SIMDSignedByte a,
-                                                    Integer<32>)
+static SIMD_INLINE Vec<SignedByte, 32> set1(SignedByte a, Integer<32>)
 {
   return _mm256_set1_epi8(a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> set1(SIMDWord a, Integer<32>)
+static SIMD_INLINE Vec<Word, 32> set1(Word a, Integer<32>)
 {
   return _mm256_set1_epi16(a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> set1(SIMDShort a, Integer<32>)
+static SIMD_INLINE Vec<Short, 32> set1(Short a, Integer<32>)
 {
   return _mm256_set1_epi16(a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> set1(SIMDInt a, Integer<32>)
+static SIMD_INLINE Vec<Int, 32> set1(Int a, Integer<32>)
 {
   return _mm256_set1_epi32(a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> set1(SIMDFloat a, Integer<32>)
+static SIMD_INLINE Vec<Float, 32> set1(Float a, Integer<32>)
 {
   return _mm256_set1_ps(a);
 }
@@ -1456,8 +1441,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> set1(SIMDFloat a, Integer<32>)
 // load
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> load(const SIMDByte *const p,
-                                              Integer<32>)
+static SIMD_INLINE Vec<Byte, 32> load(const Byte *const p, Integer<32>)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1467,8 +1451,8 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> load(const SIMDByte *const p,
   return _mm256_load_si256((__m256i *) p);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> load(
-  const SIMDSignedByte *const p, Integer<32>)
+static SIMD_INLINE Vec<SignedByte, 32> load(const SignedByte *const p,
+                                            Integer<32>)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1478,8 +1462,7 @@ static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> load(
   return _mm256_load_si256((__m256i *) p);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> load(const SIMDWord *const p,
-                                              Integer<32>)
+static SIMD_INLINE Vec<Word, 32> load(const Word *const p, Integer<32>)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1489,8 +1472,7 @@ static SIMD_INLINE SIMDVec<SIMDWord, 32> load(const SIMDWord *const p,
   return _mm256_load_si256((__m256i *) p);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> load(const SIMDShort *const p,
-                                               Integer<32>)
+static SIMD_INLINE Vec<Short, 32> load(const Short *const p, Integer<32>)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1500,8 +1482,7 @@ static SIMD_INLINE SIMDVec<SIMDShort, 32> load(const SIMDShort *const p,
   return _mm256_load_si256((__m256i *) p);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> load(const SIMDInt *const p,
-                                             Integer<32>)
+static SIMD_INLINE Vec<Int, 32> load(const Int *const p, Integer<32>)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1511,8 +1492,7 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> load(const SIMDInt *const p,
   return _mm256_load_si256((__m256i *) p);
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> load(const SIMDFloat *const p,
-                                               Integer<32>)
+static SIMD_INLINE Vec<Float, 32> load(const Float *const p, Integer<32>)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1526,38 +1506,33 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> load(const SIMDFloat *const p,
 // loadu
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> loadu(const SIMDByte *const p,
-                                               Integer<32>)
+static SIMD_INLINE Vec<Byte, 32> loadu(const Byte *const p, Integer<32>)
 {
   return _mm256_loadu_si256((__m256i *) p);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> loadu(
-  const SIMDSignedByte *const p, Integer<32>)
+static SIMD_INLINE Vec<SignedByte, 32> loadu(const SignedByte *const p,
+                                             Integer<32>)
 {
   return _mm256_loadu_si256((__m256i *) p);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> loadu(const SIMDWord *const p,
-                                               Integer<32>)
+static SIMD_INLINE Vec<Word, 32> loadu(const Word *const p, Integer<32>)
 {
   return _mm256_loadu_si256((__m256i *) p);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> loadu(const SIMDShort *const p,
-                                                Integer<32>)
+static SIMD_INLINE Vec<Short, 32> loadu(const Short *const p, Integer<32>)
 {
   return _mm256_loadu_si256((__m256i *) p);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> loadu(const SIMDInt *const p,
-                                              Integer<32>)
+static SIMD_INLINE Vec<Int, 32> loadu(const Int *const p, Integer<32>)
 {
   return _mm256_loadu_si256((__m256i *) p);
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> loadu(const SIMDFloat *const p,
-                                                Integer<32>)
+static SIMD_INLINE Vec<Float, 32> loadu(const Float *const p, Integer<32>)
 {
   return _mm256_loadu_ps(p);
 }
@@ -1568,7 +1543,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> loadu(const SIMDFloat *const p,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void store(T *const p, const SIMDVec<T, 32> &a)
+static SIMD_INLINE void store(T *const p, const Vec<T, 32> &a)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1579,8 +1554,7 @@ static SIMD_INLINE void store(T *const p, const SIMDVec<T, 32> &a)
 }
 
 // float version
-static SIMD_INLINE void store(SIMDFloat *const p,
-                              const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE void store(Float *const p, const Vec<Float, 32> &a)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1596,14 +1570,13 @@ static SIMD_INLINE void store(SIMDFloat *const p,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void storeu(T *const p, const SIMDVec<T, 32> &a)
+static SIMD_INLINE void storeu(T *const p, const Vec<T, 32> &a)
 {
   _mm256_storeu_si256((__m256i *) p, a);
 }
 
 // float version
-static SIMD_INLINE void storeu(SIMDFloat *const p,
-                               const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE void storeu(Float *const p, const Vec<Float, 32> &a)
 {
   _mm256_storeu_ps(p, a);
 }
@@ -1614,7 +1587,7 @@ static SIMD_INLINE void storeu(SIMDFloat *const p,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void stream_store(T *const p, const SIMDVec<T, 32> &a)
+static SIMD_INLINE void stream_store(T *const p, const Vec<T, 32> &a)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1625,8 +1598,7 @@ static SIMD_INLINE void stream_store(T *const p, const SIMDVec<T, 32> &a)
 }
 
 // float version
-static SIMD_INLINE void stream_store(SIMDFloat *const p,
-                                     const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE void stream_store(Float *const p, const Vec<Float, 32> &a)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1641,41 +1613,41 @@ static SIMD_INLINE void stream_store(SIMDFloat *const p,
 // ---------------------------------------------------------------------------
 
 template <int IMM>
-static SIMD_INLINE SIMDByte extract(const SIMDVec<SIMDByte, 32> &a)
+static SIMD_INLINE Byte extract(const Vec<Byte, 32> &a)
 {
   return x_mm256_extract_epi8<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDSignedByte extract(const SIMDVec<SIMDSignedByte, 32> &a)
+static SIMD_INLINE SignedByte extract(const Vec<SignedByte, 32> &a)
 {
   return x_mm256_extract_epi8<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDWord extract(const SIMDVec<SIMDWord, 32> &a)
+static SIMD_INLINE Word extract(const Vec<Word, 32> &a)
 {
   return x_mm256_extract_epi16<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDShort extract(const SIMDVec<SIMDShort, 32> &a)
+static SIMD_INLINE Short extract(const Vec<Short, 32> &a)
 {
   return x_mm256_extract_epi16<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDInt extract(const SIMDVec<SIMDInt, 32> &a)
+static SIMD_INLINE Int extract(const Vec<Int, 32> &a)
 {
-  // TODO: extract: is conversion from return type int to SIMDInt always safe?
+  // TODO: extract: is conversion from return type int to Int always safe?
   return x_mm256_extract_epi32<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDFloat extract(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Float extract(const Vec<Float, 32> &a)
 {
   SIMD_RETURN_REINTERPRET_INT(
-    SIMDFloat, extract<IMM>(reinterpret(a, OutputType<SIMDInt>())), 0);
+    Float, extract<IMM>(reinterpret(a, OutputType<Int>())), 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -1684,32 +1656,32 @@ static SIMD_INLINE SIMDFloat extract(const SIMDVec<SIMDFloat, 32> &a)
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> add(const SIMDVec<SIMDByte, 32> &a,
-                                             const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> add(const Vec<Byte, 32> &a,
+                                     const Vec<Byte, 32> &b)
 {
   return _mm256_add_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> add(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> add(const Vec<SignedByte, 32> &a,
+                                           const Vec<SignedByte, 32> &b)
 {
   return _mm256_add_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> add(const SIMDVec<SIMDWord, 32> &a,
-                                             const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> add(const Vec<Word, 32> &a,
+                                     const Vec<Word, 32> &b)
 {
   return _mm256_add_epi16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> add(const SIMDVec<SIMDShort, 32> &a,
-                                              const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> add(const Vec<Short, 32> &a,
+                                      const Vec<Short, 32> &b)
 {
   return _mm256_add_epi16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> add(const SIMDVec<SIMDInt, 32> &a,
-                                            const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> add(const Vec<Int, 32> &a,
+                                    const Vec<Int, 32> &b)
 {
   return _mm256_add_epi32(a, b);
 }
@@ -1718,16 +1690,15 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> add(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> add(const SIMDVec<T, 32> &a,
-                                      const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> add(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(add(a.lo(), b.lo()), add(a.hi(), b.hi()));
+  return Vec<T, 32>(add(a.lo(), b.lo()), add(a.hi(), b.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> add(const SIMDVec<SIMDFloat, 32> &a,
-                                              const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> add(const Vec<Float, 32> &a,
+                                      const Vec<Float, 32> &b)
 {
   return _mm256_add_ps(a, b);
 }
@@ -1738,34 +1709,34 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> add(const SIMDVec<SIMDFloat, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> adds(const SIMDVec<SIMDByte, 32> &a,
-                                              const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> adds(const Vec<Byte, 32> &a,
+                                      const Vec<Byte, 32> &b)
 {
   return _mm256_adds_epu8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> adds(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> adds(const Vec<SignedByte, 32> &a,
+                                            const Vec<SignedByte, 32> &b)
 {
   return _mm256_adds_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> adds(const SIMDVec<SIMDWord, 32> &a,
-                                              const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> adds(const Vec<Word, 32> &a,
+                                      const Vec<Word, 32> &b)
 {
   return _mm256_adds_epu16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> adds(const SIMDVec<SIMDShort, 32> &a,
-                                               const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> adds(const Vec<Short, 32> &a,
+                                       const Vec<Short, 32> &b)
 {
   return _mm256_adds_epi16(a, b);
 }
 
 #ifndef SIMD_STRICT_SATURATION
 // NOT SATURATED!
-static SIMD_INLINE SIMDVec<SIMDInt, 32> adds(const SIMDVec<SIMDInt, 32> &a,
-                                             const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> adds(const Vec<Int, 32> &a,
+                                     const Vec<Int, 32> &b)
 {
   return _mm256_add_epi32(a, b);
 }
@@ -1775,18 +1746,17 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> adds(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> adds(const SIMDVec<T, 32> &a,
-                                       const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> adds(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(adds(a.lo(), b.lo()), adds(a.hi(), b.hi()));
+  return Vec<T, 32>(adds(a.lo(), b.lo()), adds(a.hi(), b.hi()));
 }
 
 #endif
 
 #ifndef SIMD_STRICT_SATURATION
 // NOT SATURATED!
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> adds(const SIMDVec<SIMDFloat, 32> &a,
-                                               const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> adds(const Vec<Float, 32> &a,
+                                       const Vec<Float, 32> &b)
 {
   return _mm256_add_ps(a, b);
 }
@@ -1798,32 +1768,32 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> adds(const SIMDVec<SIMDFloat, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> sub(const SIMDVec<SIMDByte, 32> &a,
-                                             const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> sub(const Vec<Byte, 32> &a,
+                                     const Vec<Byte, 32> &b)
 {
   return _mm256_sub_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> sub(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> sub(const Vec<SignedByte, 32> &a,
+                                           const Vec<SignedByte, 32> &b)
 {
   return _mm256_sub_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> sub(const SIMDVec<SIMDWord, 32> &a,
-                                             const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> sub(const Vec<Word, 32> &a,
+                                     const Vec<Word, 32> &b)
 {
   return _mm256_sub_epi16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> sub(const SIMDVec<SIMDShort, 32> &a,
-                                              const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> sub(const Vec<Short, 32> &a,
+                                      const Vec<Short, 32> &b)
 {
   return _mm256_sub_epi16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> sub(const SIMDVec<SIMDInt, 32> &a,
-                                            const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> sub(const Vec<Int, 32> &a,
+                                    const Vec<Int, 32> &b)
 {
   return _mm256_sub_epi32(a, b);
 }
@@ -1832,16 +1802,15 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> sub(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> sub(const SIMDVec<T, 32> &a,
-                                      const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> sub(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(sub(a.lo(), b.lo()), sub(a.hi(), b.hi()));
+  return Vec<T, 32>(sub(a.lo(), b.lo()), sub(a.hi(), b.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> sub(const SIMDVec<SIMDFloat, 32> &a,
-                                              const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> sub(const Vec<Float, 32> &a,
+                                      const Vec<Float, 32> &b)
 {
   return _mm256_sub_ps(a, b);
 }
@@ -1852,34 +1821,34 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> sub(const SIMDVec<SIMDFloat, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> subs(const SIMDVec<SIMDByte, 32> &a,
-                                              const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> subs(const Vec<Byte, 32> &a,
+                                      const Vec<Byte, 32> &b)
 {
   return _mm256_subs_epu8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> subs(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> subs(const Vec<SignedByte, 32> &a,
+                                            const Vec<SignedByte, 32> &b)
 {
   return _mm256_subs_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> subs(const SIMDVec<SIMDWord, 32> &a,
-                                              const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> subs(const Vec<Word, 32> &a,
+                                      const Vec<Word, 32> &b)
 {
   return _mm256_subs_epu16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> subs(const SIMDVec<SIMDShort, 32> &a,
-                                               const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> subs(const Vec<Short, 32> &a,
+                                       const Vec<Short, 32> &b)
 {
   return _mm256_subs_epi16(a, b);
 }
 
 #ifndef SIMD_STRICT_SATURATION
 // NOT SATURATED!
-static SIMD_INLINE SIMDVec<SIMDInt, 32> subs(const SIMDVec<SIMDInt, 32> &a,
-                                             const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> subs(const Vec<Int, 32> &a,
+                                     const Vec<Int, 32> &b)
 {
   return _mm256_sub_epi32(a, b);
 }
@@ -1889,18 +1858,17 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> subs(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> subs(const SIMDVec<T, 32> &a,
-                                       const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> subs(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(subs(a.lo(), b.lo()), subs(a.hi(), b.hi()));
+  return Vec<T, 32>(subs(a.lo(), b.lo()), subs(a.hi(), b.hi()));
 }
 
 #endif
 
 #ifndef SIMD_STRICT_SATURATION
 // NOT SATURATED!
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> subs(const SIMDVec<SIMDFloat, 32> &a,
-                                               const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> subs(const Vec<Float, 32> &a,
+                                       const Vec<Float, 32> &b)
 {
   return _mm256_sub_ps(a, b);
 }
@@ -1912,18 +1880,17 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> subs(const SIMDVec<SIMDFloat, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> neg(
-  const SIMDVec<SIMDSignedByte, 32> &a)
+static SIMD_INLINE Vec<SignedByte, 32> neg(const Vec<SignedByte, 32> &a)
 {
   return _mm256_sub_epi8(_mm256_setzero_si256(), a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> neg(const SIMDVec<SIMDShort, 32> &a)
+static SIMD_INLINE Vec<Short, 32> neg(const Vec<Short, 32> &a)
 {
   return _mm256_sub_epi16(_mm256_setzero_si256(), a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> neg(const SIMDVec<SIMDInt, 32> &a)
+static SIMD_INLINE Vec<Int, 32> neg(const Vec<Int, 32> &a)
 {
   return _mm256_sub_epi32(_mm256_setzero_si256(), a);
 }
@@ -1932,14 +1899,14 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> neg(const SIMDVec<SIMDInt, 32> &a)
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> neg(const SIMDVec<T, 32> &a)
+static SIMD_INLINE Vec<T, 32> neg(const Vec<T, 32> &a)
 {
-  return SIMDVec<T, 32>(neg(a.lo()), neg(a.hi()));
+  return Vec<T, 32>(neg(a.lo()), neg(a.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> neg(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> neg(const Vec<Float, 32> &a)
 {
   return _mm256_sub_ps(_mm256_setzero_ps(), a);
 }
@@ -1950,32 +1917,32 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> neg(const SIMDVec<SIMDFloat, 32> &a)
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> min(const SIMDVec<SIMDByte, 32> &a,
-                                             const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> min(const Vec<Byte, 32> &a,
+                                     const Vec<Byte, 32> &b)
 {
   return _mm256_min_epu8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> min(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> min(const Vec<SignedByte, 32> &a,
+                                           const Vec<SignedByte, 32> &b)
 {
   return _mm256_min_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> min(const SIMDVec<SIMDWord, 32> &a,
-                                             const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> min(const Vec<Word, 32> &a,
+                                     const Vec<Word, 32> &b)
 {
   return _mm256_min_epu16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> min(const SIMDVec<SIMDShort, 32> &a,
-                                              const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> min(const Vec<Short, 32> &a,
+                                      const Vec<Short, 32> &b)
 {
   return _mm256_min_epi16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> min(const SIMDVec<SIMDInt, 32> &a,
-                                            const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> min(const Vec<Int, 32> &a,
+                                    const Vec<Int, 32> &b)
 {
   return _mm256_min_epi32(a, b);
 }
@@ -1987,16 +1954,15 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> min(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> min(const SIMDVec<T, 32> &a,
-                                      const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> min(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(min(a.lo(), b.lo()), min(a.hi(), b.hi()));
+  return Vec<T, 32>(min(a.lo(), b.lo()), min(a.hi(), b.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> min(const SIMDVec<SIMDFloat, 32> &a,
-                                              const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> min(const Vec<Float, 32> &a,
+                                      const Vec<Float, 32> &b)
 {
   return _mm256_min_ps(a, b);
 }
@@ -2007,32 +1973,32 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> min(const SIMDVec<SIMDFloat, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> max(const SIMDVec<SIMDByte, 32> &a,
-                                             const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> max(const Vec<Byte, 32> &a,
+                                     const Vec<Byte, 32> &b)
 {
   return _mm256_max_epu8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> max(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> max(const Vec<SignedByte, 32> &a,
+                                           const Vec<SignedByte, 32> &b)
 {
   return _mm256_max_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> max(const SIMDVec<SIMDWord, 32> &a,
-                                             const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> max(const Vec<Word, 32> &a,
+                                     const Vec<Word, 32> &b)
 {
   return _mm256_max_epu16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> max(const SIMDVec<SIMDShort, 32> &a,
-                                              const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> max(const Vec<Short, 32> &a,
+                                      const Vec<Short, 32> &b)
 {
   return _mm256_max_epi16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> max(const SIMDVec<SIMDInt, 32> &a,
-                                            const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> max(const Vec<Int, 32> &a,
+                                    const Vec<Int, 32> &b)
 {
   return _mm256_max_epi32(a, b);
 }
@@ -2044,16 +2010,15 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> max(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> max(const SIMDVec<T, 32> &a,
-                                      const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> max(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(max(a.lo(), b.lo()), max(a.hi(), b.hi()));
+  return Vec<T, 32>(max(a.lo(), b.lo()), max(a.hi(), b.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> max(const SIMDVec<SIMDFloat, 32> &a,
-                                              const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> max(const Vec<Float, 32> &a,
+                                      const Vec<Float, 32> &b)
 {
   return _mm256_max_ps(a, b);
 }
@@ -2065,14 +2030,14 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> max(const SIMDVec<SIMDFloat, 32> &a,
 // TODO: add mul/div versions for int types? or make special versions of mul
 // TODO: and div where the result is scaled?
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> mul(const SIMDVec<SIMDFloat, 32> &a,
-                                              const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> mul(const Vec<Float, 32> &a,
+                                      const Vec<Float, 32> &b)
 {
   return _mm256_mul_ps(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> div(const SIMDVec<SIMDFloat, 32> &a,
-                                              const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> div(const Vec<Float, 32> &a,
+                                      const Vec<Float, 32> &b)
 {
   return _mm256_div_ps(a, b);
 }
@@ -2083,17 +2048,17 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> div(const SIMDVec<SIMDFloat, 32> &a,
 
 // TODO: add versions of ceil/floor/round for int types?
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> ceil(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> ceil(const Vec<Float, 32> &a)
 {
   return _mm256_ceil_ps(a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> floor(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> floor(const Vec<Float, 32> &a)
 {
   return _mm256_floor_ps(a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> round(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> round(const Vec<Float, 32> &a)
 {
   // old: use _MM_SET_ROUNDING_MODE to adjust rounding direction
   // return _mm256_round_ps(a, _MM_FROUND_CUR_DIRECTION);
@@ -2101,8 +2066,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> round(const SIMDVec<SIMDFloat, 32> &a)
   return _mm256_round_ps(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> truncate(
-  const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> truncate(const Vec<Float, 32> &a)
 {
   return _mm256_round_ps(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
 }
@@ -2112,19 +2076,19 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> truncate(
 // ---------------------------------------------------------------------------
 
 // estimate of a reciprocal
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> rcp(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> rcp(const Vec<Float, 32> &a)
 {
   return _mm256_rcp_ps(a);
 }
 
 // estimate of reverse square root
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> rsqrt(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> rsqrt(const Vec<Float, 32> &a)
 {
   return _mm256_rsqrt_ps(a);
 }
 
 // square root
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> sqrt(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> sqrt(const Vec<Float, 32> &a)
 {
   return _mm256_sqrt_ps(a);
 }
@@ -2135,18 +2099,17 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> sqrt(const SIMDVec<SIMDFloat, 32> &a)
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> abs(
-  const SIMDVec<SIMDSignedByte, 32> &a)
+static SIMD_INLINE Vec<SignedByte, 32> abs(const Vec<SignedByte, 32> &a)
 {
   return _mm256_abs_epi8(a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> abs(const SIMDVec<SIMDShort, 32> &a)
+static SIMD_INLINE Vec<Short, 32> abs(const Vec<Short, 32> &a)
 {
   return _mm256_abs_epi16(a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> abs(const SIMDVec<SIMDInt, 32> &a)
+static SIMD_INLINE Vec<Int, 32> abs(const Vec<Int, 32> &a)
 {
   return _mm256_abs_epi32(a);
 }
@@ -2155,14 +2118,14 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> abs(const SIMDVec<SIMDInt, 32> &a)
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> abs(const SIMDVec<T, 32> &a)
+static SIMD_INLINE Vec<T, 32> abs(const Vec<T, 32> &a)
 {
-  return SIMDVec<T, 32>(abs(a.lo()), abs(a.hi()));
+  return Vec<T, 32>(abs(a.lo()), abs(a.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> abs(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> abs(const Vec<Float, 32> &a)
 {
   // there's no _mm256_abs_ps, we have to emulated it:
   // -0.0F is 0x8000000, 0x7fffffff by andnot, sign bit is cleared
@@ -2175,9 +2138,8 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> abs(const SIMDVec<SIMDFloat, 32> &a)
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b, Part<0>,
-                                         Bytes<1>)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                     Part<0>, Bytes<1>)
 {
   return x_mm256_unpacklo_epi8(x_mm256_transpose4x64_epi64(a),
                                x_mm256_transpose4x64_epi64(b));
@@ -2185,9 +2147,8 @@ static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b, Part<0>,
-                                         Bytes<2>)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                     Part<0>, Bytes<2>)
 {
   return x_mm256_unpacklo_epi16(x_mm256_transpose4x64_epi64(a),
                                 x_mm256_transpose4x64_epi64(b));
@@ -2195,9 +2156,8 @@ static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b, Part<0>,
-                                         Bytes<4>)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                     Part<0>, Bytes<4>)
 {
   return x_mm256_unpacklo_epi32(x_mm256_transpose4x64_epi64(a),
                                 x_mm256_transpose4x64_epi64(b));
@@ -2205,9 +2165,8 @@ static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b, Part<0>,
-                                         Bytes<8>)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                     Part<0>, Bytes<8>)
 {
   return x_mm256_unpacklo_epi64(x_mm256_transpose4x64_epi64(a),
                                 x_mm256_transpose4x64_epi64(b));
@@ -2215,35 +2174,34 @@ static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b, Part<0>,
-                                         Bytes<16>)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                     Part<0>, Bytes<16>)
 {
   return x_mm256_permute2x128_si256<_MM_SHUFFLE(0, 2, 0, 0)>(a, b);
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<0>,
-  Bytes<4>)
+static SIMD_INLINE Vec<Float, 32> unpack(const Vec<Float, 32> &a,
+                                         const Vec<Float, 32> &b, Part<0>,
+                                         Bytes<4>)
 {
   return _mm256_unpacklo_ps(x_mm256_transpose4x64_ps(a),
                             x_mm256_transpose4x64_ps(b));
 }
 
 // float versions
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<0>,
-  Bytes<8>)
+static SIMD_INLINE Vec<Float, 32> unpack(const Vec<Float, 32> &a,
+                                         const Vec<Float, 32> &b, Part<0>,
+                                         Bytes<8>)
 {
   return x_mm256_unpacklo_2ps(x_mm256_transpose4x64_ps(a),
                               x_mm256_transpose4x64_ps(b));
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<0>,
-  Bytes<16>)
+static SIMD_INLINE Vec<Float, 32> unpack(const Vec<Float, 32> &a,
+                                         const Vec<Float, 32> &b, Part<0>,
+                                         Bytes<16>)
 {
   return x_mm256_permute2x128_ps<_MM_SHUFFLE(0, 2, 0, 0)>(a, b);
 }
@@ -2254,9 +2212,8 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack(
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b, Part<1>,
-                                         Bytes<1>)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                     Part<1>, Bytes<1>)
 {
   return x_mm256_unpackhi_epi8(x_mm256_transpose4x64_epi64(a),
                                x_mm256_transpose4x64_epi64(b));
@@ -2264,9 +2221,8 @@ static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b, Part<1>,
-                                         Bytes<2>)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                     Part<1>, Bytes<2>)
 {
   return x_mm256_unpackhi_epi16(x_mm256_transpose4x64_epi64(a),
                                 x_mm256_transpose4x64_epi64(b));
@@ -2274,9 +2230,8 @@ static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b, Part<1>,
-                                         Bytes<4>)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                     Part<1>, Bytes<4>)
 {
   return x_mm256_unpackhi_epi32(x_mm256_transpose4x64_epi64(a),
                                 x_mm256_transpose4x64_epi64(b));
@@ -2284,9 +2239,8 @@ static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b, Part<1>,
-                                         Bytes<8>)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                     Part<1>, Bytes<8>)
 {
   return x_mm256_unpackhi_epi64(x_mm256_transpose4x64_epi64(a),
                                 x_mm256_transpose4x64_epi64(b));
@@ -2294,35 +2248,34 @@ static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b, Part<1>,
-                                         Bytes<16>)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                     Part<1>, Bytes<16>)
 {
   return x_mm256_permute2x128_si256<_MM_SHUFFLE(0, 3, 0, 1)>(a, b);
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<1>,
-  Bytes<4>)
+static SIMD_INLINE Vec<Float, 32> unpack(const Vec<Float, 32> &a,
+                                         const Vec<Float, 32> &b, Part<1>,
+                                         Bytes<4>)
 {
   return _mm256_unpackhi_ps(x_mm256_transpose4x64_ps(a),
                             x_mm256_transpose4x64_ps(b));
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<1>,
-  Bytes<8>)
+static SIMD_INLINE Vec<Float, 32> unpack(const Vec<Float, 32> &a,
+                                         const Vec<Float, 32> &b, Part<1>,
+                                         Bytes<8>)
 {
   return x_mm256_unpackhi_2ps(x_mm256_transpose4x64_ps(a),
                               x_mm256_transpose4x64_ps(b));
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<1>,
-  Bytes<16>)
+static SIMD_INLINE Vec<Float, 32> unpack(const Vec<Float, 32> &a,
+                                         const Vec<Float, 32> &b, Part<1>,
+                                         Bytes<16>)
 {
   return x_mm256_permute2x128_ps<_MM_SHUFFLE(0, 3, 0, 1)>(a, b);
 }
@@ -2336,8 +2289,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack(
 // PART=0: low half of input vectors,
 // PART=1: high half of input vectors
 template <int PART, int NUM_ELEMS, typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
   return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
 }
@@ -2350,69 +2302,64 @@ static SIMD_INLINE SIMDVec<T, 32> unpack(const SIMDVec<T, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b, Part<0>,
-                                           Bytes<1>)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                       Part<0>, Bytes<1>)
 {
   return x_mm256_unpacklo_epi8(a, b);
 }
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b, Part<0>,
-                                           Bytes<2>)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                       Part<0>, Bytes<2>)
 {
   return x_mm256_unpacklo_epi16(a, b);
 }
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b, Part<0>,
-                                           Bytes<4>)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                       Part<0>, Bytes<4>)
 {
   return x_mm256_unpacklo_epi32(a, b);
 }
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b, Part<0>,
-                                           Bytes<8>)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                       Part<0>, Bytes<8>)
 {
   return x_mm256_unpacklo_epi64(a, b);
 }
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b, Part<0>,
-                                           Bytes<16>)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                       Part<0>, Bytes<16>)
 {
   return x_mm256_permute2x128_si256<_MM_SHUFFLE(0, 2, 0, 0)>(a, b);
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack16(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<0>,
-  Bytes<4>)
+static SIMD_INLINE Vec<Float, 32> unpack16(const Vec<Float, 32> &a,
+                                           const Vec<Float, 32> &b, Part<0>,
+                                           Bytes<4>)
 {
   return _mm256_unpacklo_ps(a, b);
 }
 
 // float versions
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack16(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<0>,
-  Bytes<8>)
+static SIMD_INLINE Vec<Float, 32> unpack16(const Vec<Float, 32> &a,
+                                           const Vec<Float, 32> &b, Part<0>,
+                                           Bytes<8>)
 {
   return x_mm256_unpacklo_2ps(a, b);
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack16(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<0>,
-  Bytes<16>)
+static SIMD_INLINE Vec<Float, 32> unpack16(const Vec<Float, 32> &a,
+                                           const Vec<Float, 32> &b, Part<0>,
+                                           Bytes<16>)
 {
   return x_mm256_permute2x128_ps<_MM_SHUFFLE(0, 2, 0, 0)>(a, b);
 }
@@ -2423,69 +2370,64 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack16(
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b, Part<1>,
-                                           Bytes<1>)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                       Part<1>, Bytes<1>)
 {
   return x_mm256_unpackhi_epi8(a, b);
 }
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b, Part<1>,
-                                           Bytes<2>)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                       Part<1>, Bytes<2>)
 {
   return x_mm256_unpackhi_epi16(a, b);
 }
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b, Part<1>,
-                                           Bytes<4>)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                       Part<1>, Bytes<4>)
 {
   return x_mm256_unpackhi_epi32(a, b);
 }
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b, Part<1>,
-                                           Bytes<8>)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                       Part<1>, Bytes<8>)
 {
   return x_mm256_unpackhi_epi64(a, b);
 }
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b, Part<1>,
-                                           Bytes<16>)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b,
+                                       Part<1>, Bytes<16>)
 {
   return x_mm256_permute2x128_si256<_MM_SHUFFLE(0, 3, 0, 1)>(a, b);
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack16(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<1>,
-  Bytes<4>)
+static SIMD_INLINE Vec<Float, 32> unpack16(const Vec<Float, 32> &a,
+                                           const Vec<Float, 32> &b, Part<1>,
+                                           Bytes<4>)
 {
   return _mm256_unpackhi_ps(a, b);
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack16(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<1>,
-  Bytes<8>)
+static SIMD_INLINE Vec<Float, 32> unpack16(const Vec<Float, 32> &a,
+                                           const Vec<Float, 32> &b, Part<1>,
+                                           Bytes<8>)
 {
   return x_mm256_unpackhi_2ps(a, b);
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack16(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b, Part<1>,
-  Bytes<16>)
+static SIMD_INLINE Vec<Float, 32> unpack16(const Vec<Float, 32> &a,
+                                           const Vec<Float, 32> &b, Part<1>,
+                                           Bytes<16>)
 {
   return x_mm256_permute2x128_ps<_MM_SHUFFLE(0, 3, 0, 1)>(a, b);
 }
@@ -2499,42 +2441,39 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> unpack16(
 // PART=0: low half of 128-bit lanes of input vectors,
 // PART=1: high half of 128-bit lanes of input vectors
 template <int PART, int NUM_ELEMS, typename T>
-static SIMD_INLINE SIMDVec<T, 32> unpack16(const SIMDVec<T, 32> &a,
-                                           const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
   return unpack16(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
 }
 
 // ---------------------------------------------------------------------------
-// extract 128-bit-lane as SIMDVec<T, 16>
+// extract 128-bit-lane as Vec<T, 16>
 // ---------------------------------------------------------------------------
 
 // contributed by Adam Marschall
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 16> extractLane(const SIMDVec<T, 32> &a, Part<0>)
+static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 32> &a, Part<0>)
 {
   return x_mm256_lo128i(a);
 }
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 16> extractLane(const SIMDVec<T, 32> &a, Part<1>)
+static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 32> &a, Part<1>)
 {
   return x_mm256_hi128i(a);
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 16> extractLane(
-  const SIMDVec<SIMDFloat, 32> &a, Part<0>)
+static SIMD_INLINE Vec<Float, 16> extractLane(const Vec<Float, 32> &a, Part<0>)
 {
   return x_mm256_extractf128<0>(a);
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 16> extractLane(
-  const SIMDVec<SIMDFloat, 32> &a, Part<1>)
+static SIMD_INLINE Vec<Float, 16> extractLane(const Vec<Float, 32> &a, Part<1>)
 {
   return x_mm256_extractf128<1>(a);
 }
@@ -2543,7 +2482,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 16> extractLane(
 // IMM=0: first lane of input vector,
 // IMM=1: second lane of input vector
 template <int IMM, typename T>
-static SIMD_INLINE SIMDVec<T, 16> extractLane(const SIMDVec<T, 32> &a)
+static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 32> &a)
 {
   return extractLane(a, Part<IMM>());
 }
@@ -2561,8 +2500,8 @@ static SIMD_INLINE SIMDVec<T, 16> extractLane(const SIMDVec<T, 32> &a)
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                            SIMDVec<T, 32> &l, SIMDVec<T, 32> &h, Bytes<1>)
+static SIMD_INLINE void zip(const Vec<T, 32> a, const Vec<T, 32> b,
+                            Vec<T, 32> &l, Vec<T, 32> &h, Bytes<1>)
 {
   __m256i at = x_mm256_transpose4x64_epi64(a);
   __m256i bt = x_mm256_transpose4x64_epi64(b);
@@ -2572,8 +2511,8 @@ static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                            SIMDVec<T, 32> &l, SIMDVec<T, 32> &h, Bytes<2>)
+static SIMD_INLINE void zip(const Vec<T, 32> a, const Vec<T, 32> b,
+                            Vec<T, 32> &l, Vec<T, 32> &h, Bytes<2>)
 {
   __m256i at = x_mm256_transpose4x64_epi64(a);
   __m256i bt = x_mm256_transpose4x64_epi64(b);
@@ -2583,8 +2522,8 @@ static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                            SIMDVec<T, 32> &l, SIMDVec<T, 32> &h, Bytes<4>)
+static SIMD_INLINE void zip(const Vec<T, 32> a, const Vec<T, 32> b,
+                            Vec<T, 32> &l, Vec<T, 32> &h, Bytes<4>)
 {
   __m256i at = x_mm256_transpose4x64_epi64(a);
   __m256i bt = x_mm256_transpose4x64_epi64(b);
@@ -2594,8 +2533,8 @@ static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                            SIMDVec<T, 32> &l, SIMDVec<T, 32> &h, Bytes<8>)
+static SIMD_INLINE void zip(const Vec<T, 32> a, const Vec<T, 32> b,
+                            Vec<T, 32> &l, Vec<T, 32> &h, Bytes<8>)
 {
   __m256i at = x_mm256_transpose4x64_epi64(a);
   __m256i bt = x_mm256_transpose4x64_epi64(b);
@@ -2605,18 +2544,16 @@ static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                            SIMDVec<T, 32> &l, SIMDVec<T, 32> &h, Bytes<16>)
+static SIMD_INLINE void zip(const Vec<T, 32> a, const Vec<T, 32> b,
+                            Vec<T, 32> &l, Vec<T, 32> &h, Bytes<16>)
 {
   l = x_mm256_permute2x128_si256<_MM_SHUFFLE(0, 2, 0, 0)>(a, b);
   h = x_mm256_permute2x128_si256<_MM_SHUFFLE(0, 3, 0, 1)>(a, b);
 }
 
 // float version
-static SIMD_INLINE void zip(const SIMDVec<SIMDFloat, 32> a,
-                            const SIMDVec<SIMDFloat, 32> b,
-                            SIMDVec<SIMDFloat, 32> &l,
-                            SIMDVec<SIMDFloat, 32> &h, Bytes<4>)
+static SIMD_INLINE void zip(const Vec<Float, 32> a, const Vec<Float, 32> b,
+                            Vec<Float, 32> &l, Vec<Float, 32> &h, Bytes<4>)
 {
   __m256 at = x_mm256_transpose4x64_ps(a);
   __m256 bt = x_mm256_transpose4x64_ps(b);
@@ -2625,10 +2562,8 @@ static SIMD_INLINE void zip(const SIMDVec<SIMDFloat, 32> a,
 }
 
 // float version
-static SIMD_INLINE void zip(const SIMDVec<SIMDFloat, 32> a,
-                            const SIMDVec<SIMDFloat, 32> b,
-                            SIMDVec<SIMDFloat, 32> &l,
-                            SIMDVec<SIMDFloat, 32> &h, Bytes<8>)
+static SIMD_INLINE void zip(const Vec<Float, 32> a, const Vec<Float, 32> b,
+                            Vec<Float, 32> &l, Vec<Float, 32> &h, Bytes<8>)
 {
   __m256 at = x_mm256_transpose4x64_ps(a);
   __m256 bt = x_mm256_transpose4x64_ps(b);
@@ -2637,10 +2572,8 @@ static SIMD_INLINE void zip(const SIMDVec<SIMDFloat, 32> a,
 }
 
 // float version
-static SIMD_INLINE void zip(const SIMDVec<SIMDFloat, 32> a,
-                            const SIMDVec<SIMDFloat, 32> b,
-                            SIMDVec<SIMDFloat, 32> &l,
-                            SIMDVec<SIMDFloat, 32> &h, Bytes<16>)
+static SIMD_INLINE void zip(const Vec<Float, 32> a, const Vec<Float, 32> b,
+                            Vec<Float, 32> &l, Vec<Float, 32> &h, Bytes<16>)
 {
   l = x_mm256_permute2x128_ps<_MM_SHUFFLE(0, 2, 0, 0)>(a, b);
   h = x_mm256_permute2x128_ps<_MM_SHUFFLE(0, 3, 0, 1)>(a, b);
@@ -2652,8 +2585,8 @@ static SIMD_INLINE void zip(const SIMDVec<SIMDFloat, 32> a,
 
 // zips blocks of NUM_ELEMS elements of type T
 template <int NUM_ELEMS, typename T>
-static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                            SIMDVec<T, 32> &l, SIMDVec<T, 32> &h)
+static SIMD_INLINE void zip(const Vec<T, 32> a, const Vec<T, 32> b,
+                            Vec<T, 32> &l, Vec<T, 32> &h)
 {
   return zip(a, b, l, h, Bytes<NUM_ELEMS * sizeof(T)>());
 }
@@ -2666,8 +2599,8 @@ static SIMD_INLINE void zip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // zips blocks of NUM_ELEMS elements of type T
 template <int NUM_ELEMS, typename T>
-static SIMD_INLINE void zip16(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                              SIMDVec<T, 32> &l, SIMDVec<T, 32> &h)
+static SIMD_INLINE void zip16(const Vec<T, 32> a, const Vec<T, 32> b,
+                              Vec<T, 32> &l, Vec<T, 32> &h)
 {
   l = unpack16(a, b, Part<0>(), Bytes<NUM_ELEMS * sizeof(T)>());
   h = unpack16(a, b, Part<1>(), Bytes<NUM_ELEMS * sizeof(T)>());
@@ -2685,8 +2618,8 @@ static SIMD_INLINE void zip16(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                              SIMDVec<T, 32> &l, SIMDVec<T, 32> &h, Bytes<1>)
+static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
+                              Vec<T, 32> &l, Vec<T, 32> &h, Bytes<1>)
 {
   // mask is hopefully only set once if unzip is used multiple times
   __m256i mask =
@@ -2700,8 +2633,8 @@ static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                              SIMDVec<T, 32> &l, SIMDVec<T, 32> &h, Bytes<2>)
+static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
+                              Vec<T, 32> &l, Vec<T, 32> &h, Bytes<2>)
 {
   // mask is hopefully only set once if unzip is used multiple times
   __m256i mask =
@@ -2715,8 +2648,8 @@ static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                              SIMDVec<T, 32> &l, SIMDVec<T, 32> &h, Bytes<4>)
+static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
+                              Vec<T, 32> &l, Vec<T, 32> &h, Bytes<4>)
 {
   __m256i atmp = x_mm256_transpose4x64_epi64(
     x_mm256_shuffle_epi32<_MM_SHUFFLE(3, 1, 2, 0)>(a));
@@ -2728,8 +2661,8 @@ static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                              SIMDVec<T, 32> &l, SIMDVec<T, 32> &h, Bytes<8>)
+static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
+                              Vec<T, 32> &l, Vec<T, 32> &h, Bytes<8>)
 {
   __m256i atmp = x_mm256_transpose4x64_epi64(a);
   __m256i btmp = x_mm256_transpose4x64_epi64(b);
@@ -2739,18 +2672,16 @@ static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // all types
 template <typename T>
-static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                              SIMDVec<T, 32> &l, SIMDVec<T, 32> &h, Bytes<16>)
+static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
+                              Vec<T, 32> &l, Vec<T, 32> &h, Bytes<16>)
 {
   l = unpack(a, b, Part<0>(), Bytes<16>());
   h = unpack(a, b, Part<1>(), Bytes<16>());
 }
 
 // float version
-static SIMD_INLINE void unzip(const SIMDVec<SIMDFloat, 32> a,
-                              const SIMDVec<SIMDFloat, 32> b,
-                              SIMDVec<SIMDFloat, 32> &l,
-                              SIMDVec<SIMDFloat, 32> &h, Bytes<4>)
+static SIMD_INLINE void unzip(const Vec<Float, 32> a, const Vec<Float, 32> b,
+                              Vec<Float, 32> &l, Vec<Float, 32> &h, Bytes<4>)
 {
   __m256 atmp =
     x_mm256_transpose4x64_ps(_mm256_shuffle_ps(a, a, _MM_SHUFFLE(3, 1, 2, 0)));
@@ -2761,10 +2692,8 @@ static SIMD_INLINE void unzip(const SIMDVec<SIMDFloat, 32> a,
 }
 
 // float version
-static SIMD_INLINE void unzip(const SIMDVec<SIMDFloat, 32> a,
-                              const SIMDVec<SIMDFloat, 32> b,
-                              SIMDVec<SIMDFloat, 32> &l,
-                              SIMDVec<SIMDFloat, 32> &h, Bytes<8>)
+static SIMD_INLINE void unzip(const Vec<Float, 32> a, const Vec<Float, 32> b,
+                              Vec<Float, 32> &l, Vec<Float, 32> &h, Bytes<8>)
 {
   __m256 atmp = x_mm256_transpose4x64_ps(a);
   __m256 btmp = x_mm256_transpose4x64_ps(b);
@@ -2778,8 +2707,8 @@ static SIMD_INLINE void unzip(const SIMDVec<SIMDFloat, 32> a,
 
 // hub
 template <int NUM_ELEMS, typename T>
-static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
-                              SIMDVec<T, 32> &l, SIMDVec<T, 32> &h)
+static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
+                              Vec<T, 32> &l, Vec<T, 32> &h)
 {
   return unzip(a, b, l, h, Bytes<NUM_ELEMS * sizeof(T)>());
 }
@@ -2790,52 +2719,51 @@ static SIMD_INLINE void unzip(const SIMDVec<T, 32> a, const SIMDVec<T, 32> b,
 
 // ========== signed -> signed ==========
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> packs(
-  const SIMDVec<SIMDShort, 32> &a, const SIMDVec<SIMDShort, 32> &b,
-  OutputType<SIMDSignedByte>)
+static SIMD_INLINE Vec<SignedByte, 32> packs(const Vec<Short, 32> &a,
+                                             const Vec<Short, 32> &b,
+                                             OutputType<SignedByte>)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_packs_epi16(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> packs(const SIMDVec<SIMDInt, 32> &a,
-                                                const SIMDVec<SIMDInt, 32> &b,
-                                                OutputType<SIMDShort>)
+static SIMD_INLINE Vec<Short, 32> packs(const Vec<Int, 32> &a,
+                                        const Vec<Int, 32> &b,
+                                        OutputType<Short>)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_packs_epi32(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> packs(const SIMDVec<SIMDFloat, 32> &a,
-                                                const SIMDVec<SIMDFloat, 32> &b,
-                                                OutputType<SIMDShort>)
+static SIMD_INLINE Vec<Short, 32> packs(const Vec<Float, 32> &a,
+                                        const Vec<Float, 32> &b,
+                                        OutputType<Short>)
 {
-  return packs(cvts(a, OutputType<SIMDInt>()), cvts(b, OutputType<SIMDInt>()),
-               OutputType<SIMDShort>());
+  return packs(cvts(a, OutputType<Int>()), cvts(b, OutputType<Int>()),
+               OutputType<Short>());
 }
 
 // ========== signed -> unsigned ==========
 
 // non-avx2 workaround
-static SIMD_INLINE SIMDVec<SIMDByte, 32> packs(const SIMDVec<SIMDShort, 32> &a,
-                                               const SIMDVec<SIMDShort, 32> &b,
-                                               OutputType<SIMDByte>)
+static SIMD_INLINE Vec<Byte, 32> packs(const Vec<Short, 32> &a,
+                                       const Vec<Short, 32> &b,
+                                       OutputType<Byte>)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_packus_epi16(a, b));
 }
 
 // non-avx2 workaround
-static SIMD_INLINE SIMDVec<SIMDWord, 32> packs(const SIMDVec<SIMDInt, 32> &a,
-                                               const SIMDVec<SIMDInt, 32> &b,
-                                               OutputType<SIMDWord>)
+static SIMD_INLINE Vec<Word, 32> packs(const Vec<Int, 32> &a,
+                                       const Vec<Int, 32> &b, OutputType<Word>)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_packus_epi32(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> packs(const SIMDVec<SIMDFloat, 32> &a,
-                                               const SIMDVec<SIMDFloat, 32> &b,
-                                               OutputType<SIMDWord>)
+static SIMD_INLINE Vec<Word, 32> packs(const Vec<Float, 32> &a,
+                                       const Vec<Float, 32> &b,
+                                       OutputType<Word>)
 {
-  return packs(cvts(a, OutputType<SIMDInt>()), cvts(b, OutputType<SIMDInt>()),
-               OutputType<SIMDWord>());
+  return packs(cvts(a, OutputType<Int>()), cvts(b, OutputType<Int>()),
+               OutputType<Word>());
 }
 
 // ---------------------------------------------------------------------------
@@ -2863,8 +2791,7 @@ static SIMD_INLINE SIMDVec<SIMDWord, 32> packs(const SIMDVec<SIMDFloat, 32> &a,
 
 // all types
 template <typename T>
-static SIMD_INLINE void extend(const SIMDVec<T, 32> &vIn,
-                               SIMDVec<T, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<T, 32> &vIn, Vec<T, 32> *const vOut)
 {
   *vOut = vIn;
 }
@@ -2877,22 +2804,22 @@ static SIMD_INLINE void extend(const SIMDVec<T, 32> &vIn,
 
 // signed -> signed
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDSignedByte, 32> &vIn,
-                               SIMDVec<SIMDShort, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
+                               Vec<Short, 32> *const vOut)
 {
   vOut[0] = _mm256_cvtepi8_epi16(x_mm256_lo128i(vIn));
   vOut[1] = _mm256_cvtepi8_epi16(x_mm256_hi128i(vIn));
 }
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDShort, 32> &vIn,
-                               SIMDVec<SIMDInt, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Short, 32> &vIn,
+                               Vec<Int, 32> *const vOut)
 {
   vOut[0] = _mm256_cvtepi16_epi32(x_mm256_lo128i(vIn));
   vOut[1] = _mm256_cvtepi16_epi32(x_mm256_hi128i(vIn));
 }
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDShort, 32> &vIn,
-                               SIMDVec<SIMDFloat, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Short, 32> &vIn,
+                               Vec<Float, 32> *const vOut)
 {
   vOut[0] = _mm256_cvtepi32_ps(_mm256_cvtepi16_epi32(x_mm256_lo128i(vIn)));
   vOut[1] = _mm256_cvtepi32_ps(_mm256_cvtepi16_epi32(x_mm256_hi128i(vIn)));
@@ -2900,11 +2827,11 @@ static SIMD_INLINE void extend(const SIMDVec<SIMDShort, 32> &vIn,
 
 // unsigned -> unsigned
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDByte, 32> &vIn,
-                               SIMDVec<SIMDWord, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn,
+                               Vec<Word, 32> *const vOut)
 {
   // there's no _mm256_cvtepu8_epu16()
-  SIMDVec<SIMDByte, 32> zero = setzero(OutputType<SIMDByte>(), Integer<32>());
+  Vec<Byte, 32> zero = setzero(OutputType<Byte>(), Integer<32>());
   // 16. Jul 16 (rm): here we avoid to use generalized unpack from
   // SIMDVecExt.H
   vOut[0] = unpack(vIn, zero, Part<0>(), Bytes<1>());
@@ -2913,22 +2840,22 @@ static SIMD_INLINE void extend(const SIMDVec<SIMDByte, 32> &vIn,
 
 // unsigned -> signed
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDByte, 32> &vIn,
-                               SIMDVec<SIMDShort, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn,
+                               Vec<Short, 32> *const vOut)
 {
   vOut[0] = _mm256_cvtepu8_epi16(x_mm256_lo128i(vIn));
   vOut[1] = _mm256_cvtepu8_epi16(x_mm256_hi128i(vIn));
 }
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDWord, 32> &vIn,
-                               SIMDVec<SIMDInt, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Word, 32> &vIn,
+                               Vec<Int, 32> *const vOut)
 {
   vOut[0] = _mm256_cvtepu16_epi32(x_mm256_lo128i(vIn));
   vOut[1] = _mm256_cvtepu16_epi32(x_mm256_hi128i(vIn));
 }
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDWord, 32> &vIn,
-                               SIMDVec<SIMDFloat, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Word, 32> &vIn,
+                               Vec<Float, 32> *const vOut)
 {
   vOut[0] = _mm256_cvtepi32_ps(_mm256_cvtepu16_epi32(x_mm256_lo128i(vIn)));
   vOut[1] = _mm256_cvtepi32_ps(_mm256_cvtepu16_epi32(x_mm256_hi128i(vIn)));
@@ -2940,8 +2867,8 @@ static SIMD_INLINE void extend(const SIMDVec<SIMDWord, 32> &vIn,
 
 // signed -> signed
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDSignedByte, 32> &vIn,
-                               SIMDVec<SIMDInt, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
+                               Vec<Int, 32> *const vOut)
 {
   __m128i vInLo128 = x_mm256_lo128i(vIn);
   vOut[0]          = _mm256_cvtepi8_epi32(vInLo128);
@@ -2951,18 +2878,18 @@ static SIMD_INLINE void extend(const SIMDVec<SIMDSignedByte, 32> &vIn,
   vOut[3]          = _mm256_cvtepi8_epi32(_mm_srli_si128(vInHi128, 8));
 }
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDSignedByte, 32> &vIn,
-                               SIMDVec<SIMDFloat, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
+                               Vec<Float, 32> *const vOut)
 {
-  SIMDVec<SIMDInt, 32> vTmp[4];
+  Vec<Int, 32> vTmp[4];
   extend(vIn, vTmp);
-  for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<SIMDFloat>());
+  for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
 // unsigned -> signed
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDByte, 32> &vIn,
-                               SIMDVec<SIMDInt, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn,
+                               Vec<Int, 32> *const vOut)
 {
   __m128i vInLo128 = x_mm256_lo128i(vIn);
   vOut[0]          = _mm256_cvtepu8_epi32(vInLo128);
@@ -2972,12 +2899,12 @@ static SIMD_INLINE void extend(const SIMDVec<SIMDByte, 32> &vIn,
   vOut[3]          = _mm256_cvtepu8_epi32(_mm_srli_si128(vInHi128, 8));
 }
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDByte, 32> &vIn,
-                               SIMDVec<SIMDFloat, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn,
+                               Vec<Float, 32> *const vOut)
 {
-  SIMDVec<SIMDInt, 32> vTmp[4];
+  Vec<Int, 32> vTmp[4];
   extend(vIn, vTmp);
-  for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<SIMDFloat>());
+  for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
 #endif // __AVX2__
@@ -2986,16 +2913,16 @@ static SIMD_INLINE void extend(const SIMDVec<SIMDByte, 32> &vIn,
 // generalized extend: special case int <-> float
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDInt, 32> &vIn,
-                               SIMDVec<SIMDFloat, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Int, 32> &vIn,
+                               Vec<Float, 32> *const vOut)
 {
-  *vOut = cvts(vIn, OutputType<SIMDFloat>());
+  *vOut = cvts(vIn, OutputType<Float>());
 }
 
-static SIMD_INLINE void extend(const SIMDVec<SIMDFloat, 32> &vIn,
-                               SIMDVec<SIMDInt, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Float, 32> &vIn,
+                               Vec<Int, 32> *const vOut)
 {
-  *vOut = cvts(vIn, OutputType<SIMDInt>());
+  *vOut = cvts(vIn, OutputType<Int>());
 }
 
 // ---------------------------------------------------------------------------
@@ -3005,17 +2932,16 @@ static SIMD_INLINE void extend(const SIMDVec<SIMDFloat, 32> &vIn,
 #ifndef __AVX2__
 // non-avx2 workaround
 template <typename Tout, typename Tin>
-static SIMD_INLINE void extend(const SIMDVec<Tin, 32> &vIn,
-                               SIMDVec<Tout, 32> *const vOut)
+static SIMD_INLINE void extend(const Vec<Tin, 32> &vIn,
+                               Vec<Tout, 32> *const vOut)
 {
   const int nOut = sizeof(Tout) / sizeof(Tin), nOutHalf = nOut / 2;
-  SIMDVec<Tout, 16> vOutLo16[nOut], vOutHi16[nOut];
+  Vec<Tout, 16> vOutLo16[nOut], vOutHi16[nOut];
   extend(vIn.lo(), vOutLo16);
   extend(vIn.hi(), vOutHi16);
   for (int i = 0; i < nOutHalf; i++) {
-    vOut[i] = SIMDVec<Tout, 32>(vOutLo16[2 * i], vOutLo16[2 * i + 1]);
-    vOut[i + nOutHalf] =
-      SIMDVec<Tout, 32>(vOutHi16[2 * i], vOutHi16[2 * i + 1]);
+    vOut[i]            = Vec<Tout, 32>(vOutLo16[2 * i], vOutLo16[2 * i + 1]);
+    vOut[i + nOutHalf] = Vec<Tout, 32>(vOutHi16[2 * i], vOutHi16[2 * i + 1]);
   }
 }
 #endif
@@ -3028,32 +2954,31 @@ static SIMD_INLINE void extend(const SIMDVec<Tin, 32> &vIn,
 // 16. Oct 22 (Jonas Keller): added missing Byte and SignedByte versions
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDByte, 32> srai(const SIMDVec<SIMDByte, 32> &a)
+static SIMD_INLINE Vec<Byte, 32> srai(const Vec<Byte, 32> &a)
 {
   return x_mm256_srai_epi8<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> srai(
-  const SIMDVec<SIMDSignedByte, 32> &a)
+static SIMD_INLINE Vec<SignedByte, 32> srai(const Vec<SignedByte, 32> &a)
 {
   return x_mm256_srai_epi8<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDWord, 32> srai(const SIMDVec<SIMDWord, 32> &a)
+static SIMD_INLINE Vec<Word, 32> srai(const Vec<Word, 32> &a)
 {
   return x_mm256_srai_epi16<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDShort, 32> srai(const SIMDVec<SIMDShort, 32> &a)
+static SIMD_INLINE Vec<Short, 32> srai(const Vec<Short, 32> &a)
 {
   return x_mm256_srai_epi16<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDInt, 32> srai(const SIMDVec<SIMDInt, 32> &a)
+static SIMD_INLINE Vec<Int, 32> srai(const Vec<Int, 32> &a)
 {
   return x_mm256_srai_epi32<IMM>(a);
 }
@@ -3062,9 +2987,9 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> srai(const SIMDVec<SIMDInt, 32> &a)
 
 // non-avx2 workaround
 template <int IMM, typename T>
-static SIMD_INLINE SIMDVec<T, 32> srai(const SIMDVec<T, 32> &a)
+static SIMD_INLINE Vec<T, 32> srai(const Vec<T, 32> &a)
 {
-  return SIMDVec<T, 32>(srai<IMM>(a.lo()), srai<IMM>(a.hi()));
+  return Vec<T, 32>(srai<IMM>(a.lo()), srai<IMM>(a.hi()));
 }
 
 #endif
@@ -3078,7 +3003,7 @@ static SIMD_INLINE SIMDVec<T, 32> srai(const SIMDVec<T, 32> &a)
 // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
 // License: not specified
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDByte, 32> srli(const SIMDVec<SIMDByte, 32> &a)
+static SIMD_INLINE Vec<Byte, 32> srli(const Vec<Byte, 32> &a)
 {
   return _mm256_and_si256(_mm256_set1_epi8((int8_t) (0xff >> IMM)),
                           x_mm256_srli_epi32<IMM>(a));
@@ -3087,27 +3012,26 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> srli(const SIMDVec<SIMDByte, 32> &a)
 // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
 // License: not specified
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> srli(
-  const SIMDVec<SIMDSignedByte, 32> &a)
+static SIMD_INLINE Vec<SignedByte, 32> srli(const Vec<SignedByte, 32> &a)
 {
   return _mm256_and_si256(_mm256_set1_epi8((int8_t) (0xff >> IMM)),
                           x_mm256_srli_epi32<IMM>(a));
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDWord, 32> srli(const SIMDVec<SIMDWord, 32> &a)
+static SIMD_INLINE Vec<Word, 32> srli(const Vec<Word, 32> &a)
 {
   return x_mm256_srli_epi16<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDShort, 32> srli(const SIMDVec<SIMDShort, 32> &a)
+static SIMD_INLINE Vec<Short, 32> srli(const Vec<Short, 32> &a)
 {
   return x_mm256_srli_epi16<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDInt, 32> srli(const SIMDVec<SIMDInt, 32> &a)
+static SIMD_INLINE Vec<Int, 32> srli(const Vec<Int, 32> &a)
 {
   return x_mm256_srli_epi32<IMM>(a);
 }
@@ -3116,9 +3040,9 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> srli(const SIMDVec<SIMDInt, 32> &a)
 
 // non-avx2 workaround
 template <int IMM, typename T>
-static SIMD_INLINE SIMDVec<T, 32> srli(const SIMDVec<T, 32> &a)
+static SIMD_INLINE Vec<T, 32> srli(const Vec<T, 32> &a)
 {
-  return SIMDVec<T, 32>(srli<IMM>(a.lo()), srli<IMM>(a.hi()));
+  return Vec<T, 32>(srli<IMM>(a.lo()), srli<IMM>(a.hi()));
 }
 
 #endif
@@ -3132,7 +3056,7 @@ static SIMD_INLINE SIMDVec<T, 32> srli(const SIMDVec<T, 32> &a)
 // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
 // License: not specified
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDByte, 32> slli(const SIMDVec<SIMDByte, 32> &a)
+static SIMD_INLINE Vec<Byte, 32> slli(const Vec<Byte, 32> &a)
 {
   return _mm256_and_si256(
     _mm256_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << IMM))),
@@ -3142,8 +3066,7 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> slli(const SIMDVec<SIMDByte, 32> &a)
 // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
 // License: not specified
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> slli(
-  const SIMDVec<SIMDSignedByte, 32> &a)
+static SIMD_INLINE Vec<SignedByte, 32> slli(const Vec<SignedByte, 32> &a)
 {
   return _mm256_and_si256(
     _mm256_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << IMM))),
@@ -3151,19 +3074,19 @@ static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> slli(
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDWord, 32> slli(const SIMDVec<SIMDWord, 32> &a)
+static SIMD_INLINE Vec<Word, 32> slli(const Vec<Word, 32> &a)
 {
   return x_mm256_slli_epi16<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDShort, 32> slli(const SIMDVec<SIMDShort, 32> &a)
+static SIMD_INLINE Vec<Short, 32> slli(const Vec<Short, 32> &a)
 {
   return x_mm256_slli_epi16<IMM>(a);
 }
 
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDInt, 32> slli(const SIMDVec<SIMDInt, 32> &a)
+static SIMD_INLINE Vec<Int, 32> slli(const Vec<Int, 32> &a)
 {
   return x_mm256_slli_epi32<IMM>(a);
 }
@@ -3172,9 +3095,9 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> slli(const SIMDVec<SIMDInt, 32> &a)
 
 // non-avx2 workaround
 template <int IMM, typename T>
-static SIMD_INLINE SIMDVec<T, 32> slli(const SIMDVec<T, 32> &a)
+static SIMD_INLINE Vec<T, 32> slli(const Vec<T, 32> &a)
 {
-  return SIMDVec<T, 32>(slli<IMM>(a.lo()), slli<IMM>(a.hi()));
+  return Vec<T, 32>(slli<IMM>(a.lo()), slli<IMM>(a.hi()));
 }
 
 #endif
@@ -3187,8 +3110,8 @@ static SIMD_INLINE SIMDVec<T, 32> slli(const SIMDVec<T, 32> &a)
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> sra(const SIMDVec<SIMDByte, 32> &a,
-                                             const uint8_t count)
+static SIMD_INLINE Vec<Byte, 32> sra(const Vec<Byte, 32> &a,
+                                     const uint8_t count)
 {
   if (count >= 8) {
     // result should be all ones if a is negative, all zeros otherwise
@@ -3200,8 +3123,8 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> sra(const SIMDVec<SIMDByte, 32> &a,
   return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16((int16_t) 0xff00));
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> sra(
-  const SIMDVec<SIMDSignedByte, 32> &a, const uint8_t count)
+static SIMD_INLINE Vec<SignedByte, 32> sra(const Vec<SignedByte, 32> &a,
+                                           const uint8_t count)
 {
   if (count >= 8) {
     // result should be all ones if a is negative, all zeros otherwise
@@ -3213,20 +3136,19 @@ static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> sra(
   return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16((int16_t) 0xff00));
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> sra(const SIMDVec<SIMDWord, 32> &a,
-                                             const uint8_t count)
+static SIMD_INLINE Vec<Word, 32> sra(const Vec<Word, 32> &a,
+                                     const uint8_t count)
 {
   return _mm256_sra_epi16(a, _mm_cvtsi32_si128(count));
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> sra(const SIMDVec<SIMDShort, 32> &a,
-                                              const uint8_t count)
+static SIMD_INLINE Vec<Short, 32> sra(const Vec<Short, 32> &a,
+                                      const uint8_t count)
 {
   return _mm256_sra_epi16(a, _mm_cvtsi32_si128(count));
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> sra(const SIMDVec<SIMDInt, 32> &a,
-                                            const uint8_t count)
+static SIMD_INLINE Vec<Int, 32> sra(const Vec<Int, 32> &a, const uint8_t count)
 {
   return _mm256_sra_epi32(a, _mm_cvtsi32_si128(count));
 }
@@ -3235,10 +3157,9 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> sra(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> sra(const SIMDVec<T, 32> &a,
-                                      const uint8_t count)
+static SIMD_INLINE Vec<T, 32> sra(const Vec<T, 32> &a, const uint8_t count)
 {
-  return SIMDVec<T, 32>(sra(a.lo(), count), sra(a.hi(), count));
+  return Vec<T, 32>(sra(a.lo(), count), sra(a.hi(), count));
 }
 
 #endif
@@ -3249,34 +3170,33 @@ static SIMD_INLINE SIMDVec<T, 32> sra(const SIMDVec<T, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> srl(const SIMDVec<SIMDByte, 32> &a,
-                                             const uint8_t count)
+static SIMD_INLINE Vec<Byte, 32> srl(const Vec<Byte, 32> &a,
+                                     const uint8_t count)
 {
   return _mm256_and_si256(_mm256_srl_epi16(a, _mm_cvtsi32_si128(count)),
                           _mm256_set1_epi8((int8_t) (uint8_t) (0xff >> count)));
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> srl(
-  const SIMDVec<SIMDSignedByte, 32> &a, const uint8_t count)
+static SIMD_INLINE Vec<SignedByte, 32> srl(const Vec<SignedByte, 32> &a,
+                                           const uint8_t count)
 {
   return _mm256_and_si256(_mm256_srl_epi16(a, _mm_cvtsi32_si128(count)),
                           _mm256_set1_epi8((int8_t) (uint8_t) (0xff >> count)));
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> srl(const SIMDVec<SIMDWord, 32> &a,
-                                             const uint8_t count)
+static SIMD_INLINE Vec<Word, 32> srl(const Vec<Word, 32> &a,
+                                     const uint8_t count)
 {
   return _mm256_srl_epi16(a, _mm_cvtsi32_si128(count));
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> srl(const SIMDVec<SIMDShort, 32> &a,
-                                              const uint8_t count)
+static SIMD_INLINE Vec<Short, 32> srl(const Vec<Short, 32> &a,
+                                      const uint8_t count)
 {
   return _mm256_srl_epi16(a, _mm_cvtsi32_si128(count));
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> srl(const SIMDVec<SIMDInt, 32> &a,
-                                            const uint8_t count)
+static SIMD_INLINE Vec<Int, 32> srl(const Vec<Int, 32> &a, const uint8_t count)
 {
   return _mm256_srl_epi32(a, _mm_cvtsi32_si128(count));
 }
@@ -3285,10 +3205,9 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> srl(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> srl(const SIMDVec<T, 32> &a,
-                                      const uint8_t count)
+static SIMD_INLINE Vec<T, 32> srl(const Vec<T, 32> &a, const uint8_t count)
 {
-  return SIMDVec<T, 32>(srl(a.lo(), count), srl(a.hi(), count));
+  return Vec<T, 32>(srl(a.lo(), count), srl(a.hi(), count));
 }
 
 #endif
@@ -3299,36 +3218,35 @@ static SIMD_INLINE SIMDVec<T, 32> srl(const SIMDVec<T, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> sll(const SIMDVec<SIMDByte, 32> &a,
-                                             const uint8_t count)
+static SIMD_INLINE Vec<Byte, 32> sll(const Vec<Byte, 32> &a,
+                                     const uint8_t count)
 {
   return x_mm256_and_si256(
     _mm256_sll_epi16(a, _mm_cvtsi32_si128(count)),
     _mm256_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << count))));
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> sll(
-  const SIMDVec<SIMDSignedByte, 32> &a, const uint8_t count)
+static SIMD_INLINE Vec<SignedByte, 32> sll(const Vec<SignedByte, 32> &a,
+                                           const uint8_t count)
 {
   return x_mm256_and_si256(
     _mm256_sll_epi16(a, _mm_cvtsi32_si128(count)),
     _mm256_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << count))));
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> sll(const SIMDVec<SIMDWord, 32> &a,
-                                             const uint8_t count)
+static SIMD_INLINE Vec<Word, 32> sll(const Vec<Word, 32> &a,
+                                     const uint8_t count)
 {
   return _mm256_sll_epi16(a, _mm_cvtsi32_si128(count));
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> sll(const SIMDVec<SIMDShort, 32> &a,
-                                              const uint8_t count)
+static SIMD_INLINE Vec<Short, 32> sll(const Vec<Short, 32> &a,
+                                      const uint8_t count)
 {
   return _mm256_sll_epi16(a, _mm_cvtsi32_si128(count));
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> sll(const SIMDVec<SIMDInt, 32> &a,
-                                            const uint8_t count)
+static SIMD_INLINE Vec<Int, 32> sll(const Vec<Int, 32> &a, const uint8_t count)
 {
   return _mm256_sll_epi32(a, _mm_cvtsi32_si128(count));
 }
@@ -3337,58 +3255,57 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> sll(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> sll(const SIMDVec<T, 32> &a,
-                                      const uint8_t count)
+static SIMD_INLINE Vec<T, 32> sll(const Vec<T, 32> &a, const uint8_t count)
 {
-  return SIMDVec<T, 32>(sll(a.lo(), count), sll(a.hi(), count));
+  return Vec<T, 32>(sll(a.lo(), count), sll(a.hi(), count));
 }
 
 #endif
 
 // 19. Sep 22 (Jonas Keller):
-// added SIMDByte and SIMDSignedByte versions of hadd, hadds, hsub and hsubs
-// added SIMDWord version of hadds and hsubs
+// added Byte and SignedByte versions of hadd, hadds, hsub and hsubs
+// added Word version of hadds and hsubs
 
 // ---------------------------------------------------------------------------
 // hadd
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> hadd(const SIMDVec<SIMDByte, 32> &a,
-                                              const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> hadd(const Vec<Byte, 32> &a,
+                                      const Vec<Byte, 32> &b)
 {
-  SIMDVec<SIMDByte, 32> x, y;
+  Vec<Byte, 32> x, y;
   unzip<1>(a, b, x, y);
   return add(x, y);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> hadd(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> hadd(const Vec<SignedByte, 32> &a,
+                                            const Vec<SignedByte, 32> &b)
 {
-  SIMDVec<SIMDSignedByte, 32> x, y;
+  Vec<SignedByte, 32> x, y;
   unzip<1>(a, b, x, y);
   return add(x, y);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> hadd(const SIMDVec<SIMDWord, 32> &a,
-                                              const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> hadd(const Vec<Word, 32> &a,
+                                      const Vec<Word, 32> &b)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_hadd_epi16(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> hadd(const SIMDVec<SIMDShort, 32> &a,
-                                               const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> hadd(const Vec<Short, 32> &a,
+                                       const Vec<Short, 32> &b)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_hadd_epi16(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> hadd(const SIMDVec<SIMDInt, 32> &a,
-                                             const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> hadd(const Vec<Int, 32> &a,
+                                     const Vec<Int, 32> &b)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_hadd_epi32(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> hadd(const SIMDVec<SIMDFloat, 32> &a,
-                                               const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> hadd(const Vec<Float, 32> &a,
+                                       const Vec<Float, 32> &b)
 {
   return x_mm256_transpose4x64_ps(_mm256_hadd_ps(a, b));
 }
@@ -3397,47 +3314,47 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> hadd(const SIMDVec<SIMDFloat, 32> &a,
 // hadds
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> hadds(const SIMDVec<SIMDByte, 32> &a,
-                                               const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> hadds(const Vec<Byte, 32> &a,
+                                       const Vec<Byte, 32> &b)
 {
-  SIMDVec<SIMDByte, 32> x, y;
+  Vec<Byte, 32> x, y;
   unzip<1>(a, b, x, y);
   return adds(x, y);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> hadds(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> hadds(const Vec<SignedByte, 32> &a,
+                                             const Vec<SignedByte, 32> &b)
 {
-  SIMDVec<SIMDSignedByte, 32> x, y;
+  Vec<SignedByte, 32> x, y;
   unzip<1>(a, b, x, y);
   return adds(x, y);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> hadds(const SIMDVec<SIMDWord, 32> &a,
-                                               const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> hadds(const Vec<Word, 32> &a,
+                                       const Vec<Word, 32> &b)
 {
-  SIMDVec<SIMDWord, 32> x, y;
+  Vec<Word, 32> x, y;
   unzip<1>(a, b, x, y);
   return adds(x, y);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> hadds(const SIMDVec<SIMDShort, 32> &a,
-                                                const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> hadds(const Vec<Short, 32> &a,
+                                        const Vec<Short, 32> &b)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_hadds_epi16(a, b));
 }
 
 #ifndef SIMD_STRICT_SATURATION
 // NOT SATURATED!
-static SIMD_INLINE SIMDVec<SIMDInt, 32> hadds(const SIMDVec<SIMDInt, 32> &a,
-                                              const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> hadds(const Vec<Int, 32> &a,
+                                      const Vec<Int, 32> &b)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_hadd_epi32(a, b));
 }
 
 // NOT SATURATED!
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> hadds(const SIMDVec<SIMDFloat, 32> &a,
-                                                const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> hadds(const Vec<Float, 32> &a,
+                                        const Vec<Float, 32> &b)
 {
   return x_mm256_transpose4x64_ps(_mm256_hadd_ps(a, b));
 }
@@ -3447,42 +3364,42 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> hadds(const SIMDVec<SIMDFloat, 32> &a,
 // hsub
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> hsub(const SIMDVec<SIMDByte, 32> &a,
-                                              const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> hsub(const Vec<Byte, 32> &a,
+                                      const Vec<Byte, 32> &b)
 {
-  SIMDVec<SIMDByte, 32> x, y;
+  Vec<Byte, 32> x, y;
   unzip<1>(a, b, x, y);
   return sub(x, y);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> hsub(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> hsub(const Vec<SignedByte, 32> &a,
+                                            const Vec<SignedByte, 32> &b)
 {
-  SIMDVec<SIMDSignedByte, 32> x, y;
+  Vec<SignedByte, 32> x, y;
   unzip<1>(a, b, x, y);
   return sub(x, y);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> hsub(const SIMDVec<SIMDWord, 32> &a,
-                                              const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> hsub(const Vec<Word, 32> &a,
+                                      const Vec<Word, 32> &b)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_hsub_epi16(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> hsub(const SIMDVec<SIMDShort, 32> &a,
-                                               const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> hsub(const Vec<Short, 32> &a,
+                                       const Vec<Short, 32> &b)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_hsub_epi16(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> hsub(const SIMDVec<SIMDInt, 32> &a,
-                                             const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> hsub(const Vec<Int, 32> &a,
+                                     const Vec<Int, 32> &b)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_hsub_epi32(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> hsub(const SIMDVec<SIMDFloat, 32> &a,
-                                               const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> hsub(const Vec<Float, 32> &a,
+                                       const Vec<Float, 32> &b)
 {
   return x_mm256_transpose4x64_ps(_mm256_hsub_ps(a, b));
 }
@@ -3491,47 +3408,47 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> hsub(const SIMDVec<SIMDFloat, 32> &a,
 // hsubs
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> hsubs(const SIMDVec<SIMDByte, 32> &a,
-                                               const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> hsubs(const Vec<Byte, 32> &a,
+                                       const Vec<Byte, 32> &b)
 {
-  SIMDVec<SIMDByte, 32> x, y;
+  Vec<Byte, 32> x, y;
   unzip<1>(a, b, x, y);
   return subs(x, y);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> hsubs(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> hsubs(const Vec<SignedByte, 32> &a,
+                                             const Vec<SignedByte, 32> &b)
 {
-  SIMDVec<SIMDSignedByte, 32> x, y;
+  Vec<SignedByte, 32> x, y;
   unzip<1>(a, b, x, y);
   return subs(x, y);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> hsubs(const SIMDVec<SIMDWord, 32> &a,
-                                               const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> hsubs(const Vec<Word, 32> &a,
+                                       const Vec<Word, 32> &b)
 {
-  SIMDVec<SIMDWord, 32> x, y;
+  Vec<Word, 32> x, y;
   unzip<1>(a, b, x, y);
   return subs(x, y);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> hsubs(const SIMDVec<SIMDShort, 32> &a,
-                                                const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> hsubs(const Vec<Short, 32> &a,
+                                        const Vec<Short, 32> &b)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_hsubs_epi16(a, b));
 }
 
 #ifndef SIMD_STRICT_SATURATION
 // NOT SATURATED!
-static SIMD_INLINE SIMDVec<SIMDInt, 32> hsubs(const SIMDVec<SIMDInt, 32> &a,
-                                              const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> hsubs(const Vec<Int, 32> &a,
+                                      const Vec<Int, 32> &b)
 {
   return x_mm256_transpose4x64_epi64(x_mm256_hsub_epi32(a, b));
 }
 
 // NOT SATURATED!
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> hsubs(const SIMDVec<SIMDFloat, 32> &a,
-                                                const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> hsubs(const Vec<Float, 32> &a,
+                                        const Vec<Float, 32> &b)
 {
   return x_mm256_transpose4x64_ps(_mm256_hsub_ps(a, b));
 }
@@ -3543,17 +3460,17 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> hsubs(const SIMDVec<SIMDFloat, 32> &a,
 
 // all integer versions
 template <int IMM, typename T>
-static SIMD_INLINE SIMDVec<T, 32> srle(const SIMDVec<T, 32> &a)
+static SIMD_INLINE Vec<T, 32> srle(const Vec<T, 32> &a)
 {
   return x_mm256_srli256_si256<IMM * sizeof(T)>(a);
 }
 
 // float version
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> srle(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> srle(const Vec<Float, 32> &a)
 {
   return _mm256_castsi256_ps(
-    x_mm256_srli256_si256<IMM * sizeof(SIMDFloat)>(_mm256_castps_si256(a)));
+    x_mm256_srli256_si256<IMM * sizeof(Float)>(_mm256_castps_si256(a)));
 }
 
 // ---------------------------------------------------------------------------
@@ -3562,58 +3479,58 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> srle(const SIMDVec<SIMDFloat, 32> &a)
 
 // all integer versions
 template <int IMM, typename T>
-static SIMD_INLINE SIMDVec<T, 32> slle(const SIMDVec<T, 32> &a)
+static SIMD_INLINE Vec<T, 32> slle(const Vec<T, 32> &a)
 {
   return x_mm256_slli256_si256<IMM * sizeof(T)>(a);
 }
 
 // float version
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> slle(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> slle(const Vec<Float, 32> &a)
 {
   return _mm256_castsi256_ps(
-    x_mm256_slli256_si256<IMM * sizeof(SIMDFloat)>(_mm256_castps_si256(a)));
+    x_mm256_slli256_si256<IMM * sizeof(Float)>(_mm256_castps_si256(a)));
 }
 
 // ---------------------------------------------------------------------------
 // extraction of element 0
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE SIMDByte elem0(const SIMDVec<SIMDByte, 32> &a)
+static SIMD_INLINE Byte elem0(const Vec<Byte, 32> &a)
 {
-  SIMD_RETURN_REINTERPRET_INT(SIMDByte,
+  SIMD_RETURN_REINTERPRET_INT(Byte,
                               _mm_cvtsi128_si32(_mm256_castsi256_si128(a)), 0);
 }
 
-static SIMD_INLINE SIMDSignedByte elem0(const SIMDVec<SIMDSignedByte, 32> &a)
+static SIMD_INLINE SignedByte elem0(const Vec<SignedByte, 32> &a)
 {
-  SIMD_RETURN_REINTERPRET_INT(SIMDSignedByte,
+  SIMD_RETURN_REINTERPRET_INT(SignedByte,
                               _mm_cvtsi128_si32(_mm256_castsi256_si128(a)), 0);
 }
 
-static SIMD_INLINE SIMDWord elem0(const SIMDVec<SIMDWord, 32> &a)
+static SIMD_INLINE Word elem0(const Vec<Word, 32> &a)
 {
-  SIMD_RETURN_REINTERPRET_INT(SIMDWord,
+  SIMD_RETURN_REINTERPRET_INT(Word,
                               _mm_cvtsi128_si32(_mm256_castsi256_si128(a)), 0);
 }
 
-static SIMD_INLINE SIMDShort elem0(const SIMDVec<SIMDShort, 32> &a)
+static SIMD_INLINE Short elem0(const Vec<Short, 32> &a)
 {
-  SIMD_RETURN_REINTERPRET_INT(SIMDShort,
+  SIMD_RETURN_REINTERPRET_INT(Short,
                               _mm_cvtsi128_si32(_mm256_castsi256_si128(a)), 0);
 }
 
-static SIMD_INLINE SIMDInt elem0(const SIMDVec<SIMDInt, 32> &a)
+static SIMD_INLINE Int elem0(const Vec<Int, 32> &a)
 {
-  // TODO: elem0: is conversion from return type int so SIMDInt always safe?
+  // TODO: elem0: is conversion from return type int so Int always safe?
   return _mm_cvtsi128_si32(_mm256_castsi256_si128(a));
 }
 
-static SIMD_INLINE SIMDFloat elem0(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Float elem0(const Vec<Float, 32> &a)
 {
   SIMD_RETURN_REINTERPRET_INT(
-    SIMDFloat,
-    _mm_cvtsi128_si32(_mm256_castsi256_si128(_mm256_castps_si256(a))), 0);
+    Float, _mm_cvtsi128_si32(_mm256_castsi256_si128(_mm256_castps_si256(a))),
+    0);
 }
 
 // ---------------------------------------------------------------------------
@@ -3622,18 +3539,17 @@ static SIMD_INLINE SIMDFloat elem0(const SIMDVec<SIMDFloat, 32> &a)
 
 // all integer versions
 template <int IMM, typename T>
-static SIMD_INLINE SIMDVec<T, 32> alignre(const SIMDVec<T, 32> &h,
-                                          const SIMDVec<T, 32> &l)
+static SIMD_INLINE Vec<T, 32> alignre(const Vec<T, 32> &h, const Vec<T, 32> &l)
 {
   return x_mm256_alignr256_epi8<IMM * sizeof(T)>(h, l);
 }
 
 // float version
 template <int IMM>
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> alignre(
-  const SIMDVec<SIMDFloat, 32> &h, const SIMDVec<SIMDFloat, 32> &l)
+static SIMD_INLINE Vec<Float, 32> alignre(const Vec<Float, 32> &h,
+                                          const Vec<Float, 32> &l)
 {
-  return _mm256_castsi256_ps(x_mm256_alignr256_epi8<IMM * sizeof(SIMDFloat)>(
+  return _mm256_castsi256_ps(x_mm256_alignr256_epi8<IMM * sizeof(Float)>(
     _mm256_castps_si256(h), _mm256_castps_si256(l)));
 }
 
@@ -3665,20 +3581,19 @@ static SIMD_INLINE __m256i align_shuffle_word_256(__m256i lo, __m256i hi,
 
 // all types
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const, Integer<1>,
-                                TypeIsIntSize<T>)
+static SIMD_INLINE void swizzle(Vec<T, 32> *const, Integer<1>, TypeIsIntSize<T>)
 {
   // v remains unchanged
 }
 
 // -------------------- n = 2 --------------------
 
-// SIMDByte, SIMDSignedByte
+// Byte, SignedByte
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<2>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<2>,
                                 IsIntSize<true, 1>)
 {
-  SIMDVec<T, 32> vs[2];
+  Vec<T, 32> vs[2];
   swizzle_32_16<2>(v, vs);
   __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<2, T>());
   __m256i s[2];
@@ -3687,12 +3602,12 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<2>,
   v[1] = x_mm256_unpackhi_epi64(s[0], s[1]);
 }
 
-// SIMDWord, SIMDShort
+// Word, Short
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<2>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<2>,
                                 IsIntSize<true, 2>)
 {
-  SIMDVec<T, 32> vs[2];
+  Vec<T, 32> vs[2];
   swizzle_32_16<2>(v, vs);
   __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<2, T>());
   __m256i s[2];
@@ -3701,14 +3616,14 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<2>,
   v[1] = x_mm256_unpackhi_epi64(s[0], s[1]);
 }
 
-// SIMDInt
-// TODO: swizzle<2,SIMDInt,...>: which version is faster?
+// Int
+// TODO: swizzle<2,Int,...>: which version is faster?
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<2>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<2>,
                                 IsIntSize<true, 4>)
 {
 #if 0
-    SIMDVec<T, 32> vs[2];
+    Vec<T, 32> vs[2];
     swizzle_32_16<2>(v, vs);  
     __m256i s[2];
     s[0] = _mm256_shuffle_epi32(vs[0], _MM_SHUFFLE(3,1,2,0));
@@ -3716,7 +3631,7 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<2>,
     v[0] = x_mm256_unpacklo_epi64(s[0], s[1]);
     v[1] = x_mm256_unpackhi_epi64(s[0], s[1]);
 #else
-  SIMDVec<T, 32> vs[2];
+  Vec<T, 32> vs[2];
   swizzle_32_16<2>(v, vs);
   __m256 v0tmp = _mm256_castsi256_ps(vs[0]);
   __m256 v1tmp = _mm256_castsi256_ps(vs[1]);
@@ -3727,12 +3642,12 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<2>,
 #endif
 }
 
-// SIMDFloat
-// same code as for SIMDInt
-static SIMD_INLINE void swizzle(SIMDVec<SIMDFloat, 32> *const v, Integer<2>,
+// Float
+// same code as for Int
+static SIMD_INLINE void swizzle(Vec<Float, 32> *const v, Integer<2>,
                                 IsIntSize<false, 4>)
 {
-  SIMDVec<SIMDFloat, 32> vs[2];
+  Vec<Float, 32> vs[2];
   swizzle_32_16<2>(v, vs);
   __m256 v0tmp = vs[0];
   __m256 v1tmp = vs[1];
@@ -3742,12 +3657,12 @@ static SIMD_INLINE void swizzle(SIMDVec<SIMDFloat, 32> *const v, Integer<2>,
 
 // -------------------- n = 3 --------------------
 
-// SIMDByte, SIMDSignedByte
+// Byte, SignedByte
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<3>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<3>,
                                 IsIntSize<true, 1>)
 {
-  SIMDVec<T, 32> vs[3];
+  Vec<T, 32> vs[3];
   swizzle_32_16<3>(v, vs);
   __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<3, T>());
   __m256i s0   = align_shuffle_byte_256<0>(vs[0], vs[1], mask);
@@ -3764,12 +3679,12 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<3>,
   v[2]        = x_mm256_unpacklo_epi64(h01, h23);
 }
 
-// SIMDWord, SIMDShort
+// Word, Short
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<3>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<3>,
                                 IsIntSize<true, 2>)
 {
-  SIMDVec<T, 32> vs[3];
+  Vec<T, 32> vs[3];
   swizzle_32_16<3>(v, vs);
   __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<3, T>());
   __m256i s0   = align_shuffle_word_256<0>(vs[0], vs[1], mask);
@@ -3786,14 +3701,14 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<3>,
   v[2]        = x_mm256_unpacklo_epi64(h01, h23);
 }
 
-// SIMDInt
+// Int
 // from Stan Melax: "3D Vector Normalization..."
 // https://software.intel.com/en-us/articles/3d-vector-normalization-using-256-bit-intel-advanced-vector-extensions-intel-avx
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<3>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<3>,
                                 IsIntSize<true, 4>)
 {
-  SIMDVec<T, 32> vs[3];
+  Vec<T, 32> vs[3];
   swizzle_32_16<3>(v, vs);
   __m256 x0y0z0x1 = _mm256_castsi256_ps(vs[0]);
   __m256 y1z1x2y2 = _mm256_castsi256_ps(vs[1]);
@@ -3813,14 +3728,14 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<3>,
     _mm256_shuffle_ps(y0z0y1z1, z2x3y3z3, _MM_SHUFFLE(3, 0, 3, 1)));
 }
 
-// SIMDFloat
+// Float
 // from Stan Melax: "3D Vector Normalization..."
 // https://software.intel.com/en-us/articles/3d-vector-normalization-using-256-bit-intel-advanced-vector-extensions-intel-avx
-// same code as for SIMDInt
-static SIMD_INLINE void swizzle(SIMDVec<SIMDFloat, 32> *const v, Integer<3>,
+// same code as for Int
+static SIMD_INLINE void swizzle(Vec<Float, 32> *const v, Integer<3>,
                                 IsIntSize<false, 4>)
 {
-  SIMDVec<SIMDFloat, 32> vs[3];
+  Vec<Float, 32> vs[3];
   swizzle_32_16<3>(v, vs);
   // x0y0z0x1 = v[0]
   // y1z1x2y2 = v[1]
@@ -3837,12 +3752,12 @@ static SIMD_INLINE void swizzle(SIMDVec<SIMDFloat, 32> *const v, Integer<3>,
 
 // -------------------- n = 4 --------------------
 
-// SIMDByte, SIMDSignedByte
+// Byte, SignedByte
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<4>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<4>,
                                 IsIntSize<true, 1>)
 {
-  SIMDVec<T, 32> vs[4];
+  Vec<T, 32> vs[4];
   swizzle_32_16<4>(v, vs);
   __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<4, T>());
   __m256i s[4];
@@ -3857,12 +3772,12 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<4>,
   v[3]        = x_mm256_unpackhi_epi64(h01, h23);
 }
 
-// SIMDWord, SIMDShort
+// Word, Short
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<4>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<4>,
                                 IsIntSize<true, 2>)
 {
-  SIMDVec<T, 32> vs[4];
+  Vec<T, 32> vs[4];
   swizzle_32_16<4>(v, vs);
   __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<4, T>());
   __m256i s[4];
@@ -3877,12 +3792,12 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<4>,
   v[3]        = x_mm256_unpackhi_epi64(h01, h23);
 }
 
-// SIMDInt
+// Int
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<4>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<4>,
                                 IsIntSize<true, 4>)
 {
-  SIMDVec<T, 32> vs[4];
+  Vec<T, 32> vs[4];
   swizzle_32_16<4>(v, vs);
   __m256i s[4];
   s[0] = x_mm256_unpacklo_epi32(vs[0], vs[1]);
@@ -3895,11 +3810,11 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<4>,
   v[3] = x_mm256_unpackhi_epi64(s[1], s[3]);
 }
 
-// SIMDFloat
-static SIMD_INLINE void swizzle(SIMDVec<SIMDFloat, 32> *const v, Integer<4>,
+// Float
+static SIMD_INLINE void swizzle(Vec<Float, 32> *const v, Integer<4>,
                                 IsIntSize<false, 4>)
 {
-  SIMDVec<SIMDFloat, 32> vs[4];
+  Vec<Float, 32> vs[4];
   swizzle_32_16<4>(v, vs);
   __m256 s[4];
   s[0] = _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(1, 0, 1, 0));
@@ -3914,12 +3829,12 @@ static SIMD_INLINE void swizzle(SIMDVec<SIMDFloat, 32> *const v, Integer<4>,
 
 // -------------------- n = 5 --------------------
 
-// SIMDByte, SIMDSignedByte
+// Byte, SignedByte
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<5>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<5>,
                                 IsIntSize<true, 1>)
 {
-  SIMDVec<T, 32> vs[5];
+  Vec<T, 32> vs[5];
   swizzle_32_16<5>(v, vs);
   __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<5, T>());
   __m256i s0   = align_shuffle_byte_256<0>(vs[0], vs[1], mask);
@@ -3952,12 +3867,12 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<5>,
   v[4]            = x_mm256_unpacklo_epi64(lh01h23, lh45h67);
 }
 
-// SIMDWord, SIMDShort
+// Word, Short
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<5>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<5>,
                                 IsIntSize<true, 2>)
 {
-  SIMDVec<T, 32> vs[5];
+  Vec<T, 32> vs[5];
   swizzle_32_16<5>(v, vs);
   __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<5, T>());
   __m256i s0   = align_shuffle_word_256<0>(vs[0], vs[1], mask);
@@ -3982,12 +3897,12 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<5>,
   v[4]        = x_mm256_unpackhi_epi64(l13, l57);
 }
 
-// SIMDInt
+// Int
 template <typename T>
-static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<5>,
+static SIMD_INLINE void swizzle(Vec<T, 32> *const v, Integer<5>,
                                 IsIntSize<true, 4>)
 {
-  SIMDVec<T, 32> vs[5];
+  Vec<T, 32> vs[5];
   swizzle_32_16<5>(v, vs);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   // v[0]: 0 1 2 3
@@ -4036,12 +3951,12 @@ static SIMD_INLINE void swizzle(SIMDVec<T, 32> *const v, Integer<5>,
   v[4] = x_mm256_unpacklo_epi64(l13, l57);
 }
 
-// SIMDFloat
-// same code as for SIMDInt, modified
-static SIMD_INLINE void swizzle(SIMDVec<SIMDFloat, 32> *const v, Integer<5>,
+// Float
+// same code as for Int, modified
+static SIMD_INLINE void swizzle(Vec<Float, 32> *const v, Integer<5>,
                                 IsIntSize<false, 4>)
 {
-  SIMDVec<SIMDFloat, 32> vs[5];
+  Vec<Float, 32> vs[5];
   swizzle_32_16<5>(v, vs);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   // v[0]: 0 1 2 3
@@ -4118,8 +4033,8 @@ static SIMD_INLINE void swizzle(SIMDVec<SIMDFloat, 32> *const v, Integer<5>,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> cmplt(const SIMDVec<SIMDByte, 32> &a,
-                                               const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> cmplt(const Vec<Byte, 32> &a,
+                                       const Vec<Byte, 32> &b)
 {
   __m256i signbit = _mm256_set1_epi32(0x80808080);
   __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
@@ -4127,14 +4042,14 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> cmplt(const SIMDVec<SIMDByte, 32> &a,
   return _mm256_cmpgt_epi8(b1, a1);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> cmplt(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> cmplt(const Vec<SignedByte, 32> &a,
+                                             const Vec<SignedByte, 32> &b)
 {
   return _mm256_cmpgt_epi8(b, a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> cmplt(const SIMDVec<SIMDWord, 32> &a,
-                                               const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> cmplt(const Vec<Word, 32> &a,
+                                       const Vec<Word, 32> &b)
 {
   __m256i signbit = _mm256_set1_epi32(0x80008000);
   __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
@@ -4142,14 +4057,14 @@ static SIMD_INLINE SIMDVec<SIMDWord, 32> cmplt(const SIMDVec<SIMDWord, 32> &a,
   return _mm256_cmpgt_epi16(b1, a1);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> cmplt(const SIMDVec<SIMDShort, 32> &a,
-                                                const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> cmplt(const Vec<Short, 32> &a,
+                                        const Vec<Short, 32> &b)
 {
   return _mm256_cmpgt_epi16(b, a);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> cmplt(const SIMDVec<SIMDInt, 32> &a,
-                                              const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> cmplt(const Vec<Int, 32> &a,
+                                      const Vec<Int, 32> &b)
 {
   return _mm256_cmpgt_epi32(b, a);
 }
@@ -4158,16 +4073,15 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> cmplt(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> cmplt(const SIMDVec<T, 32> &a,
-                                        const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> cmplt(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(cmplt(a.lo(), b.lo()), cmplt(a.hi(), b.hi()));
+  return Vec<T, 32>(cmplt(a.lo(), b.lo()), cmplt(a.hi(), b.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmplt(const SIMDVec<SIMDFloat, 32> &a,
-                                                const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> cmplt(const Vec<Float, 32> &a,
+                                        const Vec<Float, 32> &b)
 {
   // same constant as in Agner Fog's VCL (1): ordered, signaling
   return _mm256_cmp_ps(a, b, _CMP_LT_OS);
@@ -4182,8 +4096,8 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmplt(const SIMDVec<SIMDFloat, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> cmple(const SIMDVec<SIMDByte, 32> &a,
-                                               const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> cmple(const Vec<Byte, 32> &a,
+                                       const Vec<Byte, 32> &b)
 {
   __m256i signbit = _mm256_set1_epi32(0x80808080);
   __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
@@ -4191,14 +4105,14 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> cmple(const SIMDVec<SIMDByte, 32> &a,
   return _mm256_or_si256(_mm256_cmpgt_epi8(b1, a1), _mm256_cmpeq_epi8(a1, b1));
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> cmple(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> cmple(const Vec<SignedByte, 32> &a,
+                                             const Vec<SignedByte, 32> &b)
 {
   return _mm256_or_si256(_mm256_cmpgt_epi8(b, a), _mm256_cmpeq_epi8(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> cmple(const SIMDVec<SIMDWord, 32> &a,
-                                               const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> cmple(const Vec<Word, 32> &a,
+                                       const Vec<Word, 32> &b)
 {
   __m256i signbit = _mm256_set1_epi32(0x80008000);
   __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
@@ -4207,14 +4121,14 @@ static SIMD_INLINE SIMDVec<SIMDWord, 32> cmple(const SIMDVec<SIMDWord, 32> &a,
                          _mm256_cmpeq_epi16(a1, b1));
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> cmple(const SIMDVec<SIMDShort, 32> &a,
-                                                const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> cmple(const Vec<Short, 32> &a,
+                                        const Vec<Short, 32> &b)
 {
   return _mm256_or_si256(_mm256_cmpgt_epi16(b, a), _mm256_cmpeq_epi16(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> cmple(const SIMDVec<SIMDInt, 32> &a,
-                                              const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> cmple(const Vec<Int, 32> &a,
+                                      const Vec<Int, 32> &b)
 {
   return _mm256_or_si256(_mm256_cmpgt_epi32(b, a), _mm256_cmpeq_epi32(a, b));
 }
@@ -4223,16 +4137,15 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> cmple(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> cmple(const SIMDVec<T, 32> &a,
-                                        const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> cmple(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(cmple(a.lo(), b.lo()), cmple(a.hi(), b.hi()));
+  return Vec<T, 32>(cmple(a.lo(), b.lo()), cmple(a.hi(), b.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmple(const SIMDVec<SIMDFloat, 32> &a,
-                                                const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> cmple(const Vec<Float, 32> &a,
+                                        const Vec<Float, 32> &b)
 {
   // same constant as in Agner Fog's VCL (2): ordered, signaling
   return _mm256_cmp_ps(a, b, _CMP_LE_OS);
@@ -4244,32 +4157,32 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmple(const SIMDVec<SIMDFloat, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> cmpeq(const SIMDVec<SIMDByte, 32> &a,
-                                               const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> cmpeq(const Vec<Byte, 32> &a,
+                                       const Vec<Byte, 32> &b)
 {
   return _mm256_cmpeq_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> cmpeq(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> cmpeq(const Vec<SignedByte, 32> &a,
+                                             const Vec<SignedByte, 32> &b)
 {
   return _mm256_cmpeq_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> cmpeq(const SIMDVec<SIMDWord, 32> &a,
-                                               const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> cmpeq(const Vec<Word, 32> &a,
+                                       const Vec<Word, 32> &b)
 {
   return _mm256_cmpeq_epi16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> cmpeq(const SIMDVec<SIMDShort, 32> &a,
-                                                const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> cmpeq(const Vec<Short, 32> &a,
+                                        const Vec<Short, 32> &b)
 {
   return _mm256_cmpeq_epi16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> cmpeq(const SIMDVec<SIMDInt, 32> &a,
-                                              const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> cmpeq(const Vec<Int, 32> &a,
+                                      const Vec<Int, 32> &b)
 {
   return _mm256_cmpeq_epi32(a, b);
 }
@@ -4278,16 +4191,15 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> cmpeq(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> cmpeq(const SIMDVec<T, 32> &a,
-                                        const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> cmpeq(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(cmpeq(a.lo(), b.lo()), cmpeq(a.hi(), b.hi()));
+  return Vec<T, 32>(cmpeq(a.lo(), b.lo()), cmpeq(a.hi(), b.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmpeq(const SIMDVec<SIMDFloat, 32> &a,
-                                                const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> cmpeq(const Vec<Float, 32> &a,
+                                        const Vec<Float, 32> &b)
 {
   // same constant as in Agner Fog's VCL (0): ordered, non-signaling
   return _mm256_cmp_ps(a, b, _CMP_EQ_OQ);
@@ -4302,8 +4214,8 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmpeq(const SIMDVec<SIMDFloat, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> cmpgt(const SIMDVec<SIMDByte, 32> &a,
-                                               const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> cmpgt(const Vec<Byte, 32> &a,
+                                       const Vec<Byte, 32> &b)
 {
   __m256i signbit = _mm256_set1_epi32(0x80808080);
   __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
@@ -4311,14 +4223,14 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> cmpgt(const SIMDVec<SIMDByte, 32> &a,
   return _mm256_cmpgt_epi8(a1, b1);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> cmpgt(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> cmpgt(const Vec<SignedByte, 32> &a,
+                                             const Vec<SignedByte, 32> &b)
 {
   return _mm256_cmpgt_epi8(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> cmpgt(const SIMDVec<SIMDWord, 32> &a,
-                                               const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> cmpgt(const Vec<Word, 32> &a,
+                                       const Vec<Word, 32> &b)
 {
   __m256i signbit = _mm256_set1_epi32(0x80008000);
   __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
@@ -4326,14 +4238,14 @@ static SIMD_INLINE SIMDVec<SIMDWord, 32> cmpgt(const SIMDVec<SIMDWord, 32> &a,
   return _mm256_cmpgt_epi16(a1, b1);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> cmpgt(const SIMDVec<SIMDShort, 32> &a,
-                                                const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> cmpgt(const Vec<Short, 32> &a,
+                                        const Vec<Short, 32> &b)
 {
   return _mm256_cmpgt_epi16(a, b);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> cmpgt(const SIMDVec<SIMDInt, 32> &a,
-                                              const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> cmpgt(const Vec<Int, 32> &a,
+                                      const Vec<Int, 32> &b)
 {
   return _mm256_cmpgt_epi32(a, b);
 }
@@ -4342,16 +4254,15 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> cmpgt(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> cmpgt(const SIMDVec<T, 32> &a,
-                                        const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> cmpgt(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(cmpgt(a.lo(), b.lo()), cmpgt(a.hi(), b.hi()));
+  return Vec<T, 32>(cmpgt(a.lo(), b.lo()), cmpgt(a.hi(), b.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmpgt(const SIMDVec<SIMDFloat, 32> &a,
-                                                const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> cmpgt(const Vec<Float, 32> &a,
+                                        const Vec<Float, 32> &b)
 {
   // same constant as in Agner Fog's VCL (1): ordered, signaling
   return _mm256_cmp_ps(b, a, _CMP_LT_OS);
@@ -4366,8 +4277,8 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmpgt(const SIMDVec<SIMDFloat, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> cmpge(const SIMDVec<SIMDByte, 32> &a,
-                                               const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> cmpge(const Vec<Byte, 32> &a,
+                                       const Vec<Byte, 32> &b)
 {
   __m256i signbit = _mm256_set1_epi32(0x80808080);
   __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
@@ -4375,14 +4286,14 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> cmpge(const SIMDVec<SIMDByte, 32> &a,
   return _mm256_or_si256(_mm256_cmpgt_epi8(a1, b1), _mm256_cmpeq_epi8(a1, b1));
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> cmpge(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> cmpge(const Vec<SignedByte, 32> &a,
+                                             const Vec<SignedByte, 32> &b)
 {
   return _mm256_or_si256(_mm256_cmpgt_epi8(a, b), _mm256_cmpeq_epi8(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> cmpge(const SIMDVec<SIMDWord, 32> &a,
-                                               const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> cmpge(const Vec<Word, 32> &a,
+                                       const Vec<Word, 32> &b)
 {
   __m256i signbit = _mm256_set1_epi32(0x80008000);
   __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
@@ -4391,14 +4302,14 @@ static SIMD_INLINE SIMDVec<SIMDWord, 32> cmpge(const SIMDVec<SIMDWord, 32> &a,
                          _mm256_cmpeq_epi16(a1, b1));
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> cmpge(const SIMDVec<SIMDShort, 32> &a,
-                                                const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> cmpge(const Vec<Short, 32> &a,
+                                        const Vec<Short, 32> &b)
 {
   return _mm256_or_si256(_mm256_cmpgt_epi16(a, b), _mm256_cmpeq_epi16(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> cmpge(const SIMDVec<SIMDInt, 32> &a,
-                                              const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> cmpge(const Vec<Int, 32> &a,
+                                      const Vec<Int, 32> &b)
 {
   return _mm256_or_si256(_mm256_cmpgt_epi32(a, b), _mm256_cmpeq_epi32(a, b));
 }
@@ -4407,16 +4318,15 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> cmpge(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> cmpge(const SIMDVec<T, 32> &a,
-                                        const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> cmpge(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(cmpge(a.lo(), b.lo()), cmpge(a.hi(), b.hi()));
+  return Vec<T, 32>(cmpge(a.lo(), b.lo()), cmpge(a.hi(), b.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmpge(const SIMDVec<SIMDFloat, 32> &a,
-                                                const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> cmpge(const Vec<Float, 32> &a,
+                                        const Vec<Float, 32> &b)
 {
   // same constant as in Agner Fog's VCL (2): ordered, signaling
   return _mm256_cmp_ps(b, a, _CMP_LE_OS);
@@ -4428,32 +4338,32 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmpge(const SIMDVec<SIMDFloat, 32> &a,
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> cmpneq(const SIMDVec<SIMDByte, 32> &a,
-                                                const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> cmpneq(const Vec<Byte, 32> &a,
+                                        const Vec<Byte, 32> &b)
 {
   return x_mm256_not_si256(_mm256_cmpeq_epi8(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> cmpneq(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> cmpneq(const Vec<SignedByte, 32> &a,
+                                              const Vec<SignedByte, 32> &b)
 {
   return x_mm256_not_si256(_mm256_cmpeq_epi8(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> cmpneq(const SIMDVec<SIMDWord, 32> &a,
-                                                const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> cmpneq(const Vec<Word, 32> &a,
+                                        const Vec<Word, 32> &b)
 {
   return x_mm256_not_si256(_mm256_cmpeq_epi16(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> cmpneq(
-  const SIMDVec<SIMDShort, 32> &a, const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> cmpneq(const Vec<Short, 32> &a,
+                                         const Vec<Short, 32> &b)
 {
   return x_mm256_not_si256(_mm256_cmpeq_epi16(a, b));
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> cmpneq(const SIMDVec<SIMDInt, 32> &a,
-                                               const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> cmpneq(const Vec<Int, 32> &a,
+                                       const Vec<Int, 32> &b)
 {
   return x_mm256_not_si256(_mm256_cmpeq_epi32(a, b));
 }
@@ -4462,16 +4372,15 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> cmpneq(const SIMDVec<SIMDInt, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> cmpneq(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> cmpneq(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(cmpneq(a.lo(), b.lo()), cmpneq(a.hi(), b.hi()));
+  return Vec<T, 32>(cmpneq(a.lo(), b.lo()), cmpneq(a.hi(), b.hi()));
 }
 
 #endif
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmpneq(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> cmpneq(const Vec<Float, 32> &a,
+                                         const Vec<Float, 32> &b)
 {
   // same constant as in Agner Fog's VCL (4): unordered, signaling
   return _mm256_cmp_ps(a, b, _CMP_NEQ_UQ);
@@ -4484,9 +4393,9 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> cmpneq(
 #ifdef __AVX2__
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> ifelse(const SIMDVec<T, 32> &cond,
-                                         const SIMDVec<T, 32> &trueVal,
-                                         const SIMDVec<T, 32> &falseVal)
+static SIMD_INLINE Vec<T, 32> ifelse(const Vec<T, 32> &cond,
+                                     const Vec<T, 32> &trueVal,
+                                     const Vec<T, 32> &falseVal)
 {
   return _mm256_blendv_epi8(falseVal, trueVal, cond);
 }
@@ -4494,9 +4403,9 @@ static SIMD_INLINE SIMDVec<T, 32> ifelse(const SIMDVec<T, 32> &cond,
 // non-avx2 workaround
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> ifelse(const SIMDVec<T, 32> &cond,
-                                         const SIMDVec<T, 32> &trueVal,
-                                         const SIMDVec<T, 32> &falseVal)
+static SIMD_INLINE Vec<T, 32> ifelse(const Vec<T, 32> &cond,
+                                     const Vec<T, 32> &trueVal,
+                                     const Vec<T, 32> &falseVal)
 {
   return _mm256_castps_si256(_mm256_or_ps(
     _mm256_and_ps(_mm256_castsi256_ps(cond), _mm256_castsi256_ps(trueVal)),
@@ -4506,9 +4415,9 @@ static SIMD_INLINE SIMDVec<T, 32> ifelse(const SIMDVec<T, 32> &cond,
 #endif
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> ifelse(
-  const SIMDVec<SIMDFloat, 32> &cond, const SIMDVec<SIMDFloat, 32> &trueVal,
-  const SIMDVec<SIMDFloat, 32> &falseVal)
+static SIMD_INLINE Vec<Float, 32> ifelse(const Vec<Float, 32> &cond,
+                                         const Vec<Float, 32> &trueVal,
+                                         const Vec<Float, 32> &falseVal)
 {
   return _mm256_blendv_ps(falseVal, trueVal, cond);
 }
@@ -4519,8 +4428,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> ifelse(
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> and_(const SIMDVec<T, 32> &a,
-                                       const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> and_(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
 #ifdef __AVX2__
   return _mm256_and_si256(a, b);
@@ -4532,8 +4440,8 @@ static SIMD_INLINE SIMDVec<T, 32> and_(const SIMDVec<T, 32> &a,
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> and_(const SIMDVec<SIMDFloat, 32> &a,
-                                               const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> and_(const Vec<Float, 32> &a,
+                                       const Vec<Float, 32> &b)
 {
   return _mm256_and_ps(a, b);
 }
@@ -4544,8 +4452,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> and_(const SIMDVec<SIMDFloat, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> or_(const SIMDVec<T, 32> &a,
-                                      const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> or_(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
 #ifdef __AVX2__
   return _mm256_or_si256(a, b);
@@ -4557,8 +4464,8 @@ static SIMD_INLINE SIMDVec<T, 32> or_(const SIMDVec<T, 32> &a,
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> or_(const SIMDVec<SIMDFloat, 32> &a,
-                                              const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> or_(const Vec<Float, 32> &a,
+                                      const Vec<Float, 32> &b)
 {
   return _mm256_or_ps(a, b);
 }
@@ -4569,8 +4476,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> or_(const SIMDVec<SIMDFloat, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> andnot(const SIMDVec<T, 32> &a,
-                                         const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> andnot(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
 #ifdef __AVX2__
   return _mm256_andnot_si256(a, b);
@@ -4582,8 +4488,8 @@ static SIMD_INLINE SIMDVec<T, 32> andnot(const SIMDVec<T, 32> &a,
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> andnot(
-  const SIMDVec<SIMDFloat, 32> &a, const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> andnot(const Vec<Float, 32> &a,
+                                         const Vec<Float, 32> &b)
 {
   return _mm256_andnot_ps(a, b);
 }
@@ -4594,8 +4500,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> andnot(
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> xor_(const SIMDVec<T, 32> &a,
-                                       const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> xor_(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
 #ifdef __AVX2__
   return _mm256_xor_si256(a, b);
@@ -4607,8 +4512,8 @@ static SIMD_INLINE SIMDVec<T, 32> xor_(const SIMDVec<T, 32> &a,
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> xor_(const SIMDVec<SIMDFloat, 32> &a,
-                                               const SIMDVec<SIMDFloat, 32> &b)
+static SIMD_INLINE Vec<Float, 32> xor_(const Vec<Float, 32> &a,
+                                       const Vec<Float, 32> &b)
 {
   return _mm256_xor_ps(a, b);
 }
@@ -4619,13 +4524,13 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> xor_(const SIMDVec<SIMDFloat, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> not_(const SIMDVec<T, 32> &a)
+static SIMD_INLINE Vec<T, 32> not_(const Vec<T, 32> &a)
 {
   return x_mm256_not_si256(a);
 }
 
 // float version
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> not_(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> not_(const Vec<Float, 32> &a)
 {
   return x_mm256_not_ps(a);
 }
@@ -4636,16 +4541,16 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> not_(const SIMDVec<SIMDFloat, 32> &a)
 
 #ifdef __AVX2__
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> avg(const SIMDVec<SIMDByte, 32> &a,
-                                             const SIMDVec<SIMDByte, 32> &b)
+static SIMD_INLINE Vec<Byte, 32> avg(const Vec<Byte, 32> &a,
+                                     const Vec<Byte, 32> &b)
 {
   return _mm256_avg_epu8(a, b);
 }
 
 // Paul R at
 // http://stackoverflow.com/questions/12152640/signed-16-bit-sse-average
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> avg(
-  const SIMDVec<SIMDSignedByte, 32> &a, const SIMDVec<SIMDSignedByte, 32> &b)
+static SIMD_INLINE Vec<SignedByte, 32> avg(const Vec<SignedByte, 32> &a,
+                                           const Vec<SignedByte, 32> &b)
 {
   // from Agner Fog's VCL vectori128.h
   __m256i signbit = _mm256_set1_epi32(0x80808080);
@@ -4655,16 +4560,16 @@ static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> avg(
   return _mm256_xor_si256(m1, signbit);           // sub 0x80
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> avg(const SIMDVec<SIMDWord, 32> &a,
-                                             const SIMDVec<SIMDWord, 32> &b)
+static SIMD_INLINE Vec<Word, 32> avg(const Vec<Word, 32> &a,
+                                     const Vec<Word, 32> &b)
 {
   return _mm256_avg_epu16(a, b);
 }
 
 // Paul R at
 // http://stackoverflow.com/questions/12152640/signed-16-bit-sse-average
-static SIMD_INLINE SIMDVec<SIMDShort, 32> avg(const SIMDVec<SIMDShort, 32> &a,
-                                              const SIMDVec<SIMDShort, 32> &b)
+static SIMD_INLINE Vec<Short, 32> avg(const Vec<Short, 32> &a,
+                                      const Vec<Short, 32> &b)
 {
   // from Agner Fog's VCL vectori128.h
   __m256i signbit = _mm256_set1_epi32(0x80008000);
@@ -4678,29 +4583,28 @@ static SIMD_INLINE SIMDVec<SIMDShort, 32> avg(const SIMDVec<SIMDShort, 32> &a,
 
 // non-avx2 workaround
 template <typename T>
-static SIMD_INLINE SIMDVec<T, 32> avg(const SIMDVec<T, 32> &a,
-                                      const SIMDVec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> avg(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  return SIMDVec<T, 32>(avg(a.lo(), b.lo()), avg(a.hi(), b.hi()));
+  return Vec<T, 32>(avg(a.lo(), b.lo()), avg(a.hi(), b.hi()));
 }
 
 #endif
 
 // Paul R at
 // http://stackoverflow.com/questions/12152640/signed-16-bit-sse-average
-static SIMD_INLINE SIMDVec<SIMDInt, 32> avg(const SIMDVec<SIMDInt, 32> &a,
-                                            const SIMDVec<SIMDInt, 32> &b)
+static SIMD_INLINE Vec<Int, 32> avg(const Vec<Int, 32> &a,
+                                    const Vec<Int, 32> &b)
 {
-  SIMDVec<SIMDInt, 32> one = set1(SIMDInt(1), Integer<32>()), as, bs, lsb;
-  lsb                      = and_(or_(a, b), one);
-  as                       = srai<1>(a);
-  bs                       = srai<1>(b);
+  Vec<Int, 32> one = set1(Int(1), Integer<32>()), as, bs, lsb;
+  lsb              = and_(or_(a, b), one);
+  as               = srai<1>(a);
+  bs               = srai<1>(b);
   return add(lsb, add(as, bs));
 }
 
-// NOTE: SIMDFloat version doesn't round!
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> avg(const SIMDVec<SIMDFloat, 32> &a,
-                                              const SIMDVec<SIMDFloat, 32> &b)
+// NOTE: Float version doesn't round!
+static SIMD_INLINE Vec<Float, 32> avg(const Vec<Float, 32> &a,
+                                      const Vec<Float, 32> &b)
 {
   __m256 half = _mm256_set1_ps(0.5f);
   return _mm256_mul_ps(_mm256_add_ps(a, b), half);
@@ -4712,7 +4616,7 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> avg(const SIMDVec<SIMDFloat, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE int test_all_zeros(const SIMDVec<T, 32> &a)
+static SIMD_INLINE int test_all_zeros(const Vec<T, 32> &a)
 {
   // 2nd argument: generates vector full of ones (epiX: X irrelevant)
   // 10. Oct 22 (Jonas Keller):
@@ -4727,7 +4631,7 @@ static SIMD_INLINE int test_all_zeros(const SIMDVec<T, 32> &a)
 // float version
 // NOTE: _mm256_testz_ps only tests the sign bits!
 // 28. Sep 17 (rm) BUGFIX: using _mm256_testz_si256 instead
-static SIMD_INLINE int test_all_zeros(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE int test_all_zeros(const Vec<Float, 32> &a)
 {
   // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
   // 10. Oct 22 (Jonas Keller):
@@ -4744,7 +4648,7 @@ static SIMD_INLINE int test_all_zeros(const SIMDVec<SIMDFloat, 32> &a)
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE int test_all_ones(const SIMDVec<T, 32> &a)
+static SIMD_INLINE int test_all_ones(const Vec<T, 32> &a)
 {
   // 2nd argument: generates vector full of ones (epiX: X irrelevant)
 #ifdef __AVX2__
@@ -4760,7 +4664,7 @@ static SIMD_INLINE int test_all_ones(const SIMDVec<T, 32> &a)
 // float version
 // NOTE: _mm256_testc_ps only tests the sign bits!
 // 28. Sep 17 (rm) BUGFIX: using _mm256_testc_si256 instead
-static SIMD_INLINE int test_all_ones(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE int test_all_ones(const Vec<Float, 32> &a)
 {
   // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
   return _mm256_testc_si256(
@@ -4775,7 +4679,7 @@ static SIMD_INLINE int test_all_ones(const SIMDVec<SIMDFloat, 32> &a)
 // All reverse operations below are courtesy of Yannick Sander
 // modified
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> reverse(const SIMDVec<SIMDByte, 32> &a)
+static SIMD_INLINE Vec<Byte, 32> reverse(const Vec<Byte, 32> &a)
 {
 #ifdef __AVX2__
   const __m256i mask =
@@ -4793,14 +4697,13 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> reverse(const SIMDVec<SIMDByte, 32> &a)
   return swapped_lanes;
 
 #else // AVX fallback
-  const SIMDVec<SIMDByte, 16> h = _mm256_extractf128_si256(a, 0);
-  const SIMDVec<SIMDByte, 16> l = _mm256_extractf128_si256(a, 1);
+  const Vec<Byte, 16> h = _mm256_extractf128_si256(a, 0);
+  const Vec<Byte, 16> l = _mm256_extractf128_si256(a, 1);
   return _mm256_set_m128i(reverse(h), reverse(l));
 #endif
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> reverse(
-  const SIMDVec<SIMDSignedByte, 32> &a)
+static SIMD_INLINE Vec<SignedByte, 32> reverse(const Vec<SignedByte, 32> &a)
 {
 #ifdef __AVX2__
   const __m256i mask =
@@ -4818,14 +4721,13 @@ static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> reverse(
   return swapped_lanes;
 
 #else // AVX fallback
-  const SIMDVec<SIMDSignedByte, 16> h = _mm256_extractf128_si256(a, 0);
-  const SIMDVec<SIMDSignedByte, 16> l = _mm256_extractf128_si256(a, 1);
+  const Vec<SignedByte, 16> h = _mm256_extractf128_si256(a, 0);
+  const Vec<SignedByte, 16> l = _mm256_extractf128_si256(a, 1);
   return _mm256_set_m128i(reverse(h), reverse(l));
 #endif
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> reverse(
-  const SIMDVec<SIMDShort, 32> &a)
+static SIMD_INLINE Vec<Short, 32> reverse(const Vec<Short, 32> &a)
 {
 #ifdef __AVX2__
   const __m256i mask =
@@ -4838,13 +4740,13 @@ static SIMD_INLINE SIMDVec<SIMDShort, 32> reverse(
 
   return swapped_lanes;
 #else // AVX fallback
-  const SIMDVec<SIMDShort, 16> h = _mm256_extractf128_si256(a, 0);
-  const SIMDVec<SIMDShort, 16> l = _mm256_extractf128_si256(a, 1);
+  const Vec<Short, 16> h = _mm256_extractf128_si256(a, 0);
+  const Vec<Short, 16> l = _mm256_extractf128_si256(a, 1);
   return _mm256_set_m128i(reverse(h), reverse(l));
 #endif
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> reverse(const SIMDVec<SIMDWord, 32> &a)
+static SIMD_INLINE Vec<Word, 32> reverse(const Vec<Word, 32> &a)
 {
 #ifdef __AVX2__
   const __m256i mask =
@@ -4857,33 +4759,32 @@ static SIMD_INLINE SIMDVec<SIMDWord, 32> reverse(const SIMDVec<SIMDWord, 32> &a)
 
   return swapped_lanes;
 #else // AVX fallback
-  const SIMDVec<SIMDWord, 16> h = _mm256_extractf128_si256(a, 0);
-  const SIMDVec<SIMDWord, 16> l = _mm256_extractf128_si256(a, 1);
+  const Vec<Word, 16> h = _mm256_extractf128_si256(a, 0);
+  const Vec<Word, 16> l = _mm256_extractf128_si256(a, 1);
   return _mm256_set_m128i(reverse(h), reverse(l));
 #endif
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> reverse(const SIMDVec<SIMDInt, 32> &a)
+static SIMD_INLINE Vec<Int, 32> reverse(const Vec<Int, 32> &a)
 {
 #ifdef __AVX2__
   const __m256i mask = _mm256_set_epi32(0, 1, 2, 3, 4, 5, 6, 7);
   return _mm256_permutevar8x32_epi32(a, mask);
 #else // AVX fallback
-  const SIMDVec<SIMDInt, 16> h = _mm256_extractf128_si256(a, 0);
-  const SIMDVec<SIMDInt, 16> l = _mm256_extractf128_si256(a, 1);
+  const Vec<Int, 16> h = _mm256_extractf128_si256(a, 0);
+  const Vec<Int, 16> l = _mm256_extractf128_si256(a, 1);
   return _mm256_set_m128i(reverse(h), reverse(l));
 #endif
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> reverse(
-  const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE Vec<Float, 32> reverse(const Vec<Float, 32> &a)
 {
 #ifdef __AVX2__
   const __m256i mask = _mm256_set_epi32(0, 1, 2, 3, 4, 5, 6, 7);
   return _mm256_permutevar8x32_ps(a, mask);
 #else // AVX fallback
-  const SIMDVec<SIMDFloat, 16> h = _mm256_extractf128_ps(a, 0);
-  const SIMDVec<SIMDFloat, 16> l = _mm256_extractf128_ps(a, 1);
+  const Vec<Float, 16> h = _mm256_extractf128_ps(a, 0);
+  const Vec<Float, 16> l = _mm256_extractf128_ps(a, 1);
   return _mm256_set_m128(reverse(h), reverse(l));
 #endif
 }
@@ -4905,19 +4806,19 @@ static SIMD_INLINE int x_mm256_movemask_epi8(__m256i a)
 #endif
 }
 
-static SIMD_INLINE uint64_t msb2int(const SIMDVec<SIMDByte, 32> &a)
+static SIMD_INLINE uint64_t msb2int(const Vec<Byte, 32> &a)
 {
   // casting to uint32_t to prevent sign extension
   return (uint32_t) x_mm256_movemask_epi8(a);
 }
 
-static SIMD_INLINE uint64_t msb2int(const SIMDVec<SIMDSignedByte, 32> &a)
+static SIMD_INLINE uint64_t msb2int(const Vec<SignedByte, 32> &a)
 {
   // casting to uint32_t to prevent sign extension
   return (uint32_t) x_mm256_movemask_epi8(a);
 }
 
-static SIMD_INLINE uint64_t msb2int(const SIMDVec<SIMDShort, 32> &a)
+static SIMD_INLINE uint64_t msb2int(const Vec<Short, 32> &a)
 {
   // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
   // and discard the even bits
@@ -4948,7 +4849,7 @@ static SIMD_INLINE uint64_t msb2int(const SIMDVec<SIMDShort, 32> &a)
   return x;
 }
 
-static SIMD_INLINE uint64_t msb2int(const SIMDVec<SIMDWord, 32> &a)
+static SIMD_INLINE uint64_t msb2int(const Vec<Word, 32> &a)
 {
   // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
   // and discard the even bits
@@ -4979,12 +4880,12 @@ static SIMD_INLINE uint64_t msb2int(const SIMDVec<SIMDWord, 32> &a)
   return x;
 }
 
-static SIMD_INLINE uint64_t msb2int(const SIMDVec<SIMDInt, 32> &a)
+static SIMD_INLINE uint64_t msb2int(const Vec<Int, 32> &a)
 {
   return _mm256_movemask_ps(_mm256_castsi256_ps(a));
 }
 
-static SIMD_INLINE uint64_t msb2int(const SIMDVec<SIMDFloat, 32> &a)
+static SIMD_INLINE uint64_t msb2int(const Vec<Float, 32> &a)
 {
   return _mm256_movemask_ps(a);
 }
@@ -4995,9 +4896,8 @@ static SIMD_INLINE uint64_t msb2int(const SIMDVec<SIMDFloat, 32> &a)
 
 // 06. Oct 22 (Jonas Keller): added int2msb functions
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> int2msb(const uint64_t a,
-                                                 OutputType<SIMDByte>,
-                                                 Integer<32>)
+static SIMD_INLINE Vec<Byte, 32> int2msb(const uint64_t a, OutputType<Byte>,
+                                         Integer<32>)
 {
 #ifdef __AVX2__
   __m256i shuffleIndeces = _mm256_set_epi64x(
@@ -5020,16 +4920,16 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> int2msb(const uint64_t a,
   return x_mm256_and_si256(result, _mm256_set1_epi8((int8_t) 0x80));
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> int2msb(
-  const uint64_t a, OutputType<SIMDSignedByte>, Integer<32>)
+static SIMD_INLINE Vec<SignedByte, 32> int2msb(const uint64_t a,
+                                               OutputType<SignedByte>,
+                                               Integer<32>)
 {
-  return reinterpret(int2msb(a, OutputType<SIMDByte>(), Integer<32>()),
-                     OutputType<SIMDSignedByte>());
+  return reinterpret(int2msb(a, OutputType<Byte>(), Integer<32>()),
+                     OutputType<SignedByte>());
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> int2msb(const uint64_t a,
-                                                  OutputType<SIMDShort>,
-                                                  Integer<32>)
+static SIMD_INLINE Vec<Short, 32> int2msb(const uint64_t a, OutputType<Short>,
+                                          Integer<32>)
 {
 #ifdef __AVX2__
   __m256i aVec = _mm256_set1_epi16(a);
@@ -5053,17 +4953,15 @@ static SIMD_INLINE SIMDVec<SIMDShort, 32> int2msb(const uint64_t a,
   return x_mm256_and_si256(result, _mm256_set1_epi16((int16_t) 0x8000));
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> int2msb(const uint64_t a,
-                                                 OutputType<SIMDWord>,
-                                                 Integer<32>)
+static SIMD_INLINE Vec<Word, 32> int2msb(const uint64_t a, OutputType<Word>,
+                                         Integer<32>)
 {
-  return reinterpret(int2msb(a, OutputType<SIMDShort>(), Integer<32>()),
-                     OutputType<SIMDWord>());
+  return reinterpret(int2msb(a, OutputType<Short>(), Integer<32>()),
+                     OutputType<Word>());
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> int2msb(const uint64_t a,
-                                                OutputType<SIMDInt>,
-                                                Integer<32>)
+static SIMD_INLINE Vec<Int, 32> int2msb(const uint64_t a, OutputType<Int>,
+                                        Integer<32>)
 {
 #ifdef __AVX2__
   __m256i aVec = _mm256_set1_epi32(a);
@@ -5083,12 +4981,11 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> int2msb(const uint64_t a,
   return x_mm256_and_si256(result, _mm256_set1_epi32(0x80000000));
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> int2msb(const uint64_t a,
-                                                  OutputType<SIMDFloat>,
-                                                  Integer<32>)
+static SIMD_INLINE Vec<Float, 32> int2msb(const uint64_t a, OutputType<Float>,
+                                          Integer<32>)
 {
-  return reinterpret(int2msb(a, OutputType<SIMDInt>(), Integer<32>()),
-                     OutputType<SIMDFloat>());
+  return reinterpret(int2msb(a, OutputType<Int>(), Integer<32>()),
+                     OutputType<Float>());
 }
 
 // ---------------------------------------------------------------------------
@@ -5097,9 +4994,8 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> int2msb(const uint64_t a,
 
 // 09. Oct 22 (Jonas Keller): added int2bits
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> int2bits(const uint64_t a,
-                                                  OutputType<SIMDByte>,
-                                                  Integer<32>)
+static SIMD_INLINE Vec<Byte, 32> int2bits(const uint64_t a, OutputType<Byte>,
+                                          Integer<32>)
 {
 #ifdef __AVX2__
   __m256i shuffleIndeces = _mm256_set_epi64x(
@@ -5110,21 +5006,21 @@ static SIMD_INLINE SIMDVec<SIMDByte, 32> int2bits(const uint64_t a,
   return _mm256_cmpeq_epi8(selected, sel);
 #else
   return x_mm256_combine_si128(
-    int2bits(a, OutputType<SIMDByte>(), Integer<16>()),
-    int2bits(a >> 16, OutputType<SIMDByte>(), Integer<16>()));
+    int2bits(a, OutputType<Byte>(), Integer<16>()),
+    int2bits(a >> 16, OutputType<Byte>(), Integer<16>()));
 #endif
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> int2bits(
-  const uint64_t a, OutputType<SIMDSignedByte>, Integer<32>)
+static SIMD_INLINE Vec<SignedByte, 32> int2bits(const uint64_t a,
+                                                OutputType<SignedByte>,
+                                                Integer<32>)
 {
-  return reinterpret(int2bits(a, OutputType<SIMDByte>(), Integer<32>()),
-                     OutputType<SIMDSignedByte>());
+  return reinterpret(int2bits(a, OutputType<Byte>(), Integer<32>()),
+                     OutputType<SignedByte>());
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> int2bits(const uint64_t a,
-                                                   OutputType<SIMDShort>,
-                                                   Integer<32>)
+static SIMD_INLINE Vec<Short, 32> int2bits(const uint64_t a, OutputType<Short>,
+                                           Integer<32>)
 {
 #ifdef __AVX2__
   __m256i aVec = _mm256_set1_epi16(a);
@@ -5135,22 +5031,20 @@ static SIMD_INLINE SIMDVec<SIMDShort, 32> int2bits(const uint64_t a,
   return _mm256_cmpeq_epi16(selected, sel);
 #else
   return x_mm256_combine_si128(
-    int2bits(a, OutputType<SIMDShort>(), Integer<16>()),
-    int2bits(a >> 8, OutputType<SIMDShort>(), Integer<16>()));
+    int2bits(a, OutputType<Short>(), Integer<16>()),
+    int2bits(a >> 8, OutputType<Short>(), Integer<16>()));
 #endif
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> int2bits(const uint64_t a,
-                                                  OutputType<SIMDWord>,
-                                                  Integer<32>)
+static SIMD_INLINE Vec<Word, 32> int2bits(const uint64_t a, OutputType<Word>,
+                                          Integer<32>)
 {
-  return reinterpret(int2bits(a, OutputType<SIMDShort>(), Integer<32>()),
-                     OutputType<SIMDWord>());
+  return reinterpret(int2bits(a, OutputType<Short>(), Integer<32>()),
+                     OutputType<Word>());
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> int2bits(const uint64_t a,
-                                                 OutputType<SIMDInt>,
-                                                 Integer<32>)
+static SIMD_INLINE Vec<Int, 32> int2bits(const uint64_t a, OutputType<Int>,
+                                         Integer<32>)
 {
 #ifdef __AVX2__
   __m256i aVec = _mm256_set1_epi32(a);
@@ -5160,17 +5054,16 @@ static SIMD_INLINE SIMDVec<SIMDInt, 32> int2bits(const uint64_t a,
   return _mm256_cmpeq_epi32(selected, sel);
 #else
   return x_mm256_combine_si128(
-    int2bits(a, OutputType<SIMDInt>(), Integer<16>()),
-    int2bits(a >> 4, OutputType<SIMDInt>(), Integer<16>()));
+    int2bits(a, OutputType<Int>(), Integer<16>()),
+    int2bits(a >> 4, OutputType<Int>(), Integer<16>()));
 #endif
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> int2bits(const uint64_t a,
-                                                   OutputType<SIMDFloat>,
-                                                   Integer<32>)
+static SIMD_INLINE Vec<Float, 32> int2bits(const uint64_t a, OutputType<Float>,
+                                           Integer<32>)
 {
-  return reinterpret(int2bits(a, OutputType<SIMDInt>(), Integer<32>()),
-                     OutputType<SIMDFloat>());
+  return reinterpret(int2bits(a, OutputType<Int>(), Integer<32>()),
+                     OutputType<Float>());
 }
 
 // ---------------------------------------------------------------------------
@@ -5179,45 +5072,42 @@ static SIMD_INLINE SIMDVec<SIMDFloat, 32> int2bits(const uint64_t a,
 
 // 30. Jan 23 (Jonas Keller): added iota
 
-static SIMD_INLINE SIMDVec<SIMDByte, 32> iota(OutputType<SIMDByte>, Integer<32>)
+static SIMD_INLINE Vec<Byte, 32> iota(OutputType<Byte>, Integer<32>)
 {
   return _mm256_set_epi8(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18,
                          17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2,
                          1, 0);
 }
 
-static SIMD_INLINE SIMDVec<SIMDSignedByte, 32> iota(OutputType<SIMDSignedByte>,
-                                                    Integer<32>)
+static SIMD_INLINE Vec<SignedByte, 32> iota(OutputType<SignedByte>, Integer<32>)
 {
   return _mm256_set_epi8(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18,
                          17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2,
                          1, 0);
 }
 
-static SIMD_INLINE SIMDVec<SIMDShort, 32> iota(OutputType<SIMDShort>,
-                                               Integer<32>)
+static SIMD_INLINE Vec<Short, 32> iota(OutputType<Short>, Integer<32>)
 {
   return _mm256_set_epi16(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 }
 
-static SIMD_INLINE SIMDVec<SIMDWord, 32> iota(OutputType<SIMDWord>, Integer<32>)
+static SIMD_INLINE Vec<Word, 32> iota(OutputType<Word>, Integer<32>)
 {
   return _mm256_set_epi16(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 }
 
-static SIMD_INLINE SIMDVec<SIMDInt, 32> iota(OutputType<SIMDInt>, Integer<32>)
+static SIMD_INLINE Vec<Int, 32> iota(OutputType<Int>, Integer<32>)
 {
   return _mm256_set_epi32(7, 6, 5, 4, 3, 2, 1, 0);
 }
 
-static SIMD_INLINE SIMDVec<SIMDFloat, 32> iota(OutputType<SIMDFloat>,
-                                               Integer<32>)
+static SIMD_INLINE Vec<Float, 32> iota(OutputType<Float>, Integer<32>)
 {
   return _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
 }
 } // namespace base
 } // namespace internal
-} // namespace ns_simd
+} // namespace simd
 
 #endif // __AVX__
 

@@ -1,7 +1,7 @@
 // ===========================================================================
 //
 // SIMDVecAutoTestWrapper.H --
-// class wrapper, for both SIMDVec and SIMDSerialVec, used for tests
+// class wrapper, for both Vec and SerialVec, used for tests
 //
 // This source code file is part of the following software:
 //
@@ -42,11 +42,11 @@
 //   definition and therefore have to be explicitly provided (no
 //   deduction possible), this allows members or methods to use these
 //   parameters (e.g. maxI)
-// - apply() has a template-template parameter such that both SIMDVec
-//   and SIMDSerialVec can be passed (at least if the function has at
-//   least one argument of SIMDVec or SIMDSerialVec)
+// - apply() has a template-template parameter such that both Vec
+//   and SerialVec can be passed (at least if the function has at
+//   least one argument of Vec or SerialVec)
 
-namespace ns_simd {
+namespace simd {
 namespace auto_test {
 
 // -------------------------------------------------------------------------
@@ -57,7 +57,7 @@ template <typename T, int SIMD_WIDTH>
 static std::string t2s(const char *fct)
 {
   char res[256];
-  sprintf(res, "%s<%s,%d>", fct, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+  sprintf(res, "%s<%s,%d>", fct, TypeInfo<T>::name(), SIMD_WIDTH);
   return std::string(res);
 }
 
@@ -65,7 +65,7 @@ template <int I, typename T, int SIMD_WIDTH>
 static std::string ti2s(const char *fct)
 {
   char res[256];
-  sprintf(res, "%s<%d,%s,%d>", fct, I, SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+  sprintf(res, "%s<%d,%s,%d>", fct, I, TypeInfo<T>::name(), SIMD_WIDTH);
   return std::string(res);
 }
 
@@ -73,8 +73,7 @@ template <int I, int J, typename T, int SIMD_WIDTH>
 static std::string tii2s(const char *fct)
 {
   char res[256];
-  sprintf(res, "%s<%d,%d,%s,%d>", fct, I, J, SIMDTypeInfo<T>::name(),
-          SIMD_WIDTH);
+  sprintf(res, "%s<%d,%d,%s,%d>", fct, I, J, TypeInfo<T>::name(), SIMD_WIDTH);
   return std::string(res);
 }
 
@@ -82,8 +81,8 @@ template <typename Tout, typename T, int SIMD_WIDTH>
 static std::string tt2s(const char *fct)
 {
   char res[256];
-  sprintf(res, "%s<%s,%s,%d>", fct, SIMDTypeInfo<Tout>::name(),
-          SIMDTypeInfo<T>::name(), SIMD_WIDTH);
+  sprintf(res, "%s<%s,%s,%d>", fct, TypeInfo<Tout>::name(), TypeInfo<T>::name(),
+          SIMD_WIDTH);
   return std::string(res);
 }
 
@@ -99,7 +98,7 @@ struct Reinterpret
     return tt2s<Tout, T, SIMD_WIDTH>("reinterpret");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -119,7 +118,7 @@ struct Setzero
     return t2s<T, SIMD_WIDTH>("setzero");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -157,7 +156,7 @@ struct Extract
   static constexpr int maxI  = SIMD_WIDTH / sizeof(T) + 1;
   static constexpr int nextI = I + 1;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -174,7 +173,7 @@ struct Add
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("add"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -192,7 +191,7 @@ struct Adds
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("adds"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -210,7 +209,7 @@ struct Sub
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("sub"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -228,7 +227,7 @@ struct Subs
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("subs"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -246,7 +245,7 @@ struct Neg
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("neg"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -263,7 +262,7 @@ struct Mul
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("mul"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -281,7 +280,7 @@ struct Div
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("div"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -299,7 +298,7 @@ struct Ceil
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("ceil"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -316,7 +315,7 @@ struct Floor
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("floor"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -333,7 +332,7 @@ struct Round
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("round"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -353,7 +352,7 @@ struct Truncate
     return t2s<T, SIMD_WIDTH>("truncate");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -372,7 +371,7 @@ struct Rcp
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("rcp"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -389,7 +388,7 @@ struct Rsqrt
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("rsqrt"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -406,7 +405,7 @@ struct Sqrt
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("sqrt"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeNonNegative();
   }
@@ -423,7 +422,7 @@ struct Min
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("min"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -441,7 +440,7 @@ struct Max
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("max"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -459,7 +458,7 @@ struct Abs
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("abs"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -476,7 +475,7 @@ struct Sign
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("sign"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -497,7 +496,7 @@ struct AbsDiff
     return t2s<T, SIMD_WIDTH>("absDiff");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -528,7 +527,7 @@ struct Unpack
   static constexpr int maxJ  = SIMD_WIDTH / sizeof(T);
   static constexpr int nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -560,7 +559,7 @@ struct Unpack16
   static constexpr int maxJ  = 16 / sizeof(T);
   static constexpr int nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -587,7 +586,7 @@ struct ExtractLane
   static constexpr int maxI  = SIMD_WIDTH / 16 - 1;
   static constexpr int nextI = IMM + 1;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -612,7 +611,7 @@ struct Zip
   static constexpr int maxI  = SIMD_WIDTH / sizeof(T);
   static constexpr int nextI = NUM_ELEMS * 2;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -640,7 +639,7 @@ struct Zip16
   static constexpr int maxI  = 16 / sizeof(T);
   static constexpr int nextI = NUM_ELEMS * 2;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -666,7 +665,7 @@ struct Unzip
   static constexpr int maxI  = SIMD_WIDTH / sizeof(T);
   static constexpr int nextI = NUM_ELEMS * 2;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -688,7 +687,7 @@ struct Packs
     return tt2s<Tout, T, SIMD_WIDTH>("packs");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
@@ -709,7 +708,7 @@ struct Extend
     return tt2s<Tout, T, SIMD_WIDTH>("extend");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -734,7 +733,7 @@ struct Srai
   static constexpr int maxI  = sizeof(T) * 8 + 1;
   static constexpr int nextI = IMM + 1;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -758,7 +757,7 @@ struct Srli
   static constexpr int maxI  = sizeof(T) * 8 + 1;
   static constexpr int nextI = IMM + 1;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -782,7 +781,7 @@ struct Slli
   static constexpr int maxI  = sizeof(T) * 8 + 1;
   static constexpr int nextI = IMM + 1;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -801,7 +800,7 @@ struct Sra
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("sra"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
@@ -824,7 +823,7 @@ struct Srl
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("srl"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
@@ -847,7 +846,7 @@ struct Sll
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("sll"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
@@ -873,7 +872,7 @@ struct Cvts
     return tt2s<Tout, T, SIMD_WIDTH>("cvts");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -890,7 +889,7 @@ struct Hadd
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadd"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -908,7 +907,7 @@ struct Hadds
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadds"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -926,7 +925,7 @@ struct Hsub
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsub"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -944,7 +943,7 @@ struct Hsubs
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsubs"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -969,7 +968,7 @@ struct Srle
   static constexpr int maxI  = SIMD_WIDTH / sizeof(T) + 1;
   static constexpr int nextI = IMM + 1;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -993,7 +992,7 @@ struct Slle
   static constexpr int maxI  = SIMD_WIDTH / sizeof(T) + 1;
   static constexpr int nextI = IMM + 1;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1010,7 +1009,7 @@ struct Elem0
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("elem0"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1034,7 +1033,7 @@ struct Alignre
   static constexpr int maxI  = 2 * (SIMD_WIDTH / sizeof(T)) + 1;
   static constexpr int nextI = IMM + 1;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1060,7 +1059,7 @@ struct Swizzle
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = I;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1082,11 +1081,11 @@ struct Swizzle2
 
   static constexpr int minI = 1;
   // TODO: is there an upper limit for maxI in swizzle2?
-  static constexpr int maxI    = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = 2 * I;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1108,11 +1107,11 @@ struct Unswizzle2
 
   static constexpr int minI = 1;
   // TODO: is there an upper limit for maxI in unswizzle2?
-  static constexpr int maxI    = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = 2 * I;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1135,11 +1134,11 @@ struct Swizzle3
 
   static constexpr int minI = 1;
   // TODO: is there an upper limit for maxI in swizzle3?
-  static constexpr int maxI    = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = 2 * I;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1162,11 +1161,11 @@ struct Swizzle4
 
   static constexpr int minI = 1;
   // TODO: is there an upper limit for maxI in swizzle4?
-  static constexpr int maxI    = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = 2 * I;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1189,11 +1188,11 @@ struct Unswizzle4
 
   static constexpr int minI = 1;
   // TODO: is there an upper limit for maxI in unswizzle4?
-  static constexpr int maxI    = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = 2 * I;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1210,7 +1209,7 @@ struct Cmplt
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmplt"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1228,7 +1227,7 @@ struct Cmple
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmple"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1246,7 +1245,7 @@ struct Cmpeq
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmpeq"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1264,7 +1263,7 @@ struct Cmpge
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmpge"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1282,7 +1281,7 @@ struct Cmpgt
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmpgt"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1300,7 +1299,7 @@ struct Cmpneq
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmpneq"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1318,7 +1317,7 @@ struct And
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("and"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1336,7 +1335,7 @@ struct Or
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("or"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1354,7 +1353,7 @@ struct Andnot
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("andnot"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1372,7 +1371,7 @@ struct Xor
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("xor"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1390,7 +1389,7 @@ struct Not
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("not"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1407,7 +1406,7 @@ struct Avg
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("avg"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1428,7 +1427,7 @@ struct Test_all_zeros
     return t2s<T, SIMD_WIDTH>("test_all_zeros");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     if (rand() & 0x01)
       vec.randomize();
@@ -1451,7 +1450,7 @@ struct Test_all_ones
     return t2s<T, SIMD_WIDTH>("test_all_ones");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     if (rand() & 0x01)
       vec.randomize();
@@ -1474,7 +1473,7 @@ struct Reverse
     return t2s<T, SIMD_WIDTH>("reverse");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1495,11 +1494,11 @@ struct Convert
   }
 
   static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
-  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
-  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
+  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
@@ -1521,21 +1520,21 @@ struct Fdivmul
   }
 
   static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
-  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
-  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
+  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE SIMDFloat randomizeInputFloat()
+  static SIMD_INLINE Float randomizeInputFloat()
   {
-    return getRandomOrSpecialValueRanges<SIMDFloat>();
+    return getRandomOrSpecialValueRanges<Float>();
   }
 
-  static SIMD_INLINE void randomizeInput1(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput1(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
 
-  static SIMD_INLINE void randomizeInput2(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput2(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeRangesNonZero();
   }
@@ -1559,18 +1558,18 @@ struct Fmul
   }
 
   static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
-  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
-  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
+  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE SIMDFloat randomizeInputFloat()
+  static SIMD_INLINE Float randomizeInputFloat()
   {
-    return getRandomOrSpecialValueRanges<SIMDFloat>();
+    return getRandomOrSpecialValueRanges<Float>();
   }
 
   // 03. Aug 22 (Jonas Keller):
   // include zeros in the randomization of the input vectors
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   // { vec.randomizeRangesNonZero(); }
   {
     vec.randomizeRanges();
@@ -1594,18 +1593,18 @@ struct Faddmul
   }
 
   static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
-  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
-  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
+  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE SIMDFloat randomizeInputFloat()
+  static SIMD_INLINE Float randomizeInputFloat()
   {
-    return getRandomOrSpecialValueRanges<SIMDFloat>();
+    return getRandomOrSpecialValueRanges<Float>();
   }
 
   // 03. Aug 22 (Jonas Keller):
   // include zeros in the randomization of the input vectors
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   // { vec.randomizeRangesNonZero(); }
   {
     vec.randomizeRanges();
@@ -1629,18 +1628,18 @@ struct Fmuladd
   }
 
   static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
-  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
-  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
+  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE SIMDFloat randomizeInputFloat()
+  static SIMD_INLINE Float randomizeInputFloat()
   {
-    return getRandomOrSpecialValueRanges<SIMDFloat>();
+    return getRandomOrSpecialValueRanges<Float>();
   }
 
   // 03. Aug 22 (Jonas Keller):
   // include zeros in the randomization of the input vectors
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   // { vec.randomizeRangesNonZero(); }
   {
     vec.randomizeRanges();
@@ -1664,21 +1663,21 @@ struct Fwaddmul
   }
 
   static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
-  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
-  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
+  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE SIMDFloat randomizeInputFloat()
+  static SIMD_INLINE Float randomizeInputFloat()
   {
-    return getRandomOrSpecialValueRanges<SIMDFloat>();
+    return getRandomOrSpecialValueRanges<Float>();
   }
 
-  static SIMD_INLINE void randomizeInput1(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput1(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
 
-  static SIMD_INLINE void randomizeInput2(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput2(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
@@ -1699,9 +1698,9 @@ struct HaddMulti
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadd"); }
 
   // number of input elements
-  static constexpr int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int nInputs = SerialVec<T, SIMD_WIDTH>::elements;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1719,9 +1718,9 @@ struct HaddsMulti
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadds"); }
 
   // number of input elements
-  static constexpr int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int nInputs = SerialVec<T, SIMD_WIDTH>::elements;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1739,9 +1738,9 @@ struct HsubMulti
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsub"); }
 
   // number of input elements
-  static constexpr int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int nInputs = SerialVec<T, SIMD_WIDTH>::elements;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1759,9 +1758,9 @@ struct HsubsMulti
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsubs"); }
 
   // number of input elements
-  static constexpr int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int nInputs = SerialVec<T, SIMD_WIDTH>::elements;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1778,7 +1777,7 @@ struct HaddSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadd"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1795,7 +1794,7 @@ struct HaddsSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadds"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1812,7 +1811,7 @@ struct HsubSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsub"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1829,7 +1828,7 @@ struct HsubsSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsubs"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1846,7 +1845,7 @@ struct HminSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hmin"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1863,7 +1862,7 @@ struct HmaxSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hmax"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1884,7 +1883,7 @@ struct Transpose
     return t2s<T, SIMD_WIDTH>("transpose");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1905,7 +1904,7 @@ struct Transpose2
     return t2s<T, SIMD_WIDTH>("transpose2");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1929,9 +1928,9 @@ struct BitonicSort
   static constexpr int minI    = 0;
   static constexpr int maxI    = 2;
   static constexpr int nextI   = SLOPE + 1;
-  static constexpr int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1954,9 +1953,9 @@ struct BitonicSort2
   static constexpr int minI    = 0;
   static constexpr int maxI    = 2;
   static constexpr int nextI   = SLOPE + 1;
-  static constexpr int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -1979,9 +1978,9 @@ struct BitonicSortSortedPairs
   static constexpr int minI    = 0;
   static constexpr int maxI    = 2;
   static constexpr int nextI   = SLOPE + 1;
-  static constexpr int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeSorted(SLOPE);
   }
@@ -2004,9 +2003,9 @@ struct BitonicSortSortedPairs2
   static constexpr int minI    = 0;
   static constexpr int maxI    = 2;
   static constexpr int nextI   = SLOPE + 1;
-  static constexpr int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeSorted(SLOPE);
   }
@@ -2026,7 +2025,7 @@ struct Transpose0
     return t2s<T, SIMD_WIDTH>("transpose0");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2047,7 +2046,7 @@ struct Transpose16
     return t2s<T, SIMD_WIDTH>("transpose16");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2068,7 +2067,7 @@ struct Transpose3
     return t2s<T, SIMD_WIDTH>("transpose3");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2089,7 +2088,7 @@ struct Transpose4
     return t2s<T, SIMD_WIDTH>("transpose4");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2110,7 +2109,7 @@ struct Transpose5
     return t2s<T, SIMD_WIDTH>("transpose5");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2131,7 +2130,7 @@ struct Transpose1_16
     return t2s<T, SIMD_WIDTH>("transpose1_16");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2152,7 +2151,7 @@ struct Transpose6
     return t2s<T, SIMD_WIDTH>("transpose6");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2170,7 +2169,7 @@ struct Avgru
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("avgru"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2188,7 +2187,7 @@ struct Avgrd
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("avgrd"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2209,7 +2208,7 @@ struct Setones
     return t2s<T, SIMD_WIDTH>("setones");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2226,7 +2225,7 @@ struct Setmin
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("setmin"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2243,7 +2242,7 @@ struct Setmax
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("setmax"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2263,7 +2262,7 @@ struct Setnegunity
     return t2s<T, SIMD_WIDTH>("setnegunity");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2283,7 +2282,7 @@ struct Setunity
     return t2s<T, SIMD_WIDTH>("setunity");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2307,7 +2306,7 @@ struct PacksMulti
   // number of input elements
   static constexpr int nInputs = sizeof(T) / sizeof(Tout);
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
@@ -2328,12 +2327,12 @@ struct Ifelse
     return tt2s<Tcond, T, SIMD_WIDTH>("ifelse");
   }
 
-  static SIMD_INLINE void randomizeCond(SIMDSerialVec<Tcond, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeCond(SerialVec<Tcond, SIMD_WIDTH> &vec)
   {
     vec.randomizeCond();
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2352,7 +2351,7 @@ struct Div2r0
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("div2r0"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2369,7 +2368,7 @@ struct Div2rd
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("div2rd"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2391,7 +2390,7 @@ struct Msb2int
     return t2s<T, SIMD_WIDTH>("msb2int");
   }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2454,7 +2453,7 @@ struct Iota
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("iota"); }
 
-  static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -2467,6 +2466,6 @@ struct Iota
 };
 
 } // namespace auto_test
-} // namespace ns_simd
+} // namespace simd
 
 #endif // _SIMD_VEC_AUTO_TEST_WRAPPER_H_

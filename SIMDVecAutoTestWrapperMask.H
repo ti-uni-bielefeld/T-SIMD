@@ -37,21 +37,18 @@
 
 #include <string>
 
-namespace ns_simd {
+namespace simd {
 namespace auto_test {
 
 template <typename T, int SIMD_WIDTH>
 struct Mask_ifelse
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_ifelse"); }
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
-  static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
+  static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
   template <template <typename, int> class Vec,
             template <typename, int> class Mask>
   static Vec<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &cond,
@@ -66,14 +63,11 @@ template <typename T, int SIMD_WIDTH>
 struct Mask_ifelsezero
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_ifelsezero"); }
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
-  static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
+  static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
   template <template <typename, int> class Vec,
             template <typename, int> class Mask>
   static Vec<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &cond,
@@ -87,15 +81,12 @@ template <typename Tout, typename T, int SIMD_WIDTH>
 struct Mask_cvts
 {
   static std::string name() { return tt2s<Tout, T, SIMD_WIDTH>("mask_cvts"); }
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
-  static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
-  static void randomizeInput(SIMDSerialVec<Tout, SIMD_WIDTH> &vec)
+  static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
+  static void randomizeInput(SerialVec<Tout, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
@@ -113,14 +104,11 @@ template <typename Tout, typename T, int SIMD_WIDTH>
 struct MaskZ_cvts
 {
   static std::string name() { return tt2s<Tout, T, SIMD_WIDTH>("maskz_cvts"); }
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
-  static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
+  static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
   template <template <typename, int> class Vec,
             template <typename, int> class Mask>
   static Vec<Tout, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &k,
@@ -134,14 +122,11 @@ template <typename T, int SIMD_WIDTH>
 struct Mask_set1
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_set1"); }
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
-  static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
+  static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
   static T randomizeInputScalar() { return getRandom<T>(); }
   template <template <typename, int> class Vec,
             template <typename, int> class Mask>
@@ -156,7 +141,7 @@ template <typename T, int SIMD_WIDTH>
 struct MaskZ_set1
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("maskz_set1"); }
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
@@ -179,11 +164,11 @@ struct MaskZ_set1
     {                                                                          \
       return t2s<T, SIMD_WIDTH>("mask_" #OP);                                  \
     }                                                                          \
-    static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)            \
+    static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)                \
     {                                                                          \
       mask.randomize();                                                        \
     }                                                                          \
-    static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)              \
+    static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)                  \
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
@@ -205,11 +190,11 @@ struct MaskZ_set1
     {                                                                          \
       return t2s<T, SIMD_WIDTH>("maskz_" #OP);                                 \
     }                                                                          \
-    static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)            \
+    static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)                \
     {                                                                          \
       mask.randomize();                                                        \
     }                                                                          \
-    static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)              \
+    static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)                  \
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
@@ -237,11 +222,11 @@ struct MaskZ_set1
     static constexpr int minI  = 0;                                            \
     static constexpr int maxI  = sizeof(T) * 8 + 1;                            \
     static constexpr int nextI = IMM + 1;                                      \
-    static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)            \
+    static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)                \
     {                                                                          \
       mask.randomize();                                                        \
     }                                                                          \
-    static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)              \
+    static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)                  \
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
@@ -266,11 +251,11 @@ struct MaskZ_set1
     static constexpr int minI  = 0;                                            \
     static constexpr int maxI  = sizeof(T) * 8 + 1;                            \
     static constexpr int nextI = IMM + 1;                                      \
-    static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)            \
+    static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)                \
     {                                                                          \
       mask.randomize();                                                        \
     }                                                                          \
-    static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)              \
+    static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)                  \
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
@@ -295,11 +280,11 @@ struct MaskZ_set1
     {                                                                          \
       return t2s<T, SIMD_WIDTH>("mask_" #OP);                                  \
     }                                                                          \
-    static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)            \
+    static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)                \
     {                                                                          \
       mask.randomize();                                                        \
     }                                                                          \
-    static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)              \
+    static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)                  \
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
@@ -322,11 +307,11 @@ struct MaskZ_set1
     {                                                                          \
       return t2s<T, SIMD_WIDTH>("maskz_" #OP);                                 \
     }                                                                          \
-    static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)            \
+    static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)                \
     {                                                                          \
       mask.randomize();                                                        \
     }                                                                          \
-    static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)              \
+    static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)                  \
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
@@ -397,11 +382,11 @@ GENERATE_WRAPPER_MASK_MASKZ_BINARY(hsubs)
     {                                                                          \
       return t2s<T, SIMD_WIDTH>("mask_" #OP);                                  \
     }                                                                          \
-    static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)            \
+    static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)                \
     {                                                                          \
       mask.randomize();                                                        \
     }                                                                          \
-    static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)              \
+    static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)                  \
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
@@ -438,14 +423,11 @@ struct Mask_test_all_zeros
   {
     return t2s<T, SIMD_WIDTH>("mask_test_all_zeros");
   }
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
-  static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
+  static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
   template <template <typename, int> class Vec,
             template <typename, int> class Mask>
   static int apply(const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a)
@@ -458,14 +440,11 @@ template <typename T, int SIMD_WIDTH>
 struct Mask_test_all_ones
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_test_all_ones"); }
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
-  static void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
+  static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
   template <template <typename, int> class Vec,
             template <typename, int> class Mask>
   static int apply(const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a)
@@ -482,7 +461,7 @@ struct Mask_test_all_ones
     {                                                                          \
       return t2s<T, SIMD_WIDTH>(#OP);                                          \
     }                                                                          \
-    static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)            \
+    static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)                \
     {                                                                          \
       mask.randomize();                                                        \
     }                                                                          \
@@ -505,7 +484,7 @@ template <typename T, int SIMD_WIDTH>
 struct Knot
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("knot"); }
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
@@ -521,9 +500,9 @@ struct Kshiftli
 {
   static std::string name() { return ti2s<IMM, T, SIMD_WIDTH>("kshiftli"); }
   static constexpr int minI  = 0;
-  static constexpr int maxI  = SIMDSerialMask<T, SIMD_WIDTH>::bits + 1;
+  static constexpr int maxI  = SerialMask<T, SIMD_WIDTH>::bits + 1;
   static constexpr int nextI = IMM + 1;
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
@@ -539,9 +518,9 @@ struct Kshiftri
 {
   static std::string name() { return ti2s<IMM, T, SIMD_WIDTH>("kshiftri"); }
   static constexpr int minI  = 0;
-  static constexpr int maxI  = SIMDSerialMask<T, SIMD_WIDTH>::bits + 1;
+  static constexpr int maxI  = SerialMask<T, SIMD_WIDTH>::bits + 1;
   static constexpr int nextI = IMM + 1;
-  static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
@@ -620,6 +599,6 @@ struct Mask_set_false_high
 };
 
 } // namespace auto_test
-} // namespace ns_simd
+} // namespace simd
 
 #endif // _SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_

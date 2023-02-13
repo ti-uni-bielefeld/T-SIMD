@@ -914,6 +914,7 @@ INPUT                  = \
                          README.md \
                          README.SIMDMask \
                          SIMDAlloc.H \
+                         SIMDBackwardCompat.H \
                          SIMDDefs.H \
                          SIMDExperimental.H \
                          SIMDIntrinsIntel.H \

@@ -1,7 +1,7 @@
 // ===========================================================================
 //
 // SIMDVec.H --
-// generic template for SIMDVec
+// generic template for Vec
 //
 // This source code file is part of the following software:
 //
@@ -31,12 +31,12 @@
 /**
  * @brief Namespace for T-SIMD.
  */
-namespace ns_simd {
+namespace simd {
 
 // TODO: - absdiff also for unsigned types -> SSE lecture vecintrin66
 // TODO: - bitwise shift: what about float?
 // TODO: - loadr / storer
-// TODO: - saturated workarounds for adds/hadds for SIMDInt?
+// TODO: - saturated workarounds for adds/hadds for Int?
 // TODO: - element-wise rotation in a vector using alignre
 // TODO: - functions for rsqrt, rcp Newton *steps*?
 // TODO: - add to names rcp, rsqrt something with "estimate"?
@@ -46,10 +46,10 @@ namespace ns_simd {
 // TODO:   allowed by the standard
 
 // ===========================================================================
-// generic template for SIMDVec and SIMDMask
+// generic template for Vec and Mask
 // ===========================================================================
 
-// 30. Sep 19 (rm): SIMDMask support contributed by Markus Vieth
+// 30. Sep 19 (rm): Mask support contributed by Markus Vieth
 
 // specialized for type of elements and number of bytes in the SIMD vector
 /**
@@ -60,18 +60,18 @@ namespace ns_simd {
  * @tparam SIMD_WIDTH the number of bytes in the SIMD vector
  */
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
-class SIMDVec;
+class Vec;
 
 /**
  * @ingroup types
  * @brief SIMD mask class consisting of as many bits as the corresponding
- *        SIMDVec has elements.
+ *        Vec has elements.
  *
- * @tparam T the type of the elements of the corresponding SIMDVec
- * @tparam SIMD_WIDTH the number of bytes in the corresponding SIMDVec
+ * @tparam T the type of the elements of the corresponding Vec
+ * @tparam SIMD_WIDTH the number of bytes in the corresponding Vec
  */
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
-class SIMDMask;
-} // namespace ns_simd
+class Mask;
+} // namespace simd
 
 #endif

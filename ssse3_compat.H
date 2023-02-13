@@ -54,7 +54,7 @@
 
 #ifdef __SSE2__
 
-namespace ns_simd {
+namespace simd {
 
 // ===========================================================================
 // SSE3 replacements
@@ -297,7 +297,7 @@ static inline __m128i _mm_sign_epi16(__m128i a, __m128i b)
 
 #endif
 
-} // namespace ns_simd
+} // namespace simd
 
 #endif // __SSE2__
 

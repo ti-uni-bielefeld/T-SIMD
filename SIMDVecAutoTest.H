@@ -1,7 +1,7 @@
 // ===========================================================================
 //
 // SIMDVecAutoTest.H --
-// code for auto-test (comparison of SIMDVec and SIMDSerialVec behavior)
+// code for auto-test (comparison of Vec and SerialVec behavior)
 //
 // This source code file is part of the following software:
 //
@@ -63,7 +63,7 @@
 #include <string>
 #include <time.h>
 
-namespace ns_simd {
+namespace simd {
 namespace auto_test {
 
 // how many error cases should be printed to stdout
@@ -194,7 +194,7 @@ SIMD_INLINE void doNotOptimize(Tp &value)
 #define PRINT(FORMAT, VEC)                                                     \
   {                                                                            \
     printf(#VEC "\t= ");                                                       \
-    print(FORMAT, VEC.getSIMDVec());                                           \
+    print(FORMAT, VEC.getVec());                                               \
     puts("");                                                                  \
     fflush(stdout);                                                            \
   }
@@ -230,24 +230,24 @@ struct CmpEqual
   }
 
   template <typename T, int SIMD_WIDTH>
-  static bool cmpVec(SIMDSerialVec<T, SIMD_WIDTH> &expected,
-                     SIMDSerialVec<T, SIMD_WIDTH> &actual)
+  static bool cmpVec(SerialVec<T, SIMD_WIDTH> &expected,
+                     SerialVec<T, SIMD_WIDTH> &actual)
   {
-    if (memcmp(&expected, &actual, sizeof(SIMDSerialVec<T, SIMD_WIDTH>)) == 0) {
+    if (memcmp(&expected, &actual, sizeof(SerialVec<T, SIMD_WIDTH>)) == 0) {
       return true;
     }
-    for (int i = 0; i < SIMDSerialVec<T, SIMD_WIDTH>::elems; ++i) {
+    for (int i = 0; i < SerialVec<T, SIMD_WIDTH>::elems; ++i) {
       if (!cmpScalar(expected[i], actual[i])) { return false; }
     }
     return true;
   }
 
   template <typename T, int SIMD_WIDTH>
-  static bool cmpVec(SIMDSerialVec<T, SIMD_WIDTH> &expected,
-                     SIMDVec<T, SIMD_WIDTH> &actual)
+  static bool cmpVec(SerialVec<T, SIMD_WIDTH> &expected,
+                     Vec<T, SIMD_WIDTH> &actual)
   {
-    SIMDSerialVec<T, SIMD_WIDTH> actualSerial =
-      SIMDSerialVec<T, SIMD_WIDTH>::fromSIMDVec(actual);
+    SerialVec<T, SIMD_WIDTH> actualSerial =
+      SerialVec<T, SIMD_WIDTH>::fromVec(actual);
     return cmpVec(expected, actualSerial);
   }
 };
@@ -276,25 +276,25 @@ struct CmpRelError
   }
 
   template <typename T, int SIMD_WIDTH>
-  static bool cmpVec(SIMDSerialVec<T, SIMD_WIDTH> &expected,
-                     SIMDSerialVec<T, SIMD_WIDTH> &actual)
+  static bool cmpVec(SerialVec<T, SIMD_WIDTH> &expected,
+                     SerialVec<T, SIMD_WIDTH> &actual)
   {
     if (memcmp((void *) &expected, (void *) &actual,
-               sizeof(SIMDSerialVec<T, SIMD_WIDTH>)) == 0) {
+               sizeof(SerialVec<T, SIMD_WIDTH>)) == 0) {
       return true;
     }
-    for (int i = 0; i < SIMDSerialVec<T, SIMD_WIDTH>::elems; ++i) {
+    for (int i = 0; i < SerialVec<T, SIMD_WIDTH>::elems; ++i) {
       if (!cmpScalar(expected[i], actual[i])) { return false; }
     }
     return true;
   }
 
   template <typename T, int SIMD_WIDTH>
-  static bool cmpVec(SIMDSerialVec<T, SIMD_WIDTH> &expected,
-                     SIMDVec<T, SIMD_WIDTH> &actual)
+  static bool cmpVec(SerialVec<T, SIMD_WIDTH> &expected,
+                     Vec<T, SIMD_WIDTH> &actual)
   {
-    SIMDSerialVec<T, SIMD_WIDTH> actualSerial =
-      SIMDSerialVec<T, SIMD_WIDTH>::fromSIMDVec(actual);
+    SerialVec<T, SIMD_WIDTH> actualSerial =
+      SerialVec<T, SIMD_WIDTH>::fromVec(actual);
     return cmpVec(expected, actualSerial);
   }
 };
@@ -310,9 +310,9 @@ struct TestSignedInt
 {
   static void test(int repeats, const std::string &pattern)
   {
-    Tester<SIMDSignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDShort, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDInt, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -323,8 +323,8 @@ struct TestUnsignedInt
 {
   static void test(int repeats, const std::string &pattern)
   {
-    Tester<SIMDByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDWord, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -335,7 +335,7 @@ struct TestFloat
 {
   static void test(int repeats, const std::string &pattern)
   {
-    Tester<SIMDFloat, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -387,9 +387,9 @@ struct TestSignedIntTI
 {
   static void test(int repeats, const std::string &pattern)
   {
-    Tester<SIMDSignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDShort, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDInt, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -401,8 +401,8 @@ struct TestUnsignedIntTI
 {
   static void test(int repeats, const std::string &pattern)
   {
-    Tester<SIMDByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDWord, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -414,7 +414,7 @@ struct TestFloatTI
 {
   static void test(int repeats, const std::string &pattern)
   {
-    Tester<SIMDFloat, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -470,9 +470,9 @@ struct TestSignedIntTII
 {
   static void test(int repeats, const std::string &pattern)
   {
-    Tester<SIMDSignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDShort, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDInt, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -485,8 +485,8 @@ struct TestUnsignedIntTII
 {
   static void test(int repeats, const std::string &pattern)
   {
-    Tester<SIMDByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDWord, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -499,7 +499,7 @@ struct TestFloatTII
 {
   static void test(int repeats, const std::string &pattern)
   {
-    Tester<SIMDFloat, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -560,24 +560,24 @@ struct TestAllTT
   // read and make sure that all types are tested.
   static void test(int repeats, const std::string &pattern)
   {
-    testAllSeconds<SIMDByte>(repeats, pattern);
-    testAllSeconds<SIMDSignedByte>(repeats, pattern);
-    testAllSeconds<SIMDWord>(repeats, pattern);
-    testAllSeconds<SIMDShort>(repeats, pattern);
-    testAllSeconds<SIMDInt>(repeats, pattern);
-    testAllSeconds<SIMDFloat>(repeats, pattern);
+    testAllSeconds<Byte>(repeats, pattern);
+    testAllSeconds<SignedByte>(repeats, pattern);
+    testAllSeconds<Word>(repeats, pattern);
+    testAllSeconds<Short>(repeats, pattern);
+    testAllSeconds<Int>(repeats, pattern);
+    testAllSeconds<Float>(repeats, pattern);
   }
 
 private:
   template <typename T1>
   static void testAllSeconds(int repeats, const std::string &pattern)
   {
-    Tester<T1, SIMDByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<T1, SIMDSignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<T1, SIMDWord, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<T1, SIMDShort, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<T1, SIMDInt, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<T1, SIMDFloat, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<T1, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<T1, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<T1, Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<T1, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<T1, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<T1, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -596,21 +596,19 @@ struct TestAllTTSameSize
 {
   static void test(int repeats, const std::string &pattern)
   {
-    Tester<SIMDByte, SIMDByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDByte, SIMDSignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats,
-                                                                 pattern);
-    Tester<SIMDSignedByte, SIMDByte, SIMD_WIDTH, FCT, CMP>::test(repeats,
-                                                                 pattern);
-    Tester<SIMDSignedByte, SIMDSignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats,
-                                                                       pattern);
-    Tester<SIMDWord, SIMDWord, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDWord, SIMDShort, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDShort, SIMDWord, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDShort, SIMDShort, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDInt, SIMDInt, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDInt, SIMDFloat, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDFloat, SIMDInt, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-    Tester<SIMDFloat, SIMDFloat, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Byte, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Byte, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<SignedByte, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<SignedByte, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats,
+                                                               pattern);
+    Tester<Word, Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Word, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Short, Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Short, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Int, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Int, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -625,15 +623,15 @@ struct Nullary
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "";
-    SIMDSerialVec<T, SIMD_WIDTH> cs, cp;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> cs, cp;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
-        cs = FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>();
-        cp.setSIMDVec(FCT<T, SIMD_WIDTH>::template apply<SIMDVec>());
+        cs = FCT<T, SIMD_WIDTH>::template apply<SerialVec>();
+        cp.setVec(FCT<T, SIMD_WIDTH>::template apply<Vec>());
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -649,8 +647,7 @@ struct Nullary
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
-          SIMDVec<T, SIMD_WIDTH> res =
-            FCT<T, SIMD_WIDTH>::template apply<SIMDVec>();
+          Vec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::template apply<Vec>();
           doNotOptimize(res);
         }
       }
@@ -672,8 +669,8 @@ struct Unary
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SIMDSerialVec<T, SIMD_WIDTH> a, cs, cp;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a, cs, cp;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -681,7 +678,7 @@ struct Unary
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<T, SIMD_WIDTH>::apply(a);
-        cp.setSIMDVec(FCT<T, SIMD_WIDTH>::apply(a.getSIMDVec()));
+        cp.setVec(FCT<T, SIMD_WIDTH>::apply(a.getVec()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -695,13 +692,13 @@ struct Unary
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input;
+      Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<T, SIMD_WIDTH> res =
-            FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(input);
+          Vec<T, SIMD_WIDTH> res =
+            FCT<T, SIMD_WIDTH>::template apply<Vec>(input);
           doNotOptimize(res);
         }
       }
@@ -724,16 +721,16 @@ struct Scalar
   {
     std::string args = "s";
     T a;
-    SIMDSerialVec<T, SIMD_WIDTH> cs, cp;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> cs, cp;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         a  = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
-        cs = FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(a);
-        cp.setSIMDVec(FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(a));
+        cs = FCT<T, SIMD_WIDTH>::template apply<SerialVec>(a);
+        cp.setVec(FCT<T, SIMD_WIDTH>::template apply<Vec>(a));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -752,8 +749,8 @@ struct Scalar
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<T, SIMD_WIDTH> res =
-            FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(input);
+          Vec<T, SIMD_WIDTH> res =
+            FCT<T, SIMD_WIDTH>::template apply<Vec>(input);
           doNotOptimize(res);
         }
       }
@@ -778,16 +775,16 @@ struct ScalarUInt64
   {
     std::string args = "s";
     uint64_t a;
-    SIMDSerialVec<T, SIMD_WIDTH> cs, cp;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> cs, cp;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         a  = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
-        cs = FCT<T, SIMD_WIDTH>::template apply<SIMDSerialVec>(a);
-        cp.setSIMDVec(FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(a));
+        cs = FCT<T, SIMD_WIDTH>::template apply<SerialVec>(a);
+        cp.setVec(FCT<T, SIMD_WIDTH>::template apply<Vec>(a));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -806,8 +803,8 @@ struct ScalarUInt64
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<T, SIMD_WIDTH> res =
-            FCT<T, SIMD_WIDTH>::template apply<SIMDVec>(input);
+          Vec<T, SIMD_WIDTH> res =
+            FCT<T, SIMD_WIDTH>::template apply<Vec>(input);
           doNotOptimize(res);
         }
       }
@@ -830,10 +827,10 @@ struct UnaryScalar
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SIMDSerialVec<T, SIMD_WIDTH> a;
+    SerialVec<T, SIMD_WIDTH> a;
     TRES cs, cp;
-    const char *fmt    = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtRes = SIMDTypeInfo<TRES>::defaultFormat();
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtRes = TypeInfo<TRES>::defaultFormat();
     std::string name   = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -841,7 +838,7 @@ struct UnaryScalar
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<T, SIMD_WIDTH>::apply(a);
-        cp = FCT<T, SIMD_WIDTH>::apply(a.getSIMDVec());
+        cp = FCT<T, SIMD_WIDTH>::apply(a.getVec());
         if (!CMP::cmpScalar(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -855,7 +852,7 @@ struct UnaryScalar
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input;
+      Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
@@ -889,9 +886,9 @@ struct UnaryScalarUInt64
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SIMDSerialVec<T, SIMD_WIDTH> a;
+    SerialVec<T, SIMD_WIDTH> a;
     uint64_t cs, cp;
-    const char *fmt    = SIMDTypeInfo<T>::defaultFormat();
+    const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtRes = "%" PRIu64;
     std::string name   = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
@@ -900,7 +897,7 @@ struct UnaryScalarUInt64
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<T, SIMD_WIDTH>::apply(a);
-        cp = FCT<T, SIMD_WIDTH>::apply(a.getSIMDVec());
+        cp = FCT<T, SIMD_WIDTH>::apply(a.getVec());
         if (!CMP::cmpScalar(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -914,7 +911,7 @@ struct UnaryScalarUInt64
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input;
+      Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
@@ -943,11 +940,11 @@ struct UnaryUInt8
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SIMDSerialVec<T, SIMD_WIDTH> a;
+    SerialVec<T, SIMD_WIDTH> a;
     uint8_t b;
-    SIMDSerialVec<T, SIMD_WIDTH> cs, cp;
-    const char *fmt    = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtRes = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> cs, cp;
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtRes = TypeInfo<T>::defaultFormat();
     std::string name   = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -956,7 +953,7 @@ struct UnaryUInt8
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
         b  = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
         cs = FCT<T, SIMD_WIDTH>::apply(a, b);
-        cp.setSIMDVec(FCT<T, SIMD_WIDTH>::apply(a.getSIMDVec(), b));
+        cp.setVec(FCT<T, SIMD_WIDTH>::apply(a.getVec(), b));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -971,12 +968,12 @@ struct UnaryUInt8
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input;
+      Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input, 0);
+          Vec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input, 0);
           doNotOptimize(res);
         }
       }
@@ -998,10 +995,10 @@ struct UnaryTemplateType
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SIMDSerialVec<T, SIMD_WIDTH> a;
-    SIMDSerialVec<Tout, SIMD_WIDTH> cs, cp;
-    const char *fmt    = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a;
+    SerialVec<Tout, SIMD_WIDTH> cs, cp;
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtOut = TypeInfo<Tout>::defaultFormat();
     std::string name   = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -1009,7 +1006,7 @@ struct UnaryTemplateType
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<Tout, T, SIMD_WIDTH>::apply(a);
-        cp.setSIMDVec(FCT<Tout, T, SIMD_WIDTH>::apply(a.getSIMDVec()));
+        cp.setVec(FCT<Tout, T, SIMD_WIDTH>::apply(a.getVec()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -1023,13 +1020,12 @@ struct UnaryTemplateType
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input;
+      Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<Tout, SIMD_WIDTH> res =
-            FCT<Tout, T, SIMD_WIDTH>::apply(input);
+          Vec<Tout, SIMD_WIDTH> res = FCT<Tout, T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
         }
       }
@@ -1051,9 +1047,9 @@ struct UnaryTemplateIntScalar
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SIMDSerialVec<T, SIMD_WIDTH> a;
+    SerialVec<T, SIMD_WIDTH> a;
     T cp, cs;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -1061,7 +1057,7 @@ struct UnaryTemplateIntScalar
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<I, T, SIMD_WIDTH>::apply(a);
-        cp = FCT<I, T, SIMD_WIDTH>::apply(a.getSIMDVec());
+        cp = FCT<I, T, SIMD_WIDTH>::apply(a.getVec());
         if (!CMP::cmpScalar(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -1075,7 +1071,7 @@ struct UnaryTemplateIntScalar
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input;
+      Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
@@ -1124,8 +1120,8 @@ struct UnaryTemplateInt
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SIMDSerialVec<T, SIMD_WIDTH> a, cp, cs;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a, cp, cs;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -1133,7 +1129,7 @@ struct UnaryTemplateInt
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<I, T, SIMD_WIDTH>::apply(a);
-        cp.setSIMDVec(FCT<I, T, SIMD_WIDTH>::apply(a.getSIMDVec()));
+        cp.setVec(FCT<I, T, SIMD_WIDTH>::apply(a.getVec()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -1147,12 +1143,12 @@ struct UnaryTemplateInt
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input;
+      Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<T, SIMD_WIDTH> res = FCT<I, T, SIMD_WIDTH>::apply(input);
+          Vec<T, SIMD_WIDTH> res = FCT<I, T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
         }
       }
@@ -1199,9 +1195,9 @@ struct UnaryTemplateInt16
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SIMDSerialVec<T, SIMD_WIDTH> a;
-    SIMDSerialVec<T, 16> cp, cs;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a;
+    SerialVec<T, 16> cp, cs;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -1209,7 +1205,7 @@ struct UnaryTemplateInt16
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<I, T, SIMD_WIDTH>::apply(a);
-        cp.setSIMDVec(FCT<I, T, SIMD_WIDTH>::apply(a.getSIMDVec()));
+        cp.setVec(FCT<I, T, SIMD_WIDTH>::apply(a.getVec()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -1223,12 +1219,12 @@ struct UnaryTemplateInt16
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input;
+      Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<T, 16> res = FCT<I, T, SIMD_WIDTH>::apply(input);
+          Vec<T, 16> res = FCT<I, T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
         }
       }
@@ -1272,8 +1268,8 @@ struct Binary
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v";
-    SIMDSerialVec<T, SIMD_WIDTH> a, b, cs, cp;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a, b, cs, cp;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -1282,8 +1278,7 @@ struct Binary
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
         FCT<T, SIMD_WIDTH>::randomizeInput(b);
         cs = FCT<T, SIMD_WIDTH>::apply(a, b);
-        cp.setSIMDVec(
-          FCT<T, SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec()));
+        cp.setVec(FCT<T, SIMD_WIDTH>::apply(a.getVec(), b.getVec()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -1298,14 +1293,13 @@ struct Binary
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input1, input2;
+      Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
-          SIMDVec<T, SIMD_WIDTH> res =
-            FCT<T, SIMD_WIDTH>::apply(input1, input2);
+          Vec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input1, input2);
           doNotOptimize(res);
         }
       }
@@ -1327,10 +1321,10 @@ struct BinaryTemplateType
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v";
-    SIMDSerialVec<T, SIMD_WIDTH> a, b;
-    SIMDSerialVec<Tout, SIMD_WIDTH> cs, cp;
-    const char *fmt    = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a, b;
+    SerialVec<Tout, SIMD_WIDTH> cs, cp;
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtOut = TypeInfo<Tout>::defaultFormat();
     std::string name   = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -1339,8 +1333,7 @@ struct BinaryTemplateType
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(b);
         cs = FCT<Tout, T, SIMD_WIDTH>::apply(a, b);
-        cp.setSIMDVec(
-          FCT<Tout, T, SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec()));
+        cp.setVec(FCT<Tout, T, SIMD_WIDTH>::apply(a.getVec(), b.getVec()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -1355,13 +1348,13 @@ struct BinaryTemplateType
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input1, input2;
+      Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
-          SIMDVec<Tout, SIMD_WIDTH> res =
+          Vec<Tout, SIMD_WIDTH> res =
             FCT<Tout, T, SIMD_WIDTH>::apply(input1, input2);
           doNotOptimize(res);
         }
@@ -1385,25 +1378,26 @@ struct UnaryArrayTemplateType
   {
     std::string args   = "v,*v";
     const int nOutVecs = sizeof(Tout) / sizeof(T);
-    SIMDSerialVec<T, SIMD_WIDTH> a;
-    const char *fmt    = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a;
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtOut = TypeInfo<Tout>::defaultFormat();
     std::string name   = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       // allocate on the heap to avoid stack overflow
-      SIMDSerialVec<Tout, SIMD_WIDTH>
-        *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[nOutVecs],
-        *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[nOutVecs];
-      SIMDVec<Tout, SIMD_WIDTH> *_cp = new SIMDVec<Tout, SIMD_WIDTH>[nOutVecs];
+      SerialVec<Tout, SIMD_WIDTH> *cs =
+                                    new SerialVec<Tout, SIMD_WIDTH>[nOutVecs],
+                                  *cp =
+                                    new SerialVec<Tout, SIMD_WIDTH>[nOutVecs];
+      Vec<Tout, SIMD_WIDTH> *_cp = new Vec<Tout, SIMD_WIDTH>[nOutVecs];
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<Tout, T, SIMD_WIDTH>::apply(a, cs);
-        FCT<Tout, T, SIMD_WIDTH>::apply(a.getSIMDVec(), _cp);
+        FCT<Tout, T, SIMD_WIDTH>::apply(a.getVec(), _cp);
         bool foundError = false;
         for (int io = 0; io < nOutVecs; io++) {
-          cp[io].setSIMDVec(_cp[io]);
+          cp[io].setVec(_cp[io]);
           if (!CMP::cmpVec(cs[io], cp[io])) foundError = true;
         }
         if (foundError) {
@@ -1424,12 +1418,12 @@ struct UnaryArrayTemplateType
       delete[] _cp;
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input;
+      Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<Tout, SIMD_WIDTH> res[nOutVecs];
+          Vec<Tout, SIMD_WIDTH> res[nOutVecs];
           FCT<Tout, T, SIMD_WIDTH>::apply(input, res);
           doNotOptimize(res);
         }
@@ -1453,23 +1447,22 @@ struct Array
   {
     std::string args  = "*v";
     const int nInVecs = FCT<T, SIMD_WIDTH>::nInputs;
-    SIMDSerialVec<T, SIMD_WIDTH> cs, cp;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> cs, cp;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       // allocate on the heap to avoid stack overflow
-      SIMDSerialVec<T, SIMD_WIDTH> *a =
-        new SIMDSerialVec<T, SIMD_WIDTH>[nInVecs];
-      SIMDVec<T, SIMD_WIDTH> *_a = new SIMDVec<T, SIMD_WIDTH>[nInVecs];
+      SerialVec<T, SIMD_WIDTH> *a = new SerialVec<T, SIMD_WIDTH>[nInVecs];
+      Vec<T, SIMD_WIDTH> *_a      = new Vec<T, SIMD_WIDTH>[nInVecs];
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < nInVecs; j++) {
           FCT<T, SIMD_WIDTH>::randomizeInput(a[j]);
-          _a[j] = a[j].getSIMDVec();
+          _a[j] = a[j].getVec();
         }
         cs = FCT<T, SIMD_WIDTH>::apply(a);
-        cp.setSIMDVec(FCT<T, SIMD_WIDTH>::apply(_a));
+        cp.setVec(FCT<T, SIMD_WIDTH>::apply(_a));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -1485,12 +1478,12 @@ struct Array
       delete[] _a;
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input[nInVecs];
+      Vec<T, SIMD_WIDTH> input[nInVecs];
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input);
+          Vec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
         }
       }
@@ -1513,24 +1506,23 @@ struct ArrayTemplateType
   {
     std::string args  = "*v";
     const int nInVecs = FCT<Tout, T, SIMD_WIDTH>::nInputs;
-    SIMDSerialVec<Tout, SIMD_WIDTH> cs, cp;
-    const char *fmt    = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtOut = SIMDTypeInfo<Tout>::defaultFormat();
+    SerialVec<Tout, SIMD_WIDTH> cs, cp;
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtOut = TypeInfo<Tout>::defaultFormat();
     std::string name   = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       // allocate on the heap to avoid stack overflow
-      SIMDSerialVec<T, SIMD_WIDTH> *a =
-        new SIMDSerialVec<T, SIMD_WIDTH>[nInVecs];
-      SIMDVec<T, SIMD_WIDTH> *_a = new SIMDVec<T, SIMD_WIDTH>[nInVecs];
+      SerialVec<T, SIMD_WIDTH> *a = new SerialVec<T, SIMD_WIDTH>[nInVecs];
+      Vec<T, SIMD_WIDTH> *_a      = new Vec<T, SIMD_WIDTH>[nInVecs];
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < nInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a[j]);
-          _a[j] = a[j].getSIMDVec();
+          _a[j] = a[j].getVec();
         }
         cs = FCT<Tout, T, SIMD_WIDTH>::apply(a);
-        cp.setSIMDVec(FCT<Tout, T, SIMD_WIDTH>::apply(_a));
+        cp.setVec(FCT<Tout, T, SIMD_WIDTH>::apply(_a));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -1546,13 +1538,12 @@ struct ArrayTemplateType
       delete[] _a;
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input[nInVecs];
+      Vec<T, SIMD_WIDTH> input[nInVecs];
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<Tout, SIMD_WIDTH> res =
-            FCT<Tout, T, SIMD_WIDTH>::apply(input);
+          Vec<Tout, SIMD_WIDTH> res = FCT<Tout, T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
         }
       }
@@ -1575,21 +1566,21 @@ struct ArrayArrayVoid
   {
     std::string args = "*v,*v";
     const int n      = SIMD_WIDTH / sizeof(T);
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       // allocate on the heap to avoid stack overflow
-      SIMDSerialVec<T, SIMD_WIDTH> *as = new SIMDSerialVec<T, SIMD_WIDTH>[n],
-                                   *cs = new SIMDSerialVec<T, SIMD_WIDTH>[n],
-                                   *cp = new SIMDSerialVec<T, SIMD_WIDTH>[n];
-      SIMDVec<T, SIMD_WIDTH> *_ap      = new SIMDVec<T, SIMD_WIDTH>[n],
-                             *_cp      = new SIMDVec<T, SIMD_WIDTH>[n];
+      SerialVec<T, SIMD_WIDTH> *as = new SerialVec<T, SIMD_WIDTH>[n],
+                               *cs = new SerialVec<T, SIMD_WIDTH>[n],
+                               *cp = new SerialVec<T, SIMD_WIDTH>[n];
+      Vec<T, SIMD_WIDTH> *_ap      = new Vec<T, SIMD_WIDTH>[n],
+                         *_cp      = new Vec<T, SIMD_WIDTH>[n];
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < n; j++) {
           FCT<T, SIMD_WIDTH>::randomizeInput(as[j]);
-          _ap[j] = as[j].getSIMDVec();
+          _ap[j] = as[j].getVec();
         }
         // apply function
         FCT<T, SIMD_WIDTH>::apply(as, cs);
@@ -1597,8 +1588,8 @@ struct ArrayArrayVoid
         // compare results
         bool equal = true;
         for (int j = 0; j < n; j++) {
-          // assign SIMDVec -> SIMDSerialVec
-          cp[j].setSIMDVec(_cp[j]);
+          // assign Vec -> SerialVec
+          cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
         }
         if (!equal) {
@@ -1623,12 +1614,12 @@ struct ArrayArrayVoid
       delete[] _cp;
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input[n];
+      Vec<T, SIMD_WIDTH> input[n];
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<T, SIMD_WIDTH> res[n];
+          Vec<T, SIMD_WIDTH> res[n];
           FCT<T, SIMD_WIDTH>::apply(input, res);
           doNotOptimize(res);
         }
@@ -1653,25 +1644,24 @@ struct ArrayArrayVoidTemplateType
     std::string args     = "*v,*v";
     const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
     const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
-    const char *fmt      = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtOut   = SIMDTypeInfo<Tout>::defaultFormat();
+    const char *fmt      = TypeInfo<T>::defaultFormat();
+    const char *fmtOut   = TypeInfo<Tout>::defaultFormat();
     std::string name     = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       // allocate on the heap to avoid stack overflow
-      SIMDSerialVec<T, SIMD_WIDTH> *as =
-        new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDSerialVec<Tout, SIMD_WIDTH>
-        *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs],
-        *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs];
-      SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDVec<Tout, SIMD_WIDTH> *_cp =
-        new SIMDVec<Tout, SIMD_WIDTH>[numOutVecs];
+      SerialVec<T, SIMD_WIDTH> *as = new SerialVec<T, SIMD_WIDTH>[numInVecs];
+      SerialVec<Tout, SIMD_WIDTH> *cs =
+                                    new SerialVec<Tout, SIMD_WIDTH>[numOutVecs],
+                                  *cp =
+                                    new SerialVec<Tout, SIMD_WIDTH>[numOutVecs];
+      Vec<T, SIMD_WIDTH> *_ap    = new Vec<T, SIMD_WIDTH>[numInVecs];
+      Vec<Tout, SIMD_WIDTH> *_cp = new Vec<Tout, SIMD_WIDTH>[numOutVecs];
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput(as[j]);
-          _ap[j] = as[j].getSIMDVec();
+          _ap[j] = as[j].getVec();
         }
         // apply function
         FCT<Tout, T, SIMD_WIDTH>::apply(as, cs);
@@ -1679,8 +1669,8 @@ struct ArrayArrayVoidTemplateType
         // compare results
         bool equal = true;
         for (int j = 0; j < numOutVecs; j++) {
-          // assign SIMDVec -> SIMDSerialVec
-          cp[j].setSIMDVec(_cp[j]);
+          // assign Vec -> SerialVec
+          cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
         }
         if (!equal) {
@@ -1705,12 +1695,12 @@ struct ArrayArrayVoidTemplateType
       delete[] _cp;
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input[numInVecs];
+      Vec<T, SIMD_WIDTH> input[numInVecs];
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
-          SIMDVec<Tout, SIMD_WIDTH> res[numOutVecs];
+          Vec<Tout, SIMD_WIDTH> res[numOutVecs];
           FCT<Tout, T, SIMD_WIDTH>::apply(input, res);
           doNotOptimize(res);
         }
@@ -1735,26 +1725,25 @@ struct ArrayDoubleArrayVoidTemplateType
     std::string args     = "*v,s,*v";
     const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
     const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
-    const char *fmt      = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtOut   = SIMDTypeInfo<Tout>::defaultFormat();
+    const char *fmt      = TypeInfo<T>::defaultFormat();
+    const char *fmtOut   = TypeInfo<Tout>::defaultFormat();
     std::string name     = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       // allocate on the heap to avoid stack overflow
-      SIMDSerialVec<T, SIMD_WIDTH> *as =
-        new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDSerialVec<Tout, SIMD_WIDTH>
-        *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs],
-        *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs];
-      SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDVec<Tout, SIMD_WIDTH> *_cp =
-        new SIMDVec<Tout, SIMD_WIDTH>[numOutVecs];
+      SerialVec<T, SIMD_WIDTH> *as = new SerialVec<T, SIMD_WIDTH>[numInVecs];
+      SerialVec<Tout, SIMD_WIDTH> *cs =
+                                    new SerialVec<Tout, SIMD_WIDTH>[numOutVecs],
+                                  *cp =
+                                    new SerialVec<Tout, SIMD_WIDTH>[numOutVecs];
+      Vec<T, SIMD_WIDTH> *_ap    = new Vec<T, SIMD_WIDTH>[numInVecs];
+      Vec<Tout, SIMD_WIDTH> *_cp = new Vec<Tout, SIMD_WIDTH>[numOutVecs];
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         double d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         for (int j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput(as[j]);
-          _ap[j] = as[j].getSIMDVec();
+          _ap[j] = as[j].getVec();
         }
         // apply function
         FCT<Tout, T, SIMD_WIDTH>::apply(as, d, cs);
@@ -1762,8 +1751,8 @@ struct ArrayDoubleArrayVoidTemplateType
         // compare results
         bool equal = true;
         for (int j = 0; j < numOutVecs; j++) {
-          // assign SIMDVec -> SIMDSerialVec
-          cp[j].setSIMDVec(_cp[j]);
+          // assign Vec -> SerialVec
+          cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
         }
         if (!equal) {
@@ -1789,14 +1778,14 @@ struct ArrayDoubleArrayVoidTemplateType
       delete[] _cp;
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input[numInVecs];
+      Vec<T, SIMD_WIDTH> input[numInVecs];
       double inputD         = 1.0;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           doNotOptimize(inputD);
-          SIMDVec<Tout, SIMD_WIDTH> res[numOutVecs];
+          Vec<Tout, SIMD_WIDTH> res[numOutVecs];
           FCT<Tout, T, SIMD_WIDTH>::apply(input, inputD, res);
           doNotOptimize(res);
         }
@@ -1821,27 +1810,26 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
     std::string args     = "*v,s,s,*v";
     const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
     const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
-    const char *fmt      = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtOut   = SIMDTypeInfo<Tout>::defaultFormat();
+    const char *fmt      = TypeInfo<T>::defaultFormat();
+    const char *fmtOut   = TypeInfo<Tout>::defaultFormat();
     std::string name     = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       // allocate on the heap to avoid stack overflow
-      SIMDSerialVec<T, SIMD_WIDTH> *as =
-        new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDSerialVec<Tout, SIMD_WIDTH>
-        *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs],
-        *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs];
-      SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDVec<Tout, SIMD_WIDTH> *_cp =
-        new SIMDVec<Tout, SIMD_WIDTH>[numOutVecs];
+      SerialVec<T, SIMD_WIDTH> *as = new SerialVec<T, SIMD_WIDTH>[numInVecs];
+      SerialVec<Tout, SIMD_WIDTH> *cs =
+                                    new SerialVec<Tout, SIMD_WIDTH>[numOutVecs],
+                                  *cp =
+                                    new SerialVec<Tout, SIMD_WIDTH>[numOutVecs];
+      Vec<T, SIMD_WIDTH> *_ap    = new Vec<T, SIMD_WIDTH>[numInVecs];
+      Vec<Tout, SIMD_WIDTH> *_cp = new Vec<Tout, SIMD_WIDTH>[numOutVecs];
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         double d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         double d2 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         for (int j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput(as[j]);
-          _ap[j] = as[j].getSIMDVec();
+          _ap[j] = as[j].getVec();
         }
         // apply function
         FCT<Tout, T, SIMD_WIDTH>::apply(as, d1, d2, cs);
@@ -1849,8 +1837,8 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
         // compare results
         bool equal = true;
         for (int j = 0; j < numOutVecs; j++) {
-          // assign SIMDVec -> SIMDSerialVec
-          cp[j].setSIMDVec(_cp[j]);
+          // assign Vec -> SerialVec
+          cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
         }
         if (!equal) {
@@ -1876,7 +1864,7 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
       delete[] _cp;
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input[numInVecs];
+      Vec<T, SIMD_WIDTH> input[numInVecs];
       double inputD1 = 1.0, inputD2 = 1.0;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1884,7 +1872,7 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
           doNotOptimize(input);
           doNotOptimize(inputD1);
           doNotOptimize(inputD2);
-          SIMDVec<Tout, SIMD_WIDTH> res[numOutVecs];
+          Vec<Tout, SIMD_WIDTH> res[numOutVecs];
           FCT<Tout, T, SIMD_WIDTH>::apply(input, inputD1, inputD2, res);
           doNotOptimize(res);
         }
@@ -1909,31 +1897,29 @@ struct ArrayArrayDoubleArrayVoidTemplateType
     std::string args     = "*v,*v,s,*v";
     const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
     const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
-    const char *fmt      = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtOut   = SIMDTypeInfo<Tout>::defaultFormat();
+    const char *fmt      = TypeInfo<T>::defaultFormat();
+    const char *fmtOut   = TypeInfo<Tout>::defaultFormat();
     std::string name     = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       // allocate on the heap to avoid stack overflow
-      SIMDSerialVec<T, SIMD_WIDTH> *as =
-        new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDSerialVec<T, SIMD_WIDTH> *bs =
-        new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDSerialVec<Tout, SIMD_WIDTH>
-        *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs],
-        *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs];
-      SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDVec<T, SIMD_WIDTH> *_bp = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDVec<Tout, SIMD_WIDTH> *_cp =
-        new SIMDVec<Tout, SIMD_WIDTH>[numOutVecs];
+      SerialVec<T, SIMD_WIDTH> *as = new SerialVec<T, SIMD_WIDTH>[numInVecs];
+      SerialVec<T, SIMD_WIDTH> *bs = new SerialVec<T, SIMD_WIDTH>[numInVecs];
+      SerialVec<Tout, SIMD_WIDTH> *cs =
+                                    new SerialVec<Tout, SIMD_WIDTH>[numOutVecs],
+                                  *cp =
+                                    new SerialVec<Tout, SIMD_WIDTH>[numOutVecs];
+      Vec<T, SIMD_WIDTH> *_ap    = new Vec<T, SIMD_WIDTH>[numInVecs];
+      Vec<T, SIMD_WIDTH> *_bp    = new Vec<T, SIMD_WIDTH>[numInVecs];
+      Vec<Tout, SIMD_WIDTH> *_cp = new Vec<Tout, SIMD_WIDTH>[numOutVecs];
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         double d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         for (int j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput1(as[j]);
-          _ap[j] = as[j].getSIMDVec();
+          _ap[j] = as[j].getVec();
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput2(bs[j]);
-          _bp[j] = bs[j].getSIMDVec();
+          _bp[j] = bs[j].getVec();
         }
         // apply function
         FCT<Tout, T, SIMD_WIDTH>::apply(as, bs, d, cs);
@@ -1941,8 +1927,8 @@ struct ArrayArrayDoubleArrayVoidTemplateType
         // compare results
         bool equal = true;
         for (int j = 0; j < numOutVecs; j++) {
-          // assign SIMDVec -> SIMDSerialVec
-          cp[j].setSIMDVec(_cp[j]);
+          // assign Vec -> SerialVec
+          cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
         }
         if (!equal) {
@@ -1973,7 +1959,7 @@ struct ArrayArrayDoubleArrayVoidTemplateType
       delete[] _cp;
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
+      Vec<T, SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
       double inputD         = 1.0;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1981,7 +1967,7 @@ struct ArrayArrayDoubleArrayVoidTemplateType
           doNotOptimize(input1);
           doNotOptimize(input2);
           doNotOptimize(inputD);
-          SIMDVec<Tout, SIMD_WIDTH> res[numOutVecs];
+          Vec<Tout, SIMD_WIDTH> res[numOutVecs];
           FCT<Tout, T, SIMD_WIDTH>::apply(input1, input2, inputD, res);
           doNotOptimize(res);
         }
@@ -2006,31 +1992,30 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
     std::string args     = "*v,*v,s,s,*v";
     const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
     const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
-    const char *fmt      = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtOut   = SIMDTypeInfo<Tout>::defaultFormat();
+    const char *fmt      = TypeInfo<T>::defaultFormat();
+    const char *fmtOut   = TypeInfo<Tout>::defaultFormat();
     std::string name     = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       // allocate on the heap to avoid stack overflow
-      SIMDSerialVec<T, SIMD_WIDTH>
-        *as = new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs],
-        *bs = new SIMDSerialVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDSerialVec<Tout, SIMD_WIDTH>
-        *cs = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs],
-        *cp = new SIMDSerialVec<Tout, SIMD_WIDTH>[numOutVecs];
-      SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numInVecs],
-                             *_bp = new SIMDVec<T, SIMD_WIDTH>[numInVecs];
-      SIMDVec<Tout, SIMD_WIDTH> *_cp =
-        new SIMDVec<Tout, SIMD_WIDTH>[numOutVecs];
+      SerialVec<T, SIMD_WIDTH> *as = new SerialVec<T, SIMD_WIDTH>[numInVecs],
+                               *bs = new SerialVec<T, SIMD_WIDTH>[numInVecs];
+      SerialVec<Tout, SIMD_WIDTH> *cs =
+                                    new SerialVec<Tout, SIMD_WIDTH>[numOutVecs],
+                                  *cp =
+                                    new SerialVec<Tout, SIMD_WIDTH>[numOutVecs];
+      Vec<T, SIMD_WIDTH> *_ap    = new Vec<T, SIMD_WIDTH>[numInVecs],
+                         *_bp    = new Vec<T, SIMD_WIDTH>[numInVecs];
+      Vec<Tout, SIMD_WIDTH> *_cp = new Vec<Tout, SIMD_WIDTH>[numOutVecs];
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         double d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         double d2 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         for (int j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput1(as[j]);
-          _ap[j] = as[j].getSIMDVec();
+          _ap[j] = as[j].getVec();
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput2(bs[j]);
-          _bp[j] = bs[j].getSIMDVec();
+          _bp[j] = bs[j].getVec();
         }
         // apply function
         FCT<Tout, T, SIMD_WIDTH>::apply(as, bs, d1, d2, cs);
@@ -2038,8 +2023,8 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
         // compare results
         bool equal = true;
         for (int j = 0; j < numOutVecs; j++) {
-          // assign SIMDVec -> SIMDSerialVec
-          cp[j].setSIMDVec(_cp[j]);
+          // assign Vec -> SerialVec
+          cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
         }
         if (!equal) {
@@ -2070,7 +2055,7 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
       delete[] _cp;
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
+      Vec<T, SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
       double inputD1 = 1.0, inputD2 = 1.0;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -2079,7 +2064,7 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
           doNotOptimize(input2);
           doNotOptimize(inputD1);
           doNotOptimize(inputD2);
-          SIMDVec<Tout, SIMD_WIDTH> res[numOutVecs];
+          Vec<Tout, SIMD_WIDTH> res[numOutVecs];
           FCT<Tout, T, SIMD_WIDTH>::apply(input1, input2, inputD1, inputD2,
                                           res);
           doNotOptimize(res);
@@ -2104,23 +2089,20 @@ struct ArrayVoidTemplateInt
   {
     std::string args  = "*v";
     const int numVecs = FCT<I, T, SIMD_WIDTH>::numVecs;
-    const char *fmt   = SIMDTypeInfo<T>::defaultFormat();
+    const char *fmt   = TypeInfo<T>::defaultFormat();
     std::string name  = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
       // allocate on the heap to avoid stack overflow
-      SIMDSerialVec<T, SIMD_WIDTH> *as =
-                                     new SIMDSerialVec<T, SIMD_WIDTH>[numVecs],
-                                   *ap =
-                                     new SIMDSerialVec<T, SIMD_WIDTH>[numVecs],
-                                   *a =
-                                     new SIMDSerialVec<T, SIMD_WIDTH>[numVecs];
-      SIMDVec<T, SIMD_WIDTH> *_ap = new SIMDVec<T, SIMD_WIDTH>[numVecs];
+      SerialVec<T, SIMD_WIDTH> *as = new SerialVec<T, SIMD_WIDTH>[numVecs],
+                               *ap = new SerialVec<T, SIMD_WIDTH>[numVecs],
+                               *a  = new SerialVec<T, SIMD_WIDTH>[numVecs];
+      Vec<T, SIMD_WIDTH> *_ap      = new Vec<T, SIMD_WIDTH>[numVecs];
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < numVecs; j++) {
           FCT<N, T, SIMD_WIDTH>::randomizeInput(as[j]);
-          _ap[j] = as[j].getSIMDVec();
+          _ap[j] = as[j].getVec();
           // make a copy of the input
           a[j] = as[j];
         }
@@ -2130,8 +2112,8 @@ struct ArrayVoidTemplateInt
         // compare results
         bool equal = true;
         for (int j = 0; j < numVecs; j++) {
-          // assign SIMDVec -> SIMDSerialVec
-          ap[j].setSIMDVec(_ap[j]);
+          // assign Vec -> SerialVec
+          ap[j].setVec(_ap[j]);
           if (!CMP::cmpVec(as[j], ap[j])) equal = false;
         }
         if (!equal) {
@@ -2155,7 +2137,7 @@ struct ArrayVoidTemplateInt
       delete[] _ap;
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input[numVecs];
+      Vec<T, SIMD_WIDTH> input[numVecs];
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
@@ -2203,8 +2185,8 @@ struct BinaryTemplateInt
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v";
-    SIMDSerialVec<T, SIMD_WIDTH> a, b, cp, cs;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a, b, cp, cs;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -2213,8 +2195,7 @@ struct BinaryTemplateInt
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<I, T, SIMD_WIDTH>::randomizeInput(b);
         cs = FCT<I, T, SIMD_WIDTH>::apply(a, b);
-        cp.setSIMDVec(
-          FCT<I, T, SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec()));
+        cp.setVec(FCT<I, T, SIMD_WIDTH>::apply(a.getVec(), b.getVec()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -2229,13 +2210,13 @@ struct BinaryTemplateInt
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input1, input2;
+      Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
-          SIMDVec<T, SIMD_WIDTH> result =
+          Vec<T, SIMD_WIDTH> result =
             FCT<I, T, SIMD_WIDTH>::apply(input1, input2);
           doNotOptimize(result);
         }
@@ -2280,9 +2261,9 @@ struct BinaryBinaryTemplateInt
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v,v&,v&";
-    SIMDSerialVec<T, SIMD_WIDTH> a, b, cs, cp, ds, dp;
-    SIMDVec<T, SIMD_WIDTH> _cp, _dp;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a, b, cs, cp, ds, dp;
+    Vec<T, SIMD_WIDTH> _cp, _dp;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -2291,9 +2272,9 @@ struct BinaryBinaryTemplateInt
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<I, T, SIMD_WIDTH>::randomizeInput(b);
         FCT<I, T, SIMD_WIDTH>::apply(a, b, cs, ds);
-        FCT<I, T, SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec(), _cp, _dp);
-        cp.setSIMDVec(_cp);
-        dp.setSIMDVec(_dp);
+        FCT<I, T, SIMD_WIDTH>::apply(a.getVec(), b.getVec(), _cp, _dp);
+        cp.setVec(_cp);
+        dp.setVec(_dp);
         if (!CMP::cmpVec(cs, cp) || !CMP::cmpVec(ds, dp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -2310,13 +2291,13 @@ struct BinaryBinaryTemplateInt
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input1, input2;
+      Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
-          SIMDVec<T, SIMD_WIDTH> result1, result2;
+          Vec<T, SIMD_WIDTH> result1, result2;
           FCT<I, T, SIMD_WIDTH>::apply(input1, input2, result1, result2);
           doNotOptimize(result1);
           doNotOptimize(result2);
@@ -2362,8 +2343,8 @@ struct BinaryTemplateIntInt
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v";
-    SIMDSerialVec<T, SIMD_WIDTH> a, b, cp, cs;
-    const char *fmt  = SIMDTypeInfo<T>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a, b, cp, cs;
+    const char *fmt  = TypeInfo<T>::defaultFormat();
     std::string name = FCT<I, J, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -2372,8 +2353,7 @@ struct BinaryTemplateIntInt
         FCT<I, J, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<I, J, T, SIMD_WIDTH>::randomizeInput(b);
         cs = FCT<I, J, T, SIMD_WIDTH>::apply(a, b);
-        cp.setSIMDVec(
-          FCT<I, J, T, SIMD_WIDTH>::apply(a.getSIMDVec(), b.getSIMDVec()));
+        cp.setVec(FCT<I, J, T, SIMD_WIDTH>::apply(a.getVec(), b.getVec()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -2388,13 +2368,13 @@ struct BinaryTemplateIntInt
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input1, input2;
+      Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
-          SIMDVec<T, SIMD_WIDTH> result =
+          Vec<T, SIMD_WIDTH> result =
             FCT<I, J, T, SIMD_WIDTH>::apply(input1, input2);
           doNotOptimize(result);
         }
@@ -2442,11 +2422,11 @@ struct TernaryConditionTemplateType
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v,v";
-    SIMDSerialVec<T, SIMD_WIDTH> a, b;
-    SIMDSerialVec<Tcond, SIMD_WIDTH> cond;
-    SIMDSerialVec<T, SIMD_WIDTH> cs, cp;
-    const char *fmt     = SIMDTypeInfo<T>::defaultFormat();
-    const char *fmtCond = SIMDTypeInfo<Tcond>::defaultFormat();
+    SerialVec<T, SIMD_WIDTH> a, b;
+    SerialVec<Tcond, SIMD_WIDTH> cond;
+    SerialVec<T, SIMD_WIDTH> cs, cp;
+    const char *fmt     = TypeInfo<T>::defaultFormat();
+    const char *fmtCond = TypeInfo<Tcond>::defaultFormat();
     std::string name    = FCT<Tcond, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
@@ -2456,8 +2436,8 @@ struct TernaryConditionTemplateType
         FCT<Tcond, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<Tcond, T, SIMD_WIDTH>::randomizeInput(b);
         cs = FCT<Tcond, T, SIMD_WIDTH>::apply(cond, a, b);
-        cp.setSIMDVec(FCT<Tcond, T, SIMD_WIDTH>::apply(
-          cond.getSIMDVec(), a.getSIMDVec(), b.getSIMDVec()));
+        cp.setVec(FCT<Tcond, T, SIMD_WIDTH>::apply(cond.getVec(), a.getVec(),
+                                                   b.getVec()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -2473,15 +2453,15 @@ struct TernaryConditionTemplateType
       }
       printErrorStats(errors, trials);
 
-      SIMDVec<T, SIMD_WIDTH> input1, input2;
-      SIMDVec<Tcond, SIMD_WIDTH> inputCond;
+      Vec<T, SIMD_WIDTH> input1, input2;
+      Vec<Tcond, SIMD_WIDTH> inputCond;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
           doNotOptimize(inputCond);
-          SIMDVec<T, SIMD_WIDTH> result =
+          Vec<T, SIMD_WIDTH> result =
             FCT<Tcond, T, SIMD_WIDTH>::apply(inputCond, input1, input2);
           doNotOptimize(result);
         }
@@ -2493,6 +2473,6 @@ struct TernaryConditionTemplateType
   }
 };
 } // namespace auto_test
-} // namespace ns_simd
+} // namespace simd
 
 #endif

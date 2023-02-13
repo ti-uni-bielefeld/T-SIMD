@@ -41,7 +41,7 @@
 
 // SIMD_STRICT_SATURATION:
 // if defined, non-saturated work-arounds for saturated functions are
-// not included (typically for SIMDInt and SIMDFloat, e.g. in adds, hadds)
+// not included (typically for Int and Float, e.g. in adds, hadds)
 
 // SIMD_ALIGN_CHK:
 // if defined, alignment checks of pointers are added in aligned load
@@ -154,7 +154,7 @@
 
 // for reinterpretation of memory
 // code like this leads to complaints about type-punning with -O3:
-// return *(SIMDFloat*) &i;
+// return *(Float*) &i;
 #if 0
 // ========== solution with union ==========
 // may not be supported by all compilers
@@ -165,8 +165,8 @@
 // http://dbp-consulting.com/tutorials/StrictAliasing.html
 #define SIMD_RETURN_REINTERPRET_INT(NEWTYPE, SOURCE, RETELEM)                  \
   union {                                                                      \
-    SIMDInt i;                                                                 \
-    NEWTYPE v[sizeof(SIMDInt) / sizeof(NEWTYPE)];                              \
+    Int i;                                                                     \
+    NEWTYPE v[sizeof(Int) / sizeof(NEWTYPE)];                                  \
   } u;                                                                         \
   u.i = SOURCE;                                                                \
   return u.v[RETELEM];
@@ -174,8 +174,8 @@
 // ========== solution with memcpy ==========
 // recommended, hopefully optimized away
 #define SIMD_RETURN_REINTERPRET_INT(NEWTYPE, SOURCE, RETELEM)                  \
-  NEWTYPE v[sizeof(SIMDInt) / sizeof(NEWTYPE)];                                \
-  SIMDInt i = SOURCE;                                                          \
+  NEWTYPE v[sizeof(Int) / sizeof(NEWTYPE)];                                    \
+  Int i = SOURCE;                                                              \
   memcpy(v, &i, sizeof(v));                                                    \
   return v[RETELEM];
 #endif

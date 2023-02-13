@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
   TestAllTT<UnaryTemplateType, SW, Reinterpret>::test(repeats1, pattern);
   TestAll<Nullary, SW, Setzero>::test(repeats1, pattern);
   TestAll<Scalar, SW, Set1>::test(repeats1, pattern);
-  // NOTE: load and store are used in SIMDSerialVec, test would probably be
+  // NOTE: load and store are used in SerialVec, test would probably be
   // flawed NOTE: not tested: load, loadu, store, storeu, stream_store
   TestAllTI<UnaryTemplateIntScalarMinToMax, SW, Extract>::test(repeats1,
                                                                pattern);

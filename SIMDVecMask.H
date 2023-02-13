@@ -47,7 +47,7 @@
 
 #endif // else SIMDVEC_SANDBOX
 
-namespace ns_simd {
+namespace simd {
 /**
  * @defgroup mask Masked Functions
  * @{
@@ -61,9 +61,9 @@ namespace ns_simd {
  * @brief Masked version of set1(const T).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_set1(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const T a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_set1(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const T a)
 {
   return internal::mask::mask_set1(src, k, a);
 }
@@ -72,107 +72,107 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_set1(
  * @brief Zero-masked version of set1(const T).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_set1(
-  const SIMDMask<T, SIMD_WIDTH> &k, const T a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_set1(const Mask<T, SIMD_WIDTH> &k,
+                                                 const T a)
 {
   return internal::mask::maskz_set1(k, a);
 }
 
 /**
- * @brief Selects elements from two SIMDVec's based on a condition
- * SIMDMask.
+ * @brief Selects elements from two Vec's based on a condition
+ * Mask.
  *
  * @param cond The condition mask.
  * @param trueVal The SIMD vector to select from if the condition is true.
  * @param falseVal The SIMD vector to select from if the condition is false.
- * @return A SIMDVec containing the selected elements.
+ * @return A Vec containing the selected elements.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_ifelse(
-  const SIMDMask<T, SIMD_WIDTH> &cond, const SIMDVec<T, SIMD_WIDTH> &trueVal,
-  const SIMDVec<T, SIMD_WIDTH> &falseVal)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelse(
+  const Mask<T, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal,
+  const Vec<T, SIMD_WIDTH> &falseVal)
 {
   return internal::mask::mask_ifelse(cond, trueVal, falseVal);
 }
 
 /**
- * @brief Selects elements from a SIMDVec and zero based on a
- * condition SIMDMask.
+ * @brief Selects elements from a Vec and zero based on a
+ * condition Mask.
  *
  * @param cond The condition mask.
  * @param trueVal The SIMD vector to select from if the condition is true.
- * @return A SIMDVec containing the selected elements.
+ * @return A Vec containing the selected elements.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_ifelsezero(
-  const SIMDMask<T, SIMD_WIDTH> &cond, const SIMDVec<T, SIMD_WIDTH> &trueVal)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelsezero(
+  const Mask<T, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal)
 {
   return internal::mask::mask_ifelsezero(cond, trueVal);
 }
 
 /**
- * @brief Masked version of cvts(const SIMDVec<Tin, SIMD_WIDTH> &).
+ * @brief Masked version of cvts(const Vec<Tin, SIMD_WIDTH> &).
  */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> mask_cvts(
-  const SIMDVec<Tout, SIMD_WIDTH> &src, const SIMDMask<Tin, SIMD_WIDTH> &k,
-  const SIMDVec<Tin, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<Tout, SIMD_WIDTH> mask_cvts(
+  const Vec<Tout, SIMD_WIDTH> &src, const Mask<Tin, SIMD_WIDTH> &k,
+  const Vec<Tin, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_cvts(src, k, a);
 }
 
 /**
- * @brief Zero-masked version of cvts(const SIMDVec<Tin, SIMD_WIDTH> &).
+ * @brief Zero-masked version of cvts(const Vec<Tin, SIMD_WIDTH> &).
  */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> maskz_cvts(
-  const SIMDMask<Tin, SIMD_WIDTH> &k, const SIMDVec<Tin, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<Tout, SIMD_WIDTH> maskz_cvts(
+  const Mask<Tin, SIMD_WIDTH> &k, const Vec<Tin, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_cvts(k, a);
 }
 
 /**
  * @brief Masked version of
- * div2r0(const SIMDVec<T, SIMD_WIDTH> &).
+ * div2r0(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_div2r0(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_div2r0(const Vec<T, SIMD_WIDTH> &src,
+                                                  const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_div2r0(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * div2r0(const SIMDVec<T, SIMD_WIDTH> &).
+ * div2r0(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_div2r0(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_div2r0(const Mask<T, SIMD_WIDTH> &k,
+                                                   const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_div2r0(k, a);
 }
 
 /**
  * @brief Masked version of
- * div2rd(const SIMDVec<T, SIMD_WIDTH> &).
+ * div2rd(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_div2rd(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_div2rd(const Vec<T, SIMD_WIDTH> &src,
+                                                  const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_div2rd(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * div2rd(const SIMDVec<T, SIMD_WIDTH> &).
+ * div2rd(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_div2rd(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_div2rd(const Mask<T, SIMD_WIDTH> &k,
+                                                   const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_div2rd(k, a);
 }
@@ -184,32 +184,32 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_div2rd(
  */
 
 /**
- * @brief Reinterprets a SIMDMask of one type as a SIMDMask of another type.
+ * @brief Reinterprets a Mask of one type as a Mask of another type.
  *
- * The size of the element type of the SIMDMask must be the same.
+ * The size of the element type of the Mask must be the same.
  *
- * @tparam Tout The element type of the reinterpreted SIMDMask.
- * @tparam Tin The element type of the SIMDMask to reinterpret.
- * @param a The SIMDMask to reinterpret.
- * @return The reinterpreted SIMDMask.
+ * @tparam Tout The element type of the reinterpreted Mask.
+ * @tparam Tin The element type of the Mask to reinterpret.
+ * @param a The Mask to reinterpret.
+ * @return The reinterpreted Mask.
  */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<Tout, SIMD_WIDTH> reinterpret_mask(
-  const SIMDMask<Tin, SIMD_WIDTH> &a)
+static SIMD_INLINE Mask<Tout, SIMD_WIDTH> reinterpret_mask(
+  const Mask<Tin, SIMD_WIDTH> &a)
 {
   return internal::mask::reinterpret_mask<Tout, Tin, SIMD_WIDTH>(a);
 }
 
 /**
- * @brief Adds two SIMDMask's together as if they were integers.
+ * @brief Adds two Mask's together as if they were integers.
  *
- * @param a The first SIMDMask.
- * @param b The second SIMDMask.
- * @return The sum of the two SIMDMask's.
+ * @param a The first Mask.
+ * @param b The second Mask.
+ * @return The sum of the two Mask's.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kadd(
-  const SIMDMask<T, SIMD_WIDTH> &a, const SIMDMask<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kadd(const Mask<T, SIMD_WIDTH> &a,
+                                            const Mask<T, SIMD_WIDTH> &b)
 {
   return internal::mask::kadd(a, b);
 }
@@ -220,86 +220,85 @@ static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kadd(
  */
 
 /**
- * @brief Computes the bitwise AND of two SIMDMask's.
+ * @brief Computes the bitwise AND of two Mask's.
  *
- * @param a The first SIMDMask.
- * @param b The second SIMDMask.
- * @return The bitwise AND of the two SIMDMask's.
+ * @param a The first Mask.
+ * @param b The second Mask.
+ * @return The bitwise AND of the two Mask's.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kand(
-  const SIMDMask<T, SIMD_WIDTH> &a, const SIMDMask<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kand(const Mask<T, SIMD_WIDTH> &a,
+                                            const Mask<T, SIMD_WIDTH> &b)
 {
   return internal::mask::kand(a, b);
 }
 
 /**
- * @brief Computes bitwise ANDNOT of two SIMDMask's.
+ * @brief Computes bitwise ANDNOT of two Mask's.
  *
  * The result is computed as (not a) and b.
  *
- * @param a The first SIMDMask.
- * @param b The second SIMDMask.
- * @return The bitwise ANDNOT of the two SIMDMask's.
+ * @param a The first Mask.
+ * @param b The second Mask.
+ * @return The bitwise ANDNOT of the two Mask's.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kandn(
-  const SIMDMask<T, SIMD_WIDTH> &a, const SIMDMask<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kandn(const Mask<T, SIMD_WIDTH> &a,
+                                             const Mask<T, SIMD_WIDTH> &b)
 {
   return internal::mask::kandn(a, b);
 }
 
 /**
- * @brief Computes the bitwise OR of two SIMDMask's.
+ * @brief Computes the bitwise OR of two Mask's.
  *
- * @param a The first SIMDMask.
- * @param b The second SIMDMask.
- * @return The bitwise OR of the two SIMDMask's.
+ * @param a The first Mask.
+ * @param b The second Mask.
+ * @return The bitwise OR of the two Mask's.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kor(const SIMDMask<T, SIMD_WIDTH> &a,
-                                               const SIMDMask<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kor(const Mask<T, SIMD_WIDTH> &a,
+                                           const Mask<T, SIMD_WIDTH> &b)
 {
   return internal::mask::kor(a, b);
 }
 
 /**
- * @brief Computes the bitwise XOR of two SIMDMask's.
+ * @brief Computes the bitwise XOR of two Mask's.
  *
- * @param a The first SIMDMask.
- * @param b The second SIMDMask.
- * @return The bitwise XOR of the two SIMDMask's.
+ * @param a The first Mask.
+ * @param b The second Mask.
+ * @return The bitwise XOR of the two Mask's.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kxor(
-  const SIMDMask<T, SIMD_WIDTH> &a, const SIMDMask<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kxor(const Mask<T, SIMD_WIDTH> &a,
+                                            const Mask<T, SIMD_WIDTH> &b)
 {
   return internal::mask::kxor(a, b);
 }
 
 /**
- * @brief Computes the bitwise XNOR of two SIMDMask's.
+ * @brief Computes the bitwise XNOR of two Mask's.
  *
- * @param a The first SIMDMask.
- * @param b The second SIMDMask.
- * @return The bitwise XNOR of the two SIMDMask's.
+ * @param a The first Mask.
+ * @param b The second Mask.
+ * @return The bitwise XNOR of the two Mask's.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kxnor(
-  const SIMDMask<T, SIMD_WIDTH> &a, const SIMDMask<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kxnor(const Mask<T, SIMD_WIDTH> &a,
+                                             const Mask<T, SIMD_WIDTH> &b)
 {
   return internal::mask::kxnor(a, b);
 }
 
 /**
- * @brief Computes the bitwise NOT of a SIMDMask.
+ * @brief Computes the bitwise NOT of a Mask.
  *
- * @param a The SIMDMask.
- * @return The bitwise NOT of the SIMDMask.
+ * @param a The Mask.
+ * @return The bitwise NOT of the Mask.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> knot(
-  const SIMDMask<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> knot(const Mask<T, SIMD_WIDTH> &a)
 {
   return internal::mask::knot(a);
 }
@@ -312,61 +311,59 @@ static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> knot(
  */
 
 /**
- * @brief Shifts the bits of a SIMDMask to the right by a
+ * @brief Shifts the bits of a Mask to the right by a
  *        constant number of bits.
  *
- * @param a The SIMDMask.
+ * @param a The Mask.
  * @tparam COUNT The number of bits to shift.
- * @return The shifted SIMDMask.
+ * @return The shifted Mask.
  */
 template <unsigned int COUNT, typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kshiftri(
-  const SIMDMask<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftri(const Mask<T, SIMD_WIDTH> &a)
 {
   return internal::mask::kshiftri<COUNT>(a);
 }
 
 /**
- * @brief Shifts the bits of a SIMDMask to the left by a
+ * @brief Shifts the bits of a Mask to the left by a
  *        constant number of bits.
  *
- * @param a The SIMDMask.
+ * @param a The Mask.
  * @tparam COUNT The number of bits to shift.
- * @return The shifted SIMDMask.
+ * @return The shifted Mask.
  */
 template <unsigned int COUNT, typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kshiftli(
-  const SIMDMask<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftli(const Mask<T, SIMD_WIDTH> &a)
 {
   return internal::mask::kshiftli<COUNT>(a);
 }
 
 /**
- * @brief Shifts the bits of a SIMDMask to the right by a
+ * @brief Shifts the bits of a Mask to the right by a
  *        variable number of bits.
  *
- * @param a The SIMDMask.
+ * @param a The Mask.
  * @param count The number of bits to shift.
- * @return The shifted SIMDMask.
+ * @return The shifted Mask.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kshiftri(
-  const SIMDMask<T, SIMD_WIDTH> &a, const uint64_t count)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftri(const Mask<T, SIMD_WIDTH> &a,
+                                                const uint64_t count)
 {
   return internal::mask::kshiftri(a, count);
 }
 
 /**
- * @brief Shifts the bits of a SIMDMask to the left by a
+ * @brief Shifts the bits of a Mask to the left by a
  *        variable number of bits.
  *
- * @param a The SIMDMask.
+ * @param a The Mask.
  * @param count The number of bits to shift.
- * @return The shifted SIMDMask.
+ * @return The shifted Mask.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kshiftli(
-  const SIMDMask<T, SIMD_WIDTH> &a, const uint64_t count)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftli(const Mask<T, SIMD_WIDTH> &a,
+                                                const uint64_t count)
 {
   return internal::mask::kshiftli(a, count);
 }
@@ -379,12 +376,12 @@ static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kshiftli(
  */
 
 /**
- * @brief Creates a SIMDMask with all elements set to true.
+ * @brief Creates a Mask with all elements set to true.
  *
- * @return A SIMDMask with all elements set to true.
+ * @return A Mask with all elements set to true.
  */
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_all_ones()
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_all_ones()
 {
   return internal::mask::mask_all_ones(internal::OutputType<T>(),
                                        internal::Integer<SIMD_WIDTH>());
@@ -394,64 +391,60 @@ static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_all_ones()
 // mask_set_true/false_low/high.
 
 /**
- * @brief Sets the lower @p x bits of a SIMDMask to true.
+ * @brief Sets the lower @p x bits of a Mask to true.
  *
  * The remaining bits are set to false.
  *
  * @param x The number of bits to set to true.
- * @return The SIMDMask with the lower @p x bits set to true.
+ * @return The Mask with the lower @p x bits set to true.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_set_true_low(
-  const unsigned int x)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_low(const unsigned int x)
 {
   return internal::mask::mask_set_true_low(x, internal::OutputType<T>(),
                                            internal::Integer<SIMD_WIDTH>());
 }
 
 /**
- * @brief Sets the upper @p x bits of a SIMDMask to true.
+ * @brief Sets the upper @p x bits of a Mask to true.
  *
  * The remaining bits are set to false.
  *
  * @param x The number of bits to set to true.
- * @return The SIMDMask with the upper @p x bits set to true.
+ * @return The Mask with the upper @p x bits set to true.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_set_true_high(
-  const unsigned int x)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_high(const unsigned int x)
 {
   return internal::mask::mask_set_true_high(x, internal::OutputType<T>(),
                                             internal::Integer<SIMD_WIDTH>());
 }
 
 /**
- * @brief Sets the lower @p x bits of a SIMDMask to false.
+ * @brief Sets the lower @p x bits of a Mask to false.
  *
  * The remaining bits are set to true.
  *
  * @param x The number of bits to set to false.
- * @return The SIMDMask with the lower @p x bits set to false.
+ * @return The Mask with the lower @p x bits set to false.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_set_false_low(
-  const unsigned int x)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_low(const unsigned int x)
 {
   return internal::mask::mask_set_false_low(x, internal::OutputType<T>(),
                                             internal::Integer<SIMD_WIDTH>());
 }
 
 /**
- * @brief Sets the upper @p x bits of a SIMDMask to false.
+ * @brief Sets the upper @p x bits of a Mask to false.
  *
  * The remaining bits are set to true.
  *
  * @param x The number of bits to set to false.
- * @return The SIMDMask with the upper @p x bits set to false.
+ * @return The Mask with the upper @p x bits set to false.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_set_false_high(
-  const unsigned int x)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x)
 {
   return internal::mask::mask_set_false_high(x, internal::OutputType<T>(),
                                              internal::Integer<SIMD_WIDTH>());
@@ -463,7 +456,7 @@ static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_set_false_high(
 
 /**
  * @defgroup mask_memory Masked Memory Functions
- * @brief Functions for masked loading and storing SIMDVec's from and to
+ * @brief Functions for masked loading and storing Vec's from and to
  * memory.
  * @{
  */
@@ -476,9 +469,9 @@ static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_set_false_high(
  * fault.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_load(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const T *const p)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_load(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const T *const p)
 {
   return internal::mask::mask_load(src, k, p);
 }
@@ -491,8 +484,8 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_load(
  * fault.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_load(
-  const SIMDMask<T, SIMD_WIDTH> &k, const T *const p)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_load(const Mask<T, SIMD_WIDTH> &k,
+                                                 const T *const p)
 {
   return internal::mask::maskz_load(k, p);
 }
@@ -505,9 +498,9 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_load(
  * fault.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_loadu(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const T *const p)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_loadu(const Vec<T, SIMD_WIDTH> &src,
+                                                 const Mask<T, SIMD_WIDTH> &k,
+                                                 const T *const p)
 {
   return internal::mask::mask_loadu(src, k, p);
 }
@@ -520,33 +513,32 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_loadu(
  * fault.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_loadu(
-  const SIMDMask<T, SIMD_WIDTH> &k, const T *const p)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_loadu(const Mask<T, SIMD_WIDTH> &k,
+                                                  const T *const p)
 {
   return internal::mask::maskz_loadu(k, p);
 }
 
 /**
- * @brief Masked version of store(T *const, const SIMDVec<T, SIMD_WIDTH> &).
+ * @brief Masked version of store(T *const, const Vec<T, SIMD_WIDTH> &).
  *
  * Only stores the elements for which the corresponding mask element is true.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void mask_store(T *const p, const SIMDMask<T, SIMD_WIDTH> &k,
-                                   const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE void mask_store(T *const p, const Mask<T, SIMD_WIDTH> &k,
+                                   const Vec<T, SIMD_WIDTH> &a)
 {
   internal::mask::mask_store(p, k, a);
 }
 
 /**
- * @brief Masked version of storeu(T *const, const SIMDVec<T, SIMD_WIDTH> &).
+ * @brief Masked version of storeu(T *const, const Vec<T, SIMD_WIDTH> &).
  *
  * Only stores the elements for which the corresponding mask element is true.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void mask_storeu(T *const p,
-                                    const SIMDMask<T, SIMD_WIDTH> &k,
-                                    const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE void mask_storeu(T *const p, const Mask<T, SIMD_WIDTH> &k,
+                                    const Vec<T, SIMD_WIDTH> &a)
 {
   internal::mask::mask_storeu(p, k, a);
 }
@@ -555,175 +547,182 @@ static SIMD_INLINE void mask_storeu(T *const p,
 
 /**
  * @defgroup mask_arithmetic Masked Arithmetic Functions
- * @brief Masked arithmetic functions on SIMDVec's, like addition,
+ * @brief Masked arithmetic functions on Vec's, like addition,
  * multiplication, etc.
  * @{
  */
 
 /**
  * @brief Masked version of
- * add(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * add(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_add(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_add(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a,
+                                               const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_add(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * add(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * add(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_add(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_add(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_add(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * adds(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * adds(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_adds(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_adds(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_adds(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * adds(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * adds(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_adds(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_adds(const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a,
+                                                 const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_adds(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * sub(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * sub(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_sub(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_sub(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a,
+                                               const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_sub(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * sub(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * sub(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_sub(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_sub(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_sub(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * subs(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * subs(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_subs(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_subs(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_subs(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * subs(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * subs(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_subs(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_subs(const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a,
+                                                 const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_subs(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * mul(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * mul(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_mul(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_mul(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a,
+                                               const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_mul(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * mul(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * mul(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_mul(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_mul(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_mul(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * div(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * div(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_div(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_div(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a,
+                                               const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_div(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * div(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * div(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_div(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_div(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_div(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * avg(const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b).
+ * avg(const Vec<T, SIMD_WIDTH> &a, const Vec<T, SIMD_WIDTH> &b).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_avg(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_avg(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a,
+                                               const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_avg(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * avg(const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b).
+ * avg(const Vec<T, SIMD_WIDTH> &a, const Vec<T, SIMD_WIDTH> &b).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_avg(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_avg(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_avg(k, a, b);
 }
@@ -735,96 +734,100 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_avg(
 
 /**
  * @brief Masked version of
- * hadd(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * hadd(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_hadd(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_hadd(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_hadd(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * hadd(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * hadd(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_hadd(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_hadd(const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a,
+                                                 const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_hadd(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * hadds(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * hadds(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_hadds(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_hadds(const Vec<T, SIMD_WIDTH> &src,
+                                                 const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a,
+                                                 const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_hadds(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * hadds(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * hadds(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_hadds(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_hadds(const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_hadds(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * hsub(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * hsub(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_hsub(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_hsub(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_hsub(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * hsub(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * hsub(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_hsub(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_hsub(const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a,
+                                                 const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_hsub(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * hsubs(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * hsubs(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_hsubs(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_hsubs(const Vec<T, SIMD_WIDTH> &src,
+                                                 const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a,
+                                                 const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_hsubs(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * hsubs(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * hsubs(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_hsubs(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_hsubs(const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_hsubs(k, a, b);
 }
@@ -835,76 +838,76 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_hsubs(
 
 /**
  * @defgroup mask_math_functions Masked Elementary Math Functions
- * @brief Masked elementary mathematical functions on SIMDVec's, such as sqrt,
+ * @brief Masked elementary mathematical functions on Vec's, such as sqrt,
  * rcp, etc.
  * @{
  */
 
 /**
  * @brief Masked version of
- * rcp(const SIMDVec<T, SIMD_WIDTH> &).
+ * rcp(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_rcp(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_rcp(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_rcp(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * rcp(const SIMDVec<T, SIMD_WIDTH> &).
+ * rcp(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_rcp(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_rcp(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_rcp(k, a);
 }
 
 /**
  * @brief Masked version of
- * rsqrt(const SIMDVec<T, SIMD_WIDTH> &).
+ * rsqrt(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_rsqrt(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_rsqrt(const Vec<T, SIMD_WIDTH> &src,
+                                                 const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_rsqrt(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * rsqrt(const SIMDVec<T, SIMD_WIDTH> &).
+ * rsqrt(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_rsqrt(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_rsqrt(const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_rsqrt(k, a);
 }
 
 /**
  * @brief Masked version of
- * sqrt(const SIMDVec<T, SIMD_WIDTH> &).
+ * sqrt(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_sqrt(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_sqrt(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_sqrt(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * sqrt(const SIMDVec<T, SIMD_WIDTH> &).
+ * sqrt(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_sqrt(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_sqrt(const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_sqrt(k, a);
 }
@@ -913,193 +916,195 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_sqrt(
 
 /**
  * @defgroup mask_special_math Masked Special Math Functions
- * @brief Masked special math functions on SIMDVec's, such as min, max,
+ * @brief Masked special math functions on Vec's, such as min, max,
  * rounding, etc.
  * @{
  */
 
 /**
  * @brief Masked version of
- * min(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * min(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_min(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_min(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a,
+                                               const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_min(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * min(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * min(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_min(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_min(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_min(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * max(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * max(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_max(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_max(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a,
+                                               const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_max(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * max(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * max(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_max(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_max(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_max(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * neg(const SIMDVec<T, SIMD_WIDTH> &).
+ * neg(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_neg(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_neg(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_neg(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * neg(const SIMDVec<T, SIMD_WIDTH> &).
+ * neg(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_neg(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_neg(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_neg(k, a);
 }
 
 /**
  * @brief Masked version of
- * abs(const SIMDVec<T, SIMD_WIDTH> &).
+ * abs(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_abs(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_abs(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_abs(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * abs(const SIMDVec<T, SIMD_WIDTH> &).
+ * abs(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_abs(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_abs(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_abs(k, a);
 }
 
 /**
  * @brief Masked version of
- * ceil(const SIMDVec<T, SIMD_WIDTH> &).
+ * ceil(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_ceil(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ceil(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_ceil(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * ceil(const SIMDVec<T, SIMD_WIDTH> &).
+ * ceil(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_ceil(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_ceil(const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_ceil(k, a);
 }
 
 /**
  * @brief Masked version of
- * floor(const SIMDVec<T, SIMD_WIDTH> &).
+ * floor(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_floor(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_floor(const Vec<T, SIMD_WIDTH> &src,
+                                                 const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_floor(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * floor(const SIMDVec<T, SIMD_WIDTH> &).
+ * floor(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_floor(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_floor(const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_floor(k, a);
 }
 
 /**
  * @brief Masked version of
- * round(const SIMDVec<T, SIMD_WIDTH> &).
+ * round(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_round(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_round(const Vec<T, SIMD_WIDTH> &src,
+                                                 const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_round(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * round(const SIMDVec<T, SIMD_WIDTH> &).
+ * round(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_round(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_round(const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_round(k, a);
 }
 
 /**
  * @brief Masked version of
- * truncate(const SIMDVec<T, SIMD_WIDTH> &).
+ * truncate(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_truncate(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_truncate(
+  const Vec<T, SIMD_WIDTH> &src, const Mask<T, SIMD_WIDTH> &k,
+  const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_truncate(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * truncate(const SIMDVec<T, SIMD_WIDTH> &).
+ * truncate(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_truncate(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_truncate(
+  const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_truncate(k, a);
 }
@@ -1108,125 +1113,129 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_truncate(
 
 /**
  * @defgroup mask_logic Masked Logical Functions
- * @brief Masked logical functions on SIMDVec's.
+ * @brief Masked logical functions on Vec's.
  * @{
  */
 
 /**
  * @brief Masked version of
- * and_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * and_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_and(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_and(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a,
+                                               const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_and(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * and_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * and_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_and(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_and(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_and(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * or_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * or_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_or(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_or(const Vec<T, SIMD_WIDTH> &src,
+                                              const Mask<T, SIMD_WIDTH> &k,
+                                              const Vec<T, SIMD_WIDTH> &a,
+                                              const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_or(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * or_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * or_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_or(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_or(const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a,
+                                               const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_or(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * andnot(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * andnot(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_andnot(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_andnot(const Vec<T, SIMD_WIDTH> &src,
+                                                  const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_andnot(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * andnot(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * andnot(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_andnot(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_andnot(const Mask<T, SIMD_WIDTH> &k,
+                                                   const Vec<T, SIMD_WIDTH> &a,
+                                                   const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_andnot(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * xor_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * xor_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_xor(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_xor(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a,
+                                               const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_xor(src, k, a, b);
 }
 
 /**
  * @brief Zero-masked version of
- * xor_(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &).
+ * xor_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_xor(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_xor(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a,
+                                                const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::maskz_xor(k, a, b);
 }
 
 /**
  * @brief Masked version of
- * not_(const SIMDVec<T, SIMD_WIDTH> &).
+ * not_(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_not(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_not(const Vec<T, SIMD_WIDTH> &src,
+                                               const Mask<T, SIMD_WIDTH> &k,
+                                               const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_not(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * not_(const SIMDVec<T, SIMD_WIDTH> &).
+ * not_(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_not(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_not(const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_not(k, a);
 }
@@ -1235,75 +1244,75 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_not(
 
 /**
  * @defgroup mask_shift Masked Bitwise Shift Functions
- * @brief Masked bitwise shift functions on SIMDVec's.
+ * @brief Masked bitwise shift functions on Vec's.
  * @{
  */
 
 /**
  * @brief Masked version of
- * srai(const SIMDVec<T, SIMD_WIDTH> &).
+ * srai(const Vec<T, SIMD_WIDTH> &).
  */
 template <int IMM, typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_srai(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_srai(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_srai<IMM>(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * srai(const SIMDVec<T, SIMD_WIDTH> &).
+ * srai(const Vec<T, SIMD_WIDTH> &).
  */
 template <int IMM, typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_srai(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_srai(const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_srai<IMM>(k, a);
 }
 
 /**
  * @brief Masked version of
- * srli(const SIMDVec<T, SIMD_WIDTH> &).
+ * srli(const Vec<T, SIMD_WIDTH> &).
  */
 template <int IMM, typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_srli(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_srli(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_srli<IMM>(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * srli(const SIMDVec<T, SIMD_WIDTH> &).
+ * srli(const Vec<T, SIMD_WIDTH> &).
  */
 template <int IMM, typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_srli(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_srli(const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_srli<IMM>(k, a);
 }
 
 /**
  * @brief Masked version of
- * slli(const SIMDVec<T, SIMD_WIDTH> &).
+ * slli(const Vec<T, SIMD_WIDTH> &).
  */
 template <int IMM, typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> mask_slli(
-  const SIMDVec<T, SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k,
-  const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_slli(const Vec<T, SIMD_WIDTH> &src,
+                                                const Mask<T, SIMD_WIDTH> &k,
+                                                const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_slli<IMM>(src, k, a);
 }
 
 /**
  * @brief Zero-masked version of
- * slli(const SIMDVec<T, SIMD_WIDTH> &).
+ * slli(const Vec<T, SIMD_WIDTH> &).
  */
 template <int IMM, typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_slli(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_slli(const Mask<T, SIMD_WIDTH> &k,
+                                                 const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::maskz_slli<IMM>(k, a);
 }
@@ -1314,284 +1323,284 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> maskz_slli(
 
 /**
  * @defgroup mask_cmp Masked Comparison Functions
- * @brief Functions for masked comparing elements of SIMDVec's.
+ * @brief Functions for masked comparing elements of Vec's.
  * @{
  */
 
 /**
- * @brief Masked comparison between corresponding elements of two SIMDVec's
+ * @brief Masked comparison between corresponding elements of two Vec's
  * for less-than ( @c < ).
  *
- * Bits in the resulting SIMDMask are zeroed out if the corresponding bit in
- * the given SIMDMask is not set.
+ * Bits in the resulting Mask are zeroed out if the corresponding bit in
+ * the given Mask is not set.
  *
- * @param k The SIMDMask to use for masking the results.
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the masked results of the comparisons.
- * @sa cmplt(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmple(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+ * @param k The Mask to use for masking the results.
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the masked results of the comparisons.
+ * @sa cmplt(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmple(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmplt(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmplt(const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmplt(k, a, b);
 }
 
 /**
- * @brief Masked comparison between corresponding elements of two SIMDVec's
+ * @brief Masked comparison between corresponding elements of two Vec's
  * for less-than-or-equal ( @c <= ).
  *
- * Bits in the resulting SIMDMask are zeroed out if the corresponding bit in
- * the given SIMDMask is not set.
+ * Bits in the resulting Mask are zeroed out if the corresponding bit in
+ * the given Mask is not set.
  *
- * @param k The SIMDMask to use for masking the results.
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the masked results of the comparisons.
- * @sa cmple(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmplt(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+ * @param k The Mask to use for masking the results.
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the masked results of the comparisons.
+ * @sa cmple(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmplt(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmple(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmple(const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmple(k, a, b);
 }
 
 /**
- * @brief Masked comparison between corresponding elements of two SIMDVec's
+ * @brief Masked comparison between corresponding elements of two Vec's
  * for equality ( @c == ).
  *
- * Bits in the resulting SIMDMask are zeroed out if the corresponding bit in
- * the given SIMDMask is not set.
+ * Bits in the resulting Mask are zeroed out if the corresponding bit in
+ * the given Mask is not set.
  *
- * @param k The SIMDMask to use for masking the results.
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the masked results of the comparisons.
- * @sa cmpeq(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+ * @param k The Mask to use for masking the results.
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the masked results of the comparisons.
+ * @sa cmpeq(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmpeq(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpeq(const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmpeq(k, a, b);
 }
 
 /**
- * @brief Masked comparison between corresponding elements of two SIMDVec's
+ * @brief Masked comparison between corresponding elements of two Vec's
  * for greater-than ( @c > ).
  *
- * Bits in the resulting SIMDMask are zeroed out if the corresponding bit in
- * the given SIMDMask is not set.
+ * Bits in the resulting Mask are zeroed out if the corresponding bit in
+ * the given Mask is not set.
  *
- * @param k The SIMDMask to use for masking the results.
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the masked results of the comparisons.
- * @sa cmpgt(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmpge(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+ * @param k The Mask to use for masking the results.
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the masked results of the comparisons.
+ * @sa cmpgt(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmpge(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmpgt(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpgt(const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmpgt(k, a, b);
 }
 
 /**
- * @brief Masked comparison between corresponding elements of two SIMDVec's
+ * @brief Masked comparison between corresponding elements of two Vec's
  * for greater-than-or-equal ( @c >= ).
  *
- * Bits in the resulting SIMDMask are zeroed out if the corresponding bit in
- * the given SIMDMask is not set.
+ * Bits in the resulting Mask are zeroed out if the corresponding bit in
+ * the given Mask is not set.
  *
- * @param k The SIMDMask to use for masking the results.
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the masked results of the comparisons.
- * @sa cmpge(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmpgt(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+ * @param k The Mask to use for masking the results.
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the masked results of the comparisons.
+ * @sa cmpge(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmpgt(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmpge(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpge(const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmpge(k, a, b);
 }
 
 /**
- * @brief Masked comparison between corresponding elements of two SIMDVec's
+ * @brief Masked comparison between corresponding elements of two Vec's
  * for inequality ( @c != ).
  *
- * Bits in the resulting SIMDMask are zeroed out if the corresponding bit in
- * the given SIMDMask is not set.
+ * Bits in the resulting Mask are zeroed out if the corresponding bit in
+ * the given Mask is not set.
  *
- * @param k The SIMDMask to use for masking the results.
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the masked results of the comparisons.
- * @sa cmpneq(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmpneq(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T,
+ * @param k The Mask to use for masking the results.
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the masked results of the comparisons.
+ * @sa cmpneq(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmpneq(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmpneq(
-  const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH> &a,
-  const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpneq(const Mask<T, SIMD_WIDTH> &k,
+                                                   const Vec<T, SIMD_WIDTH> &a,
+                                                   const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmpneq(k, a, b);
 }
 
 /**
- * @brief Compares corresponding elements of two SIMDVec's for less-than
+ * @brief Compares corresponding elements of two Vec's for less-than
  * ( @c < ).
  *
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the results of the comparisons.
- * @sa cmplt(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmplt(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
- * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the results of the comparisons.
+ * @sa cmplt(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmplt(const Mask<T, SIMD_WIDTH> &, const Vec<T,
+ * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmplt(
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmplt(const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmplt(a, b);
 }
 
 /**
- * @brief Compares corresponding elements of two SIMDVec's for
+ * @brief Compares corresponding elements of two Vec's for
  * less-than-or-equal ( @c <= ).
  *
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the results of the comparisons.
- * @sa cmple(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmple(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
- * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the results of the comparisons.
+ * @sa cmple(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmple(const Mask<T, SIMD_WIDTH> &, const Vec<T,
+ * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmple(
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmple(const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmple(a, b);
 }
 
 /**
- * @brief Compares corresponding elements of two SIMDVec's for equality
+ * @brief Compares corresponding elements of two Vec's for equality
  * ( @c == ).
  *
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the results of the comparisons.
- * @sa cmpeq(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmpeq(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
- * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the results of the comparisons.
+ * @sa cmpeq(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmpeq(const Mask<T, SIMD_WIDTH> &, const Vec<T,
+ * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmpeq(
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpeq(const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmpeq(a, b);
 }
 
 /**
- * @brief Compares corresponding elements of two SIMDVec's for greater-than
+ * @brief Compares corresponding elements of two Vec's for greater-than
  * ( @c > ).
  *
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the results of the comparisons.
- * @sa cmpgt(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmpgt(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
- * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the results of the comparisons.
+ * @sa cmpgt(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmpgt(const Mask<T, SIMD_WIDTH> &, const Vec<T,
+ * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmpgt(
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpgt(const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmpgt(a, b);
 }
 
 /**
- * @brief Compares corresponding elements of two SIMDVec's for
+ * @brief Compares corresponding elements of two Vec's for
  * greater-than-or-equal ( @c >= ).
  *
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the results of the comparisons.
- * @sa cmpge(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmpge(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
- * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the results of the comparisons.
+ * @sa cmpge(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmpge(const Mask<T, SIMD_WIDTH> &, const Vec<T,
+ * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmpge(
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpge(const Vec<T, SIMD_WIDTH> &a,
+                                                  const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmpge(a, b);
 }
 
 /**
- * @brief Compares corresponding elements of two SIMDVec's for inequality
+ * @brief Compares corresponding elements of two Vec's for inequality
  * ( @c != ).
  *
- * @param a The first SIMDVec.
- * @param b The second SIMDVec.
- * @return A SIMDMask with the results of the comparisons.
- * @sa cmpneq(const SIMDVec<T, SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
- * @sa mask_cmpneq(const SIMDMask<T, SIMD_WIDTH> &, const SIMDVec<T,
- * SIMD_WIDTH> &, const SIMDVec<T, SIMD_WIDTH> &)
+ * @param a The first Vec.
+ * @param b The second Vec.
+ * @return A Mask with the results of the comparisons.
+ * @sa cmpneq(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
+ * @sa mask_cmpneq(const Mask<T, SIMD_WIDTH> &, const Vec<T,
+ * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_cmpneq(
-  const SIMDVec<T, SIMD_WIDTH> &a, const SIMDVec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpneq(const Vec<T, SIMD_WIDTH> &a,
+                                                   const Vec<T, SIMD_WIDTH> &b)
 {
   return internal::mask::mask_cmpneq(a, b);
 }
 
 /**
- * @brief Tests if all elements of an SIMDVec are zero, while
- * ignoring elements where the corresponding bit in an SIMDMask is
+ * @brief Tests if all elements of an Vec are zero, while
+ * ignoring elements where the corresponding bit in an Mask is
  * zero.
  *
- * @param k The SIMDMask to use for the test.
- * @param a The SIMDVec to test.
+ * @param k The Mask to use for the test.
+ * @param a The Vec to test.
  * @return 1 if all elements (except those ignored by the mask) are zero,
  * 0 otherwise.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int mask_test_all_zeros(const SIMDMask<T, SIMD_WIDTH> &k,
-                                           const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE int mask_test_all_zeros(const Mask<T, SIMD_WIDTH> &k,
+                                           const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_test_all_zeros(k, a);
 }
 
 /**
- * @brief Tests if all bits of all elements of an SIMDVec are one,
- * while ignoring elements where the corresponding bit in an SIMDMask
+ * @brief Tests if all bits of all elements of an Vec are one,
+ * while ignoring elements where the corresponding bit in an Mask
  * is zero.
  *
- * @param k The SIMDMask to use for the test.
- * @param a The SIMDVec to test.
+ * @param k The Mask to use for the test.
+ * @param a The Vec to test.
  * @return 1 if all bits of all elements (except those ignored by the mask)
  * are one, 0 otherwise.
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int mask_test_all_ones(const SIMDMask<T, SIMD_WIDTH> &k,
-                                          const SIMDVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE int mask_test_all_ones(const Mask<T, SIMD_WIDTH> &k,
+                                          const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::mask::mask_test_all_ones(k, a);
 }
@@ -1599,6 +1608,6 @@ static SIMD_INLINE int mask_test_all_ones(const SIMDMask<T, SIMD_WIDTH> &k,
 /** @} */ // end of group mask_cmp
 
 /** @} */ // end of group mask
-} // namespace ns_simd
+} // namespace simd
 
 #endif // _SIMD_VEC_MASK_H_

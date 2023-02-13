@@ -1,7 +1,8 @@
 // ===========================================================================
 //
 // SIMDVecAll.H --
-// common include file for SIMD*.H and SIMDVec*.H
+// deprecated common include file for SIMD*.H and Vec*.H
+// use tsimd.H instead
 //
 // This source code file is part of the following software:
 //
@@ -32,15 +33,6 @@
 #ifndef _SIMD_VEC_ALL_H_
 #define _SIMD_VEC_ALL_H_
 
-// base-level templates/functions
-#include "SIMDVecBase.H"
-// generic templates for extension commands
-#include "SIMDVecExt.H"
-// SIMDVecs: multiple SIMDVec in template class
-#include "SIMDVecs.H"
-// templates/functions for masked operations
-#include "SIMDVecMask.H"
-// aligned memory allocation
-#include "SIMDAlloc.H"
+#include "tsimd.H"
 
 #endif

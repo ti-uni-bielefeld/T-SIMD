@@ -1,7 +1,7 @@
 // ===========================================================================
 //
 // simdvecautotest1.C --
-// automatic test of SIMDVec level 1 templates
+// automatic test of Vec level 1 templates
 //
 // This source code file is part of the following software:
 //
@@ -23,7 +23,7 @@
 //
 // ===========================================================================
 
-// TODO: auto-test for SIMDVecs functions
+// TODO: auto-test for Vecs functions
 
 // https://stackoverflow.com/questions/15651488/
 // how-to-pass-a-template-function-in-a-template-argument-list
@@ -43,7 +43,7 @@
 #include <string>
 #include <time.h>
 
-using namespace ns_simd;
+using namespace simd;
 using namespace auto_test;
 
 // SW = SIMD width = number of bytes in a single SIMD vector
@@ -66,19 +66,19 @@ int main(int argc, char *argv[])
   if (argc == 3) repeats1 = atoi(argv[2]);
   printf("pattern \"%s\", repeats1 = %d\n", pattern.c_str(), repeats1);
 
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SIMDByte>());
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SIMDSignedByte>());
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SIMDWord>());
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SIMDShort>());
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SIMDInt>());
-  // for (int i = 0; i<100000; i++) printf("%g\n", getRandom<SIMDFloat>());
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandomRanges<SIMDByte>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<Byte>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SignedByte>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<Word>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<Short>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<Int>());
+  // for (int i = 0; i<100000; i++) printf("%g\n", getRandom<Float>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandomRanges<Byte>());
   // for (int i = 0; i<100000; i++) printf("%d\n",
-  // getRandomRanges<SIMDSignedByte>()); for (int i = 0; i<100000; i++)
-  // printf("%d\n", getRandomRanges<SIMDWord>()); for (int i = 0; i<100000; i++)
-  // printf("%d\n", getRandomRanges<SIMDShort>()); for (int i = 0; i<100000;
-  // i++) printf("%d\n", getRandomRanges<SIMDInt>()); for (int i = 0; i<100000;
-  // i++) printf("%g\n", getRandomRanges<SIMDFloat>()); gnuplot> plot "test.dat"
+  // getRandomRanges<SignedByte>()); for (int i = 0; i<100000; i++)
+  // printf("%d\n", getRandomRanges<Word>()); for (int i = 0; i<100000; i++)
+  // printf("%d\n", getRandomRanges<Short>()); for (int i = 0; i<100000;
+  // i++) printf("%d\n", getRandomRanges<Int>()); for (int i = 0; i<100000;
+  // i++) printf("%g\n", getRandomRanges<Float>()); gnuplot> plot "test.dat"
   // using ($1):(1) smooth freq with boxes / or use test.gp exit(0);
 
   // ------------------------------------------------------------------------
@@ -87,64 +87,46 @@ int main(int argc, char *argv[])
 
   // TODO: multi-vector store and load
   // TODO: load*_store*
-  ArrayArrayVoidTemplateType<SIMDSignedByte, SIMDSignedByte, SW, Convert>::test(
+  ArrayArrayVoidTemplateType<SignedByte, SignedByte, SW, Convert>::test(
     repeats1, pattern);
-  ArrayArrayVoidTemplateType<SIMDShort, SIMDSignedByte, SW, Convert>::test(
-    repeats1, pattern);
-  ArrayArrayVoidTemplateType<SIMDInt, SIMDSignedByte, SW, Convert>::test(
-    repeats1, pattern);
-  ArrayArrayVoidTemplateType<SIMDFloat, SIMDSignedByte, SW, Convert>::test(
-    repeats1, pattern);
-  ArrayArrayVoidTemplateType<SIMDByte, SIMDByte, SW, Convert>::test(repeats1,
-                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDShort, SIMDByte, SW, Convert>::test(repeats1,
-                                                                     pattern);
-  ArrayArrayVoidTemplateType<SIMDWord, SIMDByte, SW, Convert>::test(repeats1,
-                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDInt, SIMDByte, SW, Convert>::test(repeats1,
+  ArrayArrayVoidTemplateType<Short, SignedByte, SW, Convert>::test(repeats1,
                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDFloat, SIMDByte, SW, Convert>::test(repeats1,
-                                                                     pattern);
-  ArrayArrayVoidTemplateType<SIMDSignedByte, SIMDShort, SW, Convert>::test(
-    repeats1, pattern);
-  ArrayArrayVoidTemplateType<SIMDByte, SIMDShort, SW, Convert>::test(repeats1,
-                                                                     pattern);
-  ArrayArrayVoidTemplateType<SIMDShort, SIMDShort, SW, Convert>::test(repeats1,
-                                                                      pattern);
-  ArrayArrayVoidTemplateType<SIMDInt, SIMDShort, SW, Convert>::test(repeats1,
-                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDFloat, SIMDShort, SW, Convert>::test(repeats1,
-                                                                      pattern);
-  ArrayArrayVoidTemplateType<SIMDWord, SIMDWord, SW, Convert>::test(repeats1,
-                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDInt, SIMDWord, SW, Convert>::test(repeats1,
+  ArrayArrayVoidTemplateType<Int, SignedByte, SW, Convert>::test(repeats1,
+                                                                 pattern);
+  ArrayArrayVoidTemplateType<Float, SignedByte, SW, Convert>::test(repeats1,
                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDFloat, SIMDWord, SW, Convert>::test(repeats1,
-                                                                     pattern);
-  ArrayArrayVoidTemplateType<SIMDSignedByte, SIMDInt, SW, Convert>::test(
-    repeats1, pattern);
-  ArrayArrayVoidTemplateType<SIMDByte, SIMDInt, SW, Convert>::test(repeats1,
+  ArrayArrayVoidTemplateType<Byte, Byte, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Short, Byte, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Word, Byte, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Int, Byte, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Float, Byte, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<SignedByte, Short, SW, Convert>::test(repeats1,
                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDShort, SIMDInt, SW, Convert>::test(repeats1,
-                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDWord, SIMDInt, SW, Convert>::test(repeats1,
+  ArrayArrayVoidTemplateType<Byte, Short, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Short, Short, SW, Convert>::test(repeats1,
+                                                              pattern);
+  ArrayArrayVoidTemplateType<Int, Short, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Float, Short, SW, Convert>::test(repeats1,
+                                                              pattern);
+  ArrayArrayVoidTemplateType<Word, Word, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Int, Word, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Float, Word, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<SignedByte, Int, SW, Convert>::test(repeats1,
+                                                                 pattern);
+  ArrayArrayVoidTemplateType<Byte, Int, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Short, Int, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Word, Int, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Int, Int, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Float, Int, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<SignedByte, Float, SW, Convert>::test(repeats1,
                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDInt, SIMDInt, SW, Convert>::test(repeats1,
-                                                                  pattern);
-  ArrayArrayVoidTemplateType<SIMDFloat, SIMDInt, SW, Convert>::test(repeats1,
-                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDSignedByte, SIMDFloat, SW, Convert>::test(
-    repeats1, pattern);
-  ArrayArrayVoidTemplateType<SIMDByte, SIMDFloat, SW, Convert>::test(repeats1,
-                                                                     pattern);
-  ArrayArrayVoidTemplateType<SIMDShort, SIMDFloat, SW, Convert>::test(repeats1,
-                                                                      pattern);
-  ArrayArrayVoidTemplateType<SIMDWord, SIMDFloat, SW, Convert>::test(repeats1,
-                                                                     pattern);
-  ArrayArrayVoidTemplateType<SIMDInt, SIMDFloat, SW, Convert>::test(repeats1,
-                                                                    pattern);
-  ArrayArrayVoidTemplateType<SIMDFloat, SIMDFloat, SW, Convert>::test(repeats1,
-                                                                      pattern);
+  ArrayArrayVoidTemplateType<Byte, Float, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Short, Float, SW, Convert>::test(repeats1,
+                                                              pattern);
+  ArrayArrayVoidTemplateType<Word, Float, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Int, Float, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Float, Float, SW, Convert>::test(repeats1,
+                                                              pattern);
   // NOTE: errors occur in fdivmul on NEON since div is an approximation
   TestAllTT<ArrayArrayDoubleArrayVoidTemplateType, SW, Fdivmul>::test(repeats1,
                                                                       pattern);
@@ -215,41 +197,29 @@ int main(int argc, char *argv[])
   TestAll<Nullary, SW, Setmax>::test(1, pattern);
   TestSigned<Nullary, SW, Setnegunity>::test(1, pattern);
   TestAll<Nullary, SW, Setunity>::test(1, pattern);
-  ArrayTemplateType<SIMDSignedByte, SIMDSignedByte, SW, PacksMulti>::test(
-    repeats1, pattern);
-  ArrayTemplateType<SIMDSignedByte, SIMDShort, SW, PacksMulti>::test(repeats1,
-                                                                     pattern);
-  ArrayTemplateType<SIMDByte, SIMDShort, SW, PacksMulti>::test(repeats1,
-                                                               pattern);
-  ArrayTemplateType<SIMDShort, SIMDShort, SW, PacksMulti>::test(repeats1,
-                                                                pattern);
-  ArrayTemplateType<SIMDSignedByte, SIMDInt, SW, PacksMulti>::test(repeats1,
-                                                                   pattern);
-  ArrayTemplateType<SIMDByte, SIMDInt, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<SIMDShort, SIMDInt, SW, PacksMulti>::test(repeats1,
-                                                              pattern);
-  ArrayTemplateType<SIMDWord, SIMDInt, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<SIMDInt, SIMDInt, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<SIMDFloat, SIMDInt, SW, PacksMulti>::test(repeats1,
-                                                              pattern);
-  ArrayTemplateType<SIMDSignedByte, SIMDFloat, SW, PacksMulti>::test(repeats1,
-                                                                     pattern);
-  ArrayTemplateType<SIMDByte, SIMDFloat, SW, PacksMulti>::test(repeats1,
-                                                               pattern);
-  ArrayTemplateType<SIMDShort, SIMDFloat, SW, PacksMulti>::test(repeats1,
-                                                                pattern);
-  ArrayTemplateType<SIMDWord, SIMDFloat, SW, PacksMulti>::test(repeats1,
-                                                               pattern);
-  ArrayTemplateType<SIMDInt, SIMDFloat, SW, PacksMulti>::test(repeats1,
-                                                              pattern);
-  ArrayTemplateType<SIMDFloat, SIMDFloat, SW, PacksMulti>::test(repeats1,
-                                                                pattern);
+  ArrayTemplateType<SignedByte, SignedByte, SW, PacksMulti>::test(repeats1,
+                                                                  pattern);
+  ArrayTemplateType<SignedByte, Short, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Byte, Short, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Short, Short, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<SignedByte, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Byte, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Short, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Word, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Int, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Float, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<SignedByte, Float, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Byte, Float, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Short, Float, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Word, Float, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Int, Float, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Float, Float, SW, PacksMulti>::test(repeats1, pattern);
   TestAll<Unary, SW, Div2r0>::test(repeats1, pattern);
   TestAll<Unary, SW, Div2rd>::test(repeats1, pattern);
-  Binary<SIMDFloat, SW, Sign>::test(repeats1, pattern);
+  Binary<Float, SW, Sign>::test(repeats1, pattern);
   TestAll<Binary, SW, AbsDiff>::test(repeats1, pattern);
   // TODO: operators
-  // TODO: SIMDVecs
+  // TODO: Vecs
   printf("simdvecautotest1 complete\n");
   return 0;
 }

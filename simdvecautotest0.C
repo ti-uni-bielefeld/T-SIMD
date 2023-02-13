@@ -1,7 +1,7 @@
 // ===========================================================================
 //
 // simdvecautotest0.C --
-// automatic test of SIMDVec level 0 templates
+// automatic test of Vec level 0 templates
 //
 // This source code file is part of the following software:
 //
@@ -40,7 +40,7 @@
 #include <string>
 #include <time.h>
 
-using namespace ns_simd;
+using namespace simd;
 using namespace auto_test;
 
 // SW = SIMD width = number of bytes in a single SIMD vector
@@ -63,19 +63,19 @@ int main(int argc, char *argv[])
   if (argc == 3) repeats1 = atoi(argv[2]);
   printf("pattern \"%s\", repeats1 = %d\n", pattern.c_str(), repeats1);
 
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SIMDByte>());
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SIMDSignedByte>());
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SIMDWord>());
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SIMDShort>());
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SIMDInt>());
-  // for (int i = 0; i<100000; i++) printf("%g\n", getRandom<SIMDFloat>());
-  // for (int i = 0; i<100000; i++) printf("%d\n", getRandomRanges<SIMDByte>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<Byte>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SignedByte>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<Word>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<Short>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<Int>());
+  // for (int i = 0; i<100000; i++) printf("%g\n", getRandom<Float>());
+  // for (int i = 0; i<100000; i++) printf("%d\n", getRandomRanges<Byte>());
   // for (int i = 0; i<100000; i++) printf("%d\n",
-  // getRandomRanges<SIMDSignedByte>()); for (int i = 0; i<100000; i++)
-  // printf("%d\n", getRandomRanges<SIMDWord>()); for (int i = 0; i<100000; i++)
-  // printf("%d\n", getRandomRanges<SIMDShort>()); for (int i = 0; i<100000;
-  // i++) printf("%d\n", getRandomRanges<SIMDInt>()); for (int i = 0; i<100000;
-  // i++) printf("%g\n", getRandomRanges<SIMDFloat>()); gnuplot> plot "test.dat"
+  // getRandomRanges<SignedByte>()); for (int i = 0; i<100000; i++)
+  // printf("%d\n", getRandomRanges<Word>()); for (int i = 0; i<100000; i++)
+  // printf("%d\n", getRandomRanges<Short>()); for (int i = 0; i<100000;
+  // i++) printf("%d\n", getRandomRanges<Int>()); for (int i = 0; i<100000;
+  // i++) printf("%g\n", getRandomRanges<Float>()); gnuplot> plot "test.dat"
   // using ($1):(1) smooth freq with boxes / or use test.gp exit(0);
 
   // ------------------------------------------------------------------------
@@ -108,19 +108,18 @@ int main(int argc, char *argv[])
 #if SIMDVEC_INTEL_ENABLE
 #if (defined(__SSE__) || defined(__AVX__)) && !defined(__AVX512F__)
   // for sse and avx the relative error is 1.5*2^-12
-  Unary<SIMDFloat, SW, Rcp, CmpRelError<15, -1, -12>>::test(repeats1, pattern);
-  Unary<SIMDFloat, SW, Rsqrt, CmpRelError<15, -1, -12>>::test(repeats1,
-                                                              pattern);
+  Unary<Float, SW, Rcp, CmpRelError<15, -1, -12>>::test(repeats1, pattern);
+  Unary<Float, SW, Rsqrt, CmpRelError<15, -1, -12>>::test(repeats1, pattern);
 #elif defined(__AVX512F__)
   // for avx512 the relative error is 2^-14
-  Unary<SIMDFloat, SW, Rcp, CmpRelError<1, 0, -14>>::test(repeats1, pattern);
-  Unary<SIMDFloat, SW, Rsqrt, CmpRelError<1, 0, -14>>::test(repeats1, pattern);
+  Unary<Float, SW, Rcp, CmpRelError<1, 0, -14>>::test(repeats1, pattern);
+  Unary<Float, SW, Rsqrt, CmpRelError<1, 0, -14>>::test(repeats1, pattern);
 #endif
 #else
   // TODO: rcp and rsqrt are approximations on NEON, figure out max relative
   // error
-  Unary<SIMDFloat, SW, Rcp>::test(repeats1, pattern);
-  Unary<SIMDFloat, SW, Rsqrt>::test(repeats1, pattern);
+  Unary<Float, SW, Rcp>::test(repeats1, pattern);
+  Unary<Float, SW, Rsqrt>::test(repeats1, pattern);
 #endif
   TestAll<Binary, SW, Min>::test(repeats1, pattern);
   TestAll<Binary, SW, Max>::test(repeats1, pattern);
@@ -138,50 +137,34 @@ int main(int argc, char *argv[])
                                                               pattern);
   TestAllTI<BinaryBinaryTemplateIntMinToMax, SW, Unzip>::test(repeats1,
                                                               pattern);
-  BinaryTemplateType<SIMDSignedByte, SIMDShort, SW, Packs>::test(repeats1,
-                                                                 pattern);
-  BinaryTemplateType<SIMDShort, SIMDInt, SW, Packs>::test(repeats1, pattern);
-  BinaryTemplateType<SIMDShort, SIMDFloat, SW, Packs>::test(repeats1, pattern);
-  BinaryTemplateType<SIMDByte, SIMDShort, SW, Packs>::test(repeats1, pattern);
-  BinaryTemplateType<SIMDWord, SIMDInt, SW, Packs>::test(repeats1, pattern);
-  BinaryTemplateType<SIMDWord, SIMDFloat, SW, Packs>::test(repeats1, pattern);
-  UnaryArrayTemplateType<SIMDSignedByte, SIMDSignedByte, SW, Extend>::test(
-    repeats1, pattern);
-  UnaryArrayTemplateType<SIMDShort, SIMDSignedByte, SW, Extend>::test(repeats1,
-                                                                      pattern);
-  UnaryArrayTemplateType<SIMDInt, SIMDSignedByte, SW, Extend>::test(repeats1,
-                                                                    pattern);
-  UnaryArrayTemplateType<SIMDFloat, SIMDSignedByte, SW, Extend>::test(repeats1,
-                                                                      pattern);
-  UnaryArrayTemplateType<SIMDByte, SIMDByte, SW, Extend>::test(repeats1,
-                                                               pattern);
-  UnaryArrayTemplateType<SIMDShort, SIMDByte, SW, Extend>::test(repeats1,
-                                                                pattern);
-  UnaryArrayTemplateType<SIMDWord, SIMDByte, SW, Extend>::test(repeats1,
-                                                               pattern);
-  UnaryArrayTemplateType<SIMDInt, SIMDByte, SW, Extend>::test(repeats1,
+  BinaryTemplateType<SignedByte, Short, SW, Packs>::test(repeats1, pattern);
+  BinaryTemplateType<Short, Int, SW, Packs>::test(repeats1, pattern);
+  BinaryTemplateType<Short, Float, SW, Packs>::test(repeats1, pattern);
+  BinaryTemplateType<Byte, Short, SW, Packs>::test(repeats1, pattern);
+  BinaryTemplateType<Word, Int, SW, Packs>::test(repeats1, pattern);
+  BinaryTemplateType<Word, Float, SW, Packs>::test(repeats1, pattern);
+  UnaryArrayTemplateType<SignedByte, SignedByte, SW, Extend>::test(repeats1,
+                                                                   pattern);
+  UnaryArrayTemplateType<Short, SignedByte, SW, Extend>::test(repeats1,
                                                               pattern);
-  UnaryArrayTemplateType<SIMDFloat, SIMDByte, SW, Extend>::test(repeats1,
-                                                                pattern);
-  UnaryArrayTemplateType<SIMDShort, SIMDShort, SW, Extend>::test(repeats1,
-                                                                 pattern);
-  UnaryArrayTemplateType<SIMDInt, SIMDShort, SW, Extend>::test(repeats1,
-                                                               pattern);
-  UnaryArrayTemplateType<SIMDFloat, SIMDShort, SW, Extend>::test(repeats1,
-                                                                 pattern);
-  UnaryArrayTemplateType<SIMDWord, SIMDWord, SW, Extend>::test(repeats1,
-                                                               pattern);
-  UnaryArrayTemplateType<SIMDInt, SIMDWord, SW, Extend>::test(repeats1,
+  UnaryArrayTemplateType<Int, SignedByte, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Float, SignedByte, SW, Extend>::test(repeats1,
                                                               pattern);
-  UnaryArrayTemplateType<SIMDFloat, SIMDWord, SW, Extend>::test(repeats1,
-                                                                pattern);
-  UnaryArrayTemplateType<SIMDInt, SIMDInt, SW, Extend>::test(repeats1, pattern);
-  UnaryArrayTemplateType<SIMDFloat, SIMDInt, SW, Extend>::test(repeats1,
-                                                               pattern);
-  UnaryArrayTemplateType<SIMDInt, SIMDFloat, SW, Extend>::test(repeats1,
-                                                               pattern);
-  UnaryArrayTemplateType<SIMDFloat, SIMDFloat, SW, Extend>::test(repeats1,
-                                                                 pattern);
+  UnaryArrayTemplateType<Byte, Byte, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Short, Byte, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Word, Byte, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Int, Byte, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Float, Byte, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Short, Short, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Int, Short, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Float, Short, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Word, Word, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Int, Word, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Float, Word, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Int, Int, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Float, Int, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Int, Float, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Float, Float, SW, Extend>::test(repeats1, pattern);
   TestIntTI<UnaryTemplateIntMinToMax, SW, Srai>::test(repeats1, pattern);
   TestIntTI<UnaryTemplateIntMinToMax, SW, Srli>::test(repeats1, pattern);
   TestIntTI<UnaryTemplateIntMinToMax, SW, Slli>::test(repeats1, pattern);
@@ -189,8 +172,8 @@ int main(int argc, char *argv[])
   TestInt<UnaryUInt8, SW, Sra>::test(repeats1, pattern);
   TestInt<UnaryUInt8, SW, Srl>::test(repeats1, pattern);
   TestInt<UnaryUInt8, SW, Sll>::test(repeats1, pattern);
-  UnaryTemplateType<SIMDInt, SIMDFloat, SW, Cvts>::test(repeats1, pattern);
-  UnaryTemplateType<SIMDFloat, SIMDInt, SW, Cvts>::test(repeats1, pattern);
+  UnaryTemplateType<Int, Float, SW, Cvts>::test(repeats1, pattern);
+  UnaryTemplateType<Float, Int, SW, Cvts>::test(repeats1, pattern);
   TestAll<Binary, SW, Hadd>::test(repeats1, pattern);
   TestAll<Binary, SW, Hadds>::test(repeats1, pattern);
   TestAll<Binary, SW, Hsub>::test(repeats1, pattern);

@@ -34,7 +34,7 @@
 #include <string>
 #include <time.h>
 
-using namespace ns_simd;
+using namespace simd;
 using namespace auto_test;
 
 // SW = SIMD width = number of bytes in a single SIMD vector
@@ -56,14 +56,14 @@ int main(int argc, char *argv[])
   TestAll<TesterMaskConditionBinary, SW, Mask_ifelse>::test(repeats1, pattern);
   TestAll<TesterMaskConditionUnary, SW, Mask_ifelsezero>::test(repeats1,
                                                                pattern);
-  TesterMaskUnaryTemplateType<SIMDInt, SIMDFloat, SW, Mask_cvts>::test(repeats1,
-                                                                       pattern);
-  TesterMaskZUnaryTemplateType<SIMDInt, SIMDFloat, SW, MaskZ_cvts>::test(
-    repeats1, pattern);
-  TesterMaskUnaryTemplateType<SIMDFloat, SIMDInt, SW, Mask_cvts>::test(repeats1,
-                                                                       pattern);
-  TesterMaskZUnaryTemplateType<SIMDFloat, SIMDInt, SW, MaskZ_cvts>::test(
-    repeats1, pattern);
+  TesterMaskUnaryTemplateType<Int, Float, SW, Mask_cvts>::test(repeats1,
+                                                               pattern);
+  TesterMaskZUnaryTemplateType<Int, Float, SW, MaskZ_cvts>::test(repeats1,
+                                                                 pattern);
+  TesterMaskUnaryTemplateType<Float, Int, SW, Mask_cvts>::test(repeats1,
+                                                               pattern);
+  TesterMaskZUnaryTemplateType<Float, Int, SW, MaskZ_cvts>::test(repeats1,
+                                                                 pattern);
   TestAll<TesterMaskScalar, SW, Mask_set1>::test(repeats1, pattern);
   TestAll<TesterMaskZScalar, SW, MaskZ_set1>::test(repeats1, pattern);
   TestAll<TesterMaskBinary, SW, Mask_add>::test(repeats1, pattern);

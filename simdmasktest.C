@@ -1,7 +1,7 @@
 // ===========================================================================
 //
 // simdmasktest.C --
-// test of SIMDMask templates
+// test of Mask templates
 // Author: Markus Vieth (Bielefeld University, mvieth@techfak.uni-bielefeld.de)
 // Year of creation: 2019
 //
@@ -98,7 +98,7 @@ int main()
 }
 #else
 
-using namespace ns_simd;
+using namespace simd;
 
 typedef uint64_t uinttest_t;
 #define PRIutest PRIu64
@@ -130,15 +130,13 @@ int dummy(int i)
 
 #ifdef SIMDVEC_NEON_ENABLE
 template <typename T, int SIMD_WIDTH>
-bool vectorsEqual(const SIMDVec<T, SIMD_WIDTH> &a,
-                  const SIMDVec<T, SIMD_WIDTH> &b)
+bool vectorsEqual(const Vec<T, SIMD_WIDTH> &a, const Vec<T, SIMD_WIDTH> &b)
 {
   return test_all_ones(cmpeq(a, b));
 }
-bool vectorsEqual(const SIMDVec<SIMDFloat, 16> &a,
-                  const SIMDVec<SIMDFloat, 16> &b)
+bool vectorsEqual(const Vec<Float, 16> &a, const Vec<Float, 16> &b)
 {
-  return vectorsEqual(reinterpret<SIMDInt>(a), reinterpret<SIMDInt>(b));
+  return vectorsEqual(reinterpret<Int>(a), reinterpret<Int>(b));
 }
 #endif
 
@@ -171,14 +169,13 @@ bool vectorsEqual(const __m256 a, const __m256 b)
 #ifdef __AVX__
 bool vectorsEqual(__m256i a, __m256i b)
 {
-  return test_all_ones(
-    cmpeq(SIMDVec<SIMDByte, 32>(a), SIMDVec<SIMDByte, 32>(b)));
+  return test_all_ones(cmpeq(Vec<Byte, 32>(a), Vec<Byte, 32>(b)));
 }
 
 bool vectorsEqual(__m256 a, __m256 b)
 {
-  return test_all_ones(cmpeq(SIMDVec<SIMDByte, 32>(_mm256_castps_si256(a)),
-                             SIMDVec<SIMDByte, 32>(_mm256_castps_si256(b))));
+  return test_all_ones(cmpeq(Vec<Byte, 32>(_mm256_castps_si256(a)),
+                             Vec<Byte, 32>(_mm256_castps_si256(b))));
 }
 #endif
 #endif
@@ -189,30 +186,28 @@ bool vectorsEqual(const __m512i a, const __m512i b)
   // return _mm512_cmpeq_epi8_mask(a,
   // b)==0xffffffffffffffff;//test_all_zeros(cmpeq(a, b));
   return _mm512_cmpeq_epi64_mask(a, b) == 0xff;
-  // return (vectorsEqual(SIMDVec<SIMDByte,64>(a).lo(),
-  // SIMDVec<SIMDByte,64>(b).lo())) &&
-  // (vectorsEqual(SIMDVec<SIMDByte,64>(a).hi(), SIMDVec<SIMDByte,64>(b).hi()));
+  // return (vectorsEqual(Vec<Byte,64>(a).lo(),
+  // Vec<Byte,64>(b).lo())) &&
+  // (vectorsEqual(Vec<Byte,64>(a).hi(), Vec<Byte,64>(b).hi()));
 }
 
 bool vectorsEqual(const __m512 a, const __m512 b)
 {
   // return _mm512_cmpeq_epi8_mask(_mm512_castps_si512(a),
   // _mm512_castps_si512(b))==0xffffffffffffffff;//test_all_zeros(cmpeq(a, b));
-  return (vectorsEqual(SIMDVec<SIMDFloat, 64>(a).lo(),
-                       SIMDVec<SIMDFloat, 64>(b).lo())) &&
-         (vectorsEqual(SIMDVec<SIMDFloat, 64>(a).hi(),
-                       SIMDVec<SIMDFloat, 64>(b).hi()));
+  return (vectorsEqual(Vec<Float, 64>(a).lo(), Vec<Float, 64>(b).lo())) &&
+         (vectorsEqual(Vec<Float, 64>(a).hi(), Vec<Float, 64>(b).hi()));
 }
 #endif
 
 template <typename T, int SIMD_WIDTH>
-SIMDVec<T, SIMD_WIDTH> getRandomVector()
+Vec<T, SIMD_WIDTH> getRandomVector()
 {
   void *buf = malloc(SIMD_WIDTH);
   // getrandom(buf, 64, 0);
   uint8_t i;
   for (i = 0; i < SIMD_WIDTH; i++) { ((uint8_t *) buf)[i] = rand() & 0xff; }
-  SIMDVec<T, SIMD_WIDTH> vec = loadu<SIMD_WIDTH, T>((T *) buf);
+  Vec<T, SIMD_WIDTH> vec = loadu<SIMD_WIDTH, T>((T *) buf);
   free(buf);
   return vec;
 }
@@ -235,152 +230,150 @@ uinttest_t random_continuous(uint8_t size)
 
 // Test any function with two operands ("NAME" is the name of the function, e.g.
 // "add" or "and")
-#define TEST_FUNCTION(NAME, OP, TYPE, SIMD_WIDTH)                              \
-  {                                                                            \
-    unsigned int csr0, csr1, csr2;                                             \
-    SIMDVec<TYPE, SIMD_WIDTH> src = setzero<TYPE, SIMD_WIDTH>(),               \
-                              a   = getRandomVector<TYPE, SIMD_WIDTH>(),       \
-                              b   = getRandomVector<TYPE, SIMD_WIDTH>(), res1, \
-                              res2;                                            \
-    /* First test */                                                           \
-    SIMDMask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();          \
-    csr0                         = getcsr();                                   \
-    res1                         = mask_##NAME(src, k, a, b);                  \
-    csr1                         = getcsr();                                   \
-    setcsr(csr0);                                                              \
-    res2 = NAME(a, b);                                                         \
-    csr2 = getcsr();                                                           \
-    if (!vectorsEqual(res1, res2) ||                                           \
-        csr1 != csr2) /* TODO problem with flags */                            \
-    {                                                                          \
-      printf("Problem with %s for %s test 1, csr1=%x, csr2=%x \na=", #NAME,    \
-             #TYPE, csr1, csr2);                                               \
-      print("%e ", a);                                                         \
-      printf("\nb=");                                                          \
-      print("%e ", b);                                                         \
-      printf("\nres1=");                                                       \
-      print("%e ", res1);                                                      \
-      printf("\nres2=");                                                       \
-      print("%e ", res2);                                                      \
-      printf("\nres1=");                                                       \
-      print("%x ", reinterpret<SIMDInt>(res1));                                \
-      printf("\nres2=");                                                       \
-      print("%x ", reinterpret<SIMDInt>(res2));                                \
-      puts("");                                                                \
-    } else {                                                                   \
-      if (PRINT_PASS) printf("Pass %s for %s \n", #NAME, #TYPE);               \
-    }                                                                          \
-    /* Second test */                                                          \
-    SIMDMask<TYPE, SIMD_WIDTH> kzero;                                          \
-    setcsr(csr0);                                                              \
-    res1 = maskz_##NAME(kzero, a, b);                                          \
-    if (!vectorsEqual(res1, setzero<TYPE, SIMD_WIDTH>()) ||                    \
-        getcsr() != csr0) {                                                    \
-      printf("Problem with %s for %s test 2, csr=%x, csr0=%x \na=", #NAME,     \
-             #TYPE, getcsr(), csr0);                                           \
-      print("%e ", a);                                                         \
-      printf("\nb=");                                                          \
-      print("%e ", b);                                                         \
-      printf("\nres1=");                                                       \
-      print("%e ", res1);                                                      \
-      printf("\n");                                                            \
-    }                                                                          \
-    setcsr(csr0);                                                              \
+#define TEST_FUNCTION(NAME, OP, TYPE, SIMD_WIDTH)                                \
+  {                                                                              \
+    unsigned int csr0, csr1, csr2;                                               \
+    Vec<TYPE, SIMD_WIDTH> src = setzero<TYPE, SIMD_WIDTH>(),                     \
+                          a   = getRandomVector<TYPE, SIMD_WIDTH>(),             \
+                          b   = getRandomVector<TYPE, SIMD_WIDTH>(), res1, res2; \
+    /* First test */                                                             \
+    Mask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();                \
+    csr0                     = getcsr();                                         \
+    res1                     = mask_##NAME(src, k, a, b);                        \
+    csr1                     = getcsr();                                         \
+    setcsr(csr0);                                                                \
+    res2 = NAME(a, b);                                                           \
+    csr2 = getcsr();                                                             \
+    if (!vectorsEqual(res1, res2) ||                                             \
+        csr1 != csr2) /* TODO problem with flags */                              \
+    {                                                                            \
+      printf("Problem with %s for %s test 1, csr1=%x, csr2=%x \na=", #NAME,      \
+             #TYPE, csr1, csr2);                                                 \
+      print("%e ", a);                                                           \
+      printf("\nb=");                                                            \
+      print("%e ", b);                                                           \
+      printf("\nres1=");                                                         \
+      print("%e ", res1);                                                        \
+      printf("\nres2=");                                                         \
+      print("%e ", res2);                                                        \
+      printf("\nres1=");                                                         \
+      print("%x ", reinterpret<Int>(res1));                                      \
+      printf("\nres2=");                                                         \
+      print("%x ", reinterpret<Int>(res2));                                      \
+      puts("");                                                                  \
+    } else {                                                                     \
+      if (PRINT_PASS) printf("Pass %s for %s \n", #NAME, #TYPE);                 \
+    }                                                                            \
+    /* Second test */                                                            \
+    Mask<TYPE, SIMD_WIDTH> kzero;                                                \
+    setcsr(csr0);                                                                \
+    res1 = maskz_##NAME(kzero, a, b);                                            \
+    if (!vectorsEqual(res1, setzero<TYPE, SIMD_WIDTH>()) ||                      \
+        getcsr() != csr0) {                                                      \
+      printf("Problem with %s for %s test 2, csr=%x, csr0=%x \na=", #NAME,       \
+             #TYPE, getcsr(), csr0);                                             \
+      print("%e ", a);                                                           \
+      printf("\nb=");                                                            \
+      print("%e ", b);                                                           \
+      printf("\nres1=");                                                         \
+      print("%e ", res1);                                                        \
+      printf("\n");                                                              \
+    }                                                                            \
+    setcsr(csr0);                                                                \
   }
 
 // Test any function with one operand ("NAME" is the name of the function, e.g.
 // "sqrt" or "abs")
-#define TEST_FUNCTION_SOP(NAME, OP, TYPE, SIMD_WIDTH, FORMAT)                  \
-  {                                                                            \
-    /*printf("Testing function %s for type %s\n", #NAME, #TYPE);*/             \
-    unsigned int csr0, csr1, csr2;                                             \
-    csr0                          = getcsr();                                  \
-    SIMDVec<TYPE, SIMD_WIDTH> src = setzero<TYPE, SIMD_WIDTH>(),               \
-                              a   = getRandomVector<TYPE, SIMD_WIDTH>(), res1, \
-                              res2;                                            \
-    /* First test */                                                           \
-    SIMDMask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();          \
-    res1                         = mask_##NAME(src, k, a);                     \
-    csr1                         = getcsr();                                   \
-    setcsr(csr0);                                                              \
-    res2 = NAME(a);                                                            \
-    csr2 = getcsr();                                                           \
-    /*print("%x ", reinterpret<SIMDInt>(cmpeq(res1, res2))); puts("");         \
-    printf("\nres1="); print("%x ", reinterpret<SIMDInt>(res1));               \
-    printf("\nres2="); print("%x ", reinterpret<SIMDInt>(res2)); puts("");     \
-    print("%e ", res1); printf("\nres2="); print("%e ", res2); puts("");*/     \
-    if (!vectorsEqual(res1, res2) ||                                           \
-        csr1 != csr2) /* TODO problem with flags */                            \
-    {                                                                          \
-      printf("Problem with %s for %s test 1, csr1=%x, csr2=%x \na=", #NAME,    \
-             #TYPE, csr1, csr2);                                               \
-      print("%e ", a);                                                         \
-      printf("\nres1=");                                                       \
-      print("%e ", res1);                                                      \
-      printf("\nres2=");                                                       \
-      print("%e ", res2);                                                      \
-      printf("\nres1=");                                                       \
-      print("%x ", reinterpret<SIMDInt>(res1));                                \
-      printf("\nres2=");                                                       \
-      print("%x ", reinterpret<SIMDInt>(res2));                                \
-      puts("");                                                                \
-    } else {                                                                   \
-      if (PRINT_PASS) printf("Pass %s for %s \n", #NAME, #TYPE);               \
-    }                                                                          \
-    /* Second test */                                                          \
-    SIMDMask<TYPE, SIMD_WIDTH> kzero;                                          \
-    setcsr(csr0);                                                              \
-    res1 = maskz_##NAME(kzero, a);                                             \
-    if (!vectorsEqual(res1, setzero<TYPE, SIMD_WIDTH>()) ||                    \
-        getcsr() != csr0) {                                                    \
-      printf("Problem with %s for %s test 2, csr=%x, csr0=%x \na=", #NAME,     \
-             #TYPE, getcsr(), csr0);                                           \
-      print("%e ", a);                                                         \
-      printf("\nres1=");                                                       \
-      print("%e ", res1);                                                      \
-      printf("\nzeros=");                                                      \
-      print("%e ", setzero<TYPE, SIMD_WIDTH>());                               \
-      puts("");                                                                \
-    }                                                                          \
-    setcsr(csr0);                                                              \
-    /* Third test */                                                           \
-    unsigned int i;                                                            \
-    if (strcmp(#OP, "dummy") != 0) {                                           \
-      uinttest_t mask = random64();                                            \
-      SIMDMask<TYPE, SIMD_WIDTH> rand_mask;                                    \
-      rand_mask     = mask;                                                    \
-      TYPE *arg     = (TYPE *) malloc(SIMD_WIDTH),                             \
-           *result1 = (TYPE *) malloc(SIMD_WIDTH),                             \
-           *result2 = (TYPE *) malloc(SIMD_WIDTH);                             \
-      for (i = 0; i < SIMD_WIDTH; i++) {                                       \
-        ((uint8_t *) arg)[i] = rand() & 0xff;                                  \
-      }                                                                        \
-      storeu(result1, maskz_##NAME(rand_mask, loadu<SIMD_WIDTH>(arg)));        \
-      /*print("%i ", maskz_ ## NAME(k, loadu<SIMD_WIDTH>(arg))); puts("");*/   \
-      for (i = 0; i < SIMD_WIDTH / sizeof(TYPE); i++) {                        \
-        if ((mask & (1lu << i)) != 0) {                                        \
-          result2[i] = OP(arg[i]);                                             \
-        } else {                                                               \
-          result2[i] = 0;                                                      \
-        }                                                                      \
-      }                                                                        \
-      if (memcmp(result1, result2, SIMD_WIDTH) != 0) {                         \
-        printf("Problem with %s for %s test 3, csr1=%x, csr2=%x result 1=",    \
-               #NAME, #TYPE, csr1, csr2);                                      \
-        for (i = 0; i < SIMD_WIDTH / sizeof(TYPE); i++) {                      \
-          printf(FORMAT, result1[i]);                                          \
-        }                                                                      \
-        printf(" result2=");                                                   \
-        for (i = 0; i < SIMD_WIDTH / sizeof(TYPE); i++) {                      \
-          printf(FORMAT, result2[i]);                                          \
-        }                                                                      \
-        printf(" mask=%" PRIutest "=%" PRIutest "\n", mask,                    \
-               (uinttest_t) rand_mask);                                        \
-      } else {                                                                 \
-        if (PRINT_PASS) printf("Pass test 2 %s for %s \n", #NAME, #TYPE);      \
-      }                                                                        \
-    }                                                                          \
-    setcsr(csr0);                                                              \
+#define TEST_FUNCTION_SOP(NAME, OP, TYPE, SIMD_WIDTH, FORMAT)                    \
+  {                                                                              \
+    /*printf("Testing function %s for type %s\n", #NAME, #TYPE);*/               \
+    unsigned int csr0, csr1, csr2;                                               \
+    csr0                      = getcsr();                                        \
+    Vec<TYPE, SIMD_WIDTH> src = setzero<TYPE, SIMD_WIDTH>(),                     \
+                          a   = getRandomVector<TYPE, SIMD_WIDTH>(), res1, res2; \
+    /* First test */                                                             \
+    Mask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();                \
+    res1                     = mask_##NAME(src, k, a);                           \
+    csr1                     = getcsr();                                         \
+    setcsr(csr0);                                                                \
+    res2 = NAME(a);                                                              \
+    csr2 = getcsr();                                                             \
+    /*print("%x ", reinterpret<Int>(cmpeq(res1, res2))); puts("");               \
+    printf("\nres1="); print("%x ", reinterpret<Int>(res1));                     \
+    printf("\nres2="); print("%x ", reinterpret<Int>(res2)); puts("");           \
+    print("%e ", res1); printf("\nres2="); print("%e ", res2); puts("");*/       \
+    if (!vectorsEqual(res1, res2) ||                                             \
+        csr1 != csr2) /* TODO problem with flags */                              \
+    {                                                                            \
+      printf("Problem with %s for %s test 1, csr1=%x, csr2=%x \na=", #NAME,      \
+             #TYPE, csr1, csr2);                                                 \
+      print("%e ", a);                                                           \
+      printf("\nres1=");                                                         \
+      print("%e ", res1);                                                        \
+      printf("\nres2=");                                                         \
+      print("%e ", res2);                                                        \
+      printf("\nres1=");                                                         \
+      print("%x ", reinterpret<Int>(res1));                                      \
+      printf("\nres2=");                                                         \
+      print("%x ", reinterpret<Int>(res2));                                      \
+      puts("");                                                                  \
+    } else {                                                                     \
+      if (PRINT_PASS) printf("Pass %s for %s \n", #NAME, #TYPE);                 \
+    }                                                                            \
+    /* Second test */                                                            \
+    Mask<TYPE, SIMD_WIDTH> kzero;                                                \
+    setcsr(csr0);                                                                \
+    res1 = maskz_##NAME(kzero, a);                                               \
+    if (!vectorsEqual(res1, setzero<TYPE, SIMD_WIDTH>()) ||                      \
+        getcsr() != csr0) {                                                      \
+      printf("Problem with %s for %s test 2, csr=%x, csr0=%x \na=", #NAME,       \
+             #TYPE, getcsr(), csr0);                                             \
+      print("%e ", a);                                                           \
+      printf("\nres1=");                                                         \
+      print("%e ", res1);                                                        \
+      printf("\nzeros=");                                                        \
+      print("%e ", setzero<TYPE, SIMD_WIDTH>());                                 \
+      puts("");                                                                  \
+    }                                                                            \
+    setcsr(csr0);                                                                \
+    /* Third test */                                                             \
+    unsigned int i;                                                              \
+    if (strcmp(#OP, "dummy") != 0) {                                             \
+      uinttest_t mask = random64();                                              \
+      Mask<TYPE, SIMD_WIDTH> rand_mask;                                          \
+      rand_mask     = mask;                                                      \
+      TYPE *arg     = (TYPE *) malloc(SIMD_WIDTH),                               \
+           *result1 = (TYPE *) malloc(SIMD_WIDTH),                               \
+           *result2 = (TYPE *) malloc(SIMD_WIDTH);                               \
+      for (i = 0; i < SIMD_WIDTH; i++) {                                         \
+        ((uint8_t *) arg)[i] = rand() & 0xff;                                    \
+      }                                                                          \
+      storeu(result1, maskz_##NAME(rand_mask, loadu<SIMD_WIDTH>(arg)));          \
+      /*print("%i ", maskz_ ## NAME(k, loadu<SIMD_WIDTH>(arg))); puts("");*/     \
+      for (i = 0; i < SIMD_WIDTH / sizeof(TYPE); i++) {                          \
+        if ((mask & (1lu << i)) != 0) {                                          \
+          result2[i] = OP(arg[i]);                                               \
+        } else {                                                                 \
+          result2[i] = 0;                                                        \
+        }                                                                        \
+      }                                                                          \
+      if (memcmp(result1, result2, SIMD_WIDTH) != 0) {                           \
+        printf("Problem with %s for %s test 3, csr1=%x, csr2=%x result 1=",      \
+               #NAME, #TYPE, csr1, csr2);                                        \
+        for (i = 0; i < SIMD_WIDTH / sizeof(TYPE); i++) {                        \
+          printf(FORMAT, result1[i]);                                            \
+        }                                                                        \
+        printf(" result2=");                                                     \
+        for (i = 0; i < SIMD_WIDTH / sizeof(TYPE); i++) {                        \
+          printf(FORMAT, result2[i]);                                            \
+        }                                                                        \
+        printf(" mask=%" PRIutest "=%" PRIutest "\n", mask,                      \
+               (uinttest_t) rand_mask);                                          \
+      } else {                                                                   \
+        if (PRINT_PASS) printf("Pass test 2 %s for %s \n", #NAME, #TYPE);        \
+      }                                                                          \
+    }                                                                            \
+    setcsr(csr0);                                                                \
   }
 
 // Test any function with one operand ("NAME" is the name of the function, e.g.
@@ -389,12 +382,12 @@ uinttest_t random_continuous(uint8_t size)
   {                                                                            \
     /*printf("Testing function %s for type %s\n", #NAME, #TYPE);*/             \
     unsigned int csr0;                                                         \
-    csr0                        = getcsr();                                    \
-    SIMDVec<TYPE, SIMD_WIDTH> a = getRandomVector<TYPE, SIMD_WIDTH>(),         \
-                              b = getRandomVector<TYPE, SIMD_WIDTH>();         \
-    SIMDMask<TYPE, SIMD_WIDTH> res1, res2;                                     \
+    csr0                    = getcsr();                                        \
+    Vec<TYPE, SIMD_WIDTH> a = getRandomVector<TYPE, SIMD_WIDTH>(),             \
+                          b = getRandomVector<TYPE, SIMD_WIDTH>();             \
+    Mask<TYPE, SIMD_WIDTH> res1, res2;                                         \
     /* Second test */                                                          \
-    SIMDMask<TYPE, SIMD_WIDTH> kzero;                                          \
+    Mask<TYPE, SIMD_WIDTH> kzero;                                              \
     setcsr(csr0);                                                              \
     res1 = mask_##NAME(kzero, a, b);                                           \
     if (res1 != 0 || getcsr() != csr0) {                                       \
@@ -409,7 +402,7 @@ uinttest_t random_continuous(uint8_t size)
     unsigned int i;                                                            \
     if (strcmp(#OP, "dummy") != 0) {                                           \
       uinttest_t mask = 0xfffffffffff; /*random64();*/                         \
-      SIMDMask<TYPE, SIMD_WIDTH> rand_mask;                                    \
+      Mask<TYPE, SIMD_WIDTH> rand_mask;                                        \
       rand_mask          = mask;                                               \
       TYPE *arg1         = (TYPE *) malloc(SIMD_WIDTH),                        \
            *arg2         = (TYPE *) malloc(SIMD_WIDTH);                        \
@@ -448,84 +441,83 @@ uinttest_t random_continuous(uint8_t size)
 
 // Test any function with one operand ("NAME" is the name of the function, e.g.
 // "sqrt" or "abs")
-#define TEST_FUNCTION_SHIFT(NAME, OP, TYPE, SIMD_WIDTH, FORMAT, COUNT)         \
-  {                                                                            \
-    /*printf("Testing function %s for type %s\n", #NAME, #TYPE);*/             \
-    unsigned int csr0, csr1, csr2;                                             \
-    SIMDVec<TYPE, SIMD_WIDTH> src = setzero<TYPE, SIMD_WIDTH>(),               \
-                              a   = getRandomVector<TYPE, SIMD_WIDTH>(), res1, \
-                              res2;                                            \
-    /* First test */                                                           \
-    SIMDMask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();          \
-    csr0                         = getcsr();                                   \
-    res1                         = mask_##NAME<COUNT>(src, k, a);              \
-    csr1                         = getcsr();                                   \
-    setcsr(csr0);                                                              \
-    res2 = NAME<COUNT>(a);                                                     \
-    csr2 = getcsr();                                                           \
-    /*print("%x ", reinterpret<SIMDInt>(cmpeq(res1, res2))); puts("");         \
-    printf("\nres1="); print("%x ", reinterpret<SIMDInt>(res1));               \
-    printf("\nres2="); print("%x ", reinterpret<SIMDInt>(res2)); puts("");     \
-    print("%e ", res1); printf("\nres2="); print("%e ", res2); puts("");*/     \
-    if (!vectorsEqual(res1, res2) ||                                           \
-        csr1 != csr2) /* TODO problem with flags */                            \
-    {                                                                          \
-      printf("Problem with %s for %s test 1, csr1=%x, csr2=%x \na=", #NAME,    \
-             #TYPE, csr1, csr2);                                               \
-      print("%e ", a);                                                         \
-      printf("\nres1=");                                                       \
-      print("%e ", res1);                                                      \
-      printf("\nres2=");                                                       \
-      print("%e ", res2);                                                      \
-      printf("\nres1=");                                                       \
-      print("%x ", reinterpret<SIMDInt>(res1));                                \
-      printf("\nres2=");                                                       \
-      print("%x ", reinterpret<SIMDInt>(res2));                                \
-      puts("");                                                                \
-    } else {                                                                   \
-      if (PRINT_PASS) printf("Pass %s for %s \n", #NAME, #TYPE);               \
-    }                                                                          \
-    /* Second test */                                                          \
-    SIMDMask<TYPE, SIMD_WIDTH> kzero;                                          \
-    setcsr(csr0);                                                              \
-    res1 = maskz_##NAME<COUNT>(kzero, a);                                      \
-    if (!vectorsEqual(res1, setzero<TYPE, SIMD_WIDTH>()) ||                    \
-        getcsr() != csr0) {                                                    \
-      printf("Problem with %s for %s, csr=%x test 2, csr0=%x \na=", #NAME,     \
-             #TYPE, getcsr(), csr0);                                           \
-      print("%e ", a);                                                         \
-      printf("\nres1=");                                                       \
-      print("%e ", res1);                                                      \
-      printf("\n");                                                            \
-    }                                                                          \
-    setcsr(csr0);                                                              \
-    /* Third test */                                                           \
-    /*unsigned int i;                                                          \
-    if(strcmp(#OP, "dummy")!=0) {                                              \
-    uinttest_t mask=random64();                                                \
-    SIMDMask<TYPE, SIMD_WIDTH> rand_mask;                                      \
-    rand_mask=mask;                                                            \
-    TYPE * arg=(TYPE *) malloc(SIMD_WIDTH), * result1=(TYPE *)                 \
-    malloc(SIMD_WIDTH), * result2=(TYPE *) malloc(SIMD_WIDTH); for(i=0;        \
-    i<SIMD_WIDTH; i++) {                                                       \
-        ((uint8_t *) arg)[i] = rand()&0xff;                                    \
-    }                                                                          \
-    storeu(result1, maskz_ ## NAME<COUNT>(rand_mask, loadu<SIMD_WIDTH>(arg))); \
-    for(i=0; i<SIMD_WIDTH/sizeof(TYPE); i++) {                                 \
-     if((mask&(1lu<<i))!=0) {                                                  \
-       result2[i]=(arg[i]) OP COUNT;                                           \
-     } else {                                                                  \
-       result2[i]=0;                                                           \
-     }                                                                         \
-    }                                                                          \
-    if(memcmp(result1, result2, SIMD_WIDTH)!=0)                                \
-    { printf("Problem with %s for %s test 3, csr1=%x, csr2=%x result 1=",      \
-    #NAME, #TYPE, csr1, csr2); for(i=0; i<SIMD_WIDTH/sizeof(TYPE); i++) {      \
-    printf(FORMAT, result1[i]); } printf(" result2="); for(i=0;                \
-    i<SIMD_WIDTH/sizeof(TYPE); i++) { printf(FORMAT, result2[i]); } printf("   \
-    mask=%" PRIutest "=%" PRIutest "\n", mask, (uinttest_t) rand_mask); }      \
-    }*/                                                                        \
-    setcsr(csr0);                                                              \
+#define TEST_FUNCTION_SHIFT(NAME, OP, TYPE, SIMD_WIDTH, FORMAT, COUNT)           \
+  {                                                                              \
+    /*printf("Testing function %s for type %s\n", #NAME, #TYPE);*/               \
+    unsigned int csr0, csr1, csr2;                                               \
+    Vec<TYPE, SIMD_WIDTH> src = setzero<TYPE, SIMD_WIDTH>(),                     \
+                          a   = getRandomVector<TYPE, SIMD_WIDTH>(), res1, res2; \
+    /* First test */                                                             \
+    Mask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();                \
+    csr0                     = getcsr();                                         \
+    res1                     = mask_##NAME<COUNT>(src, k, a);                    \
+    csr1                     = getcsr();                                         \
+    setcsr(csr0);                                                                \
+    res2 = NAME<COUNT>(a);                                                       \
+    csr2 = getcsr();                                                             \
+    /*print("%x ", reinterpret<Int>(cmpeq(res1, res2))); puts("");               \
+    printf("\nres1="); print("%x ", reinterpret<Int>(res1));                     \
+    printf("\nres2="); print("%x ", reinterpret<Int>(res2)); puts("");           \
+    print("%e ", res1); printf("\nres2="); print("%e ", res2); puts("");*/       \
+    if (!vectorsEqual(res1, res2) ||                                             \
+        csr1 != csr2) /* TODO problem with flags */                              \
+    {                                                                            \
+      printf("Problem with %s for %s test 1, csr1=%x, csr2=%x \na=", #NAME,      \
+             #TYPE, csr1, csr2);                                                 \
+      print("%e ", a);                                                           \
+      printf("\nres1=");                                                         \
+      print("%e ", res1);                                                        \
+      printf("\nres2=");                                                         \
+      print("%e ", res2);                                                        \
+      printf("\nres1=");                                                         \
+      print("%x ", reinterpret<Int>(res1));                                      \
+      printf("\nres2=");                                                         \
+      print("%x ", reinterpret<Int>(res2));                                      \
+      puts("");                                                                  \
+    } else {                                                                     \
+      if (PRINT_PASS) printf("Pass %s for %s \n", #NAME, #TYPE);                 \
+    }                                                                            \
+    /* Second test */                                                            \
+    Mask<TYPE, SIMD_WIDTH> kzero;                                                \
+    setcsr(csr0);                                                                \
+    res1 = maskz_##NAME<COUNT>(kzero, a);                                        \
+    if (!vectorsEqual(res1, setzero<TYPE, SIMD_WIDTH>()) ||                      \
+        getcsr() != csr0) {                                                      \
+      printf("Problem with %s for %s, csr=%x test 2, csr0=%x \na=", #NAME,       \
+             #TYPE, getcsr(), csr0);                                             \
+      print("%e ", a);                                                           \
+      printf("\nres1=");                                                         \
+      print("%e ", res1);                                                        \
+      printf("\n");                                                              \
+    }                                                                            \
+    setcsr(csr0);                                                                \
+    /* Third test */                                                             \
+    /*unsigned int i;                                                            \
+    if(strcmp(#OP, "dummy")!=0) {                                                \
+    uinttest_t mask=random64();                                                  \
+    Mask<TYPE, SIMD_WIDTH> rand_mask;                                            \
+    rand_mask=mask;                                                              \
+    TYPE * arg=(TYPE *) malloc(SIMD_WIDTH), * result1=(TYPE *)                   \
+    malloc(SIMD_WIDTH), * result2=(TYPE *) malloc(SIMD_WIDTH); for(i=0;          \
+    i<SIMD_WIDTH; i++) {                                                         \
+        ((uint8_t *) arg)[i] = rand()&0xff;                                      \
+    }                                                                            \
+    storeu(result1, maskz_ ## NAME<COUNT>(rand_mask, loadu<SIMD_WIDTH>(arg)));   \
+    for(i=0; i<SIMD_WIDTH/sizeof(TYPE); i++) {                                   \
+     if((mask&(1lu<<i))!=0) {                                                    \
+       result2[i]=(arg[i]) OP COUNT;                                             \
+     } else {                                                                    \
+       result2[i]=0;                                                             \
+     }                                                                           \
+    }                                                                            \
+    if(memcmp(result1, result2, SIMD_WIDTH)!=0)                                  \
+    { printf("Problem with %s for %s test 3, csr1=%x, csr2=%x result 1=",        \
+    #NAME, #TYPE, csr1, csr2); for(i=0; i<SIMD_WIDTH/sizeof(TYPE); i++) {        \
+    printf(FORMAT, result1[i]); } printf(" result2="); for(i=0;                  \
+    i<SIMD_WIDTH/sizeof(TYPE); i++) { printf(FORMAT, result2[i]); } printf("     \
+    mask=%" PRIutest "=%" PRIutest "\n", mask, (uinttest_t) rand_mask); }        \
+    }*/                                                                          \
+    setcsr(csr0);                                                                \
   }
 
 #define TEST_FUNCTION_MASK_TEST_ALL_(NAME, TARGET, TYPE, SIMD_WIDTH, FORMAT)   \
@@ -534,7 +526,7 @@ uinttest_t random_continuous(uint8_t size)
     /* Third test */                                                           \
     unsigned int i;                                                            \
     uinttest_t mask = random64();                                              \
-    SIMDMask<TYPE, SIMD_WIDTH> rand_mask;                                      \
+    Mask<TYPE, SIMD_WIDTH> rand_mask;                                          \
     rand_mask = mask;                                                          \
     TYPE *arg = (TYPE *) malloc(SIMD_WIDTH);                                   \
     int result1, result2 = 1;                                                  \
@@ -575,10 +567,10 @@ uinttest_t random_continuous(uint8_t size)
       for (i = 0; i < SIMD_WIDTH; i++) {                                       \
         ((uint8_t *) buffer)[i] = rand() & 0xff;                               \
       }                                                                        \
-      SIMDVec<TYPE, SIMD_WIDTH> res1, res2;                                    \
+      Vec<TYPE, SIMD_WIDTH> res1, res2;                                        \
       /* First test */                                                         \
-      SIMDMask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();        \
-      csr0                         = getcsr();                                 \
+      Mask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();            \
+      csr0                     = getcsr();                                     \
       /*printf("Performing %s for %s\n", "load", #TYPE);*/                     \
       res1 = maskz_loadu(k, buffer);                                           \
       csr1 = getcsr();                                                         \
@@ -594,15 +586,15 @@ uinttest_t random_continuous(uint8_t size)
         printf("\nres2=");                                                     \
         print(FORMAT, res2);                                                   \
         printf("\nres1=");                                                     \
-        print("%x ", reinterpret<SIMDInt>(res1));                              \
+        print("%x ", reinterpret<Int>(res1));                                  \
         printf("\nres2=");                                                     \
-        print("%x ", reinterpret<SIMDInt>(res2));                              \
+        print("%x ", reinterpret<Int>(res2));                                  \
         puts("");                                                              \
       } else {                                                                 \
         if (PRINT_PASS) printf("Pass %s for %s \n", "load", #TYPE);            \
       }                                                                        \
       /* Second test */                                                        \
-      SIMDMask<TYPE, SIMD_WIDTH> kzero;                                        \
+      Mask<TYPE, SIMD_WIDTH> kzero;                                            \
       setcsr(csr0);                                                            \
       res1 = maskz_loadu(kzero, (TYPE *) 0);                                   \
       if (!vectorsEqual(res1, setzero<TYPE, SIMD_WIDTH>()) ||                  \
@@ -615,7 +607,7 @@ uinttest_t random_continuous(uint8_t size)
       }                                                                        \
       setcsr(csr0);                                                            \
       /* Third test */                                                         \
-      SIMDMask<TYPE, SIMD_WIDTH> krand;                                        \
+      Mask<TYPE, SIMD_WIDTH> krand;                                            \
       krand = random64();                                                      \
       res1  = maskz_loadu(krand, buffer);                                      \
       csr1  = getcsr();                                                        \
@@ -631,9 +623,9 @@ uinttest_t random_continuous(uint8_t size)
         printf("\nres2=");                                                     \
         print(FORMAT, res2);                                                   \
         printf("\nres1=");                                                     \
-        print("%x ", reinterpret<SIMDInt>(res1));                              \
+        print("%x ", reinterpret<Int>(res1));                                  \
         printf("\nres2=");                                                     \
-        print("%x ", reinterpret<SIMDInt>(res2));                              \
+        print("%x ", reinterpret<Int>(res2));                                  \
         puts("");                                                              \
       } else {                                                                 \
         if (PRINT_PASS) printf("Pass %s for %s \n", "load", #TYPE);            \
@@ -650,12 +642,12 @@ uinttest_t random_continuous(uint8_t size)
 // bits are zeros
 #define TEST_FUNCTION_STORE_TYPE(TYPE, SIMD_WIDTH)                             \
   {                                                                            \
-    SIMDVec<TYPE, SIMD_WIDTH> a = getRandomVector<TYPE, SIMD_WIDTH>();         \
-    TYPE *buffer1               = (TYPE *) malloc(SIMD_WIDTH);                 \
-    TYPE *buffer2               = (TYPE *) malloc(SIMD_WIDTH);                 \
+    Vec<TYPE, SIMD_WIDTH> a = getRandomVector<TYPE, SIMD_WIDTH>();             \
+    TYPE *buffer1           = (TYPE *) malloc(SIMD_WIDTH);                     \
+    TYPE *buffer2           = (TYPE *) malloc(SIMD_WIDTH);                     \
     if (buffer1 != NULL && buffer2 != NULL) {                                  \
-      SIMDMask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();        \
-      unsigned int csr0            = getcsr();                                 \
+      Mask<TYPE, SIMD_WIDTH> k = mask_all_ones<TYPE, SIMD_WIDTH>();            \
+      unsigned int csr0        = getcsr();                                     \
       /*printf("Performing %s for %s\n", "store", #TYPE);*/                    \
       mask_storeu(buffer1, k, a);                                              \
       unsigned int csr1 = getcsr();                                            \
@@ -670,7 +662,7 @@ uinttest_t random_continuous(uint8_t size)
       } else {                                                                 \
         if (PRINT_PASS) printf("Pass %s for %s \n", "store", #TYPE);           \
       }                                                                        \
-      SIMDMask<TYPE, SIMD_WIDTH> kzero;                                        \
+      Mask<TYPE, SIMD_WIDTH> kzero;                                            \
       setcsr(csr0);                                                            \
       mask_storeu(                                                             \
         (TYPE *) 0, kzero,                                                     \
@@ -687,20 +679,19 @@ template <typename Tin, typename Tout, int SIMD_WIDTH>
 void test_cvts()
 {
   unsigned int csr0, csr1, csr2;
-  csr0                       = getcsr();
-  SIMDVec<Tin, SIMD_WIDTH> a = getRandomVector<Tin, SIMD_WIDTH>();
-  SIMDVec<Tout, SIMD_WIDTH> res1, res2,
-    src = getRandomVector<Tout, SIMD_WIDTH>();
+  csr0                   = getcsr();
+  Vec<Tin, SIMD_WIDTH> a = getRandomVector<Tin, SIMD_WIDTH>();
+  Vec<Tout, SIMD_WIDTH> res1, res2, src = getRandomVector<Tout, SIMD_WIDTH>();
   /* First test */
-  SIMDMask<Tin, SIMD_WIDTH> k = mask_all_ones<Tin, SIMD_WIDTH>();
-  res1                        = mask_cvts(src, k, a);
-  csr1                        = getcsr();
+  Mask<Tin, SIMD_WIDTH> k = mask_all_ones<Tin, SIMD_WIDTH>();
+  res1                    = mask_cvts(src, k, a);
+  csr1                    = getcsr();
   setcsr(csr0);
   res2 = cvts<Tout>(a);
   csr2 = getcsr();
-  /*print("%x ", reinterpret<SIMDInt>(cmpeq(res1, res2))); puts("");
-  printf("\nres1="); print("%x ", reinterpret<SIMDInt>(res1));
-  printf("\nres2="); print("%x ", reinterpret<SIMDInt>(res2)); puts("");
+  /*print("%x ", reinterpret<Int>(cmpeq(res1, res2))); puts("");
+  printf("\nres1="); print("%x ", reinterpret<Int>(res1));
+  printf("\nres2="); print("%x ", reinterpret<Int>(res2)); puts("");
   print("%e ", res1); printf("\nres2="); print("%e ", res2); puts("");*/
   if (!vectorsEqual(res1, res2) || csr1 != csr2) /* TODO problem with flags */
   {
@@ -712,9 +703,9 @@ void test_cvts()
     printf("\nres2=");
     print("%e ", res2);
     printf("\nres1=");
-    print("%x ", reinterpret<SIMDInt>(res1));
+    print("%x ", reinterpret<Int>(res1));
     printf("\nres2=");
-    print("%x ", reinterpret<SIMDInt>(res2));
+    print("%x ", reinterpret<Int>(res2));
     puts("");
   } else {
     if (PRINT_PASS)
@@ -722,7 +713,7 @@ void test_cvts()
              SIMDTypeInfo<Tout>::name());
   }
   /* Second test */
-  SIMDMask<Tin, SIMD_WIDTH> kzero;
+  Mask<Tin, SIMD_WIDTH> kzero;
   setcsr(csr0);
   res1 = mask_cvts(src, kzero, a);
   if (!vectorsEqual(res1, src /*setzero<Tout, SIMD_WIDTH>()*/) ||
@@ -738,75 +729,74 @@ void test_cvts()
 }
 
 #define TEST_FUNCTION_LOAD_ALL_TYPES                                           \
-  TEST_FUNCTION_LOAD_TYPE(SIMDByte, NATIVE_SIMD_WIDTH, "%3u ")                 \
-  TEST_FUNCTION_LOAD_TYPE(SIMDSignedByte, NATIVE_SIMD_WIDTH, "%3i ")           \
-  TEST_FUNCTION_LOAD_TYPE(SIMDWord, NATIVE_SIMD_WIDTH, "%6u ")                 \
-  TEST_FUNCTION_LOAD_TYPE(SIMDShort, NATIVE_SIMD_WIDTH, "%6i ")                \
-  TEST_FUNCTION_LOAD_TYPE(SIMDInt, NATIVE_SIMD_WIDTH, "%8i ")                  \
-  TEST_FUNCTION_LOAD_TYPE(SIMDFloat, NATIVE_SIMD_WIDTH, "%e ")
+  TEST_FUNCTION_LOAD_TYPE(Byte, NATIVE_SIMD_WIDTH, "%3u ")                     \
+  TEST_FUNCTION_LOAD_TYPE(SignedByte, NATIVE_SIMD_WIDTH, "%3i ")               \
+  TEST_FUNCTION_LOAD_TYPE(Word, NATIVE_SIMD_WIDTH, "%6u ")                     \
+  TEST_FUNCTION_LOAD_TYPE(Short, NATIVE_SIMD_WIDTH, "%6i ")                    \
+  TEST_FUNCTION_LOAD_TYPE(Int, NATIVE_SIMD_WIDTH, "%8i ")                      \
+  TEST_FUNCTION_LOAD_TYPE(Float, NATIVE_SIMD_WIDTH, "%e ")
 
 #define TEST_FUNCTION_STORE_ALL_TYPES                                          \
-  TEST_FUNCTION_STORE_TYPE(SIMDByte, NATIVE_SIMD_WIDTH)                        \
-  TEST_FUNCTION_STORE_TYPE(SIMDSignedByte, NATIVE_SIMD_WIDTH)                  \
-  TEST_FUNCTION_STORE_TYPE(SIMDWord, NATIVE_SIMD_WIDTH)                        \
-  TEST_FUNCTION_STORE_TYPE(SIMDShort, NATIVE_SIMD_WIDTH)                       \
-  TEST_FUNCTION_STORE_TYPE(SIMDInt, NATIVE_SIMD_WIDTH)                         \
-  TEST_FUNCTION_STORE_TYPE(SIMDFloat, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION_STORE_TYPE(Byte, NATIVE_SIMD_WIDTH)                            \
+  TEST_FUNCTION_STORE_TYPE(SignedByte, NATIVE_SIMD_WIDTH)                      \
+  TEST_FUNCTION_STORE_TYPE(Word, NATIVE_SIMD_WIDTH)                            \
+  TEST_FUNCTION_STORE_TYPE(Short, NATIVE_SIMD_WIDTH)                           \
+  TEST_FUNCTION_STORE_TYPE(Int, NATIVE_SIMD_WIDTH)                             \
+  TEST_FUNCTION_STORE_TYPE(Float, NATIVE_SIMD_WIDTH)
 
 #define TEST_FUNCTION_ALL_INTS(NAME, OP)                                       \
-  TEST_FUNCTION(NAME, OP, SIMDByte, NATIVE_SIMD_WIDTH)                         \
-  TEST_FUNCTION(NAME, OP, SIMDSignedByte, NATIVE_SIMD_WIDTH)                   \
-  TEST_FUNCTION(NAME, OP, SIMDWord, NATIVE_SIMD_WIDTH)                         \
-  TEST_FUNCTION(NAME, OP, SIMDShort, NATIVE_SIMD_WIDTH)                        \
-  TEST_FUNCTION(NAME, OP, SIMDInt, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(NAME, OP, Byte, NATIVE_SIMD_WIDTH)                             \
+  TEST_FUNCTION(NAME, OP, SignedByte, NATIVE_SIMD_WIDTH)                       \
+  TEST_FUNCTION(NAME, OP, Word, NATIVE_SIMD_WIDTH)                             \
+  TEST_FUNCTION(NAME, OP, Short, NATIVE_SIMD_WIDTH)                            \
+  TEST_FUNCTION(NAME, OP, Int, NATIVE_SIMD_WIDTH)
 
 #define TEST_FUNCTION_ALL_TYPES(NAME, OP)                                      \
   TEST_FUNCTION_ALL_INTS(NAME, OP)                                             \
-  TEST_FUNCTION(NAME, OP, SIMDFloat, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(NAME, OP, Float, NATIVE_SIMD_WIDTH)
 
 #define TEST_FUNCTION_ALL_INTS_SOP(NAME, OP)                                   \
-  TEST_FUNCTION_SOP(NAME, OP, SIMDByte, NATIVE_SIMD_WIDTH, "%u ")              \
-  TEST_FUNCTION_SOP(NAME, OP, SIMDSignedByte, NATIVE_SIMD_WIDTH, "%i ")        \
-  TEST_FUNCTION_SOP(NAME, OP, SIMDWord, NATIVE_SIMD_WIDTH, "%u ")              \
-  TEST_FUNCTION_SOP(NAME, OP, SIMDShort, NATIVE_SIMD_WIDTH, "%i ")             \
-  TEST_FUNCTION_SOP(NAME, OP, SIMDInt, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(NAME, OP, Byte, NATIVE_SIMD_WIDTH, "%u ")                  \
+  TEST_FUNCTION_SOP(NAME, OP, SignedByte, NATIVE_SIMD_WIDTH, "%i ")            \
+  TEST_FUNCTION_SOP(NAME, OP, Word, NATIVE_SIMD_WIDTH, "%u ")                  \
+  TEST_FUNCTION_SOP(NAME, OP, Short, NATIVE_SIMD_WIDTH, "%i ")                 \
+  TEST_FUNCTION_SOP(NAME, OP, Int, NATIVE_SIMD_WIDTH, "%i ")
 
 #define TEST_FUNCTION_ALL_TYPES_SOP(NAME, OP)                                  \
   TEST_FUNCTION_ALL_INTS_SOP(NAME, OP)                                         \
-  TEST_FUNCTION_SOP(NAME, OP, SIMDFloat, NATIVE_SIMD_WIDTH, "%e ")
+  TEST_FUNCTION_SOP(NAME, OP, Float, NATIVE_SIMD_WIDTH, "%e ")
 
 #define TEST_FUNCTION_ALL_TYPES_CMP(NAME, OP)                                  \
-  TEST_FUNCTION_CMP(NAME, OP, SIMDByte, NATIVE_SIMD_WIDTH, "%u ")              \
-  TEST_FUNCTION_CMP(NAME, OP, SIMDSignedByte, NATIVE_SIMD_WIDTH, "%i ")        \
-  TEST_FUNCTION_CMP(NAME, OP, SIMDWord, NATIVE_SIMD_WIDTH, "%u ")              \
-  TEST_FUNCTION_CMP(NAME, OP, SIMDShort, NATIVE_SIMD_WIDTH, "%i ")             \
-  TEST_FUNCTION_CMP(NAME, OP, SIMDInt, NATIVE_SIMD_WIDTH, "%i ")               \
-  TEST_FUNCTION_CMP(NAME, OP, SIMDFloat, NATIVE_SIMD_WIDTH, "%e ")
+  TEST_FUNCTION_CMP(NAME, OP, Byte, NATIVE_SIMD_WIDTH, "%u ")                  \
+  TEST_FUNCTION_CMP(NAME, OP, SignedByte, NATIVE_SIMD_WIDTH, "%i ")            \
+  TEST_FUNCTION_CMP(NAME, OP, Word, NATIVE_SIMD_WIDTH, "%u ")                  \
+  TEST_FUNCTION_CMP(NAME, OP, Short, NATIVE_SIMD_WIDTH, "%i ")                 \
+  TEST_FUNCTION_CMP(NAME, OP, Int, NATIVE_SIMD_WIDTH, "%i ")                   \
+  TEST_FUNCTION_CMP(NAME, OP, Float, NATIVE_SIMD_WIDTH, "%e ")
 
 #define TEST_FUNCTION_ALL_TYPES_SHIFT(NAME, OP, COUNT)                         \
-  TEST_FUNCTION_SHIFT(NAME, OP, SIMDByte, NATIVE_SIMD_WIDTH, "%u ", COUNT)     \
-  TEST_FUNCTION_SHIFT(NAME, OP, SIMDSignedByte, NATIVE_SIMD_WIDTH, "%i ",      \
-                      COUNT)                                                   \
-  TEST_FUNCTION_SHIFT(NAME, OP, SIMDWord, NATIVE_SIMD_WIDTH, "%u ", COUNT)     \
-  TEST_FUNCTION_SHIFT(NAME, OP, SIMDShort, NATIVE_SIMD_WIDTH, "%i ", COUNT)    \
-  TEST_FUNCTION_SHIFT(NAME, OP, SIMDInt, NATIVE_SIMD_WIDTH, "%i ", COUNT)
+  TEST_FUNCTION_SHIFT(NAME, OP, Byte, NATIVE_SIMD_WIDTH, "%u ", COUNT)         \
+  TEST_FUNCTION_SHIFT(NAME, OP, SignedByte, NATIVE_SIMD_WIDTH, "%i ", COUNT)   \
+  TEST_FUNCTION_SHIFT(NAME, OP, Word, NATIVE_SIMD_WIDTH, "%u ", COUNT)         \
+  TEST_FUNCTION_SHIFT(NAME, OP, Short, NATIVE_SIMD_WIDTH, "%i ", COUNT)        \
+  TEST_FUNCTION_SHIFT(NAME, OP, Int, NATIVE_SIMD_WIDTH, "%i ", COUNT)
 
 /*template <typename T, int SIMD_WIDTH>
-void test_function(SIMDVec<T, SIMD_WIDTH> (*function) (const SIMDVec<T,
-SIMD_WIDTH> &src, const SIMDMask<T, SIMD_WIDTH> &k, const SIMDVec<T, SIMD_WIDTH>
-&a, const SIMDVec<T, SIMD_WIDTH> &b)) { _mm_getcsr()
+void test_function(Vec<T, SIMD_WIDTH> (*function) (const Vec<T,
+SIMD_WIDTH> &src, const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH>
+&a, const Vec<T, SIMD_WIDTH> &b)) { _mm_getcsr()
 }*/
 
 template <typename T, int SIMD_WIDTH>
 void benchmark()
 {
   unsigned int i;
-  SIMDVec<T, SIMD_WIDTH> sum    = setzero<T, SIMD_WIDTH>();
-  SIMDVec<T, SIMD_WIDTH> result = setzero<T, SIMD_WIDTH>();
-  SIMDMask<T, SIMD_WIDTH> kzeros;
-  SIMDMask<T, SIMD_WIDTH> kones = mask_all_ones<T, SIMD_WIDTH>();
-  SIMDMask<T, SIMD_WIDTH> krand;
-  SIMDMask<T, SIMD_WIDTH> krand2;
+  Vec<T, SIMD_WIDTH> sum    = setzero<T, SIMD_WIDTH>();
+  Vec<T, SIMD_WIDTH> result = setzero<T, SIMD_WIDTH>();
+  Mask<T, SIMD_WIDTH> kzeros;
+  Mask<T, SIMD_WIDTH> kones = mask_all_ones<T, SIMD_WIDTH>();
+  Mask<T, SIMD_WIDTH> krand;
+  Mask<T, SIMD_WIDTH> krand2;
   T *buffer = (T *) simd_aligned_malloc(SIMD_WIDTH, SIMD_WIDTH);
   if (buffer == NULL) {
     puts("Error simd_aligned_malloc");
@@ -858,7 +848,7 @@ void test_mask_functions()
   // printf("begin %s\n", __PRETTY_FUNCTION__);
   // kand, kandn, kor, kxor, kxnor, kadd, knot, kshiftli, kshiftri
   uinttest_t i;
-  SIMDMask<T, SIMD_WIDTH> a_mask, b_mask, kand_mask, kandn_mask, kor_mask,
+  Mask<T, SIMD_WIDTH> a_mask, b_mask, kand_mask, kandn_mask, kor_mask,
     kxor_mask, kxnor_mask, kadd_mask, knot_mask, kshiftli_mask, kshiftri_mask;
   uinttest_t ones =
     (uinttest_t) 0xffffffffffffffff >> (64 - (SIMD_WIDTH / sizeof(T)));
@@ -879,7 +869,7 @@ void test_mask_functions()
   }
   // printf("a=%" PRIutest " %" PRIutest ", b=%" PRIutest " %" PRIutest ",
   // ones=%" PRIutest ", SIMD_WIDTH/sizeof(T)=%u\n", a, (uinttest_t) a_mask, b,
-  // (uinttest_t) b_mask, ones, SIMD_WIDTH/(int)sizeof(T)); SIMDVec<T,
+  // (uinttest_t) b_mask, ones, SIMD_WIDTH/(int)sizeof(T)); Vec<T,
   // SIMD_WIDTH> vec((__m512i) a_mask); print("%x ", vec); puts("");
   kand_mask = ones & (a & b);
   if (!(kand_mask == kand(a_mask, b_mask)) ||
@@ -1029,23 +1019,23 @@ void test_mask_functions()
 void testsuite()
 {
   // TODO: tests cvts, set1
-  /*SIMDMask<SIMDWord, 16> mask;
+  /*Mask<Word, 16> mask;
   mask=0x5b;
-  print("%u ", SIMDVec<SIMDWord, 16>(mask)); puts("");
+  print("%u ", Vec<Word, 16>(mask)); puts("");
   printf("%x\n", _mm_movemask_epi8(mask));
   printf("%i %i %i %i %i %i %i %i\n", mask[0], mask[1], mask[2], mask[3],
   mask[4], mask[5], mask[6], mask[7]);*/
   // puts("Testsuite start");
-  // SIMDVec<SIMDFloat, 64> test=getRandomVector<SIMDFloat, 64>();
+  // Vec<Float, 64> test=getRandomVector<Float, 64>();
   // print("%x ", test); puts("");
   //(0.0/1.0=ZE), (FLT_MAX+FLT_MAX=OE,PE), (FLT_MAX*FLT_MAX=OE,PE)
   //(1.0,1.0,-1.0) (0.0,1.0e30,-1.0)
-  test_mask_functions<SIMDByte, NATIVE_SIMD_WIDTH>();
-  test_mask_functions<SIMDSignedByte, NATIVE_SIMD_WIDTH>();
-  test_mask_functions<SIMDWord, NATIVE_SIMD_WIDTH>();
-  test_mask_functions<SIMDShort, NATIVE_SIMD_WIDTH>();
-  test_mask_functions<SIMDInt, NATIVE_SIMD_WIDTH>();
-  test_mask_functions<SIMDFloat, NATIVE_SIMD_WIDTH>();
+  test_mask_functions<Byte, NATIVE_SIMD_WIDTH>();
+  test_mask_functions<SignedByte, NATIVE_SIMD_WIDTH>();
+  test_mask_functions<Word, NATIVE_SIMD_WIDTH>();
+  test_mask_functions<Short, NATIVE_SIMD_WIDTH>();
+  test_mask_functions<Int, NATIVE_SIMD_WIDTH>();
+  test_mask_functions<Float, NATIVE_SIMD_WIDTH>();
   TEST_FUNCTION_LOAD_ALL_TYPES
   TEST_FUNCTION_STORE_ALL_TYPES
   /*
@@ -1054,93 +1044,93 @@ void testsuite()
   TEST_FUNCTION_ALL_TYPES(adds, +)
   TEST_FUNCTION_ALL_TYPES(sub, -)
   TEST_FUNCTION_ALL_TYPES(subs, -)
-  TEST_FUNCTION(mul, *, SIMDFloat, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(div, /, SIMDFloat, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION_SOP(ceil, ceilf, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ")
-  TEST_FUNCTION_SOP(floor, floorf, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ")
-  TEST_FUNCTION_SOP(round, dummy, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ") // roundf
-  TEST_FUNCTION_SOP(truncate, truncf, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ")
-  TEST_FUNCTION_SOP(rcp, dummy, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ")
-  TEST_FUNCTION_SOP(rsqrt, dummy, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ")
-  TEST_FUNCTION_SOP(sqrt, sqrtf, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ")
-  TEST_FUNCTION_SOP(abs, abs, SIMDSignedByte, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_SOP(abs, abs, SIMDShort, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_SOP(abs, abs, SIMDInt, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_SOP(abs, fabsf, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ")
+  TEST_FUNCTION(mul, *, Float, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(div, /, Float, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION_SOP(ceil, ceilf, Float, NATIVE_SIMD_WIDTH, "%g ")
+  TEST_FUNCTION_SOP(floor, floorf, Float, NATIVE_SIMD_WIDTH, "%g ")
+  TEST_FUNCTION_SOP(round, dummy, Float, NATIVE_SIMD_WIDTH, "%g ") // roundf
+  TEST_FUNCTION_SOP(truncate, truncf, Float, NATIVE_SIMD_WIDTH, "%g ")
+  TEST_FUNCTION_SOP(rcp, dummy, Float, NATIVE_SIMD_WIDTH, "%g ")
+  TEST_FUNCTION_SOP(rsqrt, dummy, Float, NATIVE_SIMD_WIDTH, "%g ")
+  TEST_FUNCTION_SOP(sqrt, sqrtf, Float, NATIVE_SIMD_WIDTH, "%g ")
+  TEST_FUNCTION_SOP(abs, abs, SignedByte, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(abs, abs, Short, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(abs, abs, Int, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(abs, fabsf, Float, NATIVE_SIMD_WIDTH, "%g ")
   TEST_FUNCTION_ALL_TYPES(and, &)
   TEST_FUNCTION_ALL_TYPES(or, |)
   TEST_FUNCTION_ALL_TYPES(andnot, &)
   TEST_FUNCTION_ALL_TYPES(xor, ^)
   TEST_FUNCTION_ALL_TYPES_SOP(not, dummy)
-  TEST_FUNCTION_SOP(neg, -, SIMDSignedByte, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_SOP(neg, -, SIMDShort, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_SOP(neg, -, SIMDInt, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_SOP(neg, dummy, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ") //-
+  TEST_FUNCTION_SOP(neg, -, SignedByte, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(neg, -, Short, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(neg, -, Int, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(neg, dummy, Float, NATIVE_SIMD_WIDTH, "%g ") //-
   TEST_FUNCTION_ALL_TYPES(min, dummy)
   TEST_FUNCTION_ALL_TYPES(max, dummy)
-  TEST_FUNCTION_SOP(div2r0, dummy, SIMDByte, NATIVE_SIMD_WIDTH, "%u ")
-  TEST_FUNCTION_SOP(div2r0, dummy, SIMDWord, NATIVE_SIMD_WIDTH, "%u ")
-  TEST_FUNCTION_SOP(div2r0, dummy, SIMDShort, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_SOP(div2r0, dummy, SIMDInt, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_SOP(div2r0, dummy, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ")
-  TEST_FUNCTION_SOP(div2rd, dummy, SIMDByte, NATIVE_SIMD_WIDTH, "%u ")
-  TEST_FUNCTION_SOP(div2rd, dummy, SIMDWord, NATIVE_SIMD_WIDTH, "%u ")
-  TEST_FUNCTION_SOP(div2rd, dummy, SIMDShort, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_SOP(div2rd, dummy, SIMDInt, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_SOP(div2rd, dummy, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ")
-  TEST_FUNCTION_SHIFT(srai, dummy, SIMDWord, NATIVE_SIMD_WIDTH, "%u ", 3)
-  TEST_FUNCTION_SHIFT(srai, dummy, SIMDShort, NATIVE_SIMD_WIDTH, "%i ", 3)
-  TEST_FUNCTION_SHIFT(srai, dummy, SIMDInt, NATIVE_SIMD_WIDTH, "%i ",
-                      3) // srai not defined for SIMDByte and SIMDSignedByte
+  TEST_FUNCTION_SOP(div2r0, dummy, Byte, NATIVE_SIMD_WIDTH, "%u ")
+  TEST_FUNCTION_SOP(div2r0, dummy, Word, NATIVE_SIMD_WIDTH, "%u ")
+  TEST_FUNCTION_SOP(div2r0, dummy, Short, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(div2r0, dummy, Int, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(div2r0, dummy, Float, NATIVE_SIMD_WIDTH, "%g ")
+  TEST_FUNCTION_SOP(div2rd, dummy, Byte, NATIVE_SIMD_WIDTH, "%u ")
+  TEST_FUNCTION_SOP(div2rd, dummy, Word, NATIVE_SIMD_WIDTH, "%u ")
+  TEST_FUNCTION_SOP(div2rd, dummy, Short, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(div2rd, dummy, Int, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_SOP(div2rd, dummy, Float, NATIVE_SIMD_WIDTH, "%g ")
+  TEST_FUNCTION_SHIFT(srai, dummy, Word, NATIVE_SIMD_WIDTH, "%u ", 3)
+  TEST_FUNCTION_SHIFT(srai, dummy, Short, NATIVE_SIMD_WIDTH, "%i ", 3)
+  TEST_FUNCTION_SHIFT(srai, dummy, Int, NATIVE_SIMD_WIDTH, "%i ",
+                      3) // srai not defined for Byte and SignedByte
   TEST_FUNCTION_ALL_TYPES_SHIFT(srli, >>, 3)
   TEST_FUNCTION_ALL_TYPES_SHIFT(slli, <<, 3)
-  TEST_FUNCTION(hadd, dummy, SIMDByte, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadd, dummy, SIMDSignedByte, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadd, dummy, SIMDWord, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadd, dummy, SIMDShort, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadd, dummy, SIMDInt, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadd, dummy, SIMDFloat, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadds, dummy, SIMDByte, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadds, dummy, SIMDSignedByte, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadds, dummy, SIMDWord, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadds, dummy, SIMDShort, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadds, dummy, SIMDInt, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hadds, dummy, SIMDFloat, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsub, dummy, SIMDByte, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsub, dummy, SIMDSignedByte, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsub, dummy, SIMDWord, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsub, dummy, SIMDShort, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsub, dummy, SIMDInt, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsub, dummy, SIMDFloat, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsubs, dummy, SIMDByte, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsubs, dummy, SIMDSignedByte, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsubs, dummy, SIMDWord, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsubs, dummy, SIMDShort, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsubs, dummy, SIMDInt, NATIVE_SIMD_WIDTH)
-  TEST_FUNCTION(hsubs, dummy, SIMDFloat, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadd, dummy, Byte, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadd, dummy, SignedByte, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadd, dummy, Word, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadd, dummy, Short, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadd, dummy, Int, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadd, dummy, Float, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadds, dummy, Byte, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadds, dummy, SignedByte, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadds, dummy, Word, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadds, dummy, Short, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadds, dummy, Int, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hadds, dummy, Float, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsub, dummy, Byte, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsub, dummy, SignedByte, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsub, dummy, Word, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsub, dummy, Short, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsub, dummy, Int, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsub, dummy, Float, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsubs, dummy, Byte, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsubs, dummy, SignedByte, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsubs, dummy, Word, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsubs, dummy, Short, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsubs, dummy, Int, NATIVE_SIMD_WIDTH)
+  TEST_FUNCTION(hsubs, dummy, Float, NATIVE_SIMD_WIDTH)
   TEST_FUNCTION_ALL_TYPES(avg, x)
-  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0, SIMDByte, NATIVE_SIMD_WIDTH, "%u ")
-  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0, SIMDSignedByte, NATIVE_SIMD_WIDTH,
+  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0, Byte, NATIVE_SIMD_WIDTH, "%u ")
+  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0, SignedByte, NATIVE_SIMD_WIDTH,
                                "%i ")
-  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0, SIMDWord, NATIVE_SIMD_WIDTH, "%u ")
-  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0, SIMDShort, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0, SIMDInt, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0.0f, SIMDFloat, NATIVE_SIMD_WIDTH, "%g ")
-  TEST_FUNCTION_MASK_TEST_ALL_(ones, 0xff, SIMDByte, NATIVE_SIMD_WIDTH, "%u ")
-  TEST_FUNCTION_MASK_TEST_ALL_(ones, -1, SIMDSignedByte, NATIVE_SIMD_WIDTH,
+  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0, Word, NATIVE_SIMD_WIDTH, "%u ")
+  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0, Short, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0, Int, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_MASK_TEST_ALL_(zeros, 0.0f, Float, NATIVE_SIMD_WIDTH, "%g ")
+  TEST_FUNCTION_MASK_TEST_ALL_(ones, 0xff, Byte, NATIVE_SIMD_WIDTH, "%u ")
+  TEST_FUNCTION_MASK_TEST_ALL_(ones, -1, SignedByte, NATIVE_SIMD_WIDTH,
                                "%i ")
-  TEST_FUNCTION_MASK_TEST_ALL_(ones, 0xffff, SIMDWord, NATIVE_SIMD_WIDTH, "%u ")
-  TEST_FUNCTION_MASK_TEST_ALL_(ones, -1, SIMDShort, NATIVE_SIMD_WIDTH, "%i ")
-  TEST_FUNCTION_MASK_TEST_ALL_(ones, -1, SIMDInt, NATIVE_SIMD_WIDTH, "%i ")
-  // TEST_FUNCTION_TEST_ALL(ones, , SIMDFloat, NATIVE_SIMD_WIDTH, "%g ") TODO
+  TEST_FUNCTION_MASK_TEST_ALL_(ones, 0xffff, Word, NATIVE_SIMD_WIDTH, "%u ")
+  TEST_FUNCTION_MASK_TEST_ALL_(ones, -1, Short, NATIVE_SIMD_WIDTH, "%i ")
+  TEST_FUNCTION_MASK_TEST_ALL_(ones, -1, Int, NATIVE_SIMD_WIDTH, "%i ")
+  // TEST_FUNCTION_TEST_ALL(ones, , Float, NATIVE_SIMD_WIDTH, "%g ") TODO
   TEST_FUNCTION_ALL_TYPES_CMP(cmplt, <)
   TEST_FUNCTION_ALL_TYPES_CMP(cmple, <=)
   TEST_FUNCTION_ALL_TYPES_CMP(cmpgt, >)
   TEST_FUNCTION_ALL_TYPES_CMP(cmpge, >=)
   TEST_FUNCTION_ALL_TYPES_CMP(cmpeq, ==)
   // TEST_FUNCTION_ALL_TYPES_CMP(cmpneq, !=)
-  test_cvts<SIMDInt, SIMDFloat, NATIVE_SIMD_WIDTH>();
-  test_cvts<SIMDFloat, SIMDInt, NATIVE_SIMD_WIDTH>();
+  test_cvts<Int, Float, NATIVE_SIMD_WIDTH>();
+  test_cvts<Float, Int, NATIVE_SIMD_WIDTH>();
   */
 
   // printf("Testsuite done");
@@ -1150,21 +1140,21 @@ int main()
 {
   // printf("RAND_MAX=%u\n", RAND_MAX);
   srand(time(NULL));
-  /*SIMDVec<SIMDShort, 64> a=getRandomVector<SIMDShort, 64>(),
-  b=getRandomVector<SIMDShort, 64>(); uinttest_t mask=random64();
+  /*Vec<Short, 64> a=getRandomVector<Short, 64>(),
+  b=getRandomVector<Short, 64>(); uinttest_t mask=random64();
   printf("%" PRIutest "\n", mask);
-  SIMDMask<SIMDShort, 64> k=mask;
-  print("%u ", SIMDVec<SIMDShort, 64>(_mm512_maskz_sub_epi16(mask, a, b)));
+  Mask<Short, 64> k=mask;
+  print("%u ", Vec<Short, 64>(_mm512_maskz_sub_epi16(mask, a, b)));
   puts(""); print("%u ", mask_ifelsezero(k, sub (a, b))); puts("");*/
-  /*__m512i a=getRandomVector<SIMDSignedByte, NATIVE_SIMD_WIDTH>();
+  /*__m512i a=getRandomVector<SignedByte, NATIVE_SIMD_WIDTH>();
   __mmask64 k=random64();
-  print("%i ", SIMDVec<SIMDSignedByte, NATIVE_SIMD_WIDTH>(a)); puts("");
+  print("%i ", Vec<SignedByte, NATIVE_SIMD_WIDTH>(a)); puts("");
   printf("%x \n", k);
-  print("%i ", SIMDVec<SIMDSignedByte, NATIVE_SIMD_WIDTH>(_mm512_maskz_abs_epi8
+  print("%i ", Vec<SignedByte, NATIVE_SIMD_WIDTH>(_mm512_maskz_abs_epi8
   (k, a))); puts(""); exit(0);*/
   unsigned int i;
   for (i = 0; i < 10000; i++) { testsuite(); }
-  // benchmark<SIMDInt, 16>();
+  // benchmark<Int, 16>();
   exit(EXIT_SUCCESS);
 }
 

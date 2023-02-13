@@ -1,7 +1,7 @@
 // ===========================================================================
 //
 // simdvectest.C --
-// test of SIMDVec templates
+// test of Vec templates
 //
 // This source code file is part of the following software:
 //
@@ -27,7 +27,7 @@
 
 #include <stdio.h>
 
-using namespace ns_simd;
+using namespace simd;
 
 // SW = SIMD width = number of bytes in a single SIMD vector
 
@@ -44,7 +44,7 @@ using namespace ns_simd;
 #define SETFCT(TYPE, FORMAT)                                                   \
   {                                                                            \
     puts(#TYPE);                                                               \
-    SIMDVec<TYPE, SW> vmin, vmax, vunity, vones;                               \
+    Vec<TYPE, SW> vmin, vmax, vunity, vones;                                   \
     vmin   = setmin<TYPE, SW>();                                               \
     vmax   = setmax<TYPE, SW>();                                               \
     vunity = setunity<TYPE, SW>();                                             \
@@ -67,7 +67,7 @@ using namespace ns_simd;
 #define SETSIGNEDFCT(TYPE, FORMAT)                                             \
   {                                                                            \
     puts(#TYPE);                                                               \
-    SIMDVec<TYPE, SW> vnegunity;                                               \
+    Vec<TYPE, SW> vnegunity;                                                   \
     vnegunity = setnegunity<TYPE, SW>();                                       \
     printf("negunity: ");                                                      \
     print(FORMAT, vnegunity);                                                  \
@@ -77,10 +77,10 @@ using namespace ns_simd;
 
 #define NUMERIC                                                                \
   {                                                                            \
-    const int elems = SIMDVec<SIMDFloat, SW>::elements;                        \
-    SIMDVec<SIMDFloat, SW> x, y;                                               \
-    SIMDFloat bufx[elems], bufy[elems];                                        \
-    SIMDFloat xi = 1.234e-10, yi = 33.3;                                       \
+    const int elems = Vec<Float, SW>::elements;                                \
+    Vec<Float, SW> x, y;                                                       \
+    Float bufx[elems], bufy[elems];                                            \
+    Float xi = 1.234e-10, yi = 33.3;                                           \
     for (int i = 0; i < elems; i++) {                                          \
       bufx[i] = xi;                                                            \
       bufy[i] = yi;                                                            \
@@ -111,10 +111,10 @@ using namespace ns_simd;
 
 #define ROUNDING(X0, XOFF)                                                     \
   {                                                                            \
-    const int elems = SIMDVec<SIMDFloat, SW>::elements;                        \
-    SIMDVec<SIMDFloat, SW> x;                                                  \
-    SIMDFloat bufx[elems];                                                     \
-    SIMDFloat xi = X0;                                                         \
+    const int elems = Vec<Float, SW>::elements;                                \
+    Vec<Float, SW> x;                                                          \
+    Float bufx[elems];                                                         \
+    Float xi = X0;                                                             \
     for (int i = 0; i < elems; i++) {                                          \
       bufx[i] = xi;                                                            \
       xi += XOFF;                                                              \
@@ -141,8 +141,8 @@ using namespace ns_simd;
 #define HOR(CMD, TYPE, FORMAT, A0, AS, B0, BS)                                 \
   {                                                                            \
     puts(#TYPE);                                                               \
-    const int elems = SIMDVec<TYPE, SW>::elements;                             \
-    SIMDVec<TYPE, SW> a, b;                                                    \
+    const int elems = Vec<TYPE, SW>::elements;                                 \
+    Vec<TYPE, SW> a, b;                                                        \
     TYPE bufa[elems], bufb[elems];                                             \
     TYPE av = A0, bv = B0;                                                     \
     for (unsigned i = 0; i < elems; i++, av += AS, bv += BS) {                 \
@@ -168,8 +168,8 @@ using namespace ns_simd;
     const int numVecsIn  = sizeof(Tin) / sizeof(Tout);                         \
     const int numElemsIn = SW / sizeof(Tin);                                   \
     printf("%d " #Tin " -> " #Tout "\n", numVecsIn);                           \
-    SIMDVec<Tout, SW> out;                                                     \
-    SIMDVec<Tin, SW> in[numVecsIn];                                            \
+    Vec<Tout, SW> out;                                                         \
+    Vec<Tin, SW> in[numVecsIn];                                                \
     Tin buf[numElemsIn] __attribute__((aligned(SW)));                          \
     Tin val = inStart, fac = 1;                                                \
     for (int iVec = 0; iVec < numVecsIn; iVec++) {                             \
@@ -195,8 +195,8 @@ using namespace ns_simd;
     const int numVecsOut = sizeof(Tout) / sizeof(Tin);                         \
     const int numElemsIn = SW / sizeof(Tin);                                   \
     printf(#Tin " -> %d " #Tout "\n", numVecsOut);                             \
-    SIMDVec<Tout, SW> out[numVecsOut];                                         \
-    SIMDVec<Tin, SW> in;                                                       \
+    Vec<Tout, SW> out[numVecsOut];                                             \
+    Vec<Tin, SW> in;                                                           \
     Tin buf[numElemsIn] __attribute__((aligned(SW)));                          \
     Tin val = inStart, fac = 1;                                                \
     for (int iElem = 0; iElem < numElemsIn; iElem++) {                         \
@@ -226,7 +226,7 @@ using namespace ns_simd;
       inBuf[0][i] = i;                                                         \
       inBuf[1][i] = numElems + i;                                              \
     }                                                                          \
-    SIMDVec<T, SW> inVec[2], outVec;                                           \
+    Vec<T, SW> inVec[2], outVec;                                               \
     for (int i = 0; i < 2; i++) {                                              \
       inVec[i] = load<SW>(inBuf[i]);                                           \
       printf("inVec[%d] = ", i);                                               \
@@ -256,7 +256,7 @@ using namespace ns_simd;
       inBuf1[i] = i + 1;                                                       \
       inBuf2[i] = i + 2;                                                       \
     }                                                                          \
-    SIMDVec<INTYPE, SW> inVecs1[nInVecs], inVecs2[nInVecs];                    \
+    Vec<INTYPE, SW> inVecs1[nInVecs], inVecs2[nInVecs];                        \
     for (int i = 0; i < nInVecs; i++) {                                        \
       inVecs1[i] = load<SW>(inBuf1 + i * nElemsPerInVec);                      \
       inVecs2[i] = load<SW>(inBuf2 + i * nElemsPerInVec);                      \
@@ -267,7 +267,7 @@ using namespace ns_simd;
       print(INFORMAT, inVecs2[i]);                                             \
       puts("");                                                                \
     }                                                                          \
-    SIMDVec<OUTTYPE, SW> outVecs[nOutVecs];                                    \
+    Vec<OUTTYPE, SW> outVecs[nOutVecs];                                        \
     puts("----- fmul(inVecs1, 3.5, outVecs) -----");                           \
     fmul(inVecs1, 3.5, outVecs);                                               \
     for (int i = 0; i < nOutVecs; i++) {                                       \
@@ -311,14 +311,14 @@ using namespace ns_simd;
            nInElems);                                                          \
     INTYPE inBuf[nInElems] __attribute__((aligned(SW)));                       \
     for (int i = 0; i < nInElems; i++) { inBuf[i] = i + 1; }                   \
-    SIMDVec<INTYPE, SW> inVecs[nInVecs];                                       \
+    Vec<INTYPE, SW> inVecs[nInVecs];                                           \
     for (int i = 0; i < nInVecs; i++) {                                        \
       inVecs[i] = load<SW>(inBuf + i * nElemsPerInVec);                        \
       printf("inVecs[%d]: ", i);                                               \
       print(INFORMAT, inVecs[i]);                                              \
       puts("");                                                                \
     }                                                                          \
-    SIMDVec<OUTTYPE, SW> outVecs[nOutVecs];                                    \
+    Vec<OUTTYPE, SW> outVecs[nOutVecs];                                        \
     puts("----- convert(inVecs, outVecs) -----");                              \
     convert(inVecs, outVecs);                                                  \
     for (int i = 0; i < nOutVecs; i++) {                                       \
@@ -341,14 +341,14 @@ using namespace ns_simd;
            nInElems);                                                          \
     INTYPE inBuf[nInElems] __attribute__((aligned(SW)));                       \
     for (int i = 0; i < nInElems; i++) { inBuf[i] = i + 1; }                   \
-    SIMDVecs<NumSIMDVecs<OUTTYPE, INTYPE>::in, INTYPE, SW> inVecs;             \
+    Vecs<NumVecs<OUTTYPE, INTYPE>::in, INTYPE, SW> inVecs;                     \
     for (int i = 0; i < nInVecs; i++) {                                        \
       inVecs.vec[i] = load<SW>(inBuf + i * nElemsPerInVec);                    \
       printf("inVecs.vec[%d]: ", i);                                           \
       print(INFORMAT, inVecs.vec[i]);                                          \
       puts("");                                                                \
     }                                                                          \
-    SIMDVecs<NumSIMDVecs<OUTTYPE, INTYPE>::out, OUTTYPE, SW> outVecs;          \
+    Vecs<NumVecs<OUTTYPE, INTYPE>::out, OUTTYPE, SW> outVecs;                  \
     puts("----- convert(inVecs, outVecs) -----");                              \
     convert(inVecs, outVecs);                                                  \
     for (int i = 0; i < nOutVecs; i++) {                                       \
@@ -364,7 +364,7 @@ using namespace ns_simd;
     const int nElems = SW / sizeof(TYPE);                                      \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
     for (int i = 0; i < nElems; i++, val -= TYPE(1)) buf[i] = val;             \
-    SIMDVec<TYPE, SW> in = loadu<SW>(buf);                                     \
+    Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in = ");                                                           \
     print(FORMAT, in);                                                         \
     puts("");                                                                  \
@@ -378,7 +378,7 @@ using namespace ns_simd;
     const int nElems = SW / sizeof(TYPE);                                      \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
     for (int i = 0; i < nElems; i++, val += TYPE(STEP)) buf[i] = val;          \
-    SIMDVec<TYPE, SW> in = loadu<SW>(buf);                                     \
+    Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in           = ");                                                 \
     print(FORMAT, in);                                                         \
     puts("");                                                                  \
@@ -397,7 +397,7 @@ using namespace ns_simd;
     const int nElems = SW / sizeof(TYPE);                                      \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
     for (int i = 0; i < nElems; i++, val -= TYPE(1)) buf[i] = val;             \
-    SIMDVec<TYPE, SW> in = loadu<SW>(buf);                                     \
+    Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in = ");                                                           \
     print(FORMAT, in);                                                         \
     puts("");                                                                  \
@@ -407,8 +407,8 @@ using namespace ns_simd;
 #define HORn(FCT, TYPE, FORMAT)                                                \
   {                                                                            \
     puts("\n" #TYPE);                                                          \
-    const int nElems = SIMDVec<TYPE, SW>::elements;                            \
-    SIMDVec<TYPE, SW> v[nElems], res;                                          \
+    const int nElems = Vec<TYPE, SW>::elements;                                \
+    Vec<TYPE, SW> v[nElems], res;                                              \
     TYPE buf[nElems];                                                          \
     for (unsigned i = 0; i < nElems; i++) {                                    \
       for (unsigned int j = 0; j < nElems; j++)                                \
@@ -426,10 +426,10 @@ using namespace ns_simd;
 #define SHIFT(CMD, N, TYPE, FORMAT, VAL0, VALS)                                \
   {                                                                            \
     puts("\n" #TYPE);                                                          \
-    const int nElems = SIMDVec<TYPE, SW>::elements;                            \
+    const int nElems = Vec<TYPE, SW>::elements;                                \
     TYPE buf[nElems], val = VAL0;                                              \
     for (int i = 0; i < nElems; i++, val += VALS) buf[i] = val;                \
-    SIMDVec<TYPE, SW> in = loadu<SW>(buf), out;                                \
+    Vec<TYPE, SW> in = loadu<SW>(buf), out;                                    \
     printf("in          = ");                                                  \
     print(FORMAT, in);                                                         \
     puts("");                                                                  \
@@ -444,7 +444,7 @@ using namespace ns_simd;
     const int nElems = SW / sizeof(TYPE);                                      \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
     for (int i = 0; i < nElems; i++, val += TYPE(1)) { buf[i] = val; }         \
-    SIMDVec<TYPE, SW> in = loadu<SW>(buf), out;                                \
+    Vec<TYPE, SW> in = loadu<SW>(buf), out;                                    \
     printf("in          = ");                                                  \
     print(FORMAT, in);                                                         \
     puts("");                                                                  \
@@ -459,10 +459,10 @@ using namespace ns_simd;
 
 #define EXTRACT(TYPE, FORMAT, INIT, IDX)                                       \
   {                                                                            \
-    const int nElems = SIMDVec<TYPE, SW>::elements;                            \
+    const int nElems = Vec<TYPE, SW>::elements;                                \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
     for (int i = 0; i < nElems; i++, val += TYPE(1)) buf[i] = val;             \
-    SIMDVec<TYPE, SW> in = loadu<SW>(buf);                                     \
+    Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in          = ");                                                  \
     print(FORMAT, in);                                                         \
     puts("");                                                                  \
@@ -479,10 +479,10 @@ using namespace ns_simd;
       buf[0][i] = TYPE(INIT0 + i);                                             \
       buf[1][i] = TYPE(INIT1 - i);                                             \
     }                                                                          \
-    SIMDVec<TYPE, SW> a    = loadu<SW>(buf[0]);                                \
-    SIMDVec<TYPE, SW> b    = loadu<SW>(buf[1]);                                \
-    SIMDVec<TYPE, SW> cmin = min(a, b);                                        \
-    SIMDVec<TYPE, SW> cmax = max(a, b);                                        \
+    Vec<TYPE, SW> a    = loadu<SW>(buf[0]);                                    \
+    Vec<TYPE, SW> b    = loadu<SW>(buf[1]);                                    \
+    Vec<TYPE, SW> cmin = min(a, b);                                            \
+    Vec<TYPE, SW> cmax = max(a, b);                                            \
     printf("a        = ");                                                     \
     print(FORMAT, a);                                                          \
     puts("");                                                                  \
@@ -502,7 +502,7 @@ using namespace ns_simd;
     const int nElems = SW / sizeof(TYPE);                                      \
     TYPE buf[2 * nElems], val = TYPE(0);                                       \
     for (int i = 0; i < 2 * nElems; i++, val += TYPE(1)) buf[i] = val;         \
-    SIMDVec<TYPE, SW> in[2];                                                   \
+    Vec<TYPE, SW> in[2];                                                       \
     in[0] = loadu<SW>(buf);                                                    \
     in[1] = loadu<SW>(buf + nElems);                                           \
     printf("\nin[0]  = ");                                                     \
@@ -520,7 +520,7 @@ using namespace ns_simd;
     const int nElems = SW / sizeof(TYPE);                                      \
     TYPE buf[N * nElems];                                                      \
     for (int i = 0; i < N * nElems; i++) buf[i] = TYPE(i);                     \
-    SIMDVec<TYPE, SW> v[N];                                                    \
+    Vec<TYPE, SW> v[N];                                                        \
     TYPE *bufp = buf;                                                          \
     for (int i = 0; i < N; i++, bufp += nElems) {                              \
       v[i] = loadu<SW>(bufp);                                                  \
@@ -544,7 +544,7 @@ using namespace ns_simd;
     const int nElems = SW / sizeof(TYPE);                                      \
     TYPE buf[2 * N * nElems];                                                  \
     for (int i = 0; i < 2 * N * nElems; i++) buf[i] = TYPE(i);                 \
-    SIMDVec<TYPE, SW> v[2 * N];                                                \
+    Vec<TYPE, SW> v[2 * N];                                                    \
     TYPE *bufp = buf;                                                          \
     for (int i = 0; i < 2 * N; i++, bufp += nElems) {                          \
       v[i] = loadu<SW>(bufp);                                                  \
@@ -575,7 +575,7 @@ using namespace ns_simd;
     const int nElems = SW / sizeof(TYPE);                                      \
     TYPE buf[2 * N * nElems];                                                  \
     for (int i = 0; i < 2 * N * nElems; i++) buf[i] = TYPE(i);                 \
-    SIMDVec<TYPE, SW> v[2 * N];                                                \
+    Vec<TYPE, SW> v[2 * N];                                                    \
     TYPE *bufp = buf;                                                          \
     for (int i = 0; i < 2 * N; i++, bufp += nElems) {                          \
       v[i] = loadu<SW>(bufp);                                                  \
@@ -611,7 +611,7 @@ using namespace ns_simd;
         buf[i * nElems + j]              = 2 * i;                              \
         buf[i * nElems + nElems / 2 + j] = 2 * i + 1;                          \
       }                                                                        \
-    SIMDVec<TYPE, 32> vIn[N], vOut[N];                                         \
+    Vec<TYPE, 32> vIn[N], vOut[N];                                             \
     TYPE *bufp = buf;                                                          \
     for (int i = 0; i < N; i++, bufp += nElems) {                              \
       vIn[i] = loadu<32>(bufp);                                                \
@@ -646,15 +646,15 @@ using namespace ns_simd;
       buf1[i] = val1;                                                          \
       buf2[i] = val2;                                                          \
     }                                                                          \
-    SIMDVec<TYPE, SW> in1 = loadu<SW>(buf1);                                   \
-    SIMDVec<TYPE, SW> in2 = loadu<SW>(buf2);                                   \
+    Vec<TYPE, SW> in1 = loadu<SW>(buf1);                                       \
+    Vec<TYPE, SW> in2 = loadu<SW>(buf2);                                       \
     printf("in1        = ");                                                   \
     print(FORMAT, in1);                                                        \
     puts("");                                                                  \
     printf("in2        = ");                                                   \
     print(FORMAT, in2);                                                        \
     puts("");                                                                  \
-    SIMDVec<TYPE, SW> out;                                                     \
+    Vec<TYPE, SW> out;                                                         \
     printf("in1 <  in2 = ");                                                   \
     print(FORMAT, cmplt(in1, in2));                                            \
     puts("");                                                                  \
@@ -690,7 +690,7 @@ using namespace ns_simd;
       loLimit = TYPE(0);                                                       \
       hiLimit = TYPE(4);                                                       \
     }                                                                          \
-    SIMDVec<TYPE, SW> a, b, r;                                                 \
+    Vec<TYPE, SW> a, b, r;                                                     \
     for (TYPE j = loLimit; j <= hiLimit; j++) printf(FORMAT, j);               \
     printf("\n\n");                                                            \
     for (TYPE i = loLimit; i <= hiLimit; i++) {                                \
@@ -707,10 +707,10 @@ using namespace ns_simd;
 #define DIV2(TYPE, FORMAT, LOVAL)                                              \
   {                                                                            \
     printf("div2* " #TYPE "\n");                                               \
-    SIMDVec<TYPE, SW> a, r0, rd;                                               \
+    Vec<TYPE, SW> a, r0, rd;                                                   \
     TYPE v = TYPE(LOVAL);                                                      \
-    TYPE buf[SIMDVec<TYPE, SW>::elements];                                     \
-    for (int i = 0; i < SIMDVec<TYPE, SW>::elements; i++, v++) buf[i] = v;     \
+    TYPE buf[Vec<TYPE, SW>::elements];                                         \
+    for (int i = 0; i < Vec<TYPE, SW>::elements; i++, v++) buf[i] = v;         \
     a  = loadu<SW>(buf);                                                       \
     r0 = div2r0(a);                                                            \
     rd = div2rd(a);                                                            \
@@ -731,8 +731,8 @@ int main()
 
   puts("\n*********** test of SIMD_ALIGN_CHK **********\n");
 
-  SIMDVec<SIMDByte, SW> v = setzero<SIMDByte, SW>();
-  SIMDByte ba[2 * SW];
+  Vec<Byte, SW> v = setzero<Byte, SW>();
+  Byte ba[2 * SW];
   store(ba, v);
   // this triggers the assertion if SIMD_ALIGN_CHK is defined, but
   // does not always lead to a seg fault:
@@ -740,387 +740,387 @@ int main()
 
   puts("\n*********** test of hadd/hsub  ***********\n");
 
-  HOR(hadd, SIMDWord, "%u ", 30000, 1000, 5000, 10000);
-  HOR(hadd, SIMDShort, "%d ", 30000, 1000, 5000, 10000);
-  HOR(hadd, SIMDInt, "%d ", 30000, 1000, 5000, 10000);
-  HOR(hadd, SIMDFloat, "%.0f ", 30000, 1000, 5000, 10000);
+  HOR(hadd, Word, "%u ", 30000, 1000, 5000, 10000);
+  HOR(hadd, Short, "%d ", 30000, 1000, 5000, 10000);
+  HOR(hadd, Int, "%d ", 30000, 1000, 5000, 10000);
+  HOR(hadd, Float, "%.0f ", 30000, 1000, 5000, 10000);
 
-  HOR(hsub, SIMDWord, "%u ", 30000, 1000, 5000, 10000);
-  HOR(hsub, SIMDShort, "%d ", 30000, 1000, 5000, 10000);
-  HOR(hsub, SIMDInt, "%d ", 30000, 1000, 5000, 10000);
-  HOR(hsub, SIMDFloat, "%.0f ", 30000, 1000, 5000, 10000);
+  HOR(hsub, Word, "%u ", 30000, 1000, 5000, 10000);
+  HOR(hsub, Short, "%d ", 30000, 1000, 5000, 10000);
+  HOR(hsub, Int, "%d ", 30000, 1000, 5000, 10000);
+  HOR(hsub, Float, "%.0f ", 30000, 1000, 5000, 10000);
 
-  HOR(hadds, SIMDShort, "%d ", 30000, 1000, 5000, 10000);
-  HOR(hadds, SIMDInt, "%d ", 30000, 1000, 5000, 10000);
-  HOR(hadds, SIMDFloat, "%.0f ", 30000, 1000, 5000, 10000);
+  HOR(hadds, Short, "%d ", 30000, 1000, 5000, 10000);
+  HOR(hadds, Int, "%d ", 30000, 1000, 5000, 10000);
+  HOR(hadds, Float, "%.0f ", 30000, 1000, 5000, 10000);
 
-  HOR(hsubs, SIMDShort, "%d ", 30000, 1000, 5000, 10000);
-  HOR(hsubs, SIMDInt, "%d ", 30000, 1000, 5000, 10000);
-  HOR(hsubs, SIMDFloat, "%.0f ", 30000, 1000, 5000, 10000);
+  HOR(hsubs, Short, "%d ", 30000, 1000, 5000, 10000);
+  HOR(hsubs, Int, "%d ", 30000, 1000, 5000, 10000);
+  HOR(hsubs, Float, "%.0f ", 30000, 1000, 5000, 10000);
 
   puts("\n*********** test of min/max  ***********\n");
 
-  MIN_MAX(SIMDByte, "%2d ", 10, 20);
-  MIN_MAX(SIMDSignedByte, "%2d ", -5, 10);
-  MIN_MAX(SIMDWord, "%2d ", 10, 20);
-  MIN_MAX(SIMDShort, "%2d ", -5, 5);
-  MIN_MAX(SIMDInt, "%2d ", -2, 2);
-  MIN_MAX(SIMDFloat, "%2g ", -2, 2);
+  MIN_MAX(Byte, "%2d ", 10, 20);
+  MIN_MAX(SignedByte, "%2d ", -5, 10);
+  MIN_MAX(Word, "%2d ", 10, 20);
+  MIN_MAX(Short, "%2d ", -5, 5);
+  MIN_MAX(Int, "%2d ", -2, 2);
+  MIN_MAX(Float, "%2g ", -2, 2);
 
   puts("\n*********** test of f*mul  ***********\n");
 
-  FXMUL(SIMDByte, SIMDByte, "%d ", "%d ");
-  FXMUL(SIMDByte, SIMDWord, "%d ", "%d ");
-  FXMUL(SIMDWord, SIMDByte, "%d ", "%d ");
+  FXMUL(Byte, Byte, "%d ", "%d ");
+  FXMUL(Byte, Word, "%d ", "%d ");
+  FXMUL(Word, Byte, "%d ", "%d ");
 
   puts("\n*********** test of convert ***********\n");
 
-  CONVERT(SIMDShort, SIMDShort, "%d ", "%d ");
-  CONVERT(SIMDInt, SIMDShort, "%d ", "%d ");
-  CONVERT(SIMDShort, SIMDInt, "%d ", "%d ");
+  CONVERT(Short, Short, "%d ", "%d ");
+  CONVERT(Int, Short, "%d ", "%d ");
+  CONVERT(Short, Int, "%d ", "%d ");
 
   puts("\n*********** test of hmin/hmax ***********\n");
 
-  HMINMAX(SIMDByte, "%d ", 33);
-  HMINMAX(SIMDSignedByte, "%d ", 5);
-  HMINMAX(SIMDWord, "%d ", 33);
-  HMINMAX(SIMDShort, "%d ", 5);
-  HMINMAX(SIMDInt, "%d ", 2);
-  HMINMAX(SIMDFloat, "%g ", 2);
+  HMINMAX(Byte, "%d ", 33);
+  HMINMAX(SignedByte, "%d ", 5);
+  HMINMAX(Word, "%d ", 33);
+  HMINMAX(Short, "%d ", 5);
+  HMINMAX(Int, "%d ", 2);
+  HMINMAX(Float, "%g ", 2);
 
   puts("\n*********** test of horizontal fct(vector)  ***********\n");
 
-  HOR1(hadd, SIMDWord, "%u ", 33);
-  HOR1(hadd, SIMDShort, "%d ", 5);
-  HOR1(hadd, SIMDInt, "%d ", 33);
-  HOR1(hadd, SIMDFloat, "%g ", 5);
+  HOR1(hadd, Word, "%u ", 33);
+  HOR1(hadd, Short, "%d ", 5);
+  HOR1(hadd, Int, "%d ", 33);
+  HOR1(hadd, Float, "%g ", 5);
 
   puts("\n*********** test of horizontal fct(vectors)  ***********\n");
 
-  HORn(hadd, SIMDWord, "%u ");
-  HORn(hadd, SIMDShort, "%d ");
-  HORn(hadd, SIMDInt, "%d ");
-  HORn(hadd, SIMDFloat, "%g ");
+  HORn(hadd, Word, "%u ");
+  HORn(hadd, Short, "%d ");
+  HORn(hadd, Int, "%d ");
+  HORn(hadd, Float, "%g ");
 
-  HORn(hadds, SIMDShort, "%d ");
-  HORn(hadds, SIMDInt, "%d ");
-  HORn(hadds, SIMDFloat, "%g ");
+  HORn(hadds, Short, "%d ");
+  HORn(hadds, Int, "%d ");
+  HORn(hadds, Float, "%g ");
 
   puts("\n*********** test of cmp* ***********\n");
 
-  CMP(SIMDByte, "%4d");
-  CMP(SIMDSignedByte, "%4d");
-  CMP(SIMDWord, "%6d");
-  CMP(SIMDShort, "%6d");
-  CMP(SIMDInt, "%4d");
-  CMP(SIMDFloat, "%6g");
+  CMP(Byte, "%4d");
+  CMP(SignedByte, "%4d");
+  CMP(Word, "%6d");
+  CMP(Short, "%6d");
+  CMP(Int, "%4d");
+  CMP(Float, "%6g");
 
   puts("\n*********** test of srai/srli/slli **********\n");
 
-  SHIFT(srai, 1, SIMDWord, "0x%04hx ", 0x0000, 0x2000);
-  SHIFT(srai, 1, SIMDShort, "0x%04hx ", -10, 2);
-  SHIFT(srai, 1, SIMDInt, "0x%08x ", -10, 2);
+  SHIFT(srai, 1, Word, "0x%04hx ", 0x0000, 0x2000);
+  SHIFT(srai, 1, Short, "0x%04hx ", -10, 2);
+  SHIFT(srai, 1, Int, "0x%08x ", -10, 2);
 
-  SHIFT(srli, 1, SIMDByte, "0x%02hhx ", 0x00, 0x20);
-  SHIFT(srli, 1, SIMDSignedByte, "0x%02hhx ", -10, 2);
-  SHIFT(srli, 1, SIMDWord, "0x%04hx ", 0x0000, 0x2000);
-  SHIFT(srli, 1, SIMDShort, "0x%04hx ", -10, 2);
-  SHIFT(srli, 1, SIMDInt, "0x%08x ", -10, 2);
+  SHIFT(srli, 1, Byte, "0x%02hhx ", 0x00, 0x20);
+  SHIFT(srli, 1, SignedByte, "0x%02hhx ", -10, 2);
+  SHIFT(srli, 1, Word, "0x%04hx ", 0x0000, 0x2000);
+  SHIFT(srli, 1, Short, "0x%04hx ", -10, 2);
+  SHIFT(srli, 1, Int, "0x%08x ", -10, 2);
 
-  SHIFT(slli, 1, SIMDByte, "0x%02hhx ", 0x00, 0x20);
-  SHIFT(slli, 1, SIMDSignedByte, "0x%02hhx ", -10, 2);
-  SHIFT(slli, 1, SIMDWord, "0x%04hx ", 0x0000, 0x2000);
-  SHIFT(slli, 1, SIMDShort, "0x%04hx ", -10, 2);
-  SHIFT(slli, 1, SIMDInt, "0x%08x ", -10, 2);
+  SHIFT(slli, 1, Byte, "0x%02hhx ", 0x00, 0x20);
+  SHIFT(slli, 1, SignedByte, "0x%02hhx ", -10, 2);
+  SHIFT(slli, 1, Word, "0x%04hx ", 0x0000, 0x2000);
+  SHIFT(slli, 1, Short, "0x%04hx ", -10, 2);
+  SHIFT(slli, 1, Int, "0x%08x ", -10, 2);
 
   puts("\n*********** test of srle/slle **********\n");
 
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 0);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 1);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 2);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 3);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 4);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 5);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 6);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 7);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 8);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 9);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 10);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 11);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 12);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 13);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 14);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 15);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 16);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 17);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 18);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 19);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 20);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 21);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 22);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 23);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 24);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 25);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 26);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 27);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 28);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 29);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 30);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 31);
-  SLLE_SRLE(SIMDByte, "%02x ", 0, 32);
-  SLLE_SRLE(SIMDFloat, "%2g ", 0, 2);
+  SLLE_SRLE(Byte, "%02x ", 0, 0);
+  SLLE_SRLE(Byte, "%02x ", 0, 1);
+  SLLE_SRLE(Byte, "%02x ", 0, 2);
+  SLLE_SRLE(Byte, "%02x ", 0, 3);
+  SLLE_SRLE(Byte, "%02x ", 0, 4);
+  SLLE_SRLE(Byte, "%02x ", 0, 5);
+  SLLE_SRLE(Byte, "%02x ", 0, 6);
+  SLLE_SRLE(Byte, "%02x ", 0, 7);
+  SLLE_SRLE(Byte, "%02x ", 0, 8);
+  SLLE_SRLE(Byte, "%02x ", 0, 9);
+  SLLE_SRLE(Byte, "%02x ", 0, 10);
+  SLLE_SRLE(Byte, "%02x ", 0, 11);
+  SLLE_SRLE(Byte, "%02x ", 0, 12);
+  SLLE_SRLE(Byte, "%02x ", 0, 13);
+  SLLE_SRLE(Byte, "%02x ", 0, 14);
+  SLLE_SRLE(Byte, "%02x ", 0, 15);
+  SLLE_SRLE(Byte, "%02x ", 0, 16);
+  SLLE_SRLE(Byte, "%02x ", 0, 17);
+  SLLE_SRLE(Byte, "%02x ", 0, 18);
+  SLLE_SRLE(Byte, "%02x ", 0, 19);
+  SLLE_SRLE(Byte, "%02x ", 0, 20);
+  SLLE_SRLE(Byte, "%02x ", 0, 21);
+  SLLE_SRLE(Byte, "%02x ", 0, 22);
+  SLLE_SRLE(Byte, "%02x ", 0, 23);
+  SLLE_SRLE(Byte, "%02x ", 0, 24);
+  SLLE_SRLE(Byte, "%02x ", 0, 25);
+  SLLE_SRLE(Byte, "%02x ", 0, 26);
+  SLLE_SRLE(Byte, "%02x ", 0, 27);
+  SLLE_SRLE(Byte, "%02x ", 0, 28);
+  SLLE_SRLE(Byte, "%02x ", 0, 29);
+  SLLE_SRLE(Byte, "%02x ", 0, 30);
+  SLLE_SRLE(Byte, "%02x ", 0, 31);
+  SLLE_SRLE(Byte, "%02x ", 0, 32);
+  SLLE_SRLE(Float, "%2g ", 0, 2);
 
   puts("\n*********** test of extract and elem0 ************\n");
 
-  EXTRACT(SIMDByte, "%02x ", 10, 3);
-  EXTRACT(SIMDWord, "%02x ", 10, 3);
-  EXTRACT(SIMDFloat, "%2g ", 10, 3);
+  EXTRACT(Byte, "%02x ", 10, 3);
+  EXTRACT(Word, "%02x ", 10, 3);
+  EXTRACT(Float, "%2g ", 10, 3);
 
   puts("\n*********** test of alignre ************\n");
 
-  ALIGNRE(SIMDByte, "%02x ", 0);
-  ALIGNRE(SIMDByte, "%02x ", 5);
-  ALIGNRE(SIMDByte, "%02x ", 16);
-  ALIGNRE(SIMDByte, "%02x ", 18);
-  ALIGNRE(SIMDByte, "%02x ", 26);
-  ALIGNRE(SIMDByte, "%02x ", 32);
-  ALIGNRE(SIMDByte, "%02x ", 37);
-  ALIGNRE(SIMDByte, "%02x ", 48);
-  ALIGNRE(SIMDByte, "%02x ", 50);
-  ALIGNRE(SIMDByte, "%02x ", 58);
-  ALIGNRE(SIMDByte, "%02x ", 64);
-  ALIGNRE(SIMDByte, "%02x ", 68);
+  ALIGNRE(Byte, "%02x ", 0);
+  ALIGNRE(Byte, "%02x ", 5);
+  ALIGNRE(Byte, "%02x ", 16);
+  ALIGNRE(Byte, "%02x ", 18);
+  ALIGNRE(Byte, "%02x ", 26);
+  ALIGNRE(Byte, "%02x ", 32);
+  ALIGNRE(Byte, "%02x ", 37);
+  ALIGNRE(Byte, "%02x ", 48);
+  ALIGNRE(Byte, "%02x ", 50);
+  ALIGNRE(Byte, "%02x ", 58);
+  ALIGNRE(Byte, "%02x ", 64);
+  ALIGNRE(Byte, "%02x ", 68);
 
   puts("\n*********** test of swizzle ************\n");
 
-  SWIZZLE(SIMDByte, 1, "%3d ");
-  SWIZZLE(SIMDByte, 2, "%3d ");
-  SWIZZLE(SIMDByte, 3, "%3d ");
-  SWIZZLE(SIMDByte, 4, "%3d ");
-  SWIZZLE(SIMDByte, 5, "%3d ");
+  SWIZZLE(Byte, 1, "%3d ");
+  SWIZZLE(Byte, 2, "%3d ");
+  SWIZZLE(Byte, 3, "%3d ");
+  SWIZZLE(Byte, 4, "%3d ");
+  SWIZZLE(Byte, 5, "%3d ");
 
-  SWIZZLE(SIMDSignedByte, 1, "%3d ");
-  SWIZZLE(SIMDSignedByte, 2, "%3d ");
-  SWIZZLE(SIMDSignedByte, 3, "%3d ");
-  SWIZZLE(SIMDSignedByte, 4, "%3d ");
-  SWIZZLE(SIMDSignedByte, 5, "%3d ");
+  SWIZZLE(SignedByte, 1, "%3d ");
+  SWIZZLE(SignedByte, 2, "%3d ");
+  SWIZZLE(SignedByte, 3, "%3d ");
+  SWIZZLE(SignedByte, 4, "%3d ");
+  SWIZZLE(SignedByte, 5, "%3d ");
 
-  SWIZZLE(SIMDWord, 1, "%3d ");
-  SWIZZLE(SIMDWord, 2, "%3d ");
-  SWIZZLE(SIMDWord, 3, "%3d ");
-  SWIZZLE(SIMDWord, 4, "%3d ");
-  SWIZZLE(SIMDWord, 5, "%3d ");
+  SWIZZLE(Word, 1, "%3d ");
+  SWIZZLE(Word, 2, "%3d ");
+  SWIZZLE(Word, 3, "%3d ");
+  SWIZZLE(Word, 4, "%3d ");
+  SWIZZLE(Word, 5, "%3d ");
 
-  SWIZZLE(SIMDShort, 1, "%3d ");
-  SWIZZLE(SIMDShort, 2, "%3d ");
-  SWIZZLE(SIMDShort, 3, "%3d ");
-  SWIZZLE(SIMDShort, 4, "%3d ");
-  SWIZZLE(SIMDShort, 5, "%3d ");
+  SWIZZLE(Short, 1, "%3d ");
+  SWIZZLE(Short, 2, "%3d ");
+  SWIZZLE(Short, 3, "%3d ");
+  SWIZZLE(Short, 4, "%3d ");
+  SWIZZLE(Short, 5, "%3d ");
 
-  SWIZZLE(SIMDInt, 1, "%3d ");
-  SWIZZLE(SIMDInt, 2, "%3d ");
-  SWIZZLE(SIMDInt, 3, "%3d ");
-  SWIZZLE(SIMDInt, 4, "%3d ");
-  SWIZZLE(SIMDInt, 5, "%3d ");
+  SWIZZLE(Int, 1, "%3d ");
+  SWIZZLE(Int, 2, "%3d ");
+  SWIZZLE(Int, 3, "%3d ");
+  SWIZZLE(Int, 4, "%3d ");
+  SWIZZLE(Int, 5, "%3d ");
 
-  SWIZZLE(SIMDFloat, 1, "%3g ");
-  SWIZZLE(SIMDFloat, 2, "%3g ");
-  SWIZZLE(SIMDFloat, 3, "%3g ");
-  SWIZZLE(SIMDFloat, 4, "%3g ");
-  SWIZZLE(SIMDFloat, 5, "%3g ");
+  SWIZZLE(Float, 1, "%3g ");
+  SWIZZLE(Float, 2, "%3g ");
+  SWIZZLE(Float, 3, "%3g ");
+  SWIZZLE(Float, 4, "%3g ");
+  SWIZZLE(Float, 5, "%3g ");
 
   puts("\n*********** test of swizzle2 ************\n");
 
   // here we could also test higher values than 5
 
-  SWIZZLE2(SIMDByte, 1, "%3d ");
-  SWIZZLE2(SIMDByte, 2, "%3d ");
-  SWIZZLE2(SIMDByte, 3, "%3d ");
-  SWIZZLE2(SIMDByte, 4, "%3d ");
-  SWIZZLE2(SIMDByte, 5, "%3d ");
+  SWIZZLE2(Byte, 1, "%3d ");
+  SWIZZLE2(Byte, 2, "%3d ");
+  SWIZZLE2(Byte, 3, "%3d ");
+  SWIZZLE2(Byte, 4, "%3d ");
+  SWIZZLE2(Byte, 5, "%3d ");
 
-  SWIZZLE2(SIMDSignedByte, 1, "%3d ");
-  SWIZZLE2(SIMDSignedByte, 2, "%3d ");
-  SWIZZLE2(SIMDSignedByte, 3, "%3d ");
-  SWIZZLE2(SIMDSignedByte, 4, "%3d ");
-  SWIZZLE2(SIMDSignedByte, 5, "%3d ");
+  SWIZZLE2(SignedByte, 1, "%3d ");
+  SWIZZLE2(SignedByte, 2, "%3d ");
+  SWIZZLE2(SignedByte, 3, "%3d ");
+  SWIZZLE2(SignedByte, 4, "%3d ");
+  SWIZZLE2(SignedByte, 5, "%3d ");
 
-  SWIZZLE2(SIMDWord, 1, "%3d ");
-  SWIZZLE2(SIMDWord, 2, "%3d ");
-  SWIZZLE2(SIMDWord, 3, "%3d ");
-  SWIZZLE2(SIMDWord, 4, "%3d ");
-  SWIZZLE2(SIMDWord, 5, "%3d ");
+  SWIZZLE2(Word, 1, "%3d ");
+  SWIZZLE2(Word, 2, "%3d ");
+  SWIZZLE2(Word, 3, "%3d ");
+  SWIZZLE2(Word, 4, "%3d ");
+  SWIZZLE2(Word, 5, "%3d ");
 
-  SWIZZLE2(SIMDShort, 1, "%3d ");
-  SWIZZLE2(SIMDShort, 2, "%3d ");
-  SWIZZLE2(SIMDShort, 3, "%3d ");
-  SWIZZLE2(SIMDShort, 4, "%3d ");
-  SWIZZLE2(SIMDShort, 5, "%3d ");
+  SWIZZLE2(Short, 1, "%3d ");
+  SWIZZLE2(Short, 2, "%3d ");
+  SWIZZLE2(Short, 3, "%3d ");
+  SWIZZLE2(Short, 4, "%3d ");
+  SWIZZLE2(Short, 5, "%3d ");
 
-  SWIZZLE2(SIMDInt, 1, "%3d ");
-  SWIZZLE2(SIMDInt, 2, "%3d ");
-  SWIZZLE2(SIMDInt, 3, "%3d ");
-  SWIZZLE2(SIMDInt, 4, "%3d ");
-  SWIZZLE2(SIMDInt, 5, "%3d ");
+  SWIZZLE2(Int, 1, "%3d ");
+  SWIZZLE2(Int, 2, "%3d ");
+  SWIZZLE2(Int, 3, "%3d ");
+  SWIZZLE2(Int, 4, "%3d ");
+  SWIZZLE2(Int, 5, "%3d ");
 
-  SWIZZLE2(SIMDFloat, 1, "%3g ");
-  SWIZZLE2(SIMDFloat, 2, "%3g ");
-  SWIZZLE2(SIMDFloat, 3, "%3g ");
-  SWIZZLE2(SIMDFloat, 4, "%3g ");
-  SWIZZLE2(SIMDFloat, 5, "%3g ");
+  SWIZZLE2(Float, 1, "%3g ");
+  SWIZZLE2(Float, 2, "%3g ");
+  SWIZZLE2(Float, 3, "%3g ");
+  SWIZZLE2(Float, 4, "%3g ");
+  SWIZZLE2(Float, 5, "%3g ");
 
   puts("\n*********** test of unswizzle2 ************\n");
 
   // here we could also test higher values than 5
 
-  UNSWIZZLE2(SIMDByte, 1, "%3d ");
-  UNSWIZZLE2(SIMDByte, 2, "%3d ");
-  UNSWIZZLE2(SIMDByte, 3, "%3d ");
-  UNSWIZZLE2(SIMDByte, 4, "%3d ");
-  UNSWIZZLE2(SIMDByte, 5, "%3d ");
+  UNSWIZZLE2(Byte, 1, "%3d ");
+  UNSWIZZLE2(Byte, 2, "%3d ");
+  UNSWIZZLE2(Byte, 3, "%3d ");
+  UNSWIZZLE2(Byte, 4, "%3d ");
+  UNSWIZZLE2(Byte, 5, "%3d ");
 
-  UNSWIZZLE2(SIMDSignedByte, 1, "%3d ");
-  UNSWIZZLE2(SIMDSignedByte, 2, "%3d ");
-  UNSWIZZLE2(SIMDSignedByte, 3, "%3d ");
-  UNSWIZZLE2(SIMDSignedByte, 4, "%3d ");
-  UNSWIZZLE2(SIMDSignedByte, 5, "%3d ");
+  UNSWIZZLE2(SignedByte, 1, "%3d ");
+  UNSWIZZLE2(SignedByte, 2, "%3d ");
+  UNSWIZZLE2(SignedByte, 3, "%3d ");
+  UNSWIZZLE2(SignedByte, 4, "%3d ");
+  UNSWIZZLE2(SignedByte, 5, "%3d ");
 
-  UNSWIZZLE2(SIMDWord, 1, "%3d ");
-  UNSWIZZLE2(SIMDWord, 2, "%3d ");
-  UNSWIZZLE2(SIMDWord, 3, "%3d ");
-  UNSWIZZLE2(SIMDWord, 4, "%3d ");
-  UNSWIZZLE2(SIMDWord, 5, "%3d ");
+  UNSWIZZLE2(Word, 1, "%3d ");
+  UNSWIZZLE2(Word, 2, "%3d ");
+  UNSWIZZLE2(Word, 3, "%3d ");
+  UNSWIZZLE2(Word, 4, "%3d ");
+  UNSWIZZLE2(Word, 5, "%3d ");
 
-  UNSWIZZLE2(SIMDShort, 1, "%3d ");
-  UNSWIZZLE2(SIMDShort, 2, "%3d ");
-  UNSWIZZLE2(SIMDShort, 3, "%3d ");
-  UNSWIZZLE2(SIMDShort, 4, "%3d ");
-  UNSWIZZLE2(SIMDShort, 5, "%3d ");
+  UNSWIZZLE2(Short, 1, "%3d ");
+  UNSWIZZLE2(Short, 2, "%3d ");
+  UNSWIZZLE2(Short, 3, "%3d ");
+  UNSWIZZLE2(Short, 4, "%3d ");
+  UNSWIZZLE2(Short, 5, "%3d ");
 
-  UNSWIZZLE2(SIMDInt, 1, "%3d ");
-  UNSWIZZLE2(SIMDInt, 2, "%3d ");
-  UNSWIZZLE2(SIMDInt, 3, "%3d ");
-  UNSWIZZLE2(SIMDInt, 4, "%3d ");
-  UNSWIZZLE2(SIMDInt, 5, "%3d ");
+  UNSWIZZLE2(Int, 1, "%3d ");
+  UNSWIZZLE2(Int, 2, "%3d ");
+  UNSWIZZLE2(Int, 3, "%3d ");
+  UNSWIZZLE2(Int, 4, "%3d ");
+  UNSWIZZLE2(Int, 5, "%3d ");
 
-  UNSWIZZLE2(SIMDFloat, 1, "%3g ");
-  UNSWIZZLE2(SIMDFloat, 2, "%3g ");
-  UNSWIZZLE2(SIMDFloat, 3, "%3g ");
-  UNSWIZZLE2(SIMDFloat, 4, "%3g ");
-  UNSWIZZLE2(SIMDFloat, 5, "%3g ");
+  UNSWIZZLE2(Float, 1, "%3g ");
+  UNSWIZZLE2(Float, 2, "%3g ");
+  UNSWIZZLE2(Float, 3, "%3g ");
+  UNSWIZZLE2(Float, 4, "%3g ");
+  UNSWIZZLE2(Float, 5, "%3g ");
 
   puts("\n*********** test of swizzle_32_16 ************\n");
 
 #if defined(_SIMD_VEC_32_AVAIL_) && !defined(SIMDVEC_SANDBOX)
-  SWIZZLE_32_16(SIMDByte, 1, "%2d ");
-  SWIZZLE_32_16(SIMDByte, 2, "%2d ");
-  SWIZZLE_32_16(SIMDByte, 3, "%2d ");
-  SWIZZLE_32_16(SIMDByte, 4, "%2d ");
-  SWIZZLE_32_16(SIMDByte, 5, "%2d ");
+  SWIZZLE_32_16(Byte, 1, "%2d ");
+  SWIZZLE_32_16(Byte, 2, "%2d ");
+  SWIZZLE_32_16(Byte, 3, "%2d ");
+  SWIZZLE_32_16(Byte, 4, "%2d ");
+  SWIZZLE_32_16(Byte, 5, "%2d ");
 
-  SWIZZLE_32_16(SIMDWord, 1, "%2d ");
-  SWIZZLE_32_16(SIMDWord, 2, "%2d ");
-  SWIZZLE_32_16(SIMDWord, 3, "%2d ");
-  SWIZZLE_32_16(SIMDWord, 4, "%2d ");
-  SWIZZLE_32_16(SIMDWord, 5, "%2d ");
+  SWIZZLE_32_16(Word, 1, "%2d ");
+  SWIZZLE_32_16(Word, 2, "%2d ");
+  SWIZZLE_32_16(Word, 3, "%2d ");
+  SWIZZLE_32_16(Word, 4, "%2d ");
+  SWIZZLE_32_16(Word, 5, "%2d ");
 
-  SWIZZLE_32_16(SIMDInt, 1, "%2d ");
-  SWIZZLE_32_16(SIMDInt, 2, "%2d ");
-  SWIZZLE_32_16(SIMDInt, 3, "%2d ");
-  SWIZZLE_32_16(SIMDInt, 4, "%2d ");
-  SWIZZLE_32_16(SIMDInt, 5, "%2d ");
+  SWIZZLE_32_16(Int, 1, "%2d ");
+  SWIZZLE_32_16(Int, 2, "%2d ");
+  SWIZZLE_32_16(Int, 3, "%2d ");
+  SWIZZLE_32_16(Int, 4, "%2d ");
+  SWIZZLE_32_16(Int, 5, "%2d ");
 
-  SWIZZLE_32_16(SIMDFloat, 1, "%2g ");
-  SWIZZLE_32_16(SIMDFloat, 2, "%2g ");
-  SWIZZLE_32_16(SIMDFloat, 3, "%2g ");
-  SWIZZLE_32_16(SIMDFloat, 4, "%2g ");
-  SWIZZLE_32_16(SIMDFloat, 5, "%2g ");
+  SWIZZLE_32_16(Float, 1, "%2g ");
+  SWIZZLE_32_16(Float, 2, "%2g ");
+  SWIZZLE_32_16(Float, 3, "%2g ");
+  SWIZZLE_32_16(Float, 4, "%2g ");
+  SWIZZLE_32_16(Float, 5, "%2g ");
 #endif
 
   puts("\n*********** test of reinterpret functions  ***********\n");
 
-  const int nFloats = SW / sizeof(SIMDFloat);
-  SIMDFloat buf[nFloats] __attribute__((aligned(SW)));
-  for (int i = 0; i < nFloats; i++) buf[i] = (SIMDFloat) i;
-  SIMDVec<SIMDFloat, SW> fv;
+  const int nFloats = SW / sizeof(Float);
+  Float buf[nFloats] __attribute__((aligned(SW)));
+  for (int i = 0; i < nFloats; i++) buf[i] = (Float) i;
+  Vec<Float, SW> fv;
   fv = load<SW>(buf);
   print("%3g ", fv);
   puts("");
-  SIMDVec<SIMDInt, SW> iv;
-  iv = reinterpret<SIMDInt>(fv);
+  Vec<Int, SW> iv;
+  iv = reinterpret<Int>(fv);
   print("%08x ", iv);
   puts("");
-  SIMDVec<SIMDShort, SW> sv;
-  sv = reinterpret<SIMDShort>(iv);
+  Vec<Short, SW> sv;
+  sv = reinterpret<Short>(iv);
   print("%04x ", sv);
   puts("");
-  SIMDVec<SIMDWord, SW> wv;
-  wv = reinterpret<SIMDWord>(sv);
+  Vec<Word, SW> wv;
+  wv = reinterpret<Word>(sv);
   print("%04x ", sv);
   puts("");
-  SIMDVec<SIMDFloat, SW> fv1;
-  fv1 = reinterpret<SIMDFloat>(sv);
+  Vec<Float, SW> fv1;
+  fv1 = reinterpret<Float>(sv);
   print("%3g ", fv1);
   puts("");
 
   puts("\n*********** test of generic packs functions ***********\n");
 
   LINE2;
-  PACKS(SIMDSignedByte, SIMDSignedByte, "%3d ", "%3d ", 0, -1, 8);
+  PACKS(SignedByte, SignedByte, "%3d ", "%3d ", 0, -1, 8);
 
   LINE2;
-  PACKS(SIMDSignedByte, SIMDShort, "%7d ", "%7d ", 0, -1, 20);
-  PACKS(SIMDByte, SIMDShort, "%7u ", "%7d ", 0, -1, 40);
-  PACKS(SIMDShort, SIMDShort, "%7d ", "%7d ", 0, -1, 2000);
+  PACKS(SignedByte, Short, "%7d ", "%7d ", 0, -1, 20);
+  PACKS(Byte, Short, "%7u ", "%7d ", 0, -1, 40);
+  PACKS(Short, Short, "%7d ", "%7d ", 0, -1, 2000);
 
   LINE2;
-  PACKS(SIMDSignedByte, SIMDInt, "%7d ", "%7d ", 0, -1, 20);
-  PACKS(SIMDByte, SIMDInt, "%7u ", "%7d ", 0, -1, 40);
-  PACKS(SIMDShort, SIMDInt, "%7d ", "%7d ", 0, -1, 6000);
-  PACKS(SIMDWord, SIMDInt, "%7u ", "%7d ", 0, -1, 15000);
-  PACKS(SIMDInt, SIMDInt, "%7d ", "%7d ", 0, -1, 1000000);
-  PACKS(SIMDFloat, SIMDInt, "%7g ", "%7d ", 0, -1, 100);
+  PACKS(SignedByte, Int, "%7d ", "%7d ", 0, -1, 20);
+  PACKS(Byte, Int, "%7u ", "%7d ", 0, -1, 40);
+  PACKS(Short, Int, "%7d ", "%7d ", 0, -1, 6000);
+  PACKS(Word, Int, "%7u ", "%7d ", 0, -1, 15000);
+  PACKS(Int, Int, "%7d ", "%7d ", 0, -1, 1000000);
+  PACKS(Float, Int, "%7g ", "%7d ", 0, -1, 100);
 
   LINE2;
-  PACKS(SIMDSignedByte, SIMDFloat, "%7d ", "%7g ", 0, -1, 20);
-  PACKS(SIMDByte, SIMDFloat, "%7u ", "%7g ", 0, -1, 40);
-  PACKS(SIMDShort, SIMDFloat, "%7d ", "%7g ", 0, -1, 6000);
-  PACKS(SIMDWord, SIMDFloat, "%7u ", "%7g ", 0, -1, 15000);
-  PACKS(SIMDInt, SIMDFloat, "%7d ", "%7g ", 0, -1, 1000);
-  PACKS(SIMDFloat, SIMDFloat, "%7g ", "%7g ", 0, -1, 100);
+  PACKS(SignedByte, Float, "%7d ", "%7g ", 0, -1, 20);
+  PACKS(Byte, Float, "%7u ", "%7g ", 0, -1, 40);
+  PACKS(Short, Float, "%7d ", "%7g ", 0, -1, 6000);
+  PACKS(Word, Float, "%7u ", "%7g ", 0, -1, 15000);
+  PACKS(Int, Float, "%7d ", "%7g ", 0, -1, 1000);
+  PACKS(Float, Float, "%7g ", "%7g ", 0, -1, 100);
 
   puts("\n*********** test of generic extend functions ***********\n");
 
   LINE2;
-  EXTEND(SIMDSignedByte, SIMDSignedByte, "%4d ", "%4d ", 0, -1, 8);
-  EXTEND(SIMDShort, SIMDSignedByte, "%4d ", "%4d ", 0, -1, 8);
-  EXTEND(SIMDInt, SIMDSignedByte, "%4d ", "%4d ", 0, -1, 8);
-  EXTEND(SIMDFloat, SIMDSignedByte, "%4g ", "%4d ", 0, -1, 8);
+  EXTEND(SignedByte, SignedByte, "%4d ", "%4d ", 0, -1, 8);
+  EXTEND(Short, SignedByte, "%4d ", "%4d ", 0, -1, 8);
+  EXTEND(Int, SignedByte, "%4d ", "%4d ", 0, -1, 8);
+  EXTEND(Float, SignedByte, "%4g ", "%4d ", 0, -1, 8);
 
   LINE2;
-  EXTEND(SIMDByte, SIMDByte, "%4u ", "%4u ", 0, 1, 15);
-  EXTEND(SIMDShort, SIMDByte, "%4d ", "%4u ", 0, 1, 15);
-  EXTEND(SIMDWord, SIMDByte, "%4u ", "%4u ", 0, 1, 15);
-  EXTEND(SIMDInt, SIMDByte, "%4d ", "%4u ", 0, 1, 15);
-  EXTEND(SIMDFloat, SIMDByte, "%4g ", "%4u ", 0, 1, 15);
+  EXTEND(Byte, Byte, "%4u ", "%4u ", 0, 1, 15);
+  EXTEND(Short, Byte, "%4d ", "%4u ", 0, 1, 15);
+  EXTEND(Word, Byte, "%4u ", "%4u ", 0, 1, 15);
+  EXTEND(Int, Byte, "%4d ", "%4u ", 0, 1, 15);
+  EXTEND(Float, Byte, "%4g ", "%4u ", 0, 1, 15);
 
   LINE2;
-  EXTEND(SIMDShort, SIMDShort, "%7d ", "%7d ", 0, -1, 4000);
-  EXTEND(SIMDInt, SIMDShort, "%7d ", "%7d ", 0, -1, 4000);
-  EXTEND(SIMDFloat, SIMDShort, "%7g ", "%7d ", 0, -1, 4000);
+  EXTEND(Short, Short, "%7d ", "%7d ", 0, -1, 4000);
+  EXTEND(Int, Short, "%7d ", "%7d ", 0, -1, 4000);
+  EXTEND(Float, Short, "%7g ", "%7d ", 0, -1, 4000);
 
   LINE2;
-  EXTEND(SIMDWord, SIMDWord, "%7u ", "%7u ", 0, 1, 8000);
-  EXTEND(SIMDInt, SIMDWord, "%7d ", "%7u ", 0, 1, 8000);
-  EXTEND(SIMDFloat, SIMDWord, "%7g ", "%7u ", 0, 1, 8000);
+  EXTEND(Word, Word, "%7u ", "%7u ", 0, 1, 8000);
+  EXTEND(Int, Word, "%7d ", "%7u ", 0, 1, 8000);
+  EXTEND(Float, Word, "%7g ", "%7u ", 0, 1, 8000);
 
   LINE2;
-  EXTEND(SIMDInt, SIMDInt, "%7d ", "%7d ", 0, -1, 100);
-  EXTEND(SIMDFloat, SIMDInt, "%7g ", "%7d ", 0, -1, 100);
+  EXTEND(Int, Int, "%7d ", "%7d ", 0, -1, 100);
+  EXTEND(Float, Int, "%7g ", "%7d ", 0, -1, 100);
 
   LINE2;
-  EXTEND(SIMDInt, SIMDFloat, "%7d ", "%7g ", 0, -1, 100);
-  EXTEND(SIMDFloat, SIMDFloat, "%7g ", "%7g ", 0, -1, 100);
+  EXTEND(Int, Float, "%7d ", "%7g ", 0, -1, 100);
+  EXTEND(Float, Float, "%7g ", "%7g ", 0, -1, 100);
 
   puts("\n*********** test of unpack functions ***********\n");
 
@@ -1128,194 +1128,194 @@ int main()
   puts("unpack low");
   LINE2;
 
-  UNPACK(SIMDByte, 0, 1, "%02d ");
-  UNPACK(SIMDByte, 0, 2, "%02d ");
-  UNPACK(SIMDByte, 0, 4, "%02d ");
-  UNPACK(SIMDByte, 0, 8, "%02d ");
+  UNPACK(Byte, 0, 1, "%02d ");
+  UNPACK(Byte, 0, 2, "%02d ");
+  UNPACK(Byte, 0, 4, "%02d ");
+  UNPACK(Byte, 0, 8, "%02d ");
 #if SW == 32
-  UNPACK(SIMDByte, 0, 16, "%02d ");
+  UNPACK(Byte, 0, 16, "%02d ");
 #endif
   LINE1;
 
-  UNPACK(SIMDSignedByte, 0, 1, "%02d ");
-  UNPACK(SIMDSignedByte, 0, 2, "%02d ");
-  UNPACK(SIMDSignedByte, 0, 4, "%02d ");
-  UNPACK(SIMDSignedByte, 0, 8, "%02d ");
+  UNPACK(SignedByte, 0, 1, "%02d ");
+  UNPACK(SignedByte, 0, 2, "%02d ");
+  UNPACK(SignedByte, 0, 4, "%02d ");
+  UNPACK(SignedByte, 0, 8, "%02d ");
 #if SW == 32
-  UNPACK(SIMDSignedByte, 0, 16, "%02d ");
+  UNPACK(SignedByte, 0, 16, "%02d ");
 #endif
   LINE1;
 
-  UNPACK(SIMDWord, 0, 1, "%02d ");
-  UNPACK(SIMDWord, 0, 2, "%02d ");
-  UNPACK(SIMDWord, 0, 4, "%02d ");
+  UNPACK(Word, 0, 1, "%02d ");
+  UNPACK(Word, 0, 2, "%02d ");
+  UNPACK(Word, 0, 4, "%02d ");
 #if SW == 32
-  UNPACK(SIMDWord, 0, 8, "%02d ");
+  UNPACK(Word, 0, 8, "%02d ");
 #endif
   LINE1;
 
-  UNPACK(SIMDShort, 0, 1, "%02d ");
-  UNPACK(SIMDShort, 0, 2, "%02d ");
-  UNPACK(SIMDShort, 0, 4, "%02d ");
+  UNPACK(Short, 0, 1, "%02d ");
+  UNPACK(Short, 0, 2, "%02d ");
+  UNPACK(Short, 0, 4, "%02d ");
 #if SW == 32
-  UNPACK(SIMDShort, 0, 8, "%02d ");
+  UNPACK(Short, 0, 8, "%02d ");
 #endif
   LINE1;
 
-  UNPACK(SIMDInt, 0, 1, "%02d ");
-  UNPACK(SIMDInt, 0, 2, "%02d ");
+  UNPACK(Int, 0, 1, "%02d ");
+  UNPACK(Int, 0, 2, "%02d ");
 #if SW == 32
-  UNPACK(SIMDInt, 0, 4, "%02d ");
+  UNPACK(Int, 0, 4, "%02d ");
 #endif
   LINE1;
 
-  UNPACK(SIMDFloat, 0, 1, "%2g ");
-  UNPACK(SIMDFloat, 0, 2, "%2g ");
+  UNPACK(Float, 0, 1, "%2g ");
+  UNPACK(Float, 0, 2, "%2g ");
 #if SW == 32
-  UNPACK(SIMDFloat, 0, 4, "%2g ");
+  UNPACK(Float, 0, 4, "%2g ");
 #endif
 
   LINE2;
   puts("unpack high");
   LINE2;
 
-  UNPACK(SIMDByte, 1, 1, "%02d ");
-  UNPACK(SIMDByte, 1, 2, "%02d ");
-  UNPACK(SIMDByte, 1, 4, "%02d ");
-  UNPACK(SIMDByte, 1, 8, "%02d ");
+  UNPACK(Byte, 1, 1, "%02d ");
+  UNPACK(Byte, 1, 2, "%02d ");
+  UNPACK(Byte, 1, 4, "%02d ");
+  UNPACK(Byte, 1, 8, "%02d ");
 #if SW == 32
-  UNPACK(SIMDByte, 1, 16, "%02d ");
+  UNPACK(Byte, 1, 16, "%02d ");
 #endif
   LINE1;
 
-  UNPACK(SIMDSignedByte, 1, 1, "%02d ");
-  UNPACK(SIMDSignedByte, 1, 2, "%02d ");
-  UNPACK(SIMDSignedByte, 1, 4, "%02d ");
-  UNPACK(SIMDSignedByte, 1, 8, "%02d ");
+  UNPACK(SignedByte, 1, 1, "%02d ");
+  UNPACK(SignedByte, 1, 2, "%02d ");
+  UNPACK(SignedByte, 1, 4, "%02d ");
+  UNPACK(SignedByte, 1, 8, "%02d ");
 #if SW == 32
-  UNPACK(SIMDSignedByte, 1, 16, "%02d ");
+  UNPACK(SignedByte, 1, 16, "%02d ");
 #endif
   LINE1;
 
-  UNPACK(SIMDWord, 1, 1, "%02d ");
-  UNPACK(SIMDWord, 1, 2, "%02d ");
-  UNPACK(SIMDWord, 1, 4, "%02d ");
+  UNPACK(Word, 1, 1, "%02d ");
+  UNPACK(Word, 1, 2, "%02d ");
+  UNPACK(Word, 1, 4, "%02d ");
 #if SW == 32
-  UNPACK(SIMDWord, 1, 8, "%02d ");
+  UNPACK(Word, 1, 8, "%02d ");
 #endif
   LINE1;
 
-  UNPACK(SIMDShort, 1, 1, "%02d ");
-  UNPACK(SIMDShort, 1, 2, "%02d ");
-  UNPACK(SIMDShort, 1, 4, "%02d ");
+  UNPACK(Short, 1, 1, "%02d ");
+  UNPACK(Short, 1, 2, "%02d ");
+  UNPACK(Short, 1, 4, "%02d ");
 #if SW == 32
-  UNPACK(SIMDShort, 1, 8, "%02d ");
+  UNPACK(Short, 1, 8, "%02d ");
 #endif
   LINE1;
 
-  UNPACK(SIMDInt, 1, 1, "%02d ");
-  UNPACK(SIMDInt, 1, 2, "%02d ");
+  UNPACK(Int, 1, 1, "%02d ");
+  UNPACK(Int, 1, 2, "%02d ");
 #if SW == 32
-  UNPACK(SIMDInt, 1, 4, "%02d ");
+  UNPACK(Int, 1, 4, "%02d ");
 #endif
   LINE1;
 
-  UNPACK(SIMDFloat, 1, 1, "%2g ");
-  UNPACK(SIMDFloat, 1, 2, "%2g ");
+  UNPACK(Float, 1, 1, "%2g ");
+  UNPACK(Float, 1, 2, "%2g ");
 #if SW == 32
-  UNPACK(SIMDFloat, 1, 4, "%2g ");
+  UNPACK(Float, 1, 4, "%2g ");
 #endif
   LINE1;
 
   puts("\n*********** test of div2* ***********\n");
 
-  DIV2(SIMDByte, "%2u ", 0);
+  DIV2(Byte, "%2u ", 0);
   LINE1;
-  // DIV2(SIMDSignedByte, "%2d ", -4);
+  // DIV2(SignedByte, "%2d ", -4);
   // LINE1;
-  DIV2(SIMDWord, "%2u ", 0);
+  DIV2(Word, "%2u ", 0);
   LINE1;
-  DIV2(SIMDShort, "%2d ", -4);
+  DIV2(Short, "%2d ", -4);
   LINE1;
-  DIV2(SIMDInt, "%2d ", -4);
+  DIV2(Int, "%2d ", -4);
 
   puts("\n*********** test of avg* ***********\n");
 
-  AVG(avg, SIMDByte, "%2u ");
+  AVG(avg, Byte, "%2u ");
   LINE1;
-  AVG(avg, SIMDSignedByte, "%2d ");
+  AVG(avg, SignedByte, "%2d ");
   LINE1;
-  AVG(avg, SIMDWord, "%2u ");
+  AVG(avg, Word, "%2u ");
   LINE1;
-  AVG(avg, SIMDShort, "%2d ");
+  AVG(avg, Short, "%2d ");
   LINE1;
-  AVG(avg, SIMDInt, "%2d ");
+  AVG(avg, Int, "%2d ");
   LINE1;
-  AVG(avg, SIMDFloat, "%5g ");
+  AVG(avg, Float, "%5g ");
   LINE2;
-  AVG(avgrd, SIMDByte, "%2u ");
+  AVG(avgrd, Byte, "%2u ");
   LINE1;
-  // AVG(avgrd, SIMDSignedByte, "%2d ");
+  // AVG(avgrd, SignedByte, "%2d ");
   // LINE1;
-  AVG(avgrd, SIMDWord, "%2u ");
+  AVG(avgrd, Word, "%2u ");
   LINE1;
-  AVG(avgrd, SIMDShort, "%2d ");
+  AVG(avgrd, Short, "%2d ");
   LINE1;
-  AVG(avgrd, SIMDInt, "%2d ");
+  AVG(avgrd, Int, "%2d ");
   LINE1;
-  AVG(avgrd, SIMDFloat, "%5g ");
+  AVG(avgrd, Float, "%5g ");
 
-  puts("\n*********** test of SIMDVecs functions ***********\n");
+  puts("\n*********** test of Vecs functions ***********\n");
 
-#define INTYPE  SIMDWord
-#define OUTTYPE SIMDFloat
-  SIMDVecs<NumSIMDVecs<OUTTYPE, INTYPE>::in, INTYPE, SW> inVecs;
-  SIMDVecs<NumSIMDVecs<OUTTYPE, INTYPE>::out, OUTTYPE, SW> outVecs;
+#define INTYPE  Word
+#define OUTTYPE Float
+  Vecs<NumVecs<OUTTYPE, INTYPE>::in, INTYPE, SW> inVecs;
+  Vecs<NumVecs<OUTTYPE, INTYPE>::out, OUTTYPE, SW> outVecs;
   printf("inVecs:  vectors = %d, elements = %d\n", inVecs.vectors,
          inVecs.elements);
   printf("outVecs: vectors = %d, elements = %d\n", outVecs.vectors,
          outVecs.elements);
 
-  CONVERTVECS(SIMDShort, SIMDInt, "%d ", "%d ");
+  CONVERTVECS(Short, Int, "%d ", "%d ");
   fdivmul(inVecs, inVecs, 1.23, outVecs);
   fmul(inVecs, 1.23, outVecs);
   faddmul(inVecs, 10, 1.23, outVecs);
   fmuladd(inVecs, 1.23, 10, outVecs);
   fwaddmul(inVecs, inVecs, 0.5, 43.21, outVecs);
 
-  SIMDVecs<4, SIMDFloat, SW> vecs;
-  SIMDFloat buffer[SIMDVecs<4, SIMDFloat, SW>::elements] SIMD_ATTR_ALIGNED(SW);
+  Vecs<4, Float, SW> vecs;
+  Float buffer[Vecs<4, Float, SW>::elements] SIMD_ATTR_ALIGNED(SW);
   load(buffer, vecs);
   loadu(buffer, vecs);
   store(buffer, vecs);
   storeu(buffer, vecs);
-#define LARGETYPE SIMDFloat
-#define SMALLTYPE SIMDWord
-  SIMDVecs<NumSIMDVecs<LARGETYPE, SMALLTYPE>::out, LARGETYPE, SW> largeTypeVecs;
-  SIMDVec<SMALLTYPE, SW> smallTypeVec;
+#define LARGETYPE Float
+#define SMALLTYPE Word
+  Vecs<NumVecs<LARGETYPE, SMALLTYPE>::out, LARGETYPE, SW> largeTypeVecs;
+  Vec<SMALLTYPE, SW> smallTypeVec;
   setzero(largeTypeVecs);
   smallTypeVec = packs<SMALLTYPE>(largeTypeVecs);
   extend(smallTypeVec, largeTypeVecs);
 #define NSWIZZLE    3
-#define SWIZZLETYPE SIMDWord
-  SIMDVecs<NSWIZZLE, SWIZZLETYPE, SW> swizzleVecs;
+#define SWIZZLETYPE Word
+  Vecs<NSWIZZLE, SWIZZLETYPE, SW> swizzleVecs;
   setzero(swizzleVecs);
   swizzle<NSWIZZLE>(swizzleVecs);
-#define TRANSPOSETYPE    SIMDWord
+#define TRANSPOSETYPE    Word
 #define NTRANSPOSE       (SW / sizeof(TRANSPOSETYPE))
 #define NUMTRANSPOSEROWS 5
   // e.g. NTRANSPOSE-1 is passed: error!
-  SIMDVecs<NTRANSPOSE, TRANSPOSETYPE, SW> inRows, outRows;
+  Vecs<NTRANSPOSE, TRANSPOSETYPE, SW> inRows, outRows;
   setzero(inRows);
-  SIMDVecs<NUMTRANSPOSEROWS, TRANSPOSETYPE, SW> outRowsPart;
+  Vecs<NUMTRANSPOSEROWS, TRANSPOSETYPE, SW> outRowsPart;
   // 30. Sep 22 (rm): was called transpose1, moved back to transpose
   transpose(inRows, outRows);
   transposePartial(inRows, outRowsPart);
-#define HORTYPE SIMDShort
+#define HORTYPE Short
 #define NHOR    (SW / sizeof(HORTYPE))
-  SIMDVecs<NHOR, HORTYPE, SW> horInVecs;
+  Vecs<NHOR, HORTYPE, SW> horInVecs;
   setzero(horInVecs);
-  SIMDVec<HORTYPE, SW> horOutVec;
+  Vec<HORTYPE, SW> horOutVec;
   horOutVec = hadd(horInVecs);
   horOutVec = hadds(horInVecs);
   horOutVec = hsub(horInVecs);
@@ -1323,18 +1323,18 @@ int main()
 
   puts("\n*********** test of print functions ***********\n");
 
-  SIMDVec<SIMDFloat, SW> vf = set1<SIMDFloat, SW>(1.234);
-  SIMDVec<SIMDInt, SW> vi   = set1<SIMDInt, SW>(98765);
-  print(SIMDFormat<SIMDFloat>(5, 2).format, " sep ", vf);
+  Vec<Float, SW> vf = set1<Float, SW>(1.234);
+  Vec<Int, SW> vi   = set1<Int, SW>(98765);
+  print(SIMDFormat<Float>(5, 2).format, " sep ", vf);
   printf("\n");
   print("%d", ", ", vi);
   printf("\n");
 
   puts("\n*********** test of test_all_* functions ***********\n");
 
-  SIMDVec<SIMDWord, SW> zeros = setzero<SIMDWord, SW>();
-  SIMDVec<SIMDWord, SW> ones  = set1<SIMDWord, SW>(0xffff);
-  SIMDVec<SIMDWord, SW> some  = set1<SIMDWord, SW>(0x3333);
+  Vec<Word, SW> zeros = setzero<Word, SW>();
+  Vec<Word, SW> ones  = set1<Word, SW>(0xffff);
+  Vec<Word, SW> some  = set1<Word, SW>(0x3333);
   printf("zeros = ");
   print("%04x ", zeros);
   puts("");
@@ -1354,8 +1354,8 @@ int main()
 
   puts("\n*********** test of logic functions ***********\n");
 
-  SIMDVec<SIMDFloat, SW> _zero = setzero<SIMDFloat, SW>();
-  SIMDVec<SIMDFloat, SW> _ones = setones<SIMDFloat, SW>();
+  Vec<Float, SW> _zero = setzero<Float, SW>();
+  Vec<Float, SW> _ones = setones<Float, SW>();
   printf("xor_(zero, zero) = ");
   print("%g ", xor_(_zero, _zero));
   puts("");
@@ -1371,17 +1371,16 @@ int main()
 
   puts("\n*********** test of cvts ************\n");
 
-  SIMDFloat testVals[3] = {SIMDFloat(SIMDINT_MIN), 2147483520.0f,
-                           SIMDFloat(SIMDINT_MAX)};
+  Float testVals[3] = {Float(SIMDINT_MIN), 2147483520.0f, Float(SIMDINT_MAX)};
 
   for (int i = 0; i < 3; i++) {
     for (int off = -200; off <= 200; off += 100) {
-      SIMDFloat v                  = testVals[i] + SIMDFloat(off);
-      SIMDVec<SIMDFloat, SW> ffvec = set1<SIMDFloat, SW>(v);
-      printf("\n%12.0f (%d, %g)\n", v, i, SIMDFloat(off));
+      Float v              = testVals[i] + Float(off);
+      Vec<Float, SW> ffvec = set1<Float, SW>(v);
+      printf("\n%12.0f (%d, %g)\n", v, i, Float(off));
       print("%12.0f ", ffvec);
       puts("");
-      print("%12d ", cvts<SIMDInt>(ffvec));
+      print("%12d ", cvts<Int>(ffvec));
       puts("");
     }
   }
@@ -1402,22 +1401,22 @@ int main()
   ROUNDING(8388610.f, 0.5f);
 
   puts("\n*********** test of set functions  ************\n");
-  SETFCT(SIMDByte, "%u ");
-  SETFCT(SIMDSignedByte, "%d ");
-  SETFCT(SIMDWord, "%u ");
-  SETFCT(SIMDShort, "%d ");
-  SETFCT(SIMDInt, "%d ");
-  SETFCT(SIMDFloat, "%g ");
-  SETSIGNEDFCT(SIMDSignedByte, "%d ");
-  SETSIGNEDFCT(SIMDShort, "%d ");
-  SETSIGNEDFCT(SIMDInt, "%d ");
-  SETSIGNEDFCT(SIMDFloat, "%g ");
+  SETFCT(Byte, "%u ");
+  SETFCT(SignedByte, "%d ");
+  SETFCT(Word, "%u ");
+  SETFCT(Short, "%d ");
+  SETFCT(Int, "%d ");
+  SETFCT(Float, "%g ");
+  SETSIGNEDFCT(SignedByte, "%d ");
+  SETSIGNEDFCT(Short, "%d ");
+  SETSIGNEDFCT(Int, "%d ");
+  SETSIGNEDFCT(Float, "%g ");
 
   puts("\n********** test of neg **********\n");
-  NEG(SIMDSignedByte, "%4d ", 0, 5);
-  NEG(SIMDShort, "%4d ", 0, 5);
-  NEG(SIMDInt, "%4d ", 0, 5);
-  NEG(SIMDFloat, "%6g ", 0.0, 1.234);
+  NEG(SignedByte, "%4d ", 0, 5);
+  NEG(Short, "%4d ", 0, 5);
+  NEG(Int, "%4d ", 0, 5);
+  NEG(Float, "%6g ", 0.0, 1.234);
 
   return 0;
 }

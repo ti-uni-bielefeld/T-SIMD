@@ -86,22 +86,11 @@ static constexpr SIMD_INLINE int numSIMDVecsElements()
 
 namespace internal {
 namespace ext {
-// 22. Sep 22 (Jonas Keller): this was implemented using a constexpr function
-// from
 // https://stackoverflow.com/questions/23781506/compile-time-computing-of-number-of-bits-needed-to-encode-n-different-states
-// but C++98 does not support constexpr, so we use template metaprogramming
-// instead from
-// https://hbfs.wordpress.com/2016/03/22/log2-with-c-metaprogramming/
-template <unsigned int x>
-struct floorlog2
+static constexpr SIMD_INLINE unsigned floorlog2(unsigned x)
 {
-  static const unsigned int value = 1 + floorlog2<x / 2>::value;
-};
-template <>
-struct floorlog2<1>
-{
-  static const unsigned int value = 0;
-};
+  return x == 1 ? 0 : 1 + floorlog2(x >> 1);
+}
 } // namespace ext
 } // namespace internal
 
@@ -2641,7 +2630,7 @@ template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int FINALBLKSIZE>
 class Swizzle4
 {
-  enum { ORIG_REPS = (int) floorlog2<FINALBLKSIZE>::value + 1 };
+  enum { ORIG_REPS = (int) floorlog2(FINALBLKSIZE) + 1 };
   enum { FINAL_REPS = ORIG_REPS / 2 };
   enum { ODD = (ORIG_REPS & 0x01) };
 
@@ -2753,7 +2742,7 @@ template <typename T, int SIMD_WIDTH, int N>
 class Unswizzle4
 {
   enum { FINALBLKSIZE = SIMDVec<T, SIMD_WIDTH>::elements };
-  enum { ORIG_REPS = (int) floorlog2<FINALBLKSIZE>::value + 1 };
+  enum { ORIG_REPS = (int) floorlog2(FINALBLKSIZE) + 1 };
   enum { FINAL_REPS = ORIG_REPS / 2 };
   enum { ODD = (ORIG_REPS & 0x01) };
 
@@ -2907,7 +2896,7 @@ public:
 template <typename T, int SIMD_WIDTH, int N>
 class Swizzle4Postprocess<Zip16, T, SIMD_WIDTH, N>
 {
-  enum { ORIG_REPS = (int) floorlog2<SIMD_WIDTH>::value - 4 };
+  enum { ORIG_REPS = (int) floorlog2(SIMD_WIDTH) - 4 };
   enum { FINAL_REPS = ORIG_REPS / 2 };
   enum { ODD = (ORIG_REPS & 0x01) };
   enum { LANE_ELEMS = 16 / sizeof(T) };
@@ -3173,7 +3162,7 @@ template <template <int, int, typename, int> class Unpack, typename T,
 class TransposeRcRep
 {
   enum { LOAD_OFF = PROCESS_REP * PROCESS_ROWS * SIMD_WIDTH / sizeof(T) };
-  enum { SUB_BASE = 1 << (floorlog2<PROCESS_ROWS>::value - 1) };
+  enum { SUB_BASE = 1 << (floorlog2(PROCESS_ROWS) - 1) };
 
 public:
   static SIMD_INLINE void _transpose(const T *const inArray, T *const outArray)
@@ -3230,8 +3219,8 @@ class TransposeRc
   };
   enum { PROCESS_ROWS = NUM_ROWS / PROCESS_REPS };
   enum {
-    UNPACK_REPS = PROCESS_REPS == 1 ? floorlog2<PROCESS_ROWS>::value :
-                                      floorlog2<16 / sizeof(T)>::value
+    UNPACK_REPS =
+      PROCESS_REPS == 1 ? floorlog2(PROCESS_ROWS) : floorlog2(16 / sizeof(T))
   };
   enum { UNPACK_ODD = (UNPACK_REPS & 0x01) };
 

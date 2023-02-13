@@ -256,4 +256,10 @@ flags-info:
 platform_dirs: ;
 dep: ;
 
+# 10. Feb 23 (Jonas Keller): added format rule
+.PHONY: format
+format:
+	@echo "formatting all .C and .H files"
+	@clang-format -i *.C *.H
+
 -include $(depend_files)

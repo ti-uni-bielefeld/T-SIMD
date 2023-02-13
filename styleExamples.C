@@ -1,31 +1,31 @@
 // ===========================================================================
-// 
+//
 // styleExamples.C --
 // examples of different styles of using the T-SIMD library
-// 
+//
 // This source code file is part of the following software:
-// 
+//
 //    - the low-level C++ template SIMD library
-//    - the SIMD implementation of the MinWarping and the 2D-Warping methods 
+//    - the SIMD implementation of the MinWarping and the 2D-Warping methods
 //      for local visual homing.
-// 
+//
 // The software is provided based on the accompanying license agreement
 // in the file LICENSE or LICENSE.doc. The software is provided "as is"
 // without any warranty by the licensor and without any liability of the
 // licensor, and the software may not be distributed by the licensee; see
 // the license agreement for details.
-// 
+//
 // (C) Ralf Möller
 //     Computer Engineering
 //     Faculty of Technology
 //     Bielefeld University
 //     www.ti.uni-bielefeld.de
-// 
+//
 // ===========================================================================
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <time.h>
 
 // #define MAX_SIMD_WIDTH 16
@@ -64,23 +64,18 @@ class Vector
 public:
   T *data;
   ssize_t size;
-  
-  Vector() : data(0), size(0)
-  {
-  }
+
+  Vector() : data(0), size(0) {}
   Vector(ssize_t size, ssize_t alignment) : size(size)
   {
-    data = (T*) simd_aligned_malloc(alignment, size * sizeof(T));
+    data = (T *) simd_aligned_malloc(alignment, size * sizeof(T));
     assert(data != NULL);
     // 20. Sep 22 (Jonas Keller): use memset instead of bzero, since bzero
     // is not available on Windows
     // bzero(data, size * sizeof(T));
     memset(data, 0, size * sizeof(T));
   }
-  ~Vector()
-  {
-    simd_aligned_free(data);
-  }
+  ~Vector() { simd_aligned_free(data); }
 };
 
 // ===========================================================================
@@ -90,8 +85,7 @@ public:
 // vector element types could be specified e.g. with simd::Float
 
 template <typename T>
-T
-vectorSumNative(const Vector<T> &input)
+T vectorSumNative(const Vector<T> &input)
 {
   simd::Vec<T> s = simd::setzero<T>();
   // you can use s.elements or simd::Vec<T>::elements
@@ -100,8 +94,7 @@ vectorSumNative(const Vector<T> &input)
   for (; i <= input.size - s.elements; i += s.elements)
     s = simd::add(s, simd::load(input.data + i));
   T sum = simd::hadd(s);
-  for (; i < input.size; i++)
-    sum += input.data[i];
+  for (; i < input.size; i++) sum += input.data[i];
   return sum;
 }
 
@@ -112,18 +105,16 @@ vectorSumNative(const Vector<T> &input)
 // vector element types could be specified e.g. with simd::Float
 
 template <int SIMD_WIDTH, typename T>
-T
-vectorSumModern(const Vector<T> &input)
+T vectorSumModern(const Vector<T> &input)
 {
-  simd::Vec<T,SIMD_WIDTH> s = simd::setzero<T,SIMD_WIDTH>();
+  simd::Vec<T, SIMD_WIDTH> s = simd::setzero<T, SIMD_WIDTH>();
   // you can use s.elements or simd::Vec<T,SIMD_WIDTH>::elements
   printf("modern style:  elements %d, bytes %d\n", s.elements, s.bytes);
   ssize_t i = 0;
   for (; i <= input.size - s.elements; i += s.elements)
     s = simd::add(s, simd::load<SIMD_WIDTH>(input.data + i));
   T sum = simd::hadd(s);
-  for (; i < input.size; i++)
-    sum += input.data[i];
+  for (; i < input.size; i++) sum += input.data[i];
   return sum;
 }
 
@@ -139,18 +130,16 @@ using namespace ns_simd;
 // vector element types could be specified e.g. with SIMDFloat
 
 template <int SIMD_WIDTH, typename T>
-T
-vectorSumClassic(const Vector<T> &input)
+T vectorSumClassic(const Vector<T> &input)
 {
-  SIMDVec<T,SIMD_WIDTH> s = setzero<T,SIMD_WIDTH>();
+  SIMDVec<T, SIMD_WIDTH> s = setzero<T, SIMD_WIDTH>();
   // you can use s.elements or simd::Vec<T,SIMD_WIDTH>::elements
   printf("classic style: elements %d, bytes %d\n", s.elements, s.bytes);
   ssize_t i = 0;
   for (; i <= input.size - s.elements; i += s.elements)
     s = add(s, load<SIMD_WIDTH>(input.data + i));
   T sum = hadd(s);
-  for (; i < input.size; i++)
-    sum += input.data[i];
+  for (; i < input.size; i++) sum += input.data[i];
   return sum;
 }
 
@@ -161,9 +150,8 @@ vectorSumClassic(const Vector<T> &input)
 // for simplicity, we use a fixed alignment here
 #define ALIGN 64
 
-int
-main(int argc, char *argv[])
-{ 
+int main(int argc, char *argv[])
+{
   printf("NATIVE_SIMD_WIDTH = %d\n", NATIVE_SIMD_WIDTH);
 
   if (argc != 2) {
@@ -182,7 +170,7 @@ main(int argc, char *argv[])
   for (ssize_t i = 0; i < input.size; i++) {
     // float x = drand48();
     // + 1.0f since drand48 returns values in [0,1)
-    float x = (float)rand() / ((float)RAND_MAX + 1.0f);
+    float x = (float) rand() / ((float) RAND_MAX + 1.0f);
     s += x;
     input.data[i] = x;
   }
@@ -198,6 +186,6 @@ main(int argc, char *argv[])
 
   // classic style: SW is passed as SIMD_WIDTH, T is deduced from input
   printf("classic style: sum = %.20g\n", vectorSumClassic<SW>(input));
-  
+
   return 0;
 }

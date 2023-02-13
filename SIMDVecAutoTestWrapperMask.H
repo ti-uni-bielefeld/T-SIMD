@@ -234,9 +234,9 @@ struct MaskZ_set1
     {                                                                          \
       return ti2s<IMM, T, SIMD_WIDTH>("mask_" #OP);                            \
     }                                                                          \
-    static SIMD_CONSTEXPR int minI  = 0;                                       \
-    static SIMD_CONSTEXPR int maxI  = sizeof(T) * 8 + 1;                       \
-    static SIMD_CONSTEXPR int nextI = IMM + 1;                                 \
+    static constexpr int minI  = 0;                                            \
+    static constexpr int maxI  = sizeof(T) * 8 + 1;                            \
+    static constexpr int nextI = IMM + 1;                                      \
     static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)            \
     {                                                                          \
       mask.randomize();                                                        \
@@ -263,9 +263,9 @@ struct MaskZ_set1
     {                                                                          \
       return ti2s<IMM, T, SIMD_WIDTH>("maskz_" #OP);                           \
     }                                                                          \
-    static SIMD_CONSTEXPR int minI  = 0;                                       \
-    static SIMD_CONSTEXPR int maxI  = sizeof(T) * 8 + 1;                       \
-    static SIMD_CONSTEXPR int nextI = IMM + 1;                                 \
+    static constexpr int minI  = 0;                                            \
+    static constexpr int maxI  = sizeof(T) * 8 + 1;                            \
+    static constexpr int nextI = IMM + 1;                                      \
     static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)            \
     {                                                                          \
       mask.randomize();                                                        \
@@ -520,9 +520,9 @@ template <int IMM, typename T, int SIMD_WIDTH>
 struct Kshiftli
 {
   static std::string name() { return ti2s<IMM, T, SIMD_WIDTH>("kshiftli"); }
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = SIMDSerialMask<T, SIMD_WIDTH>::bits + 1;
-  static SIMD_CONSTEXPR int nextI = IMM + 1;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = SIMDSerialMask<T, SIMD_WIDTH>::bits + 1;
+  static constexpr int nextI = IMM + 1;
   static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
@@ -538,9 +538,9 @@ template <int IMM, typename T, int SIMD_WIDTH>
 struct Kshiftri
 {
   static std::string name() { return ti2s<IMM, T, SIMD_WIDTH>("kshiftri"); }
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = SIMDSerialMask<T, SIMD_WIDTH>::bits + 1;
-  static SIMD_CONSTEXPR int nextI = IMM + 1;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = SIMDSerialMask<T, SIMD_WIDTH>::bits + 1;
+  static constexpr int nextI = IMM + 1;
   static void randomizeInput(SIMDSerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();

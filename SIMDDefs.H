@@ -144,31 +144,12 @@
 #error "attribute definitions missing for this compiler"
 #endif
 
-// C++ 11 support?
-#if __cplusplus >= 201103L
-#define SIMD_CONSTEXPR constexpr
-#else
-#define SIMD_CONSTEXPR const
-#endif
-
 // macro to set the default value SIMD_WIDTH template parameter to
 // NATIVE_WIDTH if NATIVE_WIDTH is defined
 #ifdef NATIVE_SIMD_WIDTH
 #define SIMD_WIDTH_DEFAULT_NATIVE SIMD_WIDTH = NATIVE_SIMD_WIDTH
 #else
 #define SIMD_WIDTH_DEFAULT_NATIVE SIMD_WIDTH
-#endif
-
-// macro to set the default value SIMD_WIDTH template function parameter to
-// NATIVE_WIDTH if NATIVE_WIDTH is defined and C++11 is available
-#if defined(NATIVE_SIMD_WIDTH) && (__cplusplus >= 201103L)
-// NATIVE_SIMD_WIDTH is defined and C++11 is available
-// (default template function arguments require C++11)
-#define SIMD_WIDTH_DEFAULT_NATIVE_FUNC SIMD_WIDTH = NATIVE_SIMD_WIDTH
-#else
-// NATIVE_SIMD_WIDTH is undefined or no C++11 available
-// (default template function arguments are not supported in C++98)
-#define SIMD_WIDTH_DEFAULT_NATIVE_FUNC SIMD_WIDTH
 #endif
 
 // for reinterpretation of memory

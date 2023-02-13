@@ -383,7 +383,7 @@ static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> kshiftli(
  *
  * @return A SIMDMask with all elements set to true.
  */
-template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE SIMDMask<T, SIMD_WIDTH> mask_all_ones()
 {
   return internal::mask::mask_all_ones(internal::OutputType<T>(),

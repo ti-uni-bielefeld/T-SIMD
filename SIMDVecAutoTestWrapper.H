@@ -153,9 +153,9 @@ struct Extract
     return ti2s<I, T, SIMD_WIDTH>("extract");
   }
 
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = SIMD_WIDTH / sizeof(T) + 1;
-  static SIMD_CONSTEXPR int nextI = I + 1;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = SIMD_WIDTH / sizeof(T) + 1;
+  static constexpr int nextI = I + 1;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -520,13 +520,13 @@ struct Unpack
   }
 
   // PART (I) switches between 0 and 1
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = 1;
-  static SIMD_CONSTEXPR int nextI = 1 - PART;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = 1;
+  static constexpr int nextI = 1 - PART;
   // NUM_ELEMS (J) is doubled if PART == 1
-  static SIMD_CONSTEXPR int minJ  = 1;
-  static SIMD_CONSTEXPR int maxJ  = SIMD_WIDTH / sizeof(T);
-  static SIMD_CONSTEXPR int nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
+  static constexpr int minJ  = 1;
+  static constexpr int maxJ  = SIMD_WIDTH / sizeof(T);
+  static constexpr int nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -552,13 +552,13 @@ struct Unpack16
   }
 
   // PART (I) switches between 0 and 1
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = 1;
-  static SIMD_CONSTEXPR int nextI = 1 - PART;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = 1;
+  static constexpr int nextI = 1 - PART;
   // NUM_ELEMS (J) is doubled if PART == 1
-  static SIMD_CONSTEXPR int minJ  = 1;
-  static SIMD_CONSTEXPR int maxJ  = 16 / sizeof(T);
-  static SIMD_CONSTEXPR int nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
+  static constexpr int minJ  = 1;
+  static constexpr int maxJ  = 16 / sizeof(T);
+  static constexpr int nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -583,9 +583,9 @@ struct ExtractLane
     return ti2s<IMM, T, SIMD_WIDTH>("extractLane");
   }
 
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = SIMD_WIDTH / 16 - 1;
-  static SIMD_CONSTEXPR int nextI = IMM + 1;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = SIMD_WIDTH / 16 - 1;
+  static constexpr int nextI = IMM + 1;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -608,9 +608,9 @@ struct Zip
     return ti2s<NUM_ELEMS, T, SIMD_WIDTH>("zip");
   }
 
-  static SIMD_CONSTEXPR int minI  = 1;
-  static SIMD_CONSTEXPR int maxI  = SIMD_WIDTH / sizeof(T);
-  static SIMD_CONSTEXPR int nextI = NUM_ELEMS * 2;
+  static constexpr int minI  = 1;
+  static constexpr int maxI  = SIMD_WIDTH / sizeof(T);
+  static constexpr int nextI = NUM_ELEMS * 2;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -636,9 +636,9 @@ struct Zip16
     return ti2s<NUM_ELEMS, T, SIMD_WIDTH>("zip16");
   }
 
-  static SIMD_CONSTEXPR int minI  = 1;
-  static SIMD_CONSTEXPR int maxI  = 16 / sizeof(T);
-  static SIMD_CONSTEXPR int nextI = NUM_ELEMS * 2;
+  static constexpr int minI  = 1;
+  static constexpr int maxI  = 16 / sizeof(T);
+  static constexpr int nextI = NUM_ELEMS * 2;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -662,9 +662,9 @@ struct Unzip
     return ti2s<NUM_ELEMS, T, SIMD_WIDTH>("unzip");
   }
 
-  static SIMD_CONSTEXPR int minI  = 1;
-  static SIMD_CONSTEXPR int maxI  = SIMD_WIDTH / sizeof(T);
-  static SIMD_CONSTEXPR int nextI = NUM_ELEMS * 2;
+  static constexpr int minI  = 1;
+  static constexpr int maxI  = SIMD_WIDTH / sizeof(T);
+  static constexpr int nextI = NUM_ELEMS * 2;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -730,9 +730,9 @@ struct Srai
     return ti2s<IMM, T, SIMD_WIDTH>("srai");
   }
 
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = sizeof(T) * 8 + 1;
-  static SIMD_CONSTEXPR int nextI = IMM + 1;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = sizeof(T) * 8 + 1;
+  static constexpr int nextI = IMM + 1;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -754,9 +754,9 @@ struct Srli
     return ti2s<IMM, T, SIMD_WIDTH>("srli");
   }
 
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = sizeof(T) * 8 + 1;
-  static SIMD_CONSTEXPR int nextI = IMM + 1;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = sizeof(T) * 8 + 1;
+  static constexpr int nextI = IMM + 1;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -778,9 +778,9 @@ struct Slli
     return ti2s<IMM, T, SIMD_WIDTH>("slli");
   }
 
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = sizeof(T) * 8 + 1;
-  static SIMD_CONSTEXPR int nextI = IMM + 1;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = sizeof(T) * 8 + 1;
+  static constexpr int nextI = IMM + 1;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -965,9 +965,9 @@ struct Srle
     return ti2s<IMM, T, SIMD_WIDTH>("srle");
   }
 
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = SIMD_WIDTH / sizeof(T) + 1;
-  static SIMD_CONSTEXPR int nextI = IMM + 1;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = SIMD_WIDTH / sizeof(T) + 1;
+  static constexpr int nextI = IMM + 1;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -989,9 +989,9 @@ struct Slle
     return ti2s<IMM, T, SIMD_WIDTH>("slle");
   }
 
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = SIMD_WIDTH / sizeof(T) + 1;
-  static SIMD_CONSTEXPR int nextI = IMM + 1;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = SIMD_WIDTH / sizeof(T) + 1;
+  static constexpr int nextI = IMM + 1;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1030,9 +1030,9 @@ struct Alignre
     return ti2s<IMM, T, SIMD_WIDTH>("alignre");
   }
 
-  static SIMD_CONSTEXPR int minI  = 0;
-  static SIMD_CONSTEXPR int maxI  = 2 * (SIMD_WIDTH / sizeof(T)) + 1;
-  static SIMD_CONSTEXPR int nextI = IMM + 1;
+  static constexpr int minI  = 0;
+  static constexpr int maxI  = 2 * (SIMD_WIDTH / sizeof(T)) + 1;
+  static constexpr int nextI = IMM + 1;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1055,10 +1055,10 @@ struct Swizzle
     return ti2s<I, T, SIMD_WIDTH>("swizzle");
   }
 
-  static SIMD_CONSTEXPR int minI    = 1;
-  static SIMD_CONSTEXPR int maxI    = 6;
-  static SIMD_CONSTEXPR int nextI   = I + 1;
-  static SIMD_CONSTEXPR int numVecs = I;
+  static constexpr int minI    = 1;
+  static constexpr int maxI    = 6;
+  static constexpr int nextI   = I + 1;
+  static constexpr int numVecs = I;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1080,11 +1080,11 @@ struct Swizzle2
     return ti2s<I, T, SIMD_WIDTH>("swizzle2");
   }
 
-  static SIMD_CONSTEXPR int minI = 1;
+  static constexpr int minI = 1;
   // TODO: is there an upper limit for maxI in swizzle2?
-  static SIMD_CONSTEXPR int maxI    = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int nextI   = I + 1;
-  static SIMD_CONSTEXPR int numVecs = 2 * I;
+  static constexpr int maxI    = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int nextI   = I + 1;
+  static constexpr int numVecs = 2 * I;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1106,11 +1106,11 @@ struct Unswizzle2
     return ti2s<I, T, SIMD_WIDTH>("unswizzle2");
   }
 
-  static SIMD_CONSTEXPR int minI = 1;
+  static constexpr int minI = 1;
   // TODO: is there an upper limit for maxI in unswizzle2?
-  static SIMD_CONSTEXPR int maxI    = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int nextI   = I + 1;
-  static SIMD_CONSTEXPR int numVecs = 2 * I;
+  static constexpr int maxI    = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int nextI   = I + 1;
+  static constexpr int numVecs = 2 * I;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1133,11 +1133,11 @@ struct Swizzle3
     return ti2s<I, T, SIMD_WIDTH>("swizzle3");
   }
 
-  static SIMD_CONSTEXPR int minI = 1;
+  static constexpr int minI = 1;
   // TODO: is there an upper limit for maxI in swizzle3?
-  static SIMD_CONSTEXPR int maxI    = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int nextI   = I + 1;
-  static SIMD_CONSTEXPR int numVecs = 2 * I;
+  static constexpr int maxI    = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int nextI   = I + 1;
+  static constexpr int numVecs = 2 * I;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1160,11 +1160,11 @@ struct Swizzle4
     return ti2s<I, T, SIMD_WIDTH>("swizzle4");
   }
 
-  static SIMD_CONSTEXPR int minI = 1;
+  static constexpr int minI = 1;
   // TODO: is there an upper limit for maxI in swizzle4?
-  static SIMD_CONSTEXPR int maxI    = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int nextI   = I + 1;
-  static SIMD_CONSTEXPR int numVecs = 2 * I;
+  static constexpr int maxI    = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int nextI   = I + 1;
+  static constexpr int numVecs = 2 * I;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1187,11 +1187,11 @@ struct Unswizzle4
     return ti2s<I, T, SIMD_WIDTH>("unswizzle4");
   }
 
-  static SIMD_CONSTEXPR int minI = 1;
+  static constexpr int minI = 1;
   // TODO: is there an upper limit for maxI in unswizzle4?
-  static SIMD_CONSTEXPR int maxI    = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int nextI   = I + 1;
-  static SIMD_CONSTEXPR int numVecs = 2 * I;
+  static constexpr int maxI    = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int nextI   = I + 1;
+  static constexpr int numVecs = 2 * I;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1494,11 +1494,10 @@ struct Convert
     return tt2s<Tout, T, SIMD_WIDTH>("convert");
   }
 
-  static SIMD_CONSTEXPR int numInVecs  = NUM_INPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numInElems = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int numOutVecs = NUM_OUTPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numOutElems =
-    NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1521,11 +1520,10 @@ struct Fdivmul
     return tt2s<Tout, T, SIMD_WIDTH>("fdivmul");
   }
 
-  static SIMD_CONSTEXPR int numInVecs  = NUM_INPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numInElems = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int numOutVecs = NUM_OUTPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numOutElems =
-    NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
 
   static SIMD_INLINE SIMDFloat randomizeInputFloat()
   {
@@ -1560,11 +1558,10 @@ struct Fmul
     return tt2s<Tout, T, SIMD_WIDTH>("fmul");
   }
 
-  static SIMD_CONSTEXPR int numInVecs  = NUM_INPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numInElems = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int numOutVecs = NUM_OUTPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numOutElems =
-    NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
 
   static SIMD_INLINE SIMDFloat randomizeInputFloat()
   {
@@ -1596,11 +1593,10 @@ struct Faddmul
     return tt2s<Tout, T, SIMD_WIDTH>("faddmul");
   }
 
-  static SIMD_CONSTEXPR int numInVecs  = NUM_INPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numInElems = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int numOutVecs = NUM_OUTPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numOutElems =
-    NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
 
   static SIMD_INLINE SIMDFloat randomizeInputFloat()
   {
@@ -1632,11 +1628,10 @@ struct Fmuladd
     return tt2s<Tout, T, SIMD_WIDTH>("fmuladd");
   }
 
-  static SIMD_CONSTEXPR int numInVecs  = NUM_INPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numInElems = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int numOutVecs = NUM_OUTPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numOutElems =
-    NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
 
   static SIMD_INLINE SIMDFloat randomizeInputFloat()
   {
@@ -1668,11 +1663,10 @@ struct Fwaddmul
     return tt2s<Tout, T, SIMD_WIDTH>("fwaddmul");
   }
 
-  static SIMD_CONSTEXPR int numInVecs  = NUM_INPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numInElems = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
-  static SIMD_CONSTEXPR int numOutVecs = NUM_OUTPUT_SIMDVECS(Tout, T);
-  static SIMD_CONSTEXPR int numOutElems =
-    NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInElems  = numSIMDVecElements<T, SIMD_WIDTH>();
+  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
 
   static SIMD_INLINE SIMDFloat randomizeInputFloat()
   {
@@ -1705,7 +1699,7 @@ struct HaddMulti
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadd"); }
 
   // number of input elements
-  static SIMD_CONSTEXPR int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1725,7 +1719,7 @@ struct HaddsMulti
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadds"); }
 
   // number of input elements
-  static SIMD_CONSTEXPR int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1745,7 +1739,7 @@ struct HsubMulti
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsub"); }
 
   // number of input elements
-  static SIMD_CONSTEXPR int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1765,7 +1759,7 @@ struct HsubsMulti
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsubs"); }
 
   // number of input elements
-  static SIMD_CONSTEXPR int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int nInputs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1932,10 +1926,10 @@ struct BitonicSort
     return ti2s<SLOPE, T, SIMD_WIDTH>("bitonicSort");
   }
 
-  static SIMD_CONSTEXPR int minI    = 0;
-  static SIMD_CONSTEXPR int maxI    = 2;
-  static SIMD_CONSTEXPR int nextI   = SLOPE + 1;
-  static SIMD_CONSTEXPR int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int minI    = 0;
+  static constexpr int maxI    = 2;
+  static constexpr int nextI   = SLOPE + 1;
+  static constexpr int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1957,10 +1951,10 @@ struct BitonicSort2
     return ti2s<SLOPE, T, SIMD_WIDTH>("bitonicSort2");
   }
 
-  static SIMD_CONSTEXPR int minI    = 0;
-  static SIMD_CONSTEXPR int maxI    = 2;
-  static SIMD_CONSTEXPR int nextI   = SLOPE + 1;
-  static SIMD_CONSTEXPR int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int minI    = 0;
+  static constexpr int maxI    = 2;
+  static constexpr int nextI   = SLOPE + 1;
+  static constexpr int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1982,10 +1976,10 @@ struct BitonicSortSortedPairs
     return ti2s<SLOPE, T, SIMD_WIDTH>("bitonicSortSortedPairs");
   }
 
-  static SIMD_CONSTEXPR int minI    = 0;
-  static SIMD_CONSTEXPR int maxI    = 2;
-  static SIMD_CONSTEXPR int nextI   = SLOPE + 1;
-  static SIMD_CONSTEXPR int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int minI    = 0;
+  static constexpr int maxI    = 2;
+  static constexpr int nextI   = SLOPE + 1;
+  static constexpr int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -2007,10 +2001,10 @@ struct BitonicSortSortedPairs2
     return ti2s<SLOPE, T, SIMD_WIDTH>("bitonicSortSortedPairs2");
   }
 
-  static SIMD_CONSTEXPR int minI    = 0;
-  static SIMD_CONSTEXPR int maxI    = 2;
-  static SIMD_CONSTEXPR int nextI   = SLOPE + 1;
-  static SIMD_CONSTEXPR int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr int minI    = 0;
+  static constexpr int maxI    = 2;
+  static constexpr int nextI   = SLOPE + 1;
+  static constexpr int numVecs = SIMDSerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -2311,7 +2305,7 @@ struct PacksMulti
   }
 
   // number of input elements
-  static SIMD_CONSTEXPR int nInputs = sizeof(T) / sizeof(Tout);
+  static constexpr int nInputs = sizeof(T) / sizeof(Tout);
 
   static SIMD_INLINE void randomizeInput(SIMDSerialVec<T, SIMD_WIDTH> &vec)
   {

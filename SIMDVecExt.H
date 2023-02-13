@@ -59,44 +59,29 @@ namespace ns_simd {
 // removed: numInputSIMDVecElements/numOutputSIMDVecElements encode
 // the number of elements in *each* input / output vector
 
-// TODO: in C++11 we could make these functions constexpr such that
-// TODO: they can be used to compute template arguments
-// TODO: since code should also run on C++98, we use macros instead
-
-#define NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH) (SIMD_WIDTH / sizeof(T))
-
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int numSIMDVecElements()
+static constexpr SIMD_INLINE int numSIMDVecElements()
 {
-  return NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
+  return SIMD_WIDTH / sizeof(T);
 }
-
-#define NUM_INPUT_SIMDVECS(TOUT, TIN)                                          \
-  ((sizeof(TOUT) < sizeof(TIN)) ? (sizeof(TIN) / sizeof(TOUT)) : 1)
 
 template <typename Tout, typename Tin>
-static SIMD_INLINE int numInputSIMDVecs()
+static constexpr SIMD_INLINE int numInputSIMDVecs()
 {
-  return NUM_INPUT_SIMDVECS(Tout, Tin);
+  return (sizeof(Tout) < sizeof(Tin)) ? (sizeof(Tin) / sizeof(Tout)) : 1;
 }
-
-#define NUM_OUTPUT_SIMDVECS(TOUT, TIN)                                         \
-  ((sizeof(TOUT) > sizeof(TIN)) ? (sizeof(TOUT) / sizeof(TIN)) : 1)
 
 template <typename Tout, typename Tin>
-static SIMD_INLINE int numOutputSIMDVecs()
+static constexpr SIMD_INLINE int numOutputSIMDVecs()
 {
-  return NUM_OUTPUT_SIMDVECS(Tout, Tin);
+  return (sizeof(Tout) > sizeof(Tin)) ? (sizeof(Tout) / sizeof(Tin)) : 1;
 }
-
-#define NUM_SIMDVECS_ELEMENTS(TOUT, TIN, SIMD_WIDTH)                           \
-  ((sizeof(TOUT) > sizeof(TIN)) ? NUM_SIMDVEC_ELEMENTS(TIN, SIMD_WIDTH) :      \
-                                  NUM_SIMDVEC_ELEMENTS(TOUT, SIMD_WIDTH))
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE int numSIMDVecsElements()
+static constexpr SIMD_INLINE int numSIMDVecsElements()
 {
-  return NUM_SIMDVECS_ELEMENTS(Tout, Tin, SIMD_WIDTH);
+  return (sizeof(Tout) > sizeof(Tin)) ? numSIMDVecElements<Tin, SIMD_WIDTH>() :
+                                        numSIMDVecElements<Tout, SIMD_WIDTH>();
 }
 
 namespace internal {
@@ -181,7 +166,7 @@ static SIMD_INLINE void fprint(FILE *f, const char *format,
 {
   // buffer
   // 19. Jul 16 (rm)
-  const int elems = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH); // SIMD_WIDTH/sizeof(T)
+  const int elems = numSIMDVecElements<T, SIMD_WIDTH>(); // SIMD_WIDTH/sizeof(T)
   // T buf[SIMD_WIDTH];
   T buf[elems];
   // store vector (unaligned, not time-critical)
@@ -293,7 +278,7 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void load(const T *const p, SIMDVec<T, SIMD_WIDTH> *inVecs,
                              int numInVecs)
 {
-  const int vecElemsIn = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
+  const int vecElemsIn = numSIMDVecElements<T, SIMD_WIDTH>();
   for (int vi = 0, off = 0; vi < numInVecs; vi++, off += vecElemsIn)
     inVecs[vi] = load<SIMD_WIDTH>(p + off);
 }
@@ -314,7 +299,7 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void loadu(const T *const p, SIMDVec<T, SIMD_WIDTH> *inVecs,
                               int numInVecs)
 {
-  const int vecElemsIn = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
+  const int vecElemsIn = numSIMDVecElements<T, SIMD_WIDTH>();
   for (int vi = 0, off = 0; vi < numInVecs; vi++, off += vecElemsIn)
     inVecs[vi] = loadu<SIMD_WIDTH>(p + off);
 }
@@ -332,7 +317,7 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const SIMDVec<T, SIMD_WIDTH> *outVecs,
                               int numOutVecs)
 {
-  const int vecElemsOut = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
+  const int vecElemsOut = numSIMDVecElements<T, SIMD_WIDTH>();
   for (int vo = 0, off = 0; vo < numOutVecs; vo++, off += vecElemsOut)
     store(p + off, outVecs[vo]);
 }
@@ -353,7 +338,7 @@ static SIMD_INLINE void storeu(T *const p,
                                const SIMDVec<T, SIMD_WIDTH> *outVecs,
                                int numOutVecs)
 {
-  const int vecElemsOut = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
+  const int vecElemsOut = numSIMDVecElements<T, SIMD_WIDTH>();
   for (int vo = 0, off = 0; vo < numOutVecs; vo++, off += vecElemsOut)
     storeu(p + off, outVecs[vo]);
 }
@@ -372,7 +357,7 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const SIMDVec<T, SIMD_WIDTH> &outVec,
                               int numOutVecs)
 {
-  const int vecElemsOut = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
+  const int vecElemsOut = numSIMDVecElements<T, SIMD_WIDTH>();
   for (int vo = 0, off = 0; vo < numOutVecs; vo++, off += vecElemsOut)
     store(p + off, outVec);
 }
@@ -393,7 +378,7 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void storeu(T *const p, const SIMDVec<T, SIMD_WIDTH> &outVec,
                                int numOutVecs)
 {
-  const int vecElemsOut = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH);
+  const int vecElemsOut = numSIMDVecElements<T, SIMD_WIDTH>();
   for (int vo = 0, off = 0; vo < numOutVecs; vo++, off += vecElemsOut)
     storeu(p + off, outVec);
 }
@@ -2448,7 +2433,7 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose2(const SIMDVec<T, SIMD_WIDTH> *const inRows,
                                    SIMDVec<T, SIMD_WIDTH> *const outRows)
 {
-  SIMD_CONSTEXPR int n = SIMDVec<T, SIMD_WIDTH>::elements, N = n / 2;
+  constexpr int n = SIMDVec<T, SIMD_WIDTH>::elements, N = n / 2;
   for (int i = 0; i < n; i++) outRows[i] = inRows[i];
   internal::ext::swizzle2<N, N>(outRows);
 }
@@ -3087,7 +3072,7 @@ template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
           int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF, int VO, int LANE>
 class TransposeRcStoreLane
 {
-  enum { VEC_ELEMS_OUT = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH) };
+  enum { VEC_ELEMS_OUT = numSIMDVecElements<T, SIMD_WIDTH>() };
 
 public:
   static SIMD_INLINE void _store(T *const outArray,
@@ -3118,7 +3103,7 @@ template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
           int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF, int VO>
 class TransposeRcStoreLanes
 {
-  enum { VEC_ELEMS_OUT = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH) };
+  enum { VEC_ELEMS_OUT = numSIMDVecElements<T, SIMD_WIDTH>() };
 
 public:
   static SIMD_INLINE void _store(T *const outArray,
@@ -3506,11 +3491,11 @@ public:
 // in-place sorting of multiple arbitrary vectors;
 // transVecs have to be transposed vectors (same number of elements
 // as in SIMDVec), are still transposed afterwards
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortTransposed(
   SIMDVec<T, SIMD_WIDTH> *const transVecs)
 {
-  SIMD_CONSTEXPR unsigned int numVecs = SIMDVec<T, SIMD_WIDTH>::elements;
+  constexpr unsigned int numVecs = SIMDVec<T, SIMD_WIDTH>::elements;
   /* Dependent Loops */
   for (unsigned int blkSize = 2; blkSize <= numVecs; blkSize *= 2) {
     /*
@@ -3558,11 +3543,11 @@ static SIMD_INLINE void bitonicSortTransposed(
 // in-place sorting; transVecs have to be transposed vectors (same
 // number of elements as in SIMDVec), are still transposed
 // afterwards
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortReducedTransposed(
   SIMDVec<T, SIMD_WIDTH> *const transVecs)
 {
-  SIMD_CONSTEXPR unsigned int numVecs = SIMDVec<T, SIMD_WIDTH>::elements;
+  constexpr unsigned int numVecs = SIMDVec<T, SIMD_WIDTH>::elements;
   for (unsigned int step = numVecs / 2; step > 0; step /= 2) {
     /* Independent Loops */
     for (unsigned int jump = 0; jump < numVecs; jump += step * 2) {
@@ -3582,7 +3567,7 @@ static SIMD_INLINE void bitonicSortReducedTransposed(
 } // namespace internal
 
 // with transpose
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSort(SIMDVec<T, SIMD_WIDTH> *const vecs)
 {
   SIMDVec<T, SIMD_WIDTH> transVecs[SIMDVec<T, SIMD_WIDTH>::elements];
@@ -3592,7 +3577,7 @@ static SIMD_INLINE void bitonicSort(SIMDVec<T, SIMD_WIDTH> *const vecs)
 }
 
 // with transpose2
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSort2(SIMDVec<T, SIMD_WIDTH> *const vecs)
 {
   SIMDVec<T, SIMD_WIDTH> transVecs[SIMDVec<T, SIMD_WIDTH>::elements];
@@ -3606,7 +3591,7 @@ namespace ext {
 // second vector is reversed and fused with first vector
 // we don't have to reverse b after the compare-swap since it is
 // bitonic
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicFusion(SIMDVec<T, SIMD_WIDTH> &a,
                                       SIMDVec<T, SIMD_WIDTH> &b)
 {
@@ -3619,7 +3604,7 @@ static SIMD_INLINE void bitonicFusion(SIMDVec<T, SIMD_WIDTH> &a,
 // given sorted vectors as inputs, it fuses each consecutive pair
 // such it is completely sorted over the pair
 // with transpose
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortSortedPairs(
   SIMDVec<T, SIMD_WIDTH> *const vecs)
 {
@@ -3635,7 +3620,7 @@ static SIMD_INLINE void bitonicSortSortedPairs(
 // given sorted vectors as inputs, it fuses each consecutive pair
 // such it is completely sorted over the pair
 // with transpose2
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortSortedPairs2(
   SIMDVec<T, SIMD_WIDTH> *const vecs)
 {

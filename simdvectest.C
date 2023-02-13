@@ -241,10 +241,10 @@ using namespace ns_simd;
 
 #define FXMUL(OUTTYPE, INTYPE, OUTFORMAT, INFORMAT)                            \
   {                                                                            \
-    const int nInVecs        = NUM_INPUT_SIMDVECS(OUTTYPE, INTYPE);            \
-    const int nOutVecs       = NUM_OUTPUT_SIMDVECS(OUTTYPE, INTYPE);           \
+    const int nInVecs        = numInputSIMDVecs<OUTTYPE, INTYPE>();            \
+    const int nOutVecs       = numOutputSIMDVecs<OUTTYPE, INTYPE>();           \
     const int nElemsPerInVec = (SW / sizeof(INTYPE));                          \
-    const int nInElems       = NUM_SIMDVECS_ELEMENTS(OUTTYPE, INTYPE, SW);     \
+    const int nInElems       = numSIMDVecsElements<OUTTYPE, INTYPE, SW>();     \
     printf("\nINTYPE = " #INTYPE ", OUTTYPE = " #OUTTYPE "\n");                \
     printf("sizeof(INTYPE)=%d, sizeof(OUTTYPE)=%d\n", (int) sizeof(INTYPE),    \
            (int) sizeof(OUTTYPE));                                             \
@@ -300,8 +300,8 @@ using namespace ns_simd;
 
 #define CONVERT(OUTTYPE, INTYPE, OUTFORMAT, INFORMAT)                          \
   {                                                                            \
-    const int nInVecs        = NUM_INPUT_SIMDVECS(OUTTYPE, INTYPE);            \
-    const int nOutVecs       = NUM_OUTPUT_SIMDVECS(OUTTYPE, INTYPE);           \
+    const int nInVecs        = numInputSIMDVecs<OUTTYPE, INTYPE>();            \
+    const int nOutVecs       = numOutputSIMDVecs<OUTTYPE, INTYPE>();           \
     const int nElemsPerInVec = (SW / sizeof(INTYPE));                          \
     const int nInElems       = nInVecs * nElemsPerInVec;                       \
     printf("\nINTYPE = " #INTYPE ", OUTTYPE = " #OUTTYPE "\n");                \
@@ -330,9 +330,9 @@ using namespace ns_simd;
 
 #define CONVERTVECS(OUTTYPE, INTYPE, OUTFORMAT, INFORMAT)                      \
   {                                                                            \
-    const int nInVecs        = NUM_INPUT_SIMDVECS(OUTTYPE, INTYPE);            \
-    const int nOutVecs       = NUM_OUTPUT_SIMDVECS(OUTTYPE, INTYPE);           \
-    const int nElemsPerInVec = NUM_SIMDVEC_ELEMENTS(INTYPE, SW);               \
+    const int nInVecs        = numInputSIMDVecs<OUTTYPE, INTYPE>();            \
+    const int nOutVecs       = numOutputSIMDVecs<OUTTYPE, INTYPE>();           \
+    const int nElemsPerInVec = numSIMDVecElements<INTYPE, SW>();               \
     const int nInElems       = nInVecs * nElemsPerInVec;                       \
     printf("\nINTYPE = " #INTYPE ", OUTTYPE = " #OUTTYPE "\n");                \
     printf("sizeof(INTYPE)=%d, sizeof(OUTTYPE)=%d\n", (int) sizeof(INTYPE),    \

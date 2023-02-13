@@ -32,10 +32,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#if __cplusplus >= 201103L
-#include <type_traits>
-#endif
-
 namespace ns_simd {
 /**
  * @defgroup types Basic SIMD Types
@@ -124,61 +120,9 @@ typedef SIMDFloat *SIMDFloatPtr;           ///< Pointer to @ref SIMDFloat
 #if __cplusplus >= 201703L // at least C++17
 #define SIMD_STATIC_ASSERT(EXPR)          static_assert(EXPR)
 #define SIMD_STATIC_ASSERT_MSG(EXPR, MSG) static_assert(EXPR, MSG)
-#elif __cplusplus >= 201103L // at least C++11
+#else // older C++
 #define SIMD_STATIC_ASSERT(EXPR)          static_assert(EXPR, "")
 #define SIMD_STATIC_ASSERT_MSG(EXPR, MSG) static_assert(EXPR, MSG)
-#else // older C++
-namespace internal {
-namespace types {
-template <bool>
-struct SIMDStaticAssert;
-template <>
-struct SIMDStaticAssert<true>
-{};
-} // namespace types
-} // namespace internal
-#define SIMD_STATIC_ASSERT(EXPR)                                               \
-  (::ns_simd::internal::types::SIMDStaticAssert<(EXPR) != 0>())
-#define SIMD_STATIC_ASSERT_MSG(EXPR, MSG)                                      \
-  (::ns_simd::internal::types::SIMDStaticAssert<(EXPR) != 0>())
-#endif
-
-#endif // DOXYGEN
-
-#if DOXYGEN
-/**
- * @brief Compile-time check for type equality.
- *
- * This macro can be used to check if two types are equal at compile time.
- *
- * @param TYPE1 The first type.
- * @param TYPE2 The second type.
- */
-#define SIMD_TYPE_EQ(TYPE1, TYPE2)
-
-#else // DOXYGEN
-
-#if __cplusplus >= 201103L // at least C++11
-#define SIMD_TYPE_EQ(TYPE1, TYPE2) (std::is_same<TYPE1, TYPE2>::value)
-#else
-namespace internal {
-namespace types {
-template <typename T1, typename T2>
-struct SIMDTypeEq
-{
-  static const bool value = false;
-};
-
-template <typename T>
-struct SIMDTypeEq<T, T>
-{
-  static const bool value = true;
-};
-} // namespace types
-} // namespace internal
-
-#define SIMD_TYPE_EQ(TYPE1, TYPE2)                                             \
-  (::ns_simd::internal::types::SIMDTypeEq<TYPE1, TYPE2>::value)
 #endif
 
 #endif // DOXYGEN
@@ -206,9 +150,9 @@ public:
   static SIMD_INLINE const char *format() { return "u"; };
   static SIMD_INLINE const char *defaultFormat() { return "%u "; };
   static SIMD_INLINE const char *hexFormat() { return "%02x "; }
-  static SIMD_CONSTEXPR bool isSigned        = false;
-  static SIMD_CONSTEXPR bool isInteger       = true;
-  static SIMD_CONSTEXPR bool isFloatingPoint = false;
+  static constexpr bool isSigned        = false;
+  static constexpr bool isInteger       = true;
+  static constexpr bool isFloatingPoint = false;
   static SIMD_INLINE SIMDByte min() { return 0; }
   static SIMD_INLINE SIMDByte max() { return SIMDBYTE_MAX; }
   static SIMD_INLINE SIMDByte trueval() { return SIMDBYTE_TRUE; }
@@ -225,9 +169,9 @@ public:
   static SIMD_INLINE const char *format() { return "d"; };
   static SIMD_INLINE const char *defaultFormat() { return "%d "; };
   static SIMD_INLINE const char *hexFormat() { return "%02x "; }
-  static SIMD_CONSTEXPR bool isSigned        = true;
-  static SIMD_CONSTEXPR bool isInteger       = true;
-  static SIMD_CONSTEXPR bool isFloatingPoint = false;
+  static constexpr bool isSigned        = true;
+  static constexpr bool isInteger       = true;
+  static constexpr bool isFloatingPoint = false;
   static SIMD_INLINE SIMDSignedByte min() { return SIMDSIGNEDBYTE_MIN; }
   static SIMD_INLINE SIMDSignedByte max() { return SIMDSIGNEDBYTE_MAX; }
   static SIMD_INLINE SIMDSignedByte trueval() { return SIMDSIGNEDBYTE_TRUE; }
@@ -244,9 +188,9 @@ public:
   static SIMD_INLINE const char *format() { return "u"; };
   static SIMD_INLINE const char *defaultFormat() { return "%u "; };
   static SIMD_INLINE const char *hexFormat() { return "%04x "; }
-  static SIMD_CONSTEXPR bool isSigned        = false;
-  static SIMD_CONSTEXPR bool isInteger       = true;
-  static SIMD_CONSTEXPR bool isFloatingPoint = false;
+  static constexpr bool isSigned        = false;
+  static constexpr bool isInteger       = true;
+  static constexpr bool isFloatingPoint = false;
   static SIMD_INLINE SIMDWord min() { return 0; }
   static SIMD_INLINE SIMDWord max() { return SIMDWORD_MAX; }
   static SIMD_INLINE SIMDWord trueval() { return SIMDWORD_TRUE; }
@@ -263,9 +207,9 @@ public:
   static SIMD_INLINE const char *format() { return "d"; };
   static SIMD_INLINE const char *defaultFormat() { return "%d "; };
   static SIMD_INLINE const char *hexFormat() { return "%04x "; }
-  static SIMD_CONSTEXPR bool isSigned        = true;
-  static SIMD_CONSTEXPR bool isInteger       = true;
-  static SIMD_CONSTEXPR bool isFloatingPoint = false;
+  static constexpr bool isSigned        = true;
+  static constexpr bool isInteger       = true;
+  static constexpr bool isFloatingPoint = false;
   static SIMD_INLINE SIMDShort min() { return SIMDSHORT_MIN; }
   static SIMD_INLINE SIMDShort max() { return SIMDSHORT_MAX; }
   static SIMD_INLINE SIMDShort trueval() { return SIMDSHORT_TRUE; }
@@ -282,9 +226,9 @@ public:
   static SIMD_INLINE const char *format() { return "d"; };
   static SIMD_INLINE const char *defaultFormat() { return "%d "; };
   static SIMD_INLINE const char *hexFormat() { return "%08x "; }
-  static SIMD_CONSTEXPR bool isSigned        = true;
-  static SIMD_CONSTEXPR bool isInteger       = true;
-  static SIMD_CONSTEXPR bool isFloatingPoint = false;
+  static constexpr bool isSigned        = true;
+  static constexpr bool isInteger       = true;
+  static constexpr bool isFloatingPoint = false;
   static SIMD_INLINE SIMDInt min() { return SIMDINT_MIN; }
   static SIMD_INLINE SIMDInt max() { return SIMDINT_MAX; }
   static SIMD_INLINE SIMDInt trueval() { return SIMDINT_TRUE; }
@@ -300,9 +244,9 @@ public:
   static SIMD_INLINE const char *name() { return "SIMDFloat"; };
   static SIMD_INLINE const char *format() { return "g"; };
   static SIMD_INLINE const char *defaultFormat() { return "%g "; };
-  static SIMD_CONSTEXPR bool isSigned        = true;
-  static SIMD_CONSTEXPR bool isInteger       = false;
-  static SIMD_CONSTEXPR bool isFloatingPoint = true;
+  static constexpr bool isSigned        = true;
+  static constexpr bool isInteger       = false;
+  static constexpr bool isFloatingPoint = true;
   static SIMD_INLINE SIMDFloat min() { return SIMDFLOAT_MIN; }
   static SIMD_INLINE SIMDFloat max() { return SIMDFLOAT_MAX; }
   // very inconvenient: how can I specify a float constant with all bits 1?
@@ -349,13 +293,11 @@ public:
     return internal::types::SIMDTypeInfo<T>::hexFormat();
   }
   /// @brief Whether the type is signed
-  static SIMD_CONSTEXPR bool isSigned =
-    internal::types::SIMDTypeInfo<T>::isSigned;
+  static constexpr bool isSigned = internal::types::SIMDTypeInfo<T>::isSigned;
   /// @brief Whether the type is an integer
-  static SIMD_CONSTEXPR bool isInteger =
-    internal::types::SIMDTypeInfo<T>::isInteger;
+  static constexpr bool isInteger = internal::types::SIMDTypeInfo<T>::isInteger;
   /// @brief Whether the type is a floating point type
-  static SIMD_CONSTEXPR bool isFloatingPoint =
+  static constexpr bool isFloatingPoint =
     internal::types::SIMDTypeInfo<T>::isFloatingPoint;
   /// @brief Returns the minimum value of the type
   static SIMD_INLINE T min() { return internal::types::SIMDTypeInfo<T>::min(); }

@@ -57,16 +57,8 @@ int main()
   const int n = SIMDVec<SIMDFloat>::elements;
   SIMDFloat buf[n];
   for (int i = 0; i < n; i++) buf[i] = i;
-
-#if __cplusplus >= 201103L
-  puts("C++11");
   a = setzero<SIMDFloat>();
   b = loadu(buf);
-#else
-  puts("C++98");
-  a = setzero<SIMDFloat, NATIVE_SIMD_WIDTH>();
-  b = loadu<NATIVE_SIMD_WIDTH>(buf);
-#endif
   c = a + b;
   printf("a = ");
   print("%g ", a);

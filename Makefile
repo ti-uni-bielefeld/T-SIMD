@@ -95,7 +95,7 @@ syntax_only ?= 0
 # - valgrind: -mssse3 instead of -march=native for valgrind --tool=callgrind
 # - test different vector sets: -msse2, -msse3, -mssse3 -march=native
 # - activate SIMDVec load/store alignment check: -DSIMD_ALIGN_CHK
-# - use -std=c++98 or -std=c++11 (tsimdtest requires c++11)
+# - use at least -std=c++11
 # - for tilt-search programs, -std=c++17 is required, now used
 # for compilation on/for ARM:
 # - keep -march=native or use a specific architecture, e.g. -march=armv7-a
@@ -158,11 +158,6 @@ all: $(binaries)
 
 .PHONY: all_tsimd
 all_tsimd: $(tsimd_binaries)
-
-# all_tsimd except styleExamples and tsimdtest,
-# since those require at least C++11
-.PHONY: all_tsimd_cpp98
-all_tsimd_cpp98: $(filter-out styleExamples tsimdtest,$(tsimd_binaries))
 
 .PHONY: autotest
 autotest: $(autotest_binaries)

@@ -168,19 +168,14 @@ endif
 
 if ($cppstd_test) then
   mkdir -p COMPILE_AND_TEST/cppstd
-  foreach cppstd ("c++98" "c++11")
+  foreach cppstd ("c++11")
     set cppstd_defines = "-std=$cppstd"
     echo "================= flags_cppstd $cppstd_defines ================="
     if ($doitCompile) then
       make $syntax_only_defines clean
       make $syntax_only_defines dep # only does something when run in PROG system
-      if ($cppstd == "c++98") then
-        set all_tsimd = "all_tsimd_cpp98"
-      else
-        set all_tsimd = "all_tsimd"
-      endif
       make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} flags_cppstd="$cppstd_defines" \
-        $all_tsimd $autotest_target \
+        all_tsimd $autotest_target \
         >& "COMPILE_AND_TEST/cppstd/compile_${cppstd}.log"
       rehash
     endif

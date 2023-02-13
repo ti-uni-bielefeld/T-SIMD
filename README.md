@@ -9,11 +9,13 @@
 
 Templates parameters are the element data type of the vectors and the vector width in bytes (e.g. 16 for SSE* and NEON, 32 for AVX/AVX2). This makes it possible to flexibly change the data type and the vector instruction set for entire portions of the code. Moreover, many implementation details at the intrinsics level are hidden by **T-SIMD**. SSE*, AVX/AVX2, AVX-512, and ARM NEON vector instruction sets are currently supported.
 
+**T-SIMD** requires at least C++11.
+
 # Quick Start
 
 First, download the latest release from  <https://www.ti.uni-bielefeld.de/html/people/moeller/tsimd_warpingsimd.html> (section "Software Download"). Unpack the archive and copy the contents of the folder starting with "CODE" into your project.
 
-To use the **T-SIMD** library, simply include the header file `tsimd.H` if at least C++11 is available or `SIMDVecAll.H` if C++11 is not available.
+To use the **T-SIMD** library, simply include the header file `tsimd.H`.
 
 # Example
 

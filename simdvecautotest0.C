@@ -108,13 +108,13 @@ int main(int argc, char *argv[])
 #if SIMDVEC_INTEL_ENABLE
 #if (defined(__SSE__) || defined(__AVX__)) && !defined(__AVX512F__)
   // for sse and avx the relative error is 1.5*2^-12
-  Unary<SIMDFloat, SW, Rcp, CmpRelError<15, -1, -12> >::test(repeats1, pattern);
-  Unary<SIMDFloat, SW, Rsqrt, CmpRelError<15, -1, -12> >::test(repeats1,
-                                                               pattern);
+  Unary<SIMDFloat, SW, Rcp, CmpRelError<15, -1, -12>>::test(repeats1, pattern);
+  Unary<SIMDFloat, SW, Rsqrt, CmpRelError<15, -1, -12>>::test(repeats1,
+                                                              pattern);
 #elif defined(__AVX512F__)
   // for avx512 the relative error is 2^-14
-  Unary<SIMDFloat, SW, Rcp, CmpRelError<1, 0, -14> >::test(repeats1, pattern);
-  Unary<SIMDFloat, SW, Rsqrt, CmpRelError<1, 0, -14> >::test(repeats1, pattern);
+  Unary<SIMDFloat, SW, Rcp, CmpRelError<1, 0, -14>>::test(repeats1, pattern);
+  Unary<SIMDFloat, SW, Rsqrt, CmpRelError<1, 0, -14>>::test(repeats1, pattern);
 #endif
 #else
   // TODO: rcp and rsqrt are approximations on NEON, figure out max relative

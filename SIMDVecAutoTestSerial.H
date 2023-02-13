@@ -72,7 +72,7 @@ template <typename T, int SIMD_WIDTH>
 class SIMDSerialVec
 {
 public:
-  enum { elements = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH), bytes = SIMD_WIDTH };
+  enum { elements = numSIMDVecElements<T, SIMD_WIDTH>(), bytes = SIMD_WIDTH };
   // shorter version:
   enum { elems = elements };
 
@@ -1208,7 +1208,7 @@ template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
 static SIMD_INLINE SIMDSerialVec<T, SIMD_WIDTH> unpack16(
   const SIMDSerialVec<T, SIMD_WIDTH> &a, const SIMDSerialVec<T, SIMD_WIDTH> &b)
 {
-  SIMD_CONSTEXPR int NUM_LANES = SIMD_WIDTH / 16;
+  constexpr int NUM_LANES = SIMD_WIDTH / 16;
   SIMDSerialVec<T, 16> lanesA[NUM_LANES];
   SIMDSerialVec<T, 16> lanesB[NUM_LANES];
   SIMDSerialVec<T, 16> lanesC[NUM_LANES];
@@ -1870,9 +1870,9 @@ static SIMD_INLINE void convert(
   const SIMDSerialVec<Tin, SIMD_WIDTH> *const inVecs,
   SIMDSerialVec<Tout, SIMD_WIDTH> *const outVecs)
 {
-  const int numInVecs   = NUM_INPUT_SIMDVECS(Tout, Tin);
-  const int numInElems  = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
-  const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInElems  = numSIMDVecElements<Tin, SIMD_WIDTH>();
+  const int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
   int outIdx            = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
     for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
@@ -1890,9 +1890,9 @@ static SIMD_INLINE void fdivmul(
 {
   SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
   SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
-  const int numInVecs   = NUM_INPUT_SIMDVECS(Tout, Tin);
-  const int numInElems  = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
-  const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInElems  = numSIMDVecElements<Tin, SIMD_WIDTH>();
+  const int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
   float facF            = fac;
   int outIdx            = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
@@ -1913,9 +1913,9 @@ static SIMD_INLINE void fmul(const SIMDSerialVec<Tin, SIMD_WIDTH> *const vecsIn,
 {
   SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
   SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
-  const int numInVecs   = NUM_INPUT_SIMDVECS(Tout, Tin);
-  const int numInElems  = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
-  const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInElems  = numSIMDVecElements<Tin, SIMD_WIDTH>();
+  const int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
   float facF            = fac;
   int outIdx            = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
@@ -1934,9 +1934,9 @@ static SIMD_INLINE void faddmul(
 {
   SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
   SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
-  const int numInVecs   = NUM_INPUT_SIMDVECS(Tout, Tin);
-  const int numInElems  = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
-  const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInElems  = numSIMDVecElements<Tin, SIMD_WIDTH>();
+  const int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
   float facF = fac, offF = off;
   int outIdx = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
@@ -1955,9 +1955,9 @@ static SIMD_INLINE void fmuladd(
 {
   SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
   SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
-  const int numInVecs   = NUM_INPUT_SIMDVECS(Tout, Tin);
-  const int numInElems  = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
-  const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInElems  = numSIMDVecElements<Tin, SIMD_WIDTH>();
+  const int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
   float facF = fac, offF = off;
   int outIdx = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
@@ -1977,9 +1977,9 @@ static SIMD_INLINE void fwaddmul(
 {
   SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(SIMDFloat));
   SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(SIMDFloat));
-  const int numInVecs   = NUM_INPUT_SIMDVECS(Tout, Tin);
-  const int numInElems  = NUM_SIMDVEC_ELEMENTS(Tin, SIMD_WIDTH);
-  const int numOutElems = NUM_SIMDVEC_ELEMENTS(Tout, SIMD_WIDTH);
+  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInElems  = numSIMDVecElements<Tin, SIMD_WIDTH>();
+  const int numOutElems = numSIMDVecElements<Tout, SIMD_WIDTH>();
   float wF              = w;
   float facF            = fac;
   int outIdx            = 0;

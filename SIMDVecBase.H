@@ -31,6 +31,7 @@
 #include "SIMDVec.H"
 
 #include <stdint.h>
+#include <type_traits>
 
 #ifdef SIMDVEC_SANDBOX
 
@@ -86,7 +87,7 @@ static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> reinterpret(
  * @brief Returns a SIMDVec with all elements set to zero.
  * @return A SIMDVec with all elements set to zero.
  */
-template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> setzero()
 {
   return internal::base::setzero(internal::OutputType<T>(),
@@ -98,7 +99,7 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> setzero()
  * @param a The value to set all elements to.
  * @return A SIMDVec with all elements set to the same value.
  */
-template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE_FUNC>
+template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> set1(T a)
 {
   return internal::base::set1(a, internal::Integer<SIMD_WIDTH>());
@@ -224,7 +225,7 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> int2bits(const uint64_t a)
  * @param[in] p A pointer to the aligned memory location to load from.
  * @return A SIMDVec with the loaded values.
  */
-template <int SIMD_WIDTH_DEFAULT_NATIVE_FUNC, typename T>
+template <int SIMD_WIDTH_DEFAULT_NATIVE, typename T>
 static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> load(const T *const p)
 {
   return internal::base::load(p, internal::Integer<SIMD_WIDTH>());
@@ -242,7 +243,7 @@ static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> load(const T *const p)
  * @param[in] p A pointer to the memory location to load from.
  * @return A SIMDVec with the loaded values.
  */
-template <int SIMD_WIDTH_DEFAULT_NATIVE_FUNC, typename T>
+template <int SIMD_WIDTH_DEFAULT_NATIVE, typename T>
 static SIMD_INLINE SIMDVec<T, SIMD_WIDTH> loadu(const T *const p)
 {
   return internal::base::loadu(p, internal::Integer<SIMD_WIDTH>());
@@ -1488,8 +1489,10 @@ static SIMD_INLINE SIMDVec<Tout, SIMD_WIDTH> cvts(
   const SIMDVec<Tin, SIMD_WIDTH> &a)
 {
   SIMD_STATIC_ASSERT_MSG(
-    ((SIMD_TYPE_EQ(Tout, SIMDInt) && SIMD_TYPE_EQ(Tin, SIMDFloat)) ||
-     (SIMD_TYPE_EQ(Tout, SIMDFloat) && SIMD_TYPE_EQ(Tin, SIMDInt))),
+    ((std::is_same<Tout, SIMDInt>::value &&
+      std::is_same<Tin, SIMDFloat>::value) ||
+     (std::is_same<Tout, SIMDFloat>::value &&
+      std::is_same<Tin, SIMDInt>::value)),
     "Tout and Tin must be one of SIMDInt or SIMDFloat, but not the same");
   return internal::base::cvts(a, internal::OutputType<Tout>());
 }

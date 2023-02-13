@@ -103,7 +103,7 @@ template <typename T, int SIMD_WIDTH>
 class SIMDSerialMask
 {
 public:
-  enum { bits = NUM_SIMDVEC_ELEMENTS(T, SIMD_WIDTH) };
+  enum { bits = numSIMDVecElements<T, SIMD_WIDTH>() };
   UInt<bits> mask;
 
   SIMDSerialMask() : mask(0) {}

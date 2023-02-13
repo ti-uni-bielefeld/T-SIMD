@@ -92,25 +92,13 @@ typedef float Float;       ///< Single-precision floating point number (32-bit)
  * @param EXPR The condition to check.
  */
 #define SIMD_STATIC_ASSERT(EXPR)
-/**
- * @brief Compile-time assertion with message.
- *
- * This macro can be used to check a condition at compile time with a
- * message.
- *
- * @param EXPR The condition to check.
- * @param MSG A message to be displayed if the condition is false.
- */
-#define SIMD_STATIC_ASSERT_MSG(EXPR, MSG)
 
 #else // DOXYGEN
 
 #if __cplusplus >= 201703L // at least C++17
-#define SIMD_STATIC_ASSERT(EXPR)          static_assert(EXPR)
-#define SIMD_STATIC_ASSERT_MSG(EXPR, MSG) static_assert(EXPR, MSG)
+#define SIMD_STATIC_ASSERT(EXPR) static_assert(EXPR)
 #else // older C++
-#define SIMD_STATIC_ASSERT(EXPR)          static_assert(EXPR, "")
-#define SIMD_STATIC_ASSERT_MSG(EXPR, MSG) static_assert(EXPR, MSG)
+#define SIMD_STATIC_ASSERT(EXPR) static_assert(EXPR, "")
 #endif
 
 #endif // DOXYGEN

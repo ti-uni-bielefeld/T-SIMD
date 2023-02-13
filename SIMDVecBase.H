@@ -140,8 +140,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> ifelse(const Vec<Tcond, SIMD_WIDTH> &cond,
                                              const Vec<T, SIMD_WIDTH> &trueVal,
                                              const Vec<T, SIMD_WIDTH> &falseVal)
 {
-  SIMD_STATIC_ASSERT_MSG(sizeof(Tcond) == sizeof(T),
-                         "condition and value types must have the same size");
+  static_assert(sizeof(Tcond) == sizeof(T),
+                "condition and value types must have the same size");
   return internal::base::ifelse(reinterpret<T>(cond), trueVal, falseVal);
 }
 
@@ -439,8 +439,8 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mul(const Vec<T, SIMD_WIDTH> &a,
                                           const Vec<T, SIMD_WIDTH> &b)
 {
-  SIMD_STATIC_ASSERT_MSG(TypeInfo<T>::isFloatingPoint,
-                         "mul() is only available for floating point types");
+  static_assert(TypeInfo<T>::isFloatingPoint,
+                "mul() is only available for floating point types");
   return internal::base::mul(a, b);
 }
 
@@ -458,8 +458,8 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> div(const Vec<T, SIMD_WIDTH> &a,
                                           const Vec<T, SIMD_WIDTH> &b)
 {
-  SIMD_STATIC_ASSERT_MSG(TypeInfo<T>::isFloatingPoint,
-                         "div() is only available for floating point types");
+  static_assert(TypeInfo<T>::isFloatingPoint,
+                "div() is only available for floating point types");
   return internal::base::div(a, b);
 }
 
@@ -568,8 +568,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(const Vec<T, SIMD_WIDTH> &a,
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> rcp(const Vec<T, SIMD_WIDTH> &a)
 {
-  SIMD_STATIC_ASSERT_MSG(TypeInfo<T>::isFloatingPoint,
-                         "rcp() is only available for floating point types");
+  static_assert(TypeInfo<T>::isFloatingPoint,
+                "rcp() is only available for floating point types");
   return internal::base::rcp(a);
 }
 
@@ -586,8 +586,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> rcp(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> rsqrt(const Vec<T, SIMD_WIDTH> &a)
 {
-  SIMD_STATIC_ASSERT_MSG(TypeInfo<T>::isFloatingPoint,
-                         "rsqrt() is only available for floating point types");
+  static_assert(TypeInfo<T>::isFloatingPoint,
+                "rsqrt() is only available for floating point types");
   return internal::base::rsqrt(a);
 }
 
@@ -606,8 +606,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> rsqrt(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sqrt(const Vec<T, SIMD_WIDTH> &a)
 {
-  SIMD_STATIC_ASSERT_MSG(TypeInfo<T>::isFloatingPoint,
-                         "sqrt() is only available for floating point types");
+  static_assert(TypeInfo<T>::isFloatingPoint,
+                "sqrt() is only available for floating point types");
   return internal::base::sqrt(a);
 }
 
@@ -662,8 +662,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> max(const Vec<T, SIMD_WIDTH> &a,
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> neg(const Vec<T, SIMD_WIDTH> &a)
 {
-  SIMD_STATIC_ASSERT_MSG(TypeInfo<T>::isSigned,
-                         "neg() is only available for signed types");
+  static_assert(TypeInfo<T>::isSigned,
+                "neg() is only available for signed types");
   return internal::base::neg(a);
 }
 
@@ -679,8 +679,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> neg(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> abs(const Vec<T, SIMD_WIDTH> &a)
 {
-  SIMD_STATIC_ASSERT_MSG(TypeInfo<T>::isSigned,
-                         "abs() is only available for signed types");
+  static_assert(TypeInfo<T>::isSigned,
+                "abs() is only available for signed types");
   return internal::base::abs(a);
 }
 
@@ -696,8 +696,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> abs(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> ceil(const Vec<T, SIMD_WIDTH> &a)
 {
-  SIMD_STATIC_ASSERT_MSG(TypeInfo<T>::isFloatingPoint,
-                         "ceil() is only available for floating point types");
+  static_assert(TypeInfo<T>::isFloatingPoint,
+                "ceil() is only available for floating point types");
   return internal::base::ceil(a);
 }
 
@@ -714,8 +714,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> ceil(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> floor(const Vec<T, SIMD_WIDTH> &a)
 {
-  SIMD_STATIC_ASSERT_MSG(TypeInfo<T>::isFloatingPoint,
-                         "floor() is only available for floating point types");
+  static_assert(TypeInfo<T>::isFloatingPoint,
+                "floor() is only available for floating point types");
   return internal::base::floor(a);
 }
 
@@ -731,8 +731,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> floor(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> round(const Vec<T, SIMD_WIDTH> &a)
 {
-  SIMD_STATIC_ASSERT_MSG(TypeInfo<T>::isFloatingPoint,
-                         "round() is only available for floating point types");
+  static_assert(TypeInfo<T>::isFloatingPoint,
+                "round() is only available for floating point types");
   return internal::base::round(a);
 }
 
@@ -749,9 +749,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> round(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> truncate(const Vec<T, SIMD_WIDTH> &a)
 {
-  SIMD_STATIC_ASSERT_MSG(
-    TypeInfo<T>::isFloatingPoint,
-    "truncate() is only available for floating point types");
+  static_assert(TypeInfo<T>::isFloatingPoint,
+                "truncate() is only available for floating point types");
   return internal::base::truncate(a);
 }
 
@@ -1424,10 +1423,9 @@ template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> &a,
                                                const Vec<Tin, SIMD_WIDTH> &b)
 {
-  SIMD_STATIC_ASSERT_MSG(
-    (TypeInfo<Tin>::isSigned && TypeInfo<Tout>::isSigned) ||
-      (TypeInfo<Tin>::isSigned && !TypeInfo<Tout>::isSigned),
-    "packs() only supports signed->signed and signed->unsigned");
+  static_assert((TypeInfo<Tin>::isSigned && TypeInfo<Tout>::isSigned) ||
+                  (TypeInfo<Tin>::isSigned && !TypeInfo<Tout>::isSigned),
+                "packs() only supports signed->signed and signed->unsigned");
   return internal::base::packs(a, b, internal::OutputType<Tout>());
 }
 
@@ -1456,7 +1454,7 @@ static SIMD_INLINE void extend(
   const Vec<Tin, SIMD_WIDTH> &vIn,
   Vec<Tout, SIMD_WIDTH> vOut[sizeof(Tout) / sizeof(Tin)])
 {
-  SIMD_STATIC_ASSERT_MSG(
+  static_assert(
     (TypeInfo<Tin>::isSigned && TypeInfo<Tout>::isSigned) ||
       (!TypeInfo<Tin>::isSigned && !TypeInfo<Tout>::isSigned) ||
       (!TypeInfo<Tin>::isSigned && TypeInfo<Tout>::isSigned &&
@@ -1482,7 +1480,7 @@ static SIMD_INLINE void extend(
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> cvts(const Vec<Tin, SIMD_WIDTH> &a)
 {
-  SIMD_STATIC_ASSERT_MSG(
+  static_assert(
     ((std::is_same<Tout, Int>::value && std::is_same<Tin, Float>::value) ||
      (std::is_same<Tout, Float>::value && std::is_same<Tin, Int>::value)),
     "Tout and Tin must be one of Int or Float, but not the same");

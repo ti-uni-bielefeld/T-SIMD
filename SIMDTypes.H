@@ -118,16 +118,16 @@ template <>
 class TypeInfo<Byte>
 {
 public:
-  static SIMD_INLINE const char *name() { return "Byte"; };
-  static SIMD_INLINE const char *format() { return "u"; };
-  static SIMD_INLINE const char *defaultFormat() { return "%u "; };
-  static SIMD_INLINE const char *hexFormat() { return "%02x "; }
+  static constexpr SIMD_INLINE const char *name() { return "Byte"; };
+  static constexpr SIMD_INLINE const char *format() { return "u"; };
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%u "; };
+  static constexpr SIMD_INLINE const char *hexFormat() { return "%02x "; }
   static constexpr bool isSigned        = false;
   static constexpr bool isInteger       = true;
   static constexpr bool isFloatingPoint = false;
-  static SIMD_INLINE Byte min() { return 0; }
-  static SIMD_INLINE Byte max() { return SIMDBYTE_MAX; }
-  static SIMD_INLINE Byte trueval() { return SIMDBYTE_TRUE; }
+  static constexpr SIMD_INLINE Byte min() { return 0; }
+  static constexpr SIMD_INLINE Byte max() { return SIMDBYTE_MAX; }
+  static constexpr SIMD_INLINE Byte trueval() { return SIMDBYTE_TRUE; }
   typedef Word NextLargerType;
   typedef Byte UnsignedType;
   typedef SignedByte SignedType;
@@ -137,16 +137,19 @@ template <>
 class TypeInfo<SignedByte>
 {
 public:
-  static SIMD_INLINE const char *name() { return "SignedByte"; };
-  static SIMD_INLINE const char *format() { return "d"; };
-  static SIMD_INLINE const char *defaultFormat() { return "%d "; };
-  static SIMD_INLINE const char *hexFormat() { return "%02x "; }
+  static constexpr SIMD_INLINE const char *name() { return "SignedByte"; };
+  static constexpr SIMD_INLINE const char *format() { return "d"; };
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; };
+  static constexpr SIMD_INLINE const char *hexFormat() { return "%02x "; }
   static constexpr bool isSigned        = true;
   static constexpr bool isInteger       = true;
   static constexpr bool isFloatingPoint = false;
-  static SIMD_INLINE SignedByte min() { return SIMDSIGNEDBYTE_MIN; }
-  static SIMD_INLINE SignedByte max() { return SIMDSIGNEDBYTE_MAX; }
-  static SIMD_INLINE SignedByte trueval() { return SIMDSIGNEDBYTE_TRUE; }
+  static constexpr SIMD_INLINE SignedByte min() { return SIMDSIGNEDBYTE_MIN; }
+  static constexpr SIMD_INLINE SignedByte max() { return SIMDSIGNEDBYTE_MAX; }
+  static constexpr SIMD_INLINE SignedByte trueval()
+  {
+    return SIMDSIGNEDBYTE_TRUE;
+  }
   typedef Short NextLargerType;
   typedef Byte UnsignedType;
   typedef SignedByte SignedType;
@@ -156,16 +159,16 @@ template <>
 class TypeInfo<Word>
 {
 public:
-  static SIMD_INLINE const char *name() { return "Word"; };
-  static SIMD_INLINE const char *format() { return "u"; };
-  static SIMD_INLINE const char *defaultFormat() { return "%u "; };
-  static SIMD_INLINE const char *hexFormat() { return "%04x "; }
+  static constexpr SIMD_INLINE const char *name() { return "Word"; };
+  static constexpr SIMD_INLINE const char *format() { return "u"; };
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%u "; };
+  static constexpr SIMD_INLINE const char *hexFormat() { return "%04x "; }
   static constexpr bool isSigned        = false;
   static constexpr bool isInteger       = true;
   static constexpr bool isFloatingPoint = false;
-  static SIMD_INLINE Word min() { return 0; }
-  static SIMD_INLINE Word max() { return SIMDWORD_MAX; }
-  static SIMD_INLINE Word trueval() { return SIMDWORD_TRUE; }
+  static constexpr SIMD_INLINE Word min() { return 0; }
+  static constexpr SIMD_INLINE Word max() { return SIMDWORD_MAX; }
+  static constexpr SIMD_INLINE Word trueval() { return SIMDWORD_TRUE; }
   typedef Int NextLargerType; // no larger unsigned type, use Int
   typedef Word UnsignedType;
   typedef Short SignedType;
@@ -175,16 +178,16 @@ template <>
 class TypeInfo<Short>
 {
 public:
-  static SIMD_INLINE const char *name() { return "Short"; };
-  static SIMD_INLINE const char *format() { return "d"; };
-  static SIMD_INLINE const char *defaultFormat() { return "%d "; };
-  static SIMD_INLINE const char *hexFormat() { return "%04x "; }
+  static constexpr SIMD_INLINE const char *name() { return "Short"; };
+  static constexpr SIMD_INLINE const char *format() { return "d"; };
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; };
+  static constexpr SIMD_INLINE const char *hexFormat() { return "%04x "; }
   static constexpr bool isSigned        = true;
   static constexpr bool isInteger       = true;
   static constexpr bool isFloatingPoint = false;
-  static SIMD_INLINE Short min() { return SIMDSHORT_MIN; }
-  static SIMD_INLINE Short max() { return SIMDSHORT_MAX; }
-  static SIMD_INLINE Short trueval() { return SIMDSHORT_TRUE; }
+  static constexpr SIMD_INLINE Short min() { return SIMDSHORT_MIN; }
+  static constexpr SIMD_INLINE Short max() { return SIMDSHORT_MAX; }
+  static constexpr SIMD_INLINE Short trueval() { return SIMDSHORT_TRUE; }
   typedef Int NextLargerType;
   typedef Word UnsignedType;
   typedef Short SignedType;
@@ -194,16 +197,16 @@ template <>
 class TypeInfo<Int>
 {
 public:
-  static SIMD_INLINE const char *name() { return "Int"; };
-  static SIMD_INLINE const char *format() { return "d"; };
-  static SIMD_INLINE const char *defaultFormat() { return "%d "; };
-  static SIMD_INLINE const char *hexFormat() { return "%08x "; }
+  static constexpr SIMD_INLINE const char *name() { return "Int"; };
+  static constexpr SIMD_INLINE const char *format() { return "d"; };
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; };
+  static constexpr SIMD_INLINE const char *hexFormat() { return "%08x "; }
   static constexpr bool isSigned        = true;
   static constexpr bool isInteger       = true;
   static constexpr bool isFloatingPoint = false;
-  static SIMD_INLINE Int min() { return SIMDINT_MIN; }
-  static SIMD_INLINE Int max() { return SIMDINT_MAX; }
-  static SIMD_INLINE Int trueval() { return SIMDINT_TRUE; }
+  static constexpr SIMD_INLINE Int min() { return SIMDINT_MIN; }
+  static constexpr SIMD_INLINE Int max() { return SIMDINT_MAX; }
+  static constexpr SIMD_INLINE Int trueval() { return SIMDINT_TRUE; }
   typedef Int NextLargerType;    // no larger integer type than Int
   typedef uint32_t UnsignedType; // not a SIMD type
   typedef Int SignedType;
@@ -213,14 +216,15 @@ template <>
 class TypeInfo<Float>
 {
 public:
-  static SIMD_INLINE const char *name() { return "Float"; };
-  static SIMD_INLINE const char *format() { return "g"; };
-  static SIMD_INLINE const char *defaultFormat() { return "%g "; };
+  static constexpr SIMD_INLINE const char *name() { return "Float"; };
+  static constexpr SIMD_INLINE const char *format() { return "g"; };
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%g "; };
   static constexpr bool isSigned        = true;
   static constexpr bool isInteger       = false;
   static constexpr bool isFloatingPoint = true;
-  static SIMD_INLINE Float min() { return SIMDFLOAT_MIN; }
-  static SIMD_INLINE Float max() { return SIMDFLOAT_MAX; }
+  static constexpr const char *test     = "st";
+  static constexpr SIMD_INLINE Float min() { return SIMDFLOAT_MIN; }
+  static constexpr SIMD_INLINE Float max() { return SIMDFLOAT_MAX; }
   // very inconvenient: how can I specify a float constant with all bits 1?
   static SIMD_INLINE Float trueval()
   {
@@ -244,23 +248,23 @@ class TypeInfo
 {
 public:
   /// @brief Returns the name of the type (e.g. "Int" for Int)
-  static SIMD_INLINE const char *name()
+  static constexpr SIMD_INLINE const char *name()
   {
     return internal::types::TypeInfo<T>::name();
   };
   /// @brief Returns the format string for printf (e.g. "d" for Int)
-  static SIMD_INLINE const char *format()
+  static constexpr SIMD_INLINE const char *format()
   {
     return internal::types::TypeInfo<T>::format();
   };
   /// @brief Returns the default format string for printf (e.g. "%d " for
   /// Int)
-  static SIMD_INLINE const char *defaultFormat()
+  static constexpr SIMD_INLINE const char *defaultFormat()
   {
     return internal::types::TypeInfo<T>::defaultFormat();
   };
   /// @brief Returns the hex format string for printf (e.g. "%08x " for Int)
-  static SIMD_INLINE const char *hexFormat()
+  static constexpr SIMD_INLINE const char *hexFormat()
   {
     return internal::types::TypeInfo<T>::hexFormat();
   }
@@ -272,11 +276,17 @@ public:
   static constexpr bool isFloatingPoint =
     internal::types::TypeInfo<T>::isFloatingPoint;
   /// @brief Returns the minimum value of the type
-  static SIMD_INLINE T min() { return internal::types::TypeInfo<T>::min(); }
+  static constexpr SIMD_INLINE T min()
+  {
+    return internal::types::TypeInfo<T>::min();
+  }
   /// @brief Returns the maximum value of the type
-  static SIMD_INLINE T max() { return internal::types::TypeInfo<T>::max(); }
+  static constexpr SIMD_INLINE T max()
+  {
+    return internal::types::TypeInfo<T>::max();
+  }
   /// @brief Returns a value where all bits are 1
-  static SIMD_INLINE T trueval()
+  static constexpr SIMD_INLINE T trueval()
   {
     return internal::types::TypeInfo<T>::trueval();
   }

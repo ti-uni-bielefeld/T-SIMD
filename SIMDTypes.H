@@ -79,10 +79,6 @@ typedef float Float;       ///< Single-precision floating point number (32-bit)
 #define MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 2147483520.0f
 /// @endcond
 
-// ===========================================================================
-// generic compile-time check (Alexandrescu "Modern C++ Design" p.25)
-// ===========================================================================
-
 #if DOXYGEN
 /**
  * @brief Compile-time assertion.

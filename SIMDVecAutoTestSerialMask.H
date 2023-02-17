@@ -153,7 +153,7 @@ public:
   void setMask(const Mask<T, SIMD_WIDTH> &x) { mask = x; }
   static SerialMask<T, SIMD_WIDTH> fromMask(const Mask<T, SIMD_WIDTH> &x)
   {
-    return SerialMask<T, SIMD_WIDTH>(x);
+    return SerialMask<T, SIMD_WIDTH>(uint64_t(x));
   }
 };
 

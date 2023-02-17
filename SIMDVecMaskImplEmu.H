@@ -115,7 +115,7 @@ public:
   explicit SIMD_INLINE Mask<T, SIMD_WIDTH>(const Vec<T, SIMD_WIDTH> &x)
     : mask(x)
   {}
-  SIMD_INLINE Mask<T, SIMD_WIDTH>(const uint64_t x)
+  explicit SIMD_INLINE Mask<T, SIMD_WIDTH>(const uint64_t x)
     : mask(int2bits<T, SIMD_WIDTH>(x))
   {}
   SIMD_INLINE Mask<T, SIMD_WIDTH> &operator=(const uint64_t x)
@@ -123,8 +123,11 @@ public:
     mask = int2bits<T, SIMD_WIDTH>(x);
     return *this;
   }
-  SIMD_INLINE operator Vec<T, SIMD_WIDTH>() const { return mask; }
-  SIMD_INLINE operator uint64_t() const { return msb2int<T, SIMD_WIDTH>(mask); }
+  explicit SIMD_INLINE operator Vec<T, SIMD_WIDTH>() const { return mask; }
+  explicit SIMD_INLINE operator uint64_t() const
+  {
+    return msb2int<T, SIMD_WIDTH>(mask);
+  }
   SIMD_INLINE bool operator[](const int i) const
   {
     if (i < 0 || i >= SIMD_WIDTH) { return false; }

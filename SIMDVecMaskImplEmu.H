@@ -604,7 +604,7 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftri(const Mask<T, SIMD_WIDTH> &a,
   // return zero if count is larger than sizeof(uintmax_t)*8 - 1, since then
   // the >> operator is undefined, but kshift should return zero
   // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
-  if (count >= sizeof(uintmax_t) * 8) { return 0; }
+  if (count >= sizeof(uintmax_t) * 8) { return Mask<T, SIMD_WIDTH>(0); }
   return (Mask<T, SIMD_WIDTH>) (((uintmax_t) a) >> count);
 }
 template <typename T, int SIMD_WIDTH>
@@ -615,7 +615,7 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftli(const Mask<T, SIMD_WIDTH> &a,
   // return zero if count is larger than sizeof(uintmax_t)*8 - 1, since then
   // the << operator is undefined, but kshift should return zero
   // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
-  if (count >= sizeof(uintmax_t) * 8) { return 0; }
+  if (count >= sizeof(uintmax_t) * 8) { return Mask<T, SIMD_WIDTH>(0); }
   return (Mask<T, SIMD_WIDTH>) (((uintmax_t) a) << count);
 }
 

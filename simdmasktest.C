@@ -873,13 +873,13 @@ void test_mask_functions()
   // SIMD_WIDTH> vec((__m512i) a_mask); print("%x ", vec); puts("");
   kand_mask = ones & (a & b);
   if (!(kand_mask == kand(a_mask, b_mask)) ||
-      (ones & (a & b)) != (kand(a_mask, b_mask))) {
+      (ones & (a & b)) != ((uint64_t) kand(a_mask, b_mask))) {
     printf("ERROR: kand %" PRIutest " %" PRIutest "\n", (uinttest_t) kand_mask,
            (uinttest_t) kand(a_mask, b_mask));
   }
   kandn_mask = ones & ((~a) & b);
   if (!(kandn_mask == kandn(a_mask, b_mask)) ||
-      (ones & ((~a) & b)) != (kandn(a_mask, b_mask))) {
+      (ones & ((~a) & b)) != ((uint64_t) kandn(a_mask, b_mask))) {
     printf("ERROR: kandn %" PRIutest " %" PRIutest "\n",
            (uinttest_t) kandn_mask, (uinttest_t) kandn(a_mask, b_mask));
   }

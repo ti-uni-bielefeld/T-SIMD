@@ -31,6 +31,7 @@
 #include "SIMDVec.H"
 #include "SIMDVecBase.H"
 
+#include <cassert>
 #include <math.h>
 #include <stdio.h>
 #include <string>
@@ -3176,12 +3177,19 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose6_t(const Vec<T, SIMD_WIDTH> *const inRows,
                                      Vec<T, SIMD_WIDTH> *const outRows)
 {
-  // 15. Oct 22 (Jonas Keller):
-  // This previously allocated two temporary arrays of type T* on the heap,
-  // stored inRows and outRows into them, and then called transpose6 on those.
-  // This is not necessary, we can just cast inRows and outRows to T* and call
-  // transpose6 directly.
-  transpose6<T, SIMD_WIDTH>((T *) inRows, (T *) outRows);
+  // 20. Sep 22 (Jonas Keller):
+  // use simd_aligned_malloc for inArray and outArray
+  // and free them at the end of the function
+  const int n = Vec<T, SIMD_WIDTH>::elements;
+  T *inArray  = (T *) simd_aligned_malloc(SIMD_WIDTH, n * n * sizeof(T));
+  T *outArray = (T *) simd_aligned_malloc(SIMD_WIDTH, n * n * sizeof(T));
+  assert(inArray != NULL);
+  assert(outArray != NULL);
+  store(inArray, inRows, n);
+  transpose6<T, SIMD_WIDTH>(inArray, outArray);
+  load(outArray, outRows, n);
+  simd_aligned_free(inArray);
+  simd_aligned_free(outArray);
 }
 
 // ===========================================================================

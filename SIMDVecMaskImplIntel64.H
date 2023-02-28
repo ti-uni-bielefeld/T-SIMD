@@ -1600,8 +1600,8 @@ static SIMD_INLINE Mask<T, 64> kshiftli(const Mask<T, 64> &a, uint64_t count)
   // return zero if count is larger than 63, since then the << operator is
   // undefined, but kshift should return zero
   // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
-  if (count >= 64) { return 0; }
-  return (((uint64_t) a) << count);
+  if (count >= 64) { return Mask<T, 64>(0); }
+  return Mask<T, 64>(((uint64_t) a) << count);
 }
 
 template <typename T>
@@ -1611,8 +1611,8 @@ static SIMD_INLINE Mask<T, 64> kshiftri(const Mask<T, 64> &a, uint64_t count)
   // return zero if count is larger than 63, since then the >> operator is
   // undefined, but kshift should return zero
   // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
-  if (count >= 64) { return 0; }
-  return (((uint64_t) a) >> count);
+  if (count >= 64) { return Mask<T, 64>(0); }
+  return Mask<T, 64>(((uint64_t) a) >> count);
 }
 } // namespace mask
 } // namespace internal

@@ -1286,9 +1286,10 @@ static SIMD_INLINE SerialVec<Tout, SIMD_WIDTH> packs(
   return packs<Tout>(ai, bi);
 }
 
-template <typename Tout, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void extend(const SerialVec<T, SIMD_WIDTH> &vIn,
-                               SerialVec<Tout, SIMD_WIDTH> *const vOut)
+template <typename Tout, typename Tin, int SIMD_WIDTH>
+static SIMD_INLINE void extend(
+  const SerialVec<Tin, SIMD_WIDTH> &vIn,
+  SerialVec<Tout, SIMD_WIDTH> vOut[sizeof(Tout) / sizeof(Tin)])
 {
   int nOut = SerialVec<Tout, SIMD_WIDTH>::elements;
   for (int i = 0; i < vIn.elements; i++)
@@ -1298,9 +1299,9 @@ static SIMD_INLINE void extend(const SerialVec<T, SIMD_WIDTH> &vIn,
 // float -> int (uses saturating cvts)
 template <int SIMD_WIDTH>
 static SIMD_INLINE void extend(const SerialVec<Float, SIMD_WIDTH> &vIn,
-                               SerialVec<Int, SIMD_WIDTH> *const vOut)
+                               SerialVec<Int, SIMD_WIDTH> vOut[1])
 {
-  *vOut = cvts(vIn);
+  vOut[0] = cvts(vIn);
 }
 
 // 19. Dec 22 (Jonas Keller): added sra, srl and sll functions
@@ -1465,7 +1466,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> alignre(
 }
 
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle(SerialVec<T, SIMD_WIDTH> *const v)
+static SIMD_INLINE void swizzle(SerialVec<T, SIMD_WIDTH> v[N])
 {
   const int n = SerialVec<T, SIMD_WIDTH>::elements;
   SerialVec<T, SIMD_WIDTH> u[N];
@@ -1480,7 +1481,7 @@ static SIMD_INLINE void swizzle(SerialVec<T, SIMD_WIDTH> *const v)
 
 // 15. Oct 22 (Jonas Keller): renamed _swizzle2 to swizzle2
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle2(SerialVec<T, SIMD_WIDTH> *const v)
+static SIMD_INLINE void swizzle2(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
   const int n = SerialVec<T, SIMD_WIDTH>::elements, n2 = 2 * n;
   SerialVec<T, SIMD_WIDTH> u[2 * N];
@@ -1495,7 +1496,7 @@ static SIMD_INLINE void swizzle2(SerialVec<T, SIMD_WIDTH> *const v)
 
 // 15. Oct 22 (Jonas Keller): renamed _unswizzle2 to unswizzle2
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void unswizzle2(SerialVec<T, SIMD_WIDTH> *const v)
+static SIMD_INLINE void unswizzle2(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
   const int n = SerialVec<T, SIMD_WIDTH>::elements, n2 = 2 * n;
   SerialVec<T, SIMD_WIDTH> u[2 * N];
@@ -1510,7 +1511,7 @@ static SIMD_INLINE void unswizzle2(SerialVec<T, SIMD_WIDTH> *const v)
 
 // 07. Feb 23 (Jonas Keller): added swizzle3
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle3(SerialVec<T, SIMD_WIDTH> *const v)
+static SIMD_INLINE void swizzle3(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
   // does the same thing as swizzle2
   swizzle2<N>(v);
@@ -1518,7 +1519,7 @@ static SIMD_INLINE void swizzle3(SerialVec<T, SIMD_WIDTH> *const v)
 
 // 15. Oct 22 (Jonas Keller): added swizzle4
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle4(SerialVec<T, SIMD_WIDTH> *const v)
+static SIMD_INLINE void swizzle4(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
   // does the same thing as swizzle2
   swizzle2<N>(v);
@@ -1526,7 +1527,7 @@ static SIMD_INLINE void swizzle4(SerialVec<T, SIMD_WIDTH> *const v)
 
 // 15. Oct 22 (Jonas Keller): added unswizzle4
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void unswizzle4(SerialVec<T, SIMD_WIDTH> *const v)
+static SIMD_INLINE void unswizzle4(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
   // does the same thing as unswizzle2
   unswizzle2<N>(v);
@@ -1839,10 +1840,11 @@ static SIMD_INLINE T hmax(const SerialVec<T, SIMD_WIDTH> &a)
 }
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void convert(const SerialVec<Tin, SIMD_WIDTH> *const inVecs,
-                                SerialVec<Tout, SIMD_WIDTH> *const outVecs)
+static SIMD_INLINE void convert(
+  const SerialVec<Tin, SIMD_WIDTH> inVecs[numInVecs<Tout, Tin>()],
+  SerialVec<Tout, SIMD_WIDTH> outVecs[numOutVecs<Tout, Tin>()])
 {
-  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
   int outIdx            = 0;
@@ -1856,13 +1858,13 @@ static SIMD_INLINE void convert(const SerialVec<Tin, SIMD_WIDTH> *const inVecs,
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE void fdivmul(
-  const SerialVec<Tin, SIMD_WIDTH> *const vecsNum,
-  const SerialVec<Tin, SIMD_WIDTH> *const vecsDenom, double fac,
-  SerialVec<Tout, SIMD_WIDTH> *const vecsOut)
+  const SerialVec<Tin, SIMD_WIDTH> vecsNum[numInVecs<Tout, Tin>()],
+  const SerialVec<Tin, SIMD_WIDTH> vecsDenom[numInVecs<Tout, Tin>()],
+  double fac, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
   SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
   float facF            = fac;
@@ -1879,13 +1881,13 @@ static SIMD_INLINE void fdivmul(
 }
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fmul(const SerialVec<Tin, SIMD_WIDTH> *const vecsIn,
-                             double fac,
-                             SerialVec<Tout, SIMD_WIDTH> *const vecsOut)
+static SIMD_INLINE void fmul(
+  const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double fac,
+  SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
   SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
   float facF            = fac;
@@ -1900,13 +1902,13 @@ static SIMD_INLINE void fmul(const SerialVec<Tin, SIMD_WIDTH> *const vecsIn,
 }
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void faddmul(const SerialVec<Tin, SIMD_WIDTH> *const vecsIn,
-                                double off, double fac,
-                                SerialVec<Tout, SIMD_WIDTH> *const vecsOut)
+static SIMD_INLINE void faddmul(
+  const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double off,
+  double fac, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
   SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
   float facF = fac, offF = off;
@@ -1921,13 +1923,13 @@ static SIMD_INLINE void faddmul(const SerialVec<Tin, SIMD_WIDTH> *const vecsIn,
 }
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fmuladd(const SerialVec<Tin, SIMD_WIDTH> *const vecsIn,
-                                double fac, double off,
-                                SerialVec<Tout, SIMD_WIDTH> *const vecsOut)
+static SIMD_INLINE void fmuladd(
+  const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double fac,
+  double off, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
   SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
   float facF = fac, offF = off;
@@ -1943,13 +1945,13 @@ static SIMD_INLINE void fmuladd(const SerialVec<Tin, SIMD_WIDTH> *const vecsIn,
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE void fwaddmul(
-  const SerialVec<Tin, SIMD_WIDTH> *const vecsIn1,
-  const SerialVec<Tin, SIMD_WIDTH> *const vecsIn2, double w, double fac,
-  SerialVec<Tout, SIMD_WIDTH> *const vecsOut)
+  const SerialVec<Tin, SIMD_WIDTH> vecsIn1[numInVecs<Tout, Tin>()],
+  const SerialVec<Tin, SIMD_WIDTH> vecsIn2[numInVecs<Tout, Tin>()], double w,
+  double fac, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
   SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  const int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
   float wF              = w;
@@ -1967,7 +1969,7 @@ static SIMD_INLINE void fwaddmul(
 }
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadd(
-  const SerialVec<T, SIMD_WIDTH> *const v)
+  const SerialVec<T, SIMD_WIDTH> v[SerialVec<T, SIMD_WIDTH>::elems])
 {
   SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = hadd(v[i]);
@@ -1976,7 +1978,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadd(
 
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadds(
-  const SerialVec<T, SIMD_WIDTH> *const v)
+  const SerialVec<T, SIMD_WIDTH> v[SerialVec<T, SIMD_WIDTH>::elems])
 {
   SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = hadds(v[i]);
@@ -1985,7 +1987,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadds(
 
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hsub(
-  const SerialVec<T, SIMD_WIDTH> *const v)
+  const SerialVec<T, SIMD_WIDTH> v[SerialVec<T, SIMD_WIDTH>::elems])
 {
   SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = hsub(v[i]);
@@ -1994,7 +1996,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hsub(
 
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hsubs(
-  const SerialVec<T, SIMD_WIDTH> *const v)
+  const SerialVec<T, SIMD_WIDTH> v[SerialVec<T, SIMD_WIDTH>::elems])
 {
   SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = hsubs(v[i]);
@@ -2002,8 +2004,9 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hsubs(
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose(const SerialVec<T, SIMD_WIDTH> *const inRows,
-                                  SerialVec<T, SIMD_WIDTH> *const outRows)
+static SIMD_INLINE void transpose(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
   const int n = SerialVec<T, SIMD_WIDTH>::elements;
   for (int i = 0; i < n; i++)
@@ -2011,16 +2014,18 @@ static SIMD_INLINE void transpose(const SerialVec<T, SIMD_WIDTH> *const inRows,
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose2(const SerialVec<T, SIMD_WIDTH> *const inRows,
-                                   SerialVec<T, SIMD_WIDTH> *const outRows)
+static SIMD_INLINE void transpose2(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
   // same as transpose
   transpose(inRows, outRows);
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose0(const SerialVec<T, SIMD_WIDTH> *const inRows,
-                                   SerialVec<T, SIMD_WIDTH> *const outRows)
+static SIMD_INLINE void transpose0(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
   // same as transpose
   transpose(inRows, outRows);
@@ -2028,32 +2033,35 @@ static SIMD_INLINE void transpose0(const SerialVec<T, SIMD_WIDTH> *const inRows,
 
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose16(
-  const SerialVec<T, SIMD_WIDTH> *const inRows,
-  SerialVec<T, SIMD_WIDTH> *const outRows)
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
   // same as transpose
   transpose(inRows, outRows);
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose3(const SerialVec<T, SIMD_WIDTH> *const inRows,
-                                   SerialVec<T, SIMD_WIDTH> *const outRows)
+static SIMD_INLINE void transpose3(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
   // same as transpose
   transpose(inRows, outRows);
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose4(const SerialVec<T, SIMD_WIDTH> *const inRows,
-                                   SerialVec<T, SIMD_WIDTH> *const outRows)
+static SIMD_INLINE void transpose4(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
   // same as transpose
   transpose(inRows, outRows);
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose5(const SerialVec<T, SIMD_WIDTH> *const inRows,
-                                   SerialVec<T, SIMD_WIDTH> *const outRows)
+static SIMD_INLINE void transpose5(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
   // same as transpose
   transpose(inRows, outRows);
@@ -2061,8 +2069,8 @@ static SIMD_INLINE void transpose5(const SerialVec<T, SIMD_WIDTH> *const inRows,
 
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose1_16_t(
-  const SerialVec<T, SIMD_WIDTH> *const inRows,
-  SerialVec<T, SIMD_WIDTH> *const outRows)
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
   // same as transpose
   transpose(inRows, outRows);
@@ -2070,8 +2078,8 @@ static SIMD_INLINE void transpose1_16_t(
 
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose6_t(
-  const SerialVec<T, SIMD_WIDTH> *const inRows,
-  SerialVec<T, SIMD_WIDTH> *const outRows)
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
   // same as transpose
   transpose(inRows, outRows);
@@ -2089,7 +2097,8 @@ static SIMD_INLINE void bitonicSort(SerialVec<T, SIMD_WIDTH> *const vecs)
 }
 
 template <int SLOPE, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void bitonicSort2(SerialVec<T, SIMD_WIDTH> *const vecs)
+static SIMD_INLINE void bitonicSort2(
+  SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
 {
   // same as bitonicSort
   bitonicSort<SLOPE>(vecs);
@@ -2097,7 +2106,7 @@ static SIMD_INLINE void bitonicSort2(SerialVec<T, SIMD_WIDTH> *const vecs)
 
 template <int SLOPE, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void bitonicSortSortedPairs(
-  SerialVec<T, SIMD_WIDTH> *const vecs)
+  SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
 {
   const int n = SerialVec<T, SIMD_WIDTH>::elements;
   T twovecs[2 * n];
@@ -2123,7 +2132,7 @@ static SIMD_INLINE void bitonicSortSortedPairs(
 
 template <int SLOPE, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void bitonicSortSortedPairs2(
-  SerialVec<T, SIMD_WIDTH> *const vecs)
+  SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
 {
   // same as bitonicSortSortedPairs
   bitonicSortSortedPairs<SLOPE>(vecs);
@@ -2171,7 +2180,7 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> avgrd(
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Tout, SIMD_WIDTH> packs(
-  const SerialVec<Tin, SIMD_WIDTH> *const a)
+  const SerialVec<Tin, SIMD_WIDTH> a[sizeof(Tin) / sizeof(Tout)])
 {
   SerialVec<Tout, SIMD_WIDTH> c;
   const int numInVecs = sizeof(Tin) / sizeof(Tout);

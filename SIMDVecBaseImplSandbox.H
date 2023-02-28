@@ -354,8 +354,9 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> &,
 // multistage extension (zero-extend or sign-extend, depending on
 // type)
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void extend(const Vec<Tin, SIMD_WIDTH> &,
-                               Vec<Tout, SIMD_WIDTH> *const)
+static SIMD_INLINE void extend(
+  const Vec<Tin, SIMD_WIDTH> &,
+  Vec<Tout, SIMD_WIDTH>[sizeof(Tout) / sizeof(Tin)])
 {
   printf("extend<%s,%s,%d>>(V,V*)\n", TypeInfo<Tout>::name(),
          TypeInfo<Tin>::name(), SIMD_WIDTH);
@@ -490,7 +491,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &,
 
 // swizzle (AoS to SoA), in-place, with template parameter N
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> *const, Integer<N>,
+static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH>[N], Integer<N>,
                                 TypeIsIntSize<T>)
 {
   printf("swizzle<%d,%s,%d>(V,V*)\n", N, TypeInfo<T>::name(), SIMD_WIDTH);

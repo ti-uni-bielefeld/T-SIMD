@@ -1323,9 +1323,9 @@ static SIMD_INLINE Vec<Word, 16> packs(const Vec<Float, 16> &a,
 
 // all types
 template <typename T>
-static SIMD_INLINE void extend(const Vec<T, 16> &vIn, Vec<T, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<T, 16> &vIn, Vec<T, 16> vOut[1])
 {
-  *vOut = vIn;
+  vOut[0] = vIn;
 }
 
 // -------------------------------------------------------------------------
@@ -1335,21 +1335,20 @@ static SIMD_INLINE void extend(const Vec<T, 16> &vIn, Vec<T, 16> *const vOut)
 // signed -> signed
 
 static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
-                               Vec<Short, 16> *const vOut)
+                               Vec<Short, 16> vOut[2])
 {
   vOut[0] = vmovl_s8(vget_low_s8(vIn));
   vOut[1] = vmovl_s8(vget_high_s8(vIn));
 }
 
-static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
-                               Vec<Int, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Short, 16> &vIn, Vec<Int, 16> vOut[2])
 {
   vOut[0] = vmovl_s16(vget_low_s16(vIn));
   vOut[1] = vmovl_s16(vget_high_s16(vIn));
 }
 
 static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
-                               Vec<Float, 16> *const vOut)
+                               Vec<Float, 16> vOut[2])
 {
   vOut[0] = vcvtq_f32_s32(vmovl_s16(vget_low_s16(vIn)));
   vOut[1] = vcvtq_f32_s32(vmovl_s16(vget_high_s16(vIn)));
@@ -1357,8 +1356,7 @@ static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
 
 // unsigned -> unsigned
 
-static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
-                               Vec<Word, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Word, 16> vOut[2])
 {
   vOut[0] = vmovl_u8(vget_low_u8(vIn));
   vOut[1] = vmovl_u8(vget_high_u8(vIn));
@@ -1366,22 +1364,19 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
 
 // unsigned -> signed
 
-static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
-                               Vec<Short, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Short, 16> vOut[2])
 {
   vOut[0] = vreinterpretq_s16_u16(vmovl_u8(vget_low_u8(vIn)));
   vOut[1] = vreinterpretq_s16_u16(vmovl_u8(vget_high_u8(vIn)));
 }
 
-static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
-                               Vec<Int, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Int, 16> vOut[2])
 {
   vOut[0] = vreinterpretq_s32_u32(vmovl_u16(vget_low_u16(vIn)));
   vOut[1] = vreinterpretq_s32_u32(vmovl_u16(vget_high_u16(vIn)));
 }
 
-static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
-                               Vec<Float, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Float, 16> vOut[2])
 {
   vOut[0] = vcvtq_f32_u32(vmovl_u16(vget_low_u16(vIn)));
   vOut[1] = vcvtq_f32_u32(vmovl_u16(vget_high_u16(vIn)));
@@ -1394,7 +1389,7 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
 // signed -> signed
 
 static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
-                               Vec<Int, 16> *const vOut)
+                               Vec<Int, 16> vOut[4])
 {
   Vec<Short, 16> vShort[2];
   extend(vIn, vShort);
@@ -1403,7 +1398,7 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
 }
 
 static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
-                               Vec<Float, 16> *const vOut)
+                               Vec<Float, 16> vOut[4])
 {
   Vec<Short, 16> vShort[2];
   extend(vIn, vShort);
@@ -1413,8 +1408,7 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
 
 // unsigned -> signed
 
-static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
-                               Vec<Int, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Int, 16> vOut[4])
 {
   Vec<Short, 16> vShort[2];
   extend(vIn, vShort);
@@ -1422,8 +1416,7 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
   extend(vShort[1], vOut + 2);
 }
 
-static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
-                               Vec<Float, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Float, 16> vOut[4])
 {
   Vec<Short, 16> vShort[2];
   extend(vIn, vShort);
@@ -1435,16 +1428,14 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
 // generalized extend: special case int <-> float
 // -------------------------------------------------------------------------
 
-static SIMD_INLINE void extend(const Vec<Int, 16> &vIn,
-                               Vec<Float, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Int, 16> &vIn, Vec<Float, 16> vOut[1])
 {
-  *vOut = cvts(vIn, OutputType<Float>());
+  vOut[0] = cvts(vIn, OutputType<Float>());
 }
 
-static SIMD_INLINE void extend(const Vec<Float, 16> &vIn,
-                               Vec<Int, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Float, 16> &vIn, Vec<Int, 16> vOut[1])
 {
-  *vOut = cvts(vIn, OutputType<Int>());
+  vOut[0] = cvts(vIn, OutputType<Int>());
 }
 
 // -------------------------------------------------------------------------
@@ -1979,7 +1970,7 @@ SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(Float, f32)
 
 #define SIMDVEC_NEON_SWIZZLE(NUM)                                              \
   template <typename T>                                                        \
-  static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<NUM>,           \
+  static SIMD_INLINE void swizzle(Vec<T, 16> v[NUM], Integer<NUM>,             \
                                   TypeIsIntSize<T>)                            \
   {                                                                            \
     static const SwizzleTable<NUM, T, 16> t;                                   \
@@ -2001,7 +1992,7 @@ SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(Float, f32)
 // -------------------- n = 1 --------------------
 
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const, Integer<1>, TypeIsIntSize<T>)
+static SIMD_INLINE void swizzle(Vec<T, 16>[1], Integer<1>, TypeIsIntSize<T>)
 {
   // v remains unchanged
 }
@@ -2021,8 +2012,7 @@ SIMDVEC_NEON_SWIZZLE(4)
 // -------------------- n = 5 --------------------
 
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<5>,
-                                TypeIsIntSize<T>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>, TypeIsIntSize<T>)
 {
   //     |  v0l  v0h  |  v1l  v1h  |  v2l  v2h  |  v3l  v3h  |  v4l  v4h  |
   // i=0:

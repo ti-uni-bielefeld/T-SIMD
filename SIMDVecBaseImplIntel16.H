@@ -1881,9 +1881,9 @@ static SIMD_INLINE Vec<Word, 16> packs(const Vec<Float, 16> &a,
 
 // all types
 template <typename T>
-static SIMD_INLINE void extend(const Vec<T, 16> &vIn, Vec<T, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<T, 16> &vIn, Vec<T, 16> vOut[1])
 {
-  *vOut = vIn;
+  vOut[0] = vIn;
 }
 
 // ---------------------------------------------------------------------------
@@ -1893,7 +1893,7 @@ static SIMD_INLINE void extend(const Vec<T, 16> &vIn, Vec<T, 16> *const vOut)
 // signed -> signed
 
 static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
-                               Vec<Short, 16> *const vOut)
+                               Vec<Short, 16> vOut[2])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepi8_epi16(vIn);
@@ -1904,8 +1904,7 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
 #endif
 }
 
-static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
-                               Vec<Int, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Short, 16> &vIn, Vec<Int, 16> vOut[2])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepi16_epi32(vIn);
@@ -1917,7 +1916,7 @@ static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
 }
 
 static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
-                               Vec<Float, 16> *const vOut)
+                               Vec<Float, 16> vOut[2])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepi32_ps(_mm_cvtepi16_epi32(vIn));
@@ -1930,8 +1929,7 @@ static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
 
 // unsigned -> unsigned
 
-static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
-                               Vec<Word, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Word, 16> vOut[2])
 {
   // there's no _mm_cvtepu8_epu16()
   __m128i zero = _mm_setzero_si128();
@@ -1941,8 +1939,7 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
 
 // unsigned -> signed
 
-static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
-                               Vec<Short, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Short, 16> vOut[2])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepu8_epi16(vIn);
@@ -1954,8 +1951,7 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
 #endif
 }
 
-static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
-                               Vec<Int, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Int, 16> vOut[2])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepu16_epi32(vIn);
@@ -1967,8 +1963,7 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
 #endif
 }
 
-static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
-                               Vec<Float, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Float, 16> vOut[2])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepi32_ps(_mm_cvtepu16_epi32(vIn));
@@ -1987,7 +1982,7 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
 // signed -> signed
 
 static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
-                               Vec<Int, 16> *const vOut)
+                               Vec<Int, 16> vOut[4])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepi8_epi32(vIn);
@@ -2005,7 +2000,7 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
 }
 
 static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
-                               Vec<Float, 16> *const vOut)
+                               Vec<Float, 16> vOut[4])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepi32_ps(_mm_cvtepi8_epi32(vIn));
@@ -2024,8 +2019,7 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
 
 // unsigned -> signed
 
-static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
-                               Vec<Int, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Int, 16> vOut[4])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepu8_epi32(vIn);
@@ -2043,8 +2037,7 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
 #endif
 }
 
-static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
-                               Vec<Float, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Float, 16> vOut[4])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(vIn));
@@ -2066,16 +2059,14 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
 // generalized extend: special case int <-> float
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE void extend(const Vec<Int, 16> &vIn,
-                               Vec<Float, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Int, 16> &vIn, Vec<Float, 16> vOut[1])
 {
-  *vOut = cvts(vIn, OutputType<Float>());
+  vOut[0] = cvts(vIn, OutputType<Float>());
 }
 
-static SIMD_INLINE void extend(const Vec<Float, 16> &vIn,
-                               Vec<Int, 16> *const vOut)
+static SIMD_INLINE void extend(const Vec<Float, 16> &vIn, Vec<Int, 16> vOut[1])
 {
-  *vOut = cvts(vIn, OutputType<Int>());
+  vOut[0] = cvts(vIn, OutputType<Int>());
 }
 
 // ---------------------------------------------------------------------------
@@ -2670,7 +2661,7 @@ static SIMD_INLINE __m128i align_shuffle_word_128(__m128i lo, __m128i hi,
 
 // all types
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const, Integer<1>, TypeIsIntSize<T>)
+static SIMD_INLINE void swizzle(Vec<T, 16>[1], Integer<1>, TypeIsIntSize<T>)
 {
   // v remains unchanged
 }
@@ -2679,8 +2670,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const, Integer<1>, TypeIsIntSize<T>)
 
 // Byte, SignedByte
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<2>,
-                                IsIntSize<true, 1>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>, IsIntSize<true, 1>)
 {
   __m128i s[2];
   for (int j = 0; j < 2; j++)
@@ -2691,8 +2681,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<2>,
 
 // Word, Short
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<2>,
-                                IsIntSize<true, 2>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>, IsIntSize<true, 2>)
 {
   __m128i s[2];
   for (int j = 0; j < 2; j++)
@@ -2704,8 +2693,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<2>,
 // Int
 // TODO: swizzle<2,Int,...>: which version is faster?
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<2>,
-                                IsIntSize<true, 4>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>, IsIntSize<true, 4>)
 {
 #if 0
     __m128i s[2];
@@ -2725,7 +2713,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<2>,
 
 // Float
 // same code as for Int
-static SIMD_INLINE void swizzle(Vec<Float, 16> *const v, Integer<2>,
+static SIMD_INLINE void swizzle(Vec<Float, 16> v[2], Integer<2>,
                                 IsIntSize<false, 4>)
 {
   __m128 v0tmp = v[0];
@@ -2738,8 +2726,7 @@ static SIMD_INLINE void swizzle(Vec<Float, 16> *const v, Integer<2>,
 
 // Byte, SignedByte
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<3>,
-                                IsIntSize<true, 1>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>, IsIntSize<true, 1>)
 {
   __m128i mask = get_swizzle_mask<3, T>();
   __m128i s0   = align_shuffle_byte_128<0>(v[0], v[1], mask);
@@ -2758,8 +2745,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<3>,
 
 // Word, SIMDShorst
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<3>,
-                                IsIntSize<true, 2>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>, IsIntSize<true, 2>)
 {
   __m128i mask = get_swizzle_mask<3, T>();
   __m128i s0   = align_shuffle_word_128<0>(v[0], v[1], mask);
@@ -2780,8 +2766,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<3>,
 // from Stan Melax: "3D Vector Normalization..."
 // https://software.intel.com/en-us/articles/3d-vector-normalization-using-256-bit-intel-advanced-vector-extensions-intel-avx
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<3>,
-                                IsIntSize<true, 4>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>, IsIntSize<true, 4>)
 {
   __m128 x0y0z0x1 = _mm_castsi128_ps(v[0]);
   __m128 y1z1x2y2 = _mm_castsi128_ps(v[1]);
@@ -2803,7 +2788,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<3>,
 // from Stan Melax: "3D Vector Normalization..."
 // https://software.intel.com/en-us/articles/3d-vector-normalization-using-256-bit-intel-advanced-vector-extensions-intel-avx
 // same code as for Int
-static SIMD_INLINE void swizzle(Vec<Float, 16> *const v, Integer<3>,
+static SIMD_INLINE void swizzle(Vec<Float, 16> v[3], Integer<3>,
                                 IsIntSize<false, 4>)
 {
   // x0y0z0x1 = v[0]
@@ -2823,8 +2808,7 @@ static SIMD_INLINE void swizzle(Vec<Float, 16> *const v, Integer<3>,
 
 // Byte, SignedByte
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<4>,
-                                IsIntSize<true, 1>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>, IsIntSize<true, 1>)
 {
   __m128i mask = get_swizzle_mask<4, T>();
   __m128i s[4];
@@ -2841,8 +2825,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<4>,
 
 // Word, Short
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<4>,
-                                IsIntSize<true, 2>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>, IsIntSize<true, 2>)
 {
   __m128i mask = get_swizzle_mask<4, T>();
   __m128i s[4];
@@ -2859,8 +2842,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<4>,
 
 // Int
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<4>,
-                                IsIntSize<true, 4>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>, IsIntSize<true, 4>)
 {
   __m128i s[4];
   s[0] = _mm_unpacklo_epi32(v[0], v[1]);
@@ -2874,7 +2856,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<4>,
 }
 
 // Float
-static SIMD_INLINE void swizzle(Vec<Float, 16> *const v, Integer<4>,
+static SIMD_INLINE void swizzle(Vec<Float, 16> v[4], Integer<4>,
                                 IsIntSize<false, 4>)
 {
   __m128 s[4];
@@ -2892,8 +2874,7 @@ static SIMD_INLINE void swizzle(Vec<Float, 16> *const v, Integer<4>,
 
 // Byte, SignedByte
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<5>,
-                                IsIntSize<true, 1>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>, IsIntSize<true, 1>)
 {
   __m128i mask = get_swizzle_mask<5, T>();
   __m128i s0   = align_shuffle_byte_128<0>(v[0], v[1], mask);
@@ -2928,8 +2909,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<5>,
 
 // Word, Short
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<5>,
-                                IsIntSize<true, 2>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>, IsIntSize<true, 2>)
 {
   __m128i mask = get_swizzle_mask<5, T>();
   __m128i s0   = align_shuffle_word_128<0>(v[0], v[1], mask);
@@ -2956,8 +2936,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<5>,
 
 // Int
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<5>,
-                                IsIntSize<true, 4>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>, IsIntSize<true, 4>)
 {
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   // v[0]: 0 1 2 3
@@ -3008,7 +2987,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> *const v, Integer<5>,
 
 // Float
 // same code as for Int, modified
-static SIMD_INLINE void swizzle(Vec<Float, 16> *const v, Integer<5>,
+static SIMD_INLINE void swizzle(Vec<Float, 16> v[5], Integer<5>,
                                 IsIntSize<false, 4>)
 {
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19

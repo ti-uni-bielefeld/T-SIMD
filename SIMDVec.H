@@ -72,6 +72,58 @@ class Vec;
  */
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 class Mask;
+
+// ===========================================================================
+// helper functions for templates converting from Tin to Tout
+// ===========================================================================
+
+// numInVecs() and numOutVecs() assume that either
+// - a single vector is extended into multiple vectors or
+// - multiple vectors are packed into a single vector
+//
+// numSIMDVecsElements encodes the number of elements in *all* input / all
+// output vectors
+//
+// removed: numSIMDVecElements encodes the number of elements in each vector
+// (or use Vec::elements instead)
+//
+// removed: numInputSIMDVecElements/numOutputSIMDVecElements encode
+// the number of elements in *each* input / output vector
+
+/**
+ * @brief Number of input vectors for functions that potentially change the
+ * size of the elements but not the number of elements.
+ *
+ * @tparam Tout output type
+ * @tparam Tin input type
+ * @return number of input vectors
+ */
+template <typename Tout, typename Tin>
+static constexpr SIMD_INLINE int numInVecs()
+{
+  return (sizeof(Tout) < sizeof(Tin)) ? (sizeof(Tin) / sizeof(Tout)) : 1;
+}
+
+/**
+ * @brief Number of output vectors for functions that potentially change the
+ * size of the elements but not the number of elements.
+ *
+ * @tparam Tout output type
+ * @tparam Tin input type
+ * @return number of output vectors
+ */
+template <typename Tout, typename Tin>
+static constexpr SIMD_INLINE int numOutVecs()
+{
+  return (sizeof(Tout) > sizeof(Tin)) ? (sizeof(Tout) / sizeof(Tin)) : 1;
+}
+
+template <typename Tout, typename Tin, int SIMD_WIDTH>
+static constexpr SIMD_INLINE int numSIMDVecsElements()
+{
+  return (sizeof(Tout) > sizeof(Tin)) ? Vec<Tin, SIMD_WIDTH>::elems :
+                                        Vec<Tout, SIMD_WIDTH>::elems;
+}
 } // namespace simd
 
 #endif

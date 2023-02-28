@@ -700,22 +700,23 @@ struct Packs
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename Tin, int SIMD_WIDTH>
 struct Extend
 {
   static SIMD_INLINE std::string name()
   {
-    return tt2s<Tout, T, SIMD_WIDTH>("extend");
+    return tt2s<Tout, Tin, SIMD_WIDTH>("extend");
   }
 
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<Tin, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> &a,
-                                VEC<Tout, SIMD_WIDTH> *const b)
+  static SIMD_INLINE void apply(
+    const VEC<Tin, SIMD_WIDTH> &a,
+    VEC<Tout, SIMD_WIDTH> b[sizeof(Tout) / sizeof(Tin)])
   {
     extend(a, b);
   }
@@ -1065,7 +1066,7 @@ struct Swizzle
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> *const v)
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[I])
   {
     swizzle<I>(v);
   }
@@ -1091,7 +1092,7 @@ struct Swizzle2
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> *const v)
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[I])
   {
     swizzle2<I>(v);
   }
@@ -1117,7 +1118,7 @@ struct Unswizzle2
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> *const v)
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
     unswizzle2<I>(v);
   }
@@ -1144,7 +1145,7 @@ struct Swizzle3
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> *const v)
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
     swizzle3<I>(v);
   }
@@ -1171,7 +1172,7 @@ struct Swizzle4
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> *const v)
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
     swizzle4<I>(v);
   }
@@ -1198,7 +1199,7 @@ struct Unswizzle4
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> *const v)
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
     unswizzle4<I>(v);
   }
@@ -1485,27 +1486,27 @@ struct Reverse
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename Tin, int SIMD_WIDTH>
 struct Convert
 {
   static SIMD_INLINE std::string name()
   {
-    return tt2s<Tout, T, SIMD_WIDTH>("convert");
+    return tt2s<Tout, Tin, SIMD_WIDTH>("convert");
   }
 
-  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
-  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<Tin, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const inVecs,
-                                VEC<Tout, SIMD_WIDTH> *const outVecs)
+  static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> inVecs[numInVecs],
+                                VEC<Tout, SIMD_WIDTH> outVecs[numOutVecs])
   {
     convert(inVecs, outVecs);
   }
@@ -1540,10 +1541,10 @@ struct Fdivmul
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const vecsNum,
-                                const VEC<T, SIMD_WIDTH> *const vecsDenom,
+  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> vecsNum[numInVecs],
+                                const VEC<T, SIMD_WIDTH> vecsDenom[numInVecs],
                                 double fac,
-                                VEC<Tout, SIMD_WIDTH> *const vecsOut)
+                                VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fdivmul(vecsNum, vecsDenom, fac, vecsOut);
   }
@@ -1576,9 +1577,9 @@ struct Fmul
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const vecsIn,
+  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> vecsIn[numInVecs],
                                 double fac,
-                                VEC<Tout, SIMD_WIDTH> *const vecsOut)
+                                VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fmul(vecsIn, fac, vecsOut);
   }
@@ -1611,9 +1612,9 @@ struct Faddmul
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const vecsIn,
+  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> vecsIn[numInVecs],
                                 double off, double fac,
-                                VEC<Tout, SIMD_WIDTH> *const vecsOut)
+                                VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     faddmul(vecsIn, off, fac, vecsOut);
   }
@@ -1646,9 +1647,9 @@ struct Fmuladd
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const vecsIn,
+  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> vecsIn[numInVecs],
                                 double off, double fac,
-                                VEC<Tout, SIMD_WIDTH> *const vecsOut)
+                                VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fmuladd(vecsIn, fac, off, vecsOut);
   }
@@ -1683,10 +1684,10 @@ struct Fwaddmul
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const vecsIn1,
-                                const VEC<T, SIMD_WIDTH> *const vecsIn2,
+  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> vecsIn1[numInVecs],
+                                const VEC<T, SIMD_WIDTH> vecsIn2[numInVecs],
                                 double w, double fac,
-                                VEC<Tout, SIMD_WIDTH> *const vecsOut)
+                                VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fwaddmul(vecsIn1, vecsIn2, w, fac, vecsOut);
   }
@@ -1706,7 +1707,8 @@ struct HaddMulti
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> *const a)
+  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(
+    const VEC<T, SIMD_WIDTH> a[nInputs])
   {
     return hadd(a);
   }
@@ -1726,7 +1728,8 @@ struct HaddsMulti
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> *const a)
+  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(
+    const VEC<T, SIMD_WIDTH> a[nInputs])
   {
     return hadds(a);
   }
@@ -1746,7 +1749,8 @@ struct HsubMulti
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> *const a)
+  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(
+    const VEC<T, SIMD_WIDTH> a[nInputs])
   {
     return hsub(a);
   }
@@ -1766,7 +1770,8 @@ struct HsubsMulti
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> *const a)
+  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(
+    const VEC<T, SIMD_WIDTH> a[nInputs])
   {
     return hsubs(a);
   }
@@ -1889,8 +1894,9 @@ struct Transpose
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const inRows,
-                                VEC<T, SIMD_WIDTH> *const outRows)
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
     transpose(inRows, outRows);
   }
@@ -1910,8 +1916,9 @@ struct Transpose2
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const inRows,
-                                VEC<T, SIMD_WIDTH> *const outRows)
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
     transpose2(inRows, outRows);
   }
@@ -1936,7 +1943,7 @@ struct BitonicSort
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> *const vecs)
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
     bitonicSort<SLOPE>(vecs);
   }
@@ -1961,7 +1968,7 @@ struct BitonicSort2
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> *const vecs)
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
     bitonicSort2<SLOPE>(vecs);
   }
@@ -1986,7 +1993,7 @@ struct BitonicSortSortedPairs
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> *const vecs)
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
     bitonicSortSortedPairs<SLOPE>(vecs);
   }
@@ -2011,7 +2018,7 @@ struct BitonicSortSortedPairs2
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> *const vecs)
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
     bitonicSortSortedPairs2<SLOPE>(vecs);
   }
@@ -2031,8 +2038,9 @@ struct Transpose0
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const inRows,
-                                VEC<T, SIMD_WIDTH> *const outRows)
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
     transpose0(inRows, outRows);
   }
@@ -2052,8 +2060,9 @@ struct Transpose16
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const inRows,
-                                VEC<T, SIMD_WIDTH> *const outRows)
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
     transpose16(inRows, outRows);
   }
@@ -2073,8 +2082,9 @@ struct Transpose3
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const inRows,
-                                VEC<T, SIMD_WIDTH> *const outRows)
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
     transpose3(inRows, outRows);
   }
@@ -2094,8 +2104,9 @@ struct Transpose4
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const inRows,
-                                VEC<T, SIMD_WIDTH> *const outRows)
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
     transpose4(inRows, outRows);
   }
@@ -2115,8 +2126,9 @@ struct Transpose5
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const inRows,
-                                VEC<T, SIMD_WIDTH> *const outRows)
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
     transpose5(inRows, outRows);
   }
@@ -2136,8 +2148,9 @@ struct Transpose1_16
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const inRows,
-                                VEC<T, SIMD_WIDTH> *const outRows)
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
     transpose1_16_t(inRows, outRows);
   }
@@ -2157,8 +2170,9 @@ struct Transpose6
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> *const inRows,
-                                VEC<T, SIMD_WIDTH> *const outRows)
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
     transpose6_t(inRows, outRows);
   }
@@ -2295,25 +2309,25 @@ struct Setunity
 };
 
 // TODO: generate random inputs which are often also small
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename Tin, int SIMD_WIDTH>
 struct PacksMulti
 {
   static SIMD_INLINE std::string name()
   {
-    return tt2s<Tout, T, SIMD_WIDTH>("packs");
+    return tt2s<Tout, Tin, SIMD_WIDTH>("packs");
   }
 
   // number of input elements
-  static constexpr int nInputs = sizeof(T) / sizeof(Tout);
+  static constexpr int nInputs = sizeof(Tin) / sizeof(Tout);
 
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<Tin, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
 
   template <template <typename, int> class VEC>
   static SIMD_INLINE VEC<Tout, SIMD_WIDTH> apply(
-    const VEC<T, SIMD_WIDTH> *const a)
+    const VEC<Tin, SIMD_WIDTH> a[nInputs])
   {
     return packs<Tout>(a);
   }

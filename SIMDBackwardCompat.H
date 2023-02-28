@@ -94,6 +94,20 @@ static constexpr SIMD_INLINE int numSIMDVecElements()
   return Vec<T, SIMD_WIDTH>::elems;
 }
 
+/// Alias for numInVecs().
+template <typename Tout, typename Tin>
+static constexpr SIMD_INLINE int numInputSIMDVecs()
+{
+  return numInVecs<Tout, Tin>();
+}
+
+/// Alias for numOutVecs().
+template <typename Tout, typename Tin>
+static constexpr SIMD_INLINE int numOutputSIMDVecs()
+{
+  return numOutVecs<Tout, Tin>();
+}
+
 /** @} */
 } // namespace simd
 

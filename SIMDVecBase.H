@@ -1189,8 +1189,9 @@ static Vec<T, SIMD_WIDTH> reverse(const Vec<T, SIMD_WIDTH> &a)
 
 // swizzle (AoS to SoA), in-place, with template parameter N
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> *const v)
+static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> v[N])
 {
+  static_assert(N >= 1 && N <= 5, "N must be between 1 and 5");
   internal::base::swizzle(v, internal::Integer<N>(),
                           internal::TypeIsIntSize<T>());
 }

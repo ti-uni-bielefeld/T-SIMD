@@ -1103,8 +1103,8 @@ struct UnaryTemplateIntScalarMinToMax
 {
   static void test(int repeats, const std::string &pattern)
   {
-    UnaryTemplateIntScalar<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-                           FCT<0, T, SIMD_WIDTH>::maxI, FCT,
+    UnaryTemplateIntScalar<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
+                           FCT<1, T, SIMD_WIDTH>::maxI, FCT,
                            CMP>::test(repeats, pattern);
   }
 };
@@ -1175,8 +1175,8 @@ struct UnaryTemplateIntMinToMax
 {
   static void test(int repeats, const std::string &pattern)
   {
-    UnaryTemplateInt<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-                     FCT<0, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
+    UnaryTemplateInt<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
+                     FCT<1, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
                                                                   pattern);
   }
 };
@@ -1251,8 +1251,8 @@ struct UnaryTemplateInt16MinToMax
 {
   static void test(int repeats, const std::string &pattern)
   {
-    UnaryTemplateInt16<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-                       FCT<0, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
+    UnaryTemplateInt16<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
+                       FCT<1, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
                                                                     pattern);
   }
 };
@@ -2168,8 +2168,8 @@ struct ArrayVoidTemplateIntMinToMax
 {
   static void test(int repeats, const std::string &pattern)
   {
-    ArrayVoidTemplateInt<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-                         FCT<0, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
+    ArrayVoidTemplateInt<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
+                         FCT<1, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
                                                                       pattern);
   }
 };
@@ -2244,8 +2244,8 @@ struct BinaryTemplateIntMinToMax
 {
   static void test(int repeats, const std::string &pattern)
   {
-    BinaryTemplateInt<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-                      FCT<0, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
+    BinaryTemplateInt<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
+                      FCT<1, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
                                                                    pattern);
   }
 };
@@ -2326,8 +2326,8 @@ struct BinaryBinaryTemplateIntMinToMax
 {
   static void test(int repeats, const std::string &pattern)
   {
-    BinaryBinaryTemplateInt<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
-                            FCT<0, T, SIMD_WIDTH>::maxI, FCT,
+    BinaryBinaryTemplateInt<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
+                            FCT<1, T, SIMD_WIDTH>::maxI, FCT,
                             CMP>::test(repeats, pattern);
   }
 };

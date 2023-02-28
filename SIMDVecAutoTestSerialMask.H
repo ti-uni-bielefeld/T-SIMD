@@ -27,7 +27,6 @@
 #define _SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_
 
 #include "SIMDVecAutoTestSerial.H"
-#include "SIMDVecExt.H"
 #include "SIMDVecMask.H"
 
 #include <assert.h>

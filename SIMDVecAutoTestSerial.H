@@ -32,8 +32,6 @@
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
 #include "SIMDVecAutoTestRandom.H"
-#include "SIMDVecBase.H"
-#include "SIMDVecExt.H"
 
 #include <algorithm>
 #include <assert.h>

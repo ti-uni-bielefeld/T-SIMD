@@ -31,6 +31,10 @@
 #include "SIMDVecBase.H"
 #include "SIMDVecExt.H"
 
+// exclude from doxygen
+// TODO: include in doxygen documentation?
+/// @cond
+
 namespace simd {
 
 // ===========================================================================
@@ -51,13 +55,6 @@ public:
 
 // multiple Vec
 
-/**
- * @brief A class containing multiple Vec's.
- *
- * @tparam NUM The number of Vec's.
- * @tparam T The type of the elements of the Vec's.
- * @tparam SIMD_WIDTH The number of bytes in a single Vec.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 class Vecs
 {
@@ -69,7 +66,7 @@ public:
   static constexpr int vecs  = vectors;
   static constexpr int elems = elements;
 
-  Vec<T, SIMD_WIDTH> vec[NUM]; ///< The Vec's.
+  Vec<T, SIMD_WIDTH> vec[NUM];
 };
 
 // wrapper functions working on Vecs
@@ -124,31 +121,12 @@ static SIMD_INLINE void fwaddmul(
   fwaddmul(vecsIn1.vec, vecsIn2.vec, w, fac, vecsOut.vec);
 }
 
-/**
- * @brief Loads Vecs from aligned memory.
- *
- * The memory location must be aligned to the @p SIMD_WIDTH .
- *
- * @tparam NUM The number of Vec's in the Vecs.
- * @param[in] p The pointer to the aligned memory location.
- * @param[out] inVecs The Vecs class to load the Vec's into.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void load(const T *const p, Vecs<NUM, T, SIMD_WIDTH> &inVecs)
 {
   load(p, inVecs.vec, inVecs.vectors);
 }
 
-/**
- * @brief Loads Vecs from unaligned memory.
- *
- * In contrast to load(), the memory location does not need to be aligned to
- * the @p SIMD_WIDTH .
- *
- * @tparam NUM The number of Vec's in the Vecs.
- * @param[in] p The pointer to the memory location.
- * @param[out] inVecs The Vecs class to load the Vec's into.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void loadu(const T *const p,
                               Vecs<NUM, T, SIMD_WIDTH> &inVecs)
@@ -156,15 +134,6 @@ static SIMD_INLINE void loadu(const T *const p,
   loadu(p, inVecs.vec, inVecs.vectors);
 }
 
-/**
- * @brief Stores Vecs to aligned memory.
- *
- * The memory location must be aligned to the @p SIMD_WIDTH .
- *
- * @tparam NUM The number of Vec's in the Vecs.
- * @param[out] p The pointer to the aligned memory location.
- * @param[in] outVecs The Vecs to store.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p,
                               const Vecs<NUM, T, SIMD_WIDTH> &outVecs)
@@ -172,16 +141,6 @@ static SIMD_INLINE void store(T *const p,
   store(p, outVecs.vec, outVecs.vectors);
 }
 
-/**
- * @brief Stores Vecs to unaligned memory.
- *
- * In contrast to store(), the memory location does not need to be aligned to
- * the @p SIMD_WIDTH .
- *
- * @tparam NUM The number of Vec's in the Vecs.
- * @param[out] p The pointer to the memory location.
- * @param[in] outVecs The Vecs to store.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void storeu(T *const p,
                                const Vecs<NUM, T, SIMD_WIDTH> &outVecs)
@@ -361,13 +320,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(
   return hsubs(v.vec);
 }
 
-/**
- * @brief Adds the elements of two Vecs.
- *
- * @param a The first Vecs.
- * @param b The second Vecs.
- * @return A Vecs containing the sum of the elements of the two Vecs.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> add(
   const Vecs<NUM, T, SIMD_WIDTH> &a, const Vecs<NUM, T, SIMD_WIDTH> &b)
@@ -377,14 +329,6 @@ static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> add(
   return res;
 }
 
-/**
- * @brief Adds the elements of two Vecs using saturated arithmetic.
- *
- * @param a The first Vecs.
- * @param b The second Vecs.
- * @return A Vecs containing the saturated sum of the elements of the two
- * Vecs.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> adds(
   const Vecs<NUM, T, SIMD_WIDTH> &a, const Vecs<NUM, T, SIMD_WIDTH> &b)
@@ -394,14 +338,6 @@ static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> adds(
   return res;
 }
 
-/**
- * @brief Subtracts the elements of two Vecs.
- *
- * @param a The first Vecs.
- * @param b The second Vecs.
- * @return A Vecs containing the differences of the elements of the two
- * Vecs.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> sub(
   const Vecs<NUM, T, SIMD_WIDTH> &a, const Vecs<NUM, T, SIMD_WIDTH> &b)
@@ -411,14 +347,6 @@ static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> sub(
   return res;
 }
 
-/**
- * @brief Subtracts the elements of two Vecs using saturated arithmetic.
- *
- * @param a The first Vecs.
- * @param b The second Vecs.
- * @return A Vecs containing the saturated differences of the elements of
- * the two Vecs.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> subs(
   const Vecs<NUM, T, SIMD_WIDTH> &a, const Vecs<NUM, T, SIMD_WIDTH> &b)
@@ -428,14 +356,6 @@ static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> subs(
   return res;
 }
 
-/**
- * @brief Computes the minimum of the elements of two sets of Vecs.
- *
- * @param a The first Vecs.
- * @param b The second Vecs.
- * @return A Vecs containing the minimums of the elements of the two
- * Vecs.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> min(
   const Vecs<NUM, T, SIMD_WIDTH> &a, const Vecs<NUM, T, SIMD_WIDTH> &b)
@@ -445,14 +365,6 @@ static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> min(
   return res;
 }
 
-/**
- * @brief Computes the maximum of the elements of two sets of Vecs.
- *
- * @param a The first Vecs.
- * @param b The second Vecs.
- * @return A Vecs containing the maximums of the elements of the two
- * Vecs.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> max(
   const Vecs<NUM, T, SIMD_WIDTH> &a, const Vecs<NUM, T, SIMD_WIDTH> &b)
@@ -462,11 +374,6 @@ static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> max(
   return res;
 }
 
-/**
- * @brief Returns Vecs with all elements set to zero.
- *
- * @return A Vecs containing all zeros.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> setzero()
 {
@@ -475,23 +382,12 @@ static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> setzero()
   return res;
 }
 
-/**
- * @brief Sets all elements of Vecs to zero.
- *
- * @param[out] res The Vecs to set to zero.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void setzero(Vecs<NUM, T, SIMD_WIDTH> &res)
 {
   for (int v = 0; v < NUM; v++) res.vec[v] = setzero<T, SIMD_WIDTH>();
 }
 
-/**
- * @brief Sets all elements of Vecs to a given value.
- *
- * @param a The value to set all elements to.
- * @return A Vecs containing all elements set to the given value.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> set1(T a)
 {
@@ -500,12 +396,6 @@ static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> set1(T a)
   return res;
 }
 
-/**
- * @brief Sets all elements of Vecs to a given value.
- *
- * @param[out] res The Vecs to set to the given value.
- * @param a The value to set all elements to.
- */
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void set1(Vecs<NUM, T, SIMD_WIDTH> &res, T a)
 {
@@ -515,5 +405,7 @@ static SIMD_INLINE void set1(Vecs<NUM, T, SIMD_WIDTH> &res, T a)
 // TODO: add more Vecs functions if needed
 
 } // namespace simd
+
+/// @endcond
 
 #endif

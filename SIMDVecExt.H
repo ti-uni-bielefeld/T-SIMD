@@ -26,6 +26,7 @@
 #ifndef _SIMD_VEC_EXT_H_
 #define _SIMD_VEC_EXT_H_
 
+#include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"

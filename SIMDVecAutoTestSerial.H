@@ -140,10 +140,10 @@ public:
       for (int i = 0; i < elements; i++) vec[i] = getRandomOrSpecialValue<T>();
     }
   }
-  void randomizeSorted(int s)
+  void randomizeSorted(SortSlope s)
   {
     randomize();
-    if (s == ASCENDING)
+    if (s == SortSlope::ASCENDING)
       std::sort(vec, vec + elements, std::less<T>());
     else
       std::sort(vec, vec + elements, std::greater<T>());
@@ -2085,18 +2085,19 @@ static SIMD_INLINE void transpose6_t(
   transpose(inRows, outRows);
 }
 
-template <int SLOPE, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void bitonicSort(SerialVec<T, SIMD_WIDTH> *const vecs)
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH>
+static SIMD_INLINE void bitonicSort(
+  SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
 {
   const int n = SerialVec<T, SIMD_WIDTH>::elements;
   for (int i = 0; i < n; i++)
-    if (SLOPE == ASCENDING)
+    if (SLOPE == SortSlope::ASCENDING)
       std::sort(vecs[i].vec, vecs[i].vec + n, std::less<T>());
     else
       std::sort(vecs[i].vec, vecs[i].vec + n, std::greater<T>());
 }
 
-template <int SLOPE, typename T, int SIMD_WIDTH>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void bitonicSort2(
   SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
 {
@@ -2104,7 +2105,7 @@ static SIMD_INLINE void bitonicSort2(
   bitonicSort<SLOPE>(vecs);
 }
 
-template <int SLOPE, typename T, int SIMD_WIDTH>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void bitonicSortSortedPairs(
   SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
 {
@@ -2118,7 +2119,7 @@ static SIMD_INLINE void bitonicSortSortedPairs(
       twovecs[j + n] = vecs[i + 1][j];
     }
     // sort two vectors together
-    if (SLOPE == ASCENDING)
+    if (SLOPE == SortSlope::ASCENDING)
       std::sort(twovecs, twovecs + 2 * n, std::less<T>());
     else
       std::sort(twovecs, twovecs + 2 * n, std::greater<T>());
@@ -2130,7 +2131,7 @@ static SIMD_INLINE void bitonicSortSortedPairs(
   }
 }
 
-template <int SLOPE, typename T, int SIMD_WIDTH>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void bitonicSortSortedPairs2(
   SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
 {

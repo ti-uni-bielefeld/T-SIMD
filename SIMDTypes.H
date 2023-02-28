@@ -79,6 +79,11 @@ typedef float Float;       ///< Single-precision floating point number (32-bit)
 #define MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 2147483520.0f
 /// @endcond
 
+/**
+ * @brief Used to indicate the direction of a sort function.
+ */
+enum class SortSlope { ASCENDING = 0, DESCENDING = 1 };
+
 #if DOXYGEN
 /**
  * @brief Compile-time assertion.

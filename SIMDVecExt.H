@@ -3380,18 +3380,16 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity()
 
 // code contributed by Lukas Schiermeier and Moritz Breipohl, modified
 
-const int ASCENDING  = 0;
-const int DESCENDING = 1;
 
 namespace internal {
 namespace ext {
 // compare-and-swap
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 class Cas;
 
 // specialization for DESCENDING
 template <typename T, int SIMD_WIDTH>
-class Cas<DESCENDING, T, SIMD_WIDTH>
+class Cas<SortSlope::DESCENDING, T, SIMD_WIDTH>
 {
 public:
   static void compareAndSwap(Vec<T, SIMD_WIDTH> &a, Vec<T, SIMD_WIDTH> &b)
@@ -3404,7 +3402,7 @@ public:
 
 // specialization for ASCENDING
 template <typename T, int SIMD_WIDTH>
-class Cas<ASCENDING, T, SIMD_WIDTH>
+class Cas<SortSlope::ASCENDING, T, SIMD_WIDTH>
 {
 public:
   static void compareAndSwap(Vec<T, SIMD_WIDTH> &a, Vec<T, SIMD_WIDTH> &b)
@@ -3418,7 +3416,7 @@ public:
 // in-place sorting of multiple arbitrary vectors;
 // transVecs have to be transposed vectors (same number of elements
 // as in Vec), are still transposed afterwards
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortTransposed(
   Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elems])
 {
@@ -3470,7 +3468,7 @@ static SIMD_INLINE void bitonicSortTransposed(
 // in-place sorting; transVecs have to be transposed vectors (same
 // number of elements as in Vec), are still transposed
 // afterwards
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortReducedTransposed(
   Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elems])
 {
@@ -3494,7 +3492,7 @@ static SIMD_INLINE void bitonicSortReducedTransposed(
 } // namespace internal
 
 // with transpose
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSort(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {
@@ -3505,7 +3503,7 @@ static SIMD_INLINE void bitonicSort(
 }
 
 // with transpose2
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSort2(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {
@@ -3520,7 +3518,7 @@ namespace ext {
 // second vector is reversed and fused with first vector
 // we don't have to reverse b after the compare-swap since it is
 // bitonic
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicFusion(Vec<T, SIMD_WIDTH> &a,
                                       Vec<T, SIMD_WIDTH> &b)
 {
@@ -3533,7 +3531,7 @@ static SIMD_INLINE void bitonicFusion(Vec<T, SIMD_WIDTH> &a,
 // given sorted vectors as inputs, it fuses each consecutive pair
 // such it is completely sorted over the pair
 // with transpose
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortSortedPairs(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {
@@ -3549,7 +3547,7 @@ static SIMD_INLINE void bitonicSortSortedPairs(
 // given sorted vectors as inputs, it fuses each consecutive pair
 // such it is completely sorted over the pair
 // with transpose2
-template <int SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortSortedPairs2(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {

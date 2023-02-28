@@ -1945,7 +1945,7 @@ struct BitonicSort
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
-    bitonicSort<SLOPE>(vecs);
+    bitonicSort<static_cast<SortSlope>(SLOPE)>(vecs);
   }
 };
 
@@ -1970,7 +1970,7 @@ struct BitonicSort2
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
-    bitonicSort2<SLOPE>(vecs);
+    bitonicSort2<static_cast<SortSlope>(SLOPE)>(vecs);
   }
 };
 
@@ -1989,13 +1989,13 @@ struct BitonicSortSortedPairs
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
-    vec.randomizeSorted(SLOPE);
+    vec.randomizeSorted(static_cast<SortSlope>(SLOPE));
   }
 
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
-    bitonicSortSortedPairs<SLOPE>(vecs);
+    bitonicSortSortedPairs<static_cast<SortSlope>(SLOPE)>(vecs);
   }
 };
 
@@ -2014,13 +2014,13 @@ struct BitonicSortSortedPairs2
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
-    vec.randomizeSorted(SLOPE);
+    vec.randomizeSorted(static_cast<SortSlope>(SLOPE));
   }
 
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
-    bitonicSortSortedPairs2<SLOPE>(vecs);
+    bitonicSortSortedPairs2<static_cast<SortSlope>(SLOPE)>(vecs);
   }
 };
 

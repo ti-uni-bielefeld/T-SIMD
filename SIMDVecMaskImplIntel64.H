@@ -52,11 +52,11 @@ namespace simd {
     {                                                                          \
       k = 0;                                                                   \
     }                                                                          \
-    Mask(const __mmask##MASK_SIZE &x)                                          \
+    SIMD_INLINE Mask(const __mmask##MASK_SIZE &x)                              \
     {                                                                          \
       k = x;                                                                   \
     }                                                                          \
-    explicit Mask(const Vec<TYPE, 64> &x)                                      \
+    explicit SIMD_INLINE Mask(const Vec<TYPE, 64> &x)                          \
     {                                                                          \
       k = msb2int(x);                                                          \
     }                                                                          \
@@ -65,19 +65,19 @@ namespace simd {
       k = x;                                                                   \
       return *this;                                                            \
     }                                                                          \
-    operator __mmask##MASK_SIZE() const                                        \
+    SIMD_INLINE operator __mmask##MASK_SIZE() const                            \
     {                                                                          \
       return k;                                                                \
     }                                                                          \
-    operator Vec<TYPE, 64>() const                                             \
+    explicit SIMD_INLINE operator Vec<TYPE, 64>() const                        \
     {                                                                          \
       return int2bits<TYPE, 64>(k);                                            \
     }                                                                          \
-    bool operator[](const uint8_t i) const                                     \
+    SIMD_INLINE bool operator[](const uint8_t i) const                         \
     {                                                                          \
       return ((1lu << i) & k) != 0;                                            \
     }                                                                          \
-    bool operator==(const Mask<TYPE, 64> &x) const                             \
+    SIMD_INLINE bool operator==(const Mask<TYPE, 64> &x) const                 \
     {                                                                          \
       return k == x;                                                           \
     }                                                                          \

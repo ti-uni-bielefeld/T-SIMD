@@ -137,9 +137,11 @@ flags_archspec = $(userdefs_avx512) -pthread
 # os dependent definitions
 ifeq ($(OS),Windows_NT) 
 RM = del /Q /F
+RMDIR = rmdir /S /Q
 NULL = NUL
 else
 RM = rm -f
+RMDIR = rm -rf
 NULL = /dev/null
 endif
 
@@ -210,11 +212,12 @@ endif
 
 .PHONY: clean
 clean:
-	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files and backup files
+	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, backup files and html/ documentation directory
 	@$(RM) $(all_objects) $(all_binaries) $(depend_files) \
 		$(addsuffix .exe,$(all_binaries)) \
 		$(addsuffix .ilk,$(all_binaries)) $(addsuffix .pdb,$(all_binaries)) \
 		*~ >$(NULL) 2>&1
+	@$(RMDIR) html/ >$(NULL) 2>&1
 
 .PHONY: info
 info:
@@ -256,5 +259,11 @@ dep: ;
 format:
 	@echo "formatting all .C and .H files"
 	@clang-format -i *.C *.H
+
+# 02. Mar 23 (Jonas Keller): added documenation rule
+.PHONY: documentation doc
+doc documentation:
+	@echo "generating documentation"
+	@doxygen
 
 -include $(depend_files)

@@ -105,6 +105,7 @@ mask_add(const Vec<Float, SIMD_WIDTH> &src,
 #include <stdint.h>
 
 namespace simd {
+/// @cond
 template <typename T, int SIMD_WIDTH>
 class Mask
 {
@@ -118,11 +119,6 @@ public:
   SIMD_INLINE Mask<T, SIMD_WIDTH>(const uint64_t x)
     : mask(int2bits<T, SIMD_WIDTH>(x))
   {}
-  SIMD_INLINE Mask<T, SIMD_WIDTH> &operator=(const uint64_t x)
-  {
-    mask = int2bits<T, SIMD_WIDTH>(x);
-    return *this;
-  }
   explicit SIMD_INLINE operator Vec<T, SIMD_WIDTH>() const { return mask; }
   SIMD_INLINE operator uint64_t() const { return msb2int<T, SIMD_WIDTH>(mask); }
   SIMD_INLINE bool operator[](const int i) const
@@ -152,6 +148,7 @@ public:
   }
   void operator delete[](void *p) { simd_aligned_free(p); }
 };
+/// @endcond
 
 namespace internal {
 namespace mask {

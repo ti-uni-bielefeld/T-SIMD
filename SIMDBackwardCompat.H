@@ -39,9 +39,7 @@
 namespace simd {
 
 /**
- * @ingroup types
- * @defgroup aliases Aliases For SIMD Types For Backward Compatibility
- *
+ * @addtogroup group_aliases
  * @{
  */
 
@@ -117,7 +115,7 @@ static constexpr SIMD_INLINE int numOutputSIMDVecs()
 #ifdef DOXYGEN
 // doxygen doesn't understand namespace aliases
 /**
- * @ingroup aliases
+ * @ingroup group_aliases
  * @brief Alias for @ref simd.
  */
 namespace ns_simd {}

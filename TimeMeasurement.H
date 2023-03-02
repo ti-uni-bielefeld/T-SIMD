@@ -88,7 +88,7 @@ static int lc_set_errno(int result)
  *     CLOCK_THREAD_CPUTIME_ID  Thread-specific CPU-time clock.
  * </pre>
  * @param  tp The pointer to a timespec structure to receive the time.
- * @return If the function succeeds, the return value is 0.
+ * @return If the function succeeds, the return value is 0
  *         If the function fails, the return value is -1,
  *         with errno set to indicate the error.
  */
@@ -158,19 +158,7 @@ int clock_gettime(clockid_t clock_id, struct timespec *tp)
 
 namespace simd {
 /**
- * @defgroup time_measurements Time Measurement Functions
- * @brief Functions for measuring time.
- *
- * These may be useful to measure the time spent for a section of code.
- *
- * Example:
- * @code
- * struct timespec start = getTimeSpecMonotonic();
- * // do something
- * struct timespec end = getTimeSpecMonotonic();
- * long int diff_ns = diffTimeSpecNsec(end, start);
- * std::cout << "Time spent: " << diff_ns << "ns" << std::endl;
- * @endcode
+ * @addtogroup group_time_measurements
  * @{
  */
 
@@ -193,7 +181,7 @@ getTimeUsec()
  * @warning This clock has a resolution of 100ns on some systems
  * (e.g. Windows).
  *
- * @return The current value of this processes CPU time clock.
+ * @return current value of this processes CPU time clock
  */
 struct timespec getTimeSpec()
 {
@@ -205,7 +193,7 @@ struct timespec getTimeSpec()
 /**
  * @brief Get the current value of the system-wide real-time clock.
  *
- * @return The current value of the system-wide real-time clock.
+ * @return current value of the system-wide real-time clock
  */
 struct timespec getTimeSpecMonotonic()
 {
@@ -221,11 +209,10 @@ struct timespec getTimeSpecMonotonic()
 /**
  * @brief Subtracts two timespecs.
  *
- * @param[in] xx The first timespec.
- * @param[in] yy The second timespec.
- * @param[out] result The result of the subtraction.
- *
- * @return 1 if the difference is negative, otherwise 0.
+ * @param[in] xx first timespec
+ * @param[in] yy second timespec
+ * @param[out] result result of the subtraction
+ * @return 1 if the difference is negative, otherwise 0
  */
 int timespec_subtract(const struct timespec &xx, const struct timespec &yy,
                       struct timespec &result)
@@ -255,9 +242,9 @@ int timespec_subtract(const struct timespec &xx, const struct timespec &yy,
  * @brief Converts a timespec to microseconds. Intended for results of
  * timespec_subtract.
  *
- * @param[in] x The timespec to convert.
+ * @param[in] x timespec to convert
  *
- * @return The timespec converted to microseconds.
+ * @return timespec converted to microseconds
  */
 double timespec_usec(const struct timespec &x)
 {
@@ -267,9 +254,9 @@ double timespec_usec(const struct timespec &x)
 /**
  * @brief Computes the difference between two timespec's in microseconds.
  *
- * @param x The first timespec.
- * @param y The second timespec.
- * @return The difference between the two timespec's in microseconds.
+ * @param x first timespec
+ * @param y second timespec
+ * @return difference between the two timespec's in microseconds
  */
 double timeSpecDiffUsec(const struct timespec &x, const struct timespec &y)
 {
@@ -289,9 +276,9 @@ double timeSpecDiffUsec(const struct timespec &x, const struct timespec &y)
  * @warning May overflow on platforms where long is 32 bits if the difference
  * is more than 2 seconds.
  *
- * @param x The first timespec.
- * @param y The second timespec.
- * @return The difference between the two timespec's in nanoseconds.
+ * @param x first timespec
+ * @param y second timespec
+ * @return difference between the two timespec's in nanoseconds
  */
 long int timeSpecDiffNsec(const struct timespec &x, const struct timespec &y)
 {
@@ -300,7 +287,7 @@ long int timeSpecDiffNsec(const struct timespec &x, const struct timespec &y)
   return 1000000000L * diff.tv_sec + diff.tv_nsec;
 }
 
-/** @} */ // end of group time_measurements
+/** @} */
 
 } // namespace simd
 

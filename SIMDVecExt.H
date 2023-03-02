@@ -85,23 +85,21 @@ static constexpr SIMD_INLINE unsigned floorlog2(unsigned x)
 // }
 
 /**
- * @defgroup print Print Functions
- * @brief Functions to print the elements of a Vec.
+ * @addtogroup group_print
  * @{
  */
 
 /**
- * @brief Writes the formatted elements of a SIMD vector to a file.
+ * @brief Writes the formatted elements of a Vec to a file.
  *
  * The elements are formatted using the format string and written to
  * the file using the fprintf function of the C standard library in the order
  * they are stored in memory.
  *
- * @param f The file to write to.
- * @param format The format string. Must be a valid format string to print a
- * single element of the SIMD vector using the fprintf function of the C
- * standard library.
- * @param vec The SIMD vector to print.
+ * @param f file to write to
+ * @param format format string Must be a valid format string to print a single
+ * element of the Vec using the fprintf function of the C standard library
+ * @param vec Vec to print
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void fprint(FILE *f, const char *format,
@@ -124,15 +122,14 @@ static SIMD_INLINE void fprint(FILE *f, const char *format,
 }
 
 /**
- * @brief Writes the formatted elements of a SIMD vector to stdout.
+ * @brief Writes the formatted elements of a Vec to stdout.
  *
  * Equivalent to calling fprint(FILE *f, const char *format,
  * const Vec<T,SIMD_WIDTH> &vec) with stdout as the file.
  *
- * @param format The format string. Must be a valid format string to print a
- * single element of the SIMD vector using the fprintf function of the C
- * standard library.
- * @param vec The SIMD vector to print.
+ * @param format format string Must be a valid format string to print a single
+ * element of the Vec using the fprintf function of the C standard library
+ * @param vec Vec to print
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void print(const char *format, const Vec<T, SIMD_WIDTH> &vec)
@@ -141,19 +138,18 @@ static SIMD_INLINE void print(const char *format, const Vec<T, SIMD_WIDTH> &vec)
 }
 
 /**
- * @brief Writes the formatted elements of a SIMD vector to a file separated
+ * @brief Writes the formatted elements of a Vec to a file separated
  * by a separator string.
  *
  * Equivalent to calling fprint(FILE *f, const char *format,
  * const Vec<T,SIMD_WIDTH> &vec) with a format string
  * consisting of the format string and the separator string.
  *
- * @param f The file to write to.
- * @param format The format string. Must be a valid format string to print a
- * single element of the SIMD vector using the fprintf function of the C
- * standard library.
- * @param separator The separator string.
- * @param vec The SIMD vector to print.
+ * @param f file to write to
+ * @param format format string Must be a valid format string to print a single
+ * element of the Vec using the fprintf function of the C standard library
+ * @param separator separator string
+ * @param vec Vec to print
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void fprint(FILE *f, const char *format,
@@ -169,18 +165,17 @@ static SIMD_INLINE void fprint(FILE *f, const char *format,
 }
 
 /**
- * @brief Writes the formatted elements of a SIMD vector to stdout separated
+ * @brief Writes the formatted elements of a Vec to stdout separated
  * by a separator string.
  *
  * Equivalent to calling fprint(FILE *f, const char *format,
  * const char *separator, const Vec<T,SIMD_WIDTH> &vec) with stdout as
  * the file.
  *
- * @param format The format string. Must be a valid format string to print a
- * single element of the SIMD vector using the fprintf function of the C
- * standard library.
- * @param separator The separator string.
- * @param vec The SIMD vector to print.
+ * @param format format string Must be a valid format string to print a single
+ * element of the Vec using the fprintf function of the C standard library
+ * @param separator separator string
+ * @param vec Vec to print
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void print(const char *format, const char *separator,
@@ -189,32 +184,21 @@ static SIMD_INLINE void print(const char *format, const char *separator,
   fprint(stdout, format, separator, vec);
 }
 
-/** @} */ // end of group print
-
-/**
- * @defgroup ext_memory Extension Memory Functions
- * @brief Functions to load and store Vec's from and to memory.
- * @{
- */
+/** @} */
 
 // ===========================================================================
 // multi-vector store and load
 // ===========================================================================
 
 /**
- * @name Load and store functions for multiple Vec's
- * @{
- */
-
-/**
+ * @ingroup group_memory_load
  * @brief Loads multiple successive Vec's from aligned memory.
  *
  * The memory location must be aligned to the SIMD_WIDTH.
  *
- * @param[in] p A pointer to the aligned memory location to load from.
- * @param[out] inVecs An array of Vec's to store the loaded
- * values in.
- * @param numInVecs The number of Vec's to load.
+ * @param[in] p pointer to the aligned memory location to load from
+ * @param[out] inVecs array of Vec's to store the loaded values in
+ * @param numInVecs number of Vec's to load
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void load(const T *const p, Vec<T, SIMD_WIDTH> inVecs[],
@@ -226,16 +210,15 @@ static SIMD_INLINE void load(const T *const p, Vec<T, SIMD_WIDTH> inVecs[],
 }
 
 /**
+ * @ingroup group_memory_load
  * @brief Loads multiple successive Vec's from unaligned memory.
  *
- * In contrast to load(const T *const p, Vec<T, SIMD_WIDTH> *inVecs, int
- * numInVecs), the memory location does not need to be aligned to any
- * boundary.
+ * In contrast to load(const T *const, Vec<T, SIMD_WIDTH>[], int), the memory
+ * location does not need to be aligned to any boundary.
  *
- * @param[in] p A pointer to the memory location to load from.
- * @param[out] inVecs An array of Vec's to store the loaded
- * values in.
- * @param numInVecs The number of Vec's to load.
+ * @param[in] p pointer to the memory location to load from
+ * @param[out] inVecs array of Vec's to store the loaded values in
+ * @param numInVecs number of Vec's to load
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void loadu(const T *const p, Vec<T, SIMD_WIDTH> inVecs[],
@@ -247,13 +230,14 @@ static SIMD_INLINE void loadu(const T *const p, Vec<T, SIMD_WIDTH> inVecs[],
 }
 
 /**
+ * @ingroup group_memory_store
  * @brief Stores multiple successive Vec's to aligned memory.
  *
  * The memory location must be aligned to the SIMD_WIDTH.
  *
- * @param[out] p A pointer to the aligned memory location to store to.
- * @param[in] outVecs An array of Vec's to store.
- * @param numOutVecs The number of Vec's to store.
+ * @param[out] p pointer to the aligned memory location to store to
+ * @param[in] outVecs array of Vec's to store
+ * @param numOutVecs number of Vec's to store
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> outVecs[],
@@ -265,15 +249,15 @@ static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> outVecs[],
 }
 
 /**
+ * @ingroup group_memory_store
  * @brief Stores multiple successive Vec's to unaligned memory.
  *
- * In contrast to store(T *const p, const Vec<T, SIMD_WIDTH> *outVecs, int
- * numOutVecs), the memory location does not need to be aligned to any
- * boundary.
+ * In contrast to store(T *const, const Vec<T, SIMD_WIDTH>[], int), the memory
+ * location does not need to be aligned to any boundary.
  *
- * @param[out] p A pointer to the memory location to store to.
- * @param[in] outVecs An array of Vec's to store.
- * @param numOutVecs The number of Vec's to store.
+ * @param[out] p pointer to the memory location to store to
+ * @param[in] outVecs array of Vec's to store
+ * @param numOutVecs number of Vec's to store
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> outVecs[],
@@ -284,15 +268,15 @@ static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> outVecs[],
     storeu(p + off, outVecs[vo]);
 }
 
-// store single vector multiple times
 /**
+ * @ingroup group_memory_store
  * @brief Stores a single Vec multiple times to aligned memory.
  *
  * The memory location must be aligned to the SIMD_WIDTH.
  *
- * @param[out] p A pointer to the aligned memory location to store to.
- * @param[in] outVec The Vec to store.
- * @param numOutVecs The number of times to store the Vec.
+ * @param[out] p pointer to the aligned memory location to store to
+ * @param[in] outVec Vec to store
+ * @param numOutVecs number of times to store the Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> &outVec,
@@ -303,17 +287,17 @@ static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> &outVec,
     store(p + off, outVec);
 }
 
-// store single vector multiple times (unaligned)
 /**
+ * @ingroup group_memory_store
  * @brief Stores a single Vec multiple times to unaligned memory.
  *
  * In contrast to store(T *const p, const Vec<T, SIMD_WIDTH> &outVec, int
  * numOutVecs), the memory location does not need to be aligned to any
  * boundary.
  *
- * @param[out] p A pointer to the memory location to store to.
- * @param[in] outVec The Vec to store.
- * @param numOutVecs The number of times to store the Vec.
+ * @param[out] p pointer to the memory location to store to
+ * @param[in] outVec Vec to store
+ * @param numOutVecs number of times to store the Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> &outVec,
@@ -427,14 +411,12 @@ static SIMD_INLINE void storeu16(T *const p, const Vec<T, SIMD_WIDTH> *outVecs)
                          storeStop, SIMD_WIDTH, 0, 0>::_store16(p, outVecs);
 }
 
-/** @} */
-
 // ===========================================================================
 // copy (load and store)
 // ===========================================================================
 
 /**
- * @name Copy
+ * @addtogroup group_memory
  * @{
  */
 
@@ -444,8 +426,8 @@ static SIMD_INLINE void storeu16(T *const p, const Vec<T, SIMD_WIDTH> *outVecs)
  *
  * Both memory locations must be aligned to the SIMD_WIDTH.
  *
- * @param[in] src A pointer to the aligned source memory location.
- * @param[out] dst A pointer to the aligned destination memory location.
+ * @param[in] src pointer to the aligned source memory location
+ * @param[out] dst pointer to the aligned destination memory location
  */
 template <int SIMD_WIDTH, typename T>
 static SIMD_INLINE void load_store(const T *const src, T *const dst)
@@ -461,8 +443,8 @@ static SIMD_INLINE void load_store(const T *const src, T *const dst)
  * The destination memory location must be aligned to the SIMD_WIDTH, the
  * source memory location does not have to be aligned to any boundary.
  *
- * @param[in] src A pointer to the unaligned source memory location.
- * @param[out] dst A pointer to the aligned destination memory location.
+ * @param[in] src pointer to the unaligned source memory location
+ * @param[out] dst pointer to the aligned destination memory location
  */
 template <int SIMD_WIDTH, typename T>
 static SIMD_INLINE void loadu_store(const T *const src, T *const dst)
@@ -478,8 +460,8 @@ static SIMD_INLINE void loadu_store(const T *const src, T *const dst)
  * The source memory location must be aligned to the SIMD_WIDTH, the
  * destination memory location does not have to be aligned to any boundary.
  *
- * @param[in] src A pointer to the aligned source memory location.
- * @param[out] dst A pointer to the unaligned destination memory location.
+ * @param[in] src pointer to the aligned source memory location
+ * @param[out] dst pointer to the unaligned destination memory location
  */
 template <int SIMD_WIDTH, typename T>
 static SIMD_INLINE void load_storeu(const T *const src, T *const dst)
@@ -494,8 +476,8 @@ static SIMD_INLINE void load_storeu(const T *const src, T *const dst)
  *
  * Both memory locations do not have to be aligned to any boundary.
  *
- * @param[in] src A pointer to the unaligned source memory location.
- * @param[out] dst A pointer to the unaligned destination memory location.
+ * @param[in] src pointer to the unaligned source memory location
+ * @param[out] dst pointer to the unaligned destination memory location
  */
 template <int SIMD_WIDTH, typename T>
 static SIMD_INLINE void loadu_storeu(const T *const src, T *const dst)
@@ -505,8 +487,6 @@ static SIMD_INLINE void loadu_storeu(const T *const src, T *const dst)
 }
 
 /** @} */
-
-/** @} */ // end of group ext_memory
 
 // ===========================================================================
 // generalized packs
@@ -574,10 +554,10 @@ static SIMD_INLINE Vec<Int, SIMD_WIDTH> packs(const Vec<Float, SIMD_WIDTH> a[1],
 } // namespace ext
 } // namespace internal
 
-// hub
 // generalized version of packs: includes multistage packing
 
 /**
+ * @ingroup group_type_conversion
  * @brief Packs multiple Vec's into a single Vec by converting the
  * elements into smaller or equally sized types.
  *
@@ -590,10 +570,10 @@ static SIMD_INLINE Vec<Int, SIMD_WIDTH> packs(const Vec<Float, SIMD_WIDTH> a[1],
  * @sa packs(const Vec<Tin, SIMD_WIDTH>&, const Vec<Tin,
  * SIMD_WIDTH>&)
  *
- * @tparam Tout The type of the resulting Vec.
- * @tparam Tin The type of the input Vec's.
- * @param[in] a An array of input Vec's.
- * @return A Vec with the packed elements.
+ * @tparam Tout type of the resulting Vec
+ * @tparam Tin type of the input Vec's
+ * @param[in] a array of input Vec's
+ * @return Vec with the packed elements
  */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(
@@ -655,7 +635,27 @@ static SIMD_INLINE void convert(
 } // namespace ext
 } // namespace internal
 
-// hub
+/**
+ * @ingroup group_type_conversion
+ * @brief Converts (potentially multiple) Vec's between different types.
+ *
+ * Combines extend() and packs().
+ *
+ * TODO: allowed types
+ *
+ * If the input and output types are of the same size, both the input and
+ * output are just one Vec. If the types are of different sizes, the input or
+ * output consists of multiple Vec's, such that the number of input elements
+ * is equal to the number of output elements.
+ *
+ * @sa extend()
+ * @sa packs()
+ *
+ * @tparam Tout element type of the output Vec's
+ * @tparam Tin element type of the input Vec's
+ * @param[in] inVecs input Vec's
+ * @param[out] outVecs output Vec's
+ */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE void convert(
   const Vec<Tin, SIMD_WIDTH> inVecs[numInVecs<Tout, Tin>()],
@@ -667,6 +667,11 @@ static SIMD_INLINE void convert(
 // ===========================================================================
 // float-based operations on arbitrary input and output types
 // ===========================================================================
+
+/**
+ * @addtogroup group_fops
+ * @{
+ */
 
 // TODO: is there a way to fuse the three cases in fdivmul/...?
 
@@ -747,17 +752,25 @@ static SIMD_INLINE void fdivmul(CompareEqual,
 } // namespace ext
 } // namespace internal
 
-// hub
+/**
+ * @brief Divides Vec's element-wise, then multiplies with a constant factor in
+ * floating point arithmetic.
+ *
+ * @param[in] vecsNum numerator Vec's
+ * @param[in] vecsDenom denominator Vec's
+ * @param fac factor to multiply with
+ * @param[out] vecsOut output Vec's
+ * @sa numInVecs(), numOutVecs()
+ */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fdivmul(const Vec<Tin, SIMD_WIDTH> *const vecsNum,
-                                const Vec<Tin, SIMD_WIDTH> *const vecsDenom,
-                                double fac,
-                                Vec<Tout, SIMD_WIDTH> *const vecsOut)
+static SIMD_INLINE void fdivmul(
+  const Vec<Tin, SIMD_WIDTH> vecsNum[numInVecs<Tout, Tin>()],
+  const Vec<Tin, SIMD_WIDTH> vecsDenom[numInVecs<Tout, Tin>()], double fac,
+  Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   internal::ext::fdivmul(internal::CompareTypes<Tout, Tin>(), vecsNum,
                          vecsDenom, fac, vecsOut);
 }
-
 // ---------------------------------------------------------------------------
 // divide, apply multidimensional sigmoid and then multiply with float
 // constant in float arithmetic (derived from fdivmul)
@@ -876,7 +889,6 @@ static SIMD_INLINE void fdivMsigmoidmul(
 } // namespace ext
 } // namespace internal
 
-// hub
 template <int DIM, int NVEC, typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE void fdivMsigmoidmul(
   const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
@@ -957,7 +969,14 @@ static SIMD_INLINE void fmul(CompareEqual, const Vec<Tin, SIMD_WIDTH> vecsIn[1],
 } // namespace ext
 } // namespace internal
 
-// hub
+/**
+ * @brief Multiplies Vec's element-wise with a float constant in float
+ * arithmetic.
+ *
+ * @param[in] vecsIn input Vec's
+ * @param fac factor
+ * @param[out] vecsOut output Vec's
+ */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE void fmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double fac,
@@ -1038,7 +1057,15 @@ static SIMD_INLINE void faddmul(CompareEqual,
 } // namespace ext
 } // namespace internal
 
-// hub
+/**
+ * @brief Adds a float constant to the elements of Vec's, then multiplies with a
+ * float constant in floating point arithmetic
+ *
+ * @param[in] vecsIn input Vec's
+ * @param off float constant to add
+ * @param fac float constant to multiply with
+ * @param[out] vecsOut output Vec's
+ */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE void faddmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double off,
@@ -1121,7 +1148,15 @@ static SIMD_INLINE void fmuladd(CompareEqual,
 } // namespace ext
 } // namespace internal
 
-// hub
+/**
+ * @brief Multiplies the elements of Vec's with a float constant, then adds a
+ * float constant in floating point arithmetic
+ *
+ * @param[in] vecsIn input Vec's
+ * @param fac float constant to multiply with
+ * @param off float constant to add
+ * @param[out] vecsOut output Vec's
+ */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE void fmuladd(
   const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double fac,
@@ -1214,7 +1249,20 @@ static SIMD_INLINE void fwaddmul(CompareEqual,
 } // namespace ext
 } // namespace internal
 
-// hub
+/**
+ * @brief Linearly interpolates Vec's element-wise with a constant weight and
+ * then scales by a constant factor in floating point arithmetic.
+ *
+ * The result is calculated as:
+ * <tt>out = fac * (w * v1 + (1 - w) * v2)</tt>
+ * (implemented as <tt>out = fac * (v2 + w * (v1 - v2))</tt>).
+ *
+ * @param[in] vecsIn1 first input Vec's
+ * @param[in] vecsIn2 second input Vec's
+ * @param w interpolation weight
+ * @param fac scaling factor
+ * @param[out] vecsOut output Vec's
+ */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE void fwaddmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn1[numInVecs<Tout, Tin>()],
@@ -1225,20 +1273,16 @@ static SIMD_INLINE void fwaddmul(
                           w, fac, vecsOut);
 }
 
+/** @} */
+
 /**
- * @defgroup ext_horizontal Additional Horizontal Functions
- * @brief Additional Horizontal Functions
+ * @addtogroup group_horizontal
  * @{
  */
 
 // ===========================================================================
 // horizontal add/adds/sub/subs: generic form for multiple vector inputs
 // ===========================================================================
-
-/**
- * @name Horizontal addition and subtraction for multiple vector inputs
- * @{
- */
 
 // TODO: is there an easy way to implement multivec horizontal min/max?
 // TODO: (Hackers delight: min/max via doz = hsubs?)
@@ -1321,10 +1365,9 @@ public:
  * @brief Sums the elements of multiple Vec's independently and returns a
  * Vec with the results.
  *
- * @param[in] v Array of Vec's to be summed. The number of Vec's
- * must be equal to the number of elements in a Vec
- * (<tt>SIMD_WIDTH / sizeof(T)</tt>).
- * @return Vec with the results of the horizontal sums.
+ * @param[in] v array of Vec's to be summed. The number of Vec's must be equal
+ * to the number of elements in a Vec
+ * @return Vec with the results of the horizontal sums
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(
@@ -1340,10 +1383,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(
  * @brief Sums the elements of multiple Vec's independently using
  * saturated arithmetic and returns a Vec with the results.
  *
- * @param[in] v Array of Vec's to be summed. The number of Vec's
- * must be equal to the number of elements in a Vec
- * (<tt>SIMD_WIDTH / sizeof(T)</tt>).
- * @return Vec with the results of the saturated horizontal sums.
+ * @param[in] v array of Vec's to be summed
+ * @return Vec with the results of the saturated horizontal sums
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(
@@ -1371,16 +1412,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(
                                    (Vec<T, SIMD_WIDTH>::elems) / 2>::_hsubs(v);
 }
 
-/** @} */
-
 // ===========================================================================
 // horizontal operations (generic form for single vector input)
 // ===========================================================================
-
-/**
- * @name Horizontal operations on a single Vec
- * @{
- */
 
 // these operations are not fully parallel!
 
@@ -1471,8 +1505,8 @@ public:
 /**
  * @brief Adds all elements of a Vec.
  *
- * @param v The input Vec.
- * @return The sum of all elements of the Vec.
+ * @param v input Vec
+ * @return sum of all elements of the Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE T hadd(const Vec<T, SIMD_WIDTH> &v)
@@ -1485,8 +1519,8 @@ static SIMD_INLINE T hadd(const Vec<T, SIMD_WIDTH> &v)
 /**
  * @brief Adds all elements of a Vec using saturated arithmetic.
  *
- * @param v The Vec to add all elements of.
- * @return The saturated sum of all elements of the Vec.
+ * @param v Vec to add all elements of
+ * @return saturated sum of all elements of the Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE T hadds(const Vec<T, SIMD_WIDTH> &v)
@@ -1517,8 +1551,8 @@ static SIMD_INLINE T hsubs(const Vec<T, SIMD_WIDTH> &v)
 /**
  * @brief Calculates the minimum of all elements of a Vec.
  *
- * @param v The Vec to calculate the minimum of all elements of.
- * @return The minimum of all elements of the Vec.
+ * @param v Vec to calculate the minimum of all elements of
+ * @return minimum of all elements of the Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE T hmin(const Vec<T, SIMD_WIDTH> &v)
@@ -1531,8 +1565,8 @@ static SIMD_INLINE T hmin(const Vec<T, SIMD_WIDTH> &v)
 /**
  * @brief Calculates the maximum of all elements of a Vec.
  *
- * @param v The Vec to calculate the maximum of all elements of.
- * @return The maximum of all elements of the Vec.
+ * @param v Vec to calculate the maximum of all elements of
+ * @return maximum of all elements of the Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE T hmax(const Vec<T, SIMD_WIDTH> &v)
@@ -1544,10 +1578,8 @@ static SIMD_INLINE T hmax(const Vec<T, SIMD_WIDTH> &v)
 
 /** @} */
 
-/** @} */ // end of group ext_horizontal
-
 /**
- * @defgroup ext_math Additional Math Functions
+ * @addtogroup group_arithmetic
  * @{
  */
 
@@ -1607,10 +1639,10 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> avgrd(const Vec<Float, SIMD_WIDTH> &a,
 /**
  * @brief Computes the average of the elements of two Vecs, rounding down.
  *
- * @param a First Vec.
- * @param b Second Vec.
- * @return A Vec containing the rounded down average of the elements of
- * the two input Vec's.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the rounded down average of the elements of the two
+ * input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
@@ -1677,9 +1709,8 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> div2r0(
  * Only rounds the result to 0 for integer types. For floating point types
  * the result is not rounded.
  *
- * @param a The input Vec.
- *
- * @return The result of the division.
+ * @param a input Vec
+ * @return result of the division
  *
  * @sa div2rd()
  */
@@ -1744,9 +1775,8 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> div2rd(
  * Only rounds down the result for integer types. For floating point types
  * the result is not rounded.
  *
- * @param a The input Vec.
- *
- * @return The result of the division.
+ * @param a input Vec
+ * @return result of the division
  *
  * @sa div2r0()
  */
@@ -1769,10 +1799,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> div2rd(const Vec<T, SIMD_WIDTH> &a)
  * corresponding element of a second Vec of Float's is negative.
  * @note Contrary to IEEE 754, this function considers -0.0f to be negative.
  *
- * @param a The Vec of Float's to be negated.
- * @param b The Vec of Float's that determines which elements of a are
- * negated.
- * @return The resulting Vec of Float's.
+ * @param a Vec of Float's to be negated
+ * @param b Vec of Float's that determines which elements of a are negated
+ * @return resulting Vec of Float's
  */
 template <int SIMD_WIDTH>
 static SIMD_INLINE Vec<Float, SIMD_WIDTH> sign(const Vec<Float, SIMD_WIDTH> &a,
@@ -1847,10 +1876,10 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> absDiff(
 /**
  * @brief Computes the absolute difference of the elements of two Vec's.
  *
- * @param v1 The first Vec.
- * @param v2 The second Vec.
- * @return A Vec containing the absolute difference of the elements of the
- * two input Vec's.
+ * @param v1 first Vec
+ * @param v2 second Vec
+ * @return Vec containing the absolute difference of the elements of the two
+ * input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> absDiff(const Vec<T, SIMD_WIDTH> &v1,
@@ -1859,7 +1888,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> absDiff(const Vec<T, SIMD_WIDTH> &v1,
   return internal::ext::absDiff(v1, v2);
 }
 
-/** @} */ // end of group ext_math
+/** @} */
 
 // ===========================================================================
 // transpose
@@ -2000,6 +2029,7 @@ static SIMD_INLINE void transpose(
 // function template: full transpose
 
 /**
+ * @ingroup group_transpose
  * @brief Transposes a matrix held in an array of Vec's.
  *
  * The matrix must be given as an array of Vec's which are the rows of
@@ -2007,11 +2037,8 @@ static SIMD_INLINE void transpose(
  * in a Vec (<tt>SIMD_WIDTH/sizeof(T)</tt>), i.e. the matrix must be
  * square.
  *
- * @param[in] inRows Pointer to array of Vec's holding the matrix to be
- * transposed. Must contain <tt>SIMD_WIDTH/sizeof(T)</tt> Vec's.
- * @param[out] outRows Pointer to array of Vec's where the transposed
- * matrix is stored. Must have space for <tt>SIMD_WIDTH/sizeof(T)</tt>
- * Vec's.
+ * @param[in] inRows array of Vec's holding the matrix to be transposed
+ * @param[out] outRows array of Vec's where the transposed matrix is stored
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose(
@@ -2327,7 +2354,49 @@ static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
 } // namespace ext
 } // namespace internal
 
-// v has to have length 2*N
+/**
+ * @ingroup group_swizzle
+ * @brief Swizzle/de-interleave/convert from AoS to SoA multiple Vec's in-place.
+ *
+ * This function swizzles/de-interleaves/converts from AoS (Array of Structs) to
+ * SoA (Struct of Arrays) multiple Vec's in-place.
+ *
+ * In contrast to swizzle(), this function takes double the number of Vec's as
+ * input and might be faster.
+ *
+ * <h4>Example:</h4>
+ * Example for a swizzle distance of 3 with 6 Vec's of 8 elements each:
+ *
+ * input stream (structures indicated by curly brackets):
+ * @code
+ * {0 1 2} {3 4 5} {6 7 8} {9 10 11} ... {45 46 47}
+ * @endcode
+ * input vectors:
+ * @code
+ * v[0] =  0  1  2  3  4  5  6  7
+ * v[1] =  8  9 10 11 12 13 14 15
+ * v[2] = 16 17 18 19 20 21 22 23
+ * v[3] = 24 25 26 27 28 29 30 31
+ * v[4] = 32 33 34 35 36 37 38 39
+ * v[5] = 40 41 42 43 44 45 46 47
+ * @endcode
+ * output vectors:
+ * @code
+ * v[0] =  0  6 12 18 24 30 36 42
+ * v[1] =  1  7 13 19 25 31 37 43
+ * v[2] =  2  8 14 20 26 32 38 44
+ * v[3] =  3  9 15 21 27 33 39 45
+ * v[4] =  4 10 16 22 28 34 40 46
+ * v[5] =  5 11 17 23 29 35 41 47
+ * @endcode
+ *
+ * @tparam N swizzle distance, must be between 1 and 5
+ * @param[in,out] v array of Vec's to swizzle
+ *
+ * @sa swizzle(): swizzles half the number of Vec's as this function
+ * @sa swizzle2(), swizzle3(), swizzle4(): different implementations of this
+ * function that might have different performance characteristics
+ */
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
 {
@@ -2395,6 +2464,10 @@ static SIMD_INLINE void swizzle3(Vec<T, SIMD_WIDTH> v[2 * N])
 } // namespace ext
 } // namespace internal
 
+/**
+ * @copydoc swizzle2()
+ * @ingroup group_swizzle
+ */
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void swizzle3(Vec<T, SIMD_WIDTH> v[2 * N])
 {
@@ -2573,6 +2646,10 @@ public:
 
 // 15. Oct 22 (Jonas Keller): added swizzle4 wrapper function
 
+/**
+ * @copydoc swizzle2()
+ * @ingroup group_swizzle
+ */
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void swizzle4(Vec<T, SIMD_WIDTH> v[2 * N])
 {
@@ -3227,9 +3304,10 @@ static SIMD_INLINE void unswizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
 // ===========================================================================
 
 /**
+ * @ingroup group_init
  * @brief Sets all bits of a Vec to 1.
  *
- * @return A Vec with all bits set to 1.
+ * @return Vec with all bits set to 1
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setones()
@@ -3323,11 +3401,11 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> setnegunity(
 // ---------- hubs ----------
 
 /**
+ * @ingroup group_init
  * @brief Sets all elements of a Vec to the minimum value of the element
  * type.
  *
- * @return A Vec with all elements set to the minimum value of the element
- * type.
+ * @return Vec with all elements set to the minimum value of the element type
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin()
@@ -3336,11 +3414,11 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin()
 }
 
 /**
+ * @ingroup group_init
  * @brief Sets all elements of a Vec to the maximum value of the element
  * type.
  *
- * @return A Vec with all elements set to the maximum value of the element
- * type.
+ * @return Vec with all elements set to the maximum value of the element type
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax()
@@ -3349,9 +3427,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax()
 }
 
 /**
+ * @ingroup group_init
  * @brief Sets all elements of a Vec to the value 1.
  *
- * @return A Vec with all elements set to the value 1.
+ * @return Vec with all elements set to the value 1
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity()
@@ -3361,11 +3440,12 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity()
 }
 
 /**
+ * @ingroup group_init
  * @brief Sets all elements of a Vec to the value -1.
  *
  * Only available for signed integer and floating point types.
  *
- * @return A Vec with all elements set to the value -1.
+ * @return Vec with all elements set to the value -1
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity()
@@ -3378,8 +3458,12 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity()
 // bitonic sort
 // ===========================================================================
 
-// code contributed by Lukas Schiermeier and Moritz Breipohl, modified
+/**
+ * @addtogroup group_simd_sort
+ * @{
+ */
 
+// code contributed by Lukas Schiermeier and Moritz Breipohl, modified
 
 namespace internal {
 namespace ext {
@@ -3492,6 +3576,16 @@ static SIMD_INLINE void bitonicSortReducedTransposed(
 } // namespace internal
 
 // with transpose
+
+/**
+ * @brief Sorts multiple Vec's independently using the bitonic sort algorithm.
+ *
+ * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
+ * SortSlope::DESCENDING)
+ * @param[in, out] vecs array of Vec's to sort
+ *
+ * @sa bitonicSort2() alternative implementation
+ */
 template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSort(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
@@ -3503,6 +3597,16 @@ static SIMD_INLINE void bitonicSort(
 }
 
 // with transpose2
+
+/**
+ * @brief Sorts multiple Vec's independently using the bitonic sort algorithm.
+ *
+ * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
+ * SortSlope::DESCENDING)
+ * @param vecs array of Vec's to sort
+ *
+ * @sa bitonicSort() alternative implementation
+ */
 template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSort2(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
@@ -3531,6 +3635,17 @@ static SIMD_INLINE void bitonicFusion(Vec<T, SIMD_WIDTH> &a,
 // given sorted vectors as inputs, it fuses each consecutive pair
 // such it is completely sorted over the pair
 // with transpose
+
+/**
+ * @brief Fuses consecutive pairs of sorted Vec's such that the pair is sorted
+ * over the two vectors.
+ *
+ * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
+ * SortSlope::DESCENDING)
+ * @param vecs array of Vec's to sort (Vec's must be sorted individually)
+ *
+ * @sa bitonicSortSortedPairs2() alternative implementation
+ */
 template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortSortedPairs(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
@@ -3547,6 +3662,17 @@ static SIMD_INLINE void bitonicSortSortedPairs(
 // given sorted vectors as inputs, it fuses each consecutive pair
 // such it is completely sorted over the pair
 // with transpose2
+
+/**
+ * @brief Fuses consecutive pairs of sorted Vec's such that the pair is sorted
+ * over the two vectors.
+ *
+ * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
+ * SortSlope::DESCENDING)
+ * @param vecs array of Vec's to sort (Vec's must be sorted individually)
+ *
+ * @sa bitonicSortSortedPairs() alternative implementation
+ */
 template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortSortedPairs2(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
@@ -3560,7 +3686,7 @@ static SIMD_INLINE void bitonicSortSortedPairs2(
   transpose2(transVecs, vecs);
 }
 
-/** @} */ // end of group ext
+/** @} */
 
 // ===========================================================================
 // operators
@@ -3597,8 +3723,7 @@ static SIMD_INLINE void bitonicSortSortedPairs2(
 // - neg only for signed types
 
 /**
- * @defgroup operators Operators
- * @brief Operators for Vec's
+ * @addtogroup group_operators
  * @{
  */
 
@@ -3650,7 +3775,7 @@ SIMDVEC_UNOP(operator-, neg)
 /// @brief Bitwise NOT operator. Maps to not_(). @sa not_()
 SIMDVEC_UNOP(operator~, not_)
 
-/** @} */ // end of group operators
+/** @} */
 } // namespace simd
 
 #endif

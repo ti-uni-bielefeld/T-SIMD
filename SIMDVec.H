@@ -53,25 +53,100 @@ namespace simd {
 
 // specialized for type of elements and number of bytes in the SIMD vector
 /**
- * @ingroup types
+ * @ingroup group_types
  * @brief SIMD vector class, holds multiple elements of the same type.
  *
- * @tparam T the type of the vector elements
- * @tparam SIMD_WIDTH the number of bytes in the SIMD vector
+ * @tparam T type of the vector elements
+ * @tparam SIMD_WIDTH number of bytes in the SIMD vector
  */
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
-class Vec;
+class Vec
+#ifdef DOXYGEN
+{
+public:
+  /**
+   * @brief Number of elements in the vector.
+   */
+  static constexpr int elements = SIMD_WIDTH / sizeof(T);
+
+  /**
+   * @brief Number of elements in the vector. Alias for @ref elements.
+   */
+  static constexpr int elems = elements;
+
+  /**
+   * @brief Number of bytes in the vector.
+   */
+  static constexpr int bytes = SIMD_WIDTH;
+}
+#endif
+;
 
 /**
- * @ingroup types
+ * @ingroup group_types
  * @brief SIMD mask class consisting of as many bits as the corresponding
  *        Vec has elements.
  *
- * @tparam T the type of the elements of the corresponding Vec
- * @tparam SIMD_WIDTH the number of bytes in the corresponding Vec
+ * @tparam T type of the elements of the corresponding Vec
+ * @tparam SIMD_WIDTH number of bytes in the corresponding Vec
  */
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
-class Mask;
+class Mask
+#ifdef DOXYGEN
+{
+public:
+  /**
+   * @brief Constructs a Mask from a Vec.
+   *
+   * The Mask bits are set to 1 if the corresponding Vec element has its
+   * most significant bit set, otherwise the Mask bit is set to 0.
+   */
+  explicit SIMD_INLINE Mask<T, SIMD_WIDTH>(const Vec<T, SIMD_WIDTH> &x);
+
+  /**
+   * @brief Constructs a Mask from an integer.
+   *
+   * The lowest bits of the integer are used to set the Mask bits.
+   */
+  explicit SIMD_INLINE Mask<T, SIMD_WIDTH>(const uint64_t x);
+
+  /**
+   * @brief Converts the Mask to a Vec.
+   *
+   * The bits of the Vec elements are set to all 1s if the corresponding
+   * Mask bit is set, otherwise the Vec element bits are set to 0.
+   *
+   * @return converted Vec from the Mask
+   */
+  explicit SIMD_INLINE operator Vec<T, SIMD_WIDTH>() const { return mask; };
+
+  /**
+   * @brief Converts the Mask to an integer.
+   *
+   * The lowest bits of the integer are set to the Mask bits.
+   *
+   * @return converted integer from the Mask
+   */
+  explicit SIMD_INLINE operator uint64_t() const;
+
+  /**
+   * @brief Returns the Mask bit at the given index.
+   *
+   * @param i index of the Mask bit
+   * @return whether the Mask bit at the given index is set
+   */
+  SIMD_INLINE bool operator[](const int i) const;
+
+  /**
+   * @brief Compares the Mask with another Mask.
+   *
+   * @param other Mask to compare with
+   * @return whether the Mask is equal to the other Mask
+   */
+  SIMD_INLINE bool operator==(const Mask<T, SIMD_WIDTH> &other) const;
+}
+#endif
+;
 
 // ===========================================================================
 // helper functions for templates converting from Tin to Tout
@@ -91,6 +166,7 @@ class Mask;
 // the number of elements in *each* input / output vector
 
 /**
+ * @ingroup group_type_conversion
  * @brief Number of input vectors for functions that potentially change the
  * size of the elements but not the number of elements.
  *
@@ -105,6 +181,7 @@ static constexpr SIMD_INLINE int numInVecs()
 }
 
 /**
+ * @ingroup group_type_conversion
  * @brief Number of output vectors for functions that potentially change the
  * size of the elements but not the number of elements.
  *

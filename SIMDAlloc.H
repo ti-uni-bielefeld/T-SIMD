@@ -54,9 +54,9 @@
  *
  * The allocated memory must be freed with simd_aligned_free().
  *
- * @param alignment The alignment of the memory block in bytes.
- * @param size The size of the memory block in bytes.
- * @return A pointer to the allocated memory block.
+ * @param alignment alignment of the memory block in bytes
+ * @param size size of the memory block in bytes
+ * @return pointer to the allocated memory block
  */
 void *simd_aligned_malloc(size_t alignment, size_t size)
 {
@@ -75,7 +75,7 @@ void *simd_aligned_malloc(size_t alignment, size_t size)
  * This function frees a block of memory that was allocated with
  * simd_aligned_malloc().
  *
- * @param ptr A pointer to the memory block to be freed.
+ * @param ptr pointer to the memory block to be freed
  */
 void simd_aligned_free(void *ptr)
 {

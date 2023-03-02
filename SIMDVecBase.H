@@ -58,23 +58,14 @@
 
 namespace simd {
 /**
- * @defgroup base Base Functions
- * @brief Base-level functions on Vec's.
- * @{
- */
-
-// ===========================================================================
-// functions without a group
-// ===========================================================================
-
-/**
+ * @ingroup group_type_conversion
  * @brief Reinterprets a given Vec as a Vec with a different element
  * type.
  *
- * @tparam Tout The element type of the resulting Vec.
- * @tparam Tin The element type of the given Vec.
- * @param a The Vec to reinterpret.
- * @return The reinterpreted Vec.
+ * @tparam Tout element type of the resulting Vec
+ * @tparam Tin element type of the given Vec
+ * @param a Vec to reinterpret
+ * @return reinterpreted Vec
  */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> reinterpret(
@@ -84,8 +75,9 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> reinterpret(
 }
 
 /**
+ * @ingroup group_init
  * @brief Returns a Vec with all elements set to zero.
- * @return A Vec with all elements set to zero.
+ * @return Vec with all elements set to zero
  */
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setzero()
@@ -95,9 +87,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setzero()
 }
 
 /**
+ * @ingroup group_init
  * @brief Returns a Vec with all elements set to the same value.
- * @param a The value to set all elements to.
- * @return A Vec with all elements set to the same value.
+ * @param a value to set all elements to
+ * @return Vec with all elements set to the same value
  */
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> set1(T a)
@@ -108,13 +101,14 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> set1(T a)
 // 30. Jan 23 (Jonas Keller): added iota
 
 /**
+ * @ingroup group_init
  * @brief Creates a Vec with sequentially increasing numbers, starting
  * with 0.
  *
  * The sequence starts from the lowest element of the Vec, i.e. the lowest
  * element of the Vec is set to 0, the next element to 1, and so on.
  *
- * @return A Vec containing sequentially increasing numbers.
+ * @return Vec containing sequentially increasing numbers
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> iota()
@@ -124,16 +118,17 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> iota()
 }
 
 /**
+ * @ingroup group_cmp
  * @brief Selects elements from two Vec's based on a condition Vec.
  *
- * The element type of the condition vector must have the same size as the
- * element type of the true and false value vectors.
+ * The element type of the condition Vec must have the same size as the
+ * element type of the true and false value Vec's.
  *
- * @param cond The condition Vec. Each element must be either
- * all 1 bits or all 0 bits, representing true or false, respectively.
- * @param trueVal The Vec to select from if the condition is true.
- * @param falseVal The Vec to select from if the condition is false.
- * @return A Vec containing the selected elements.
+ * @param cond condition Vec, each element must be either all 1 bits or all 0
+ * bits, representing true or false, respectively
+ * @param trueVal Vec to select from if the condition is true
+ * @param falseVal Vec to select from if the condition is false
+ * @return Vec containing the selected elements
  */
 template <typename Tcond, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> ifelse(const Vec<Tcond, SIMD_WIDTH> &cond,
@@ -148,12 +143,13 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> ifelse(const Vec<Tcond, SIMD_WIDTH> &cond,
 // 27. Aug 22 (Jonas Keller): added msb2int
 
 /**
+ * @ingroup group_init
  * @brief Collects the most significant bit of each element of a Vec into
  * an integer.
  *
- * @param a The Vec.
- * @return An integer containing the most significant bit of each element
- * of the input Vec padded with zeros to 64 bits.
+ * @param a Vec
+ * @return an integer containing the most significant bit of each element of the
+ * input Vec padded with zeros to 64 bits
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE uint64_t msb2int(const Vec<T, SIMD_WIDTH> &a)
@@ -164,6 +160,7 @@ static SIMD_INLINE uint64_t msb2int(const Vec<T, SIMD_WIDTH> &a)
 // 09. Oct 22 (Jonas Keller): added int2msb
 
 /**
+ * @ingroup group_init
  * @brief Sets the most significant bit of each element of a Vec to the
  * corresponding bit of an integer.
  *
@@ -172,9 +169,9 @@ static SIMD_INLINE uint64_t msb2int(const Vec<T, SIMD_WIDTH> &a)
  *
  * All other bits of the output elements are set to zero.
  *
- * @param a The integer.
- * @return A Vec with the most significant bit of each element set to the
- * corresponding bit of the input integer.
+ * @param a integer
+ * @return Vec with the most significant bit of each element set to the
+ * corresponding bit of the input integer
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> int2msb(const uint64_t a)
@@ -186,15 +183,16 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> int2msb(const uint64_t a)
 // 09. Oct 22 (Jonas Keller): added int2bits
 
 /**
+ * @ingroup group_init
  * @brief Sets all bits of each element of a Vec to the corresponding bit
  * of an integer.
  *
  * The bottom n bits of the input integer are used, where n is the number of
  * elements in the Vec. All other bits of the input are ignored.
  *
- * @param a The integer.
- * @return A Vec with all bits of each element set to the corresponding
- * bit of the input integer.
+ * @param a integer
+ * @return Vec with all bits of each element set to the corresponding bit of the
+ * input integer
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> int2bits(const uint64_t a)
@@ -204,17 +202,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> int2bits(const uint64_t a)
 }
 
 /**
- * @defgroup memory Memory Functions
- * @brief Functions for loading and storing Vec's from and to memory.
- * @{
- */
-
-/**
- * @name Load functions
- * @{
- */
-
-/**
+ * @ingroup group_memory_load
  * @brief Loads a Vec from aligned memory.
  *
  * The memory location must be aligned to the @p SIMD_WIDTH.
@@ -222,8 +210,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> int2bits(const uint64_t a)
  * @note The template argument order of @p T and @p SIMD_WIDTH is reversed so
  * that @p T can be omitted in instantiation.
  *
- * @param[in] p A pointer to the aligned memory location to load from.
- * @return A Vec with the loaded values.
+ * @param[in] p pointer to the aligned memory location to load from
+ * @return Vec with the loaded values
  */
 template <int SIMD_WIDTH_DEFAULT_NATIVE, typename T>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> load(const T *const p)
@@ -232,6 +220,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> load(const T *const p)
 }
 
 /**
+ * @ingroup group_memory_load
  * @brief Loads a Vec from unaligned memory.
  *
  * In contrast to load(const T *const p), the memory location does not need to
@@ -240,8 +229,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> load(const T *const p)
  * @note The template argument order of @p T and @p SIMD_WIDTH is reversed so
  * that @p T can be omitted in instantiation.
  *
- * @param[in] p A pointer to the memory location to load from.
- * @return A Vec with the loaded values.
+ * @param[in] p pointer to the memory location to load from
+ * @return Vec with the loaded values
  */
 template <int SIMD_WIDTH_DEFAULT_NATIVE, typename T>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> loadu(const T *const p)
@@ -249,20 +238,14 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> loadu(const T *const p)
   return internal::base::loadu(p, internal::Integer<SIMD_WIDTH>());
 }
 
-/** @} */
-
 /**
- * @name Store functions
- * @{
- */
-
-/**
+ * @ingroup group_memory_store
  * @brief Stores a Vec to aligned memory.
  *
  * The memory location must be aligned to the SIMD_WIDTH.
  *
- * @param[out] p A pointer to the aligned memory location to store to.
- * @param a The Vec to store.
+ * @param[out] p pointer to the aligned memory location to store to
+ * @param a Vec to store
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> &a)
@@ -271,13 +254,14 @@ static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_memory_store
  * @brief Stores a Vec to unaligned memory.
  *
  * In contrast to store(), the memory location does not need to be aligned to
  * any boundary.
  *
- * @param[out] p A pointer to the memory location to store to.
- * @param a The Vec to store.
+ * @param[out] p pointer to the memory location to store to
+ * @param a Vec to store
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> &a)
@@ -286,6 +270,7 @@ static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_memory_store
  * @brief Stores a Vec to aligned memory using a non-temporal memory
  * hint.
  *
@@ -296,8 +281,8 @@ static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> &a)
  *
  * The memory location must be aligned to the @p SIMD_WIDTH.
  *
- * @param[out] p A pointer to the aligned memory location to store to.
- * @param a The Vec to store.
+ * @param[out] p pointer to the aligned memory location to store to
+ * @param a Vec to store
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void stream_store(T *const p, const Vec<T, SIMD_WIDTH> &a)
@@ -305,11 +290,8 @@ static SIMD_INLINE void stream_store(T *const p, const Vec<T, SIMD_WIDTH> &a)
   internal::base::stream_store(p, a);
 }
 
-/** @} */
-
 /**
- * @name Fences
- * Memory fences.
+ * @addtogroup group_memory
  * @{
  */
 
@@ -320,6 +302,8 @@ static SIMD_INLINE void stream_store(T *const p, const Vec<T, SIMD_WIDTH> &a)
  * preceding this instruction and load instructions following this
  * instruction, ensuring the system completes all previous loads before
  * executing subsequent loads.
+ *
+ * @note May be implemented as a full memory barrier on some architectures.
  */
 static SIMD_INLINE void lfence()
 {
@@ -333,6 +317,8 @@ static SIMD_INLINE void lfence()
  * preceding this instruction and store instructions following this
  * instruction, ensuring the system completes all previous stores before
  * executing subsequent stores.
+ *
+ * @note May be implemented as a full memory barrier on some architectures.
  */
 static SIMD_INLINE void sfence()
 {
@@ -354,22 +340,17 @@ static SIMD_INLINE void mfence()
 
 /** @} */
 
-/** @} */ // end of group memory
-
 /**
- * @defgroup arithmetic Arithmetic Functions
- * @brief Arithmetic functions on Vec's, such as addition, multiplication,
- * etc.
+ * @addtogroup group_arithmetic
  * @{
  */
 
 /**
  * @brief Adds the elements of two Vec's.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the sums of the elements of the two
- * input vectors.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the sums of the elements of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> add(const Vec<T, SIMD_WIDTH> &a,
@@ -382,10 +363,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> add(const Vec<T, SIMD_WIDTH> &a,
  * @brief Adds the elements of two Vec's using saturated
  * arithmetic.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the saturated sums of the elements of
- * the two input vectors.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the saturated sums of the elements of the two input
+ * Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> adds(const Vec<T, SIMD_WIDTH> &a,
@@ -397,10 +378,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> adds(const Vec<T, SIMD_WIDTH> &a,
 /**
  * @brief Subtracts the elements of two Vec's.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the differences of the elements of the
- * two input vectors.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the differences of the elements of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sub(const Vec<T, SIMD_WIDTH> &a,
@@ -413,10 +393,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sub(const Vec<T, SIMD_WIDTH> &a,
  * @brief Subtracts the elements of two Vec's using saturated
  * arithmetic.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the saturated differences of the
- * elements of the two input vectors.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the saturated differences of the elements of the two
+ * input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> subs(const Vec<T, SIMD_WIDTH> &a,
@@ -430,10 +410,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> subs(const Vec<T, SIMD_WIDTH> &a,
  *
  * @note This function is only available for floating point types.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the products of the elements of the
- * two input vectors.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the products of the elements of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mul(const Vec<T, SIMD_WIDTH> &a,
@@ -449,10 +428,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mul(const Vec<T, SIMD_WIDTH> &a,
  *
  * @note This function is only available for floating point types.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the quotients of the elements of the
- * two input vectors.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the quotients of the elements of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> div(const Vec<T, SIMD_WIDTH> &a,
@@ -466,10 +444,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> div(const Vec<T, SIMD_WIDTH> &a,
 /**
  * @brief Computes the average of the elements of two Vec's, rounded up.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the rounded up average of the elements of
- * the two input Vec's.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the rounded up average of the elements of the two
+ * input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> avg(const Vec<T, SIMD_WIDTH> &a,
@@ -478,18 +456,19 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avg(const Vec<T, SIMD_WIDTH> &a,
   return internal::base::avg(a, b);
 }
 
+/** @} */
+
 /**
- * @name Horizontal functions
+ * @addtogroup group_horizontal
  * @{
  */
 
 /**
  * @brief Horizontally adds adjacent elements of two Vec's.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the results of the horizontal
- * additions.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the results of the horizontal additions
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(const Vec<T, SIMD_WIDTH> &a,
@@ -502,10 +481,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(const Vec<T, SIMD_WIDTH> &a,
  * @brief Horizontally adds adjacent elements of two Vec's
  * with saturation.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the results of the horizontal
- * saturated additions.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the results of the horizontal saturated additions
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(const Vec<T, SIMD_WIDTH> &a,
@@ -517,9 +495,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(const Vec<T, SIMD_WIDTH> &a,
 /**
  * @brief Horizontally subtracts adjacent elements of two Vec's.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the results of the horizontal subtractions.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the results of the horizontal subtractions
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hsub(const Vec<T, SIMD_WIDTH> &a,
@@ -532,10 +510,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hsub(const Vec<T, SIMD_WIDTH> &a,
  * @brief Horizontally subtracts adjacent elements of two Vec's
  * with saturation.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the results of the horizontal saturated
- * subtractions.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the results of the horizontal saturated subtractions
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(const Vec<T, SIMD_WIDTH> &a,
@@ -546,12 +523,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(const Vec<T, SIMD_WIDTH> &a,
 
 /** @} */
 
-/** @} */ // end of group arithmetic
-
 /**
- * @defgroup math_functions Elementary Math Functions
- * @brief Elementary mathematical functions on Vec's, such as sqrt, rcp,
- * etc.
+ * @addtogroup group_math_functions
  * @{
  */
 
@@ -561,9 +534,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(const Vec<T, SIMD_WIDTH> &a,
  *
  * This function is only available for floating point types.
  *
- * @param a The Vec to compute the reciprocal of.
- * @return A Vec containing the approximate reciprocal of the
- * elements of the input vector.
+ * @param a Vec to compute the reciprocal of
+ * @return Vec containing the approximate reciprocal of the elements of the
+ * input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> rcp(const Vec<T, SIMD_WIDTH> &a)
@@ -579,9 +552,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> rcp(const Vec<T, SIMD_WIDTH> &a)
  *
  * This function is only available for floating point types.
  *
- * @param a The Vec to compute the reciprocal square root of.
- * @return A Vec containing the approximate reciprocal square
- * root of the elements of the input vector.
+ * @param a Vec to compute the reciprocal square root of
+ * @return Vec containing the approximate reciprocal square root of the elements
+ * of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> rsqrt(const Vec<T, SIMD_WIDTH> &a)
@@ -599,9 +572,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> rsqrt(const Vec<T, SIMD_WIDTH> &a)
  * @note This function may only compute an approximation on some
  * architectures.
  *
- * @param a The Vec to compute the square root of.
- * @return A Vec containing the square root of the elements of
- * the input vector.
+ * @param a Vec to compute the square root of
+ * @return Vec containing the square root of the elements of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sqrt(const Vec<T, SIMD_WIDTH> &a)
@@ -611,22 +583,19 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sqrt(const Vec<T, SIMD_WIDTH> &a)
   return internal::base::sqrt(a);
 }
 
-/** @} */ // end of group math_functions
+/** @} */
 
 /**
- * @defgroup special_math Special Math Functions
- * @brief Special math functions on Vec's, such as min, max, rounding,
- * etc.
+ * @addtogroup group_special_math
  * @{
  */
 
 /**
  * @brief Computes the minimum of the elements of two Vec's.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the minimum of the elements of the
- * input vectors.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the minimum of the elements of the input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> min(const Vec<T, SIMD_WIDTH> &a,
@@ -638,10 +607,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> min(const Vec<T, SIMD_WIDTH> &a,
 /**
  * @brief Computes the maximum of the elements of two Vec's.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the maximum of the elements of the
- * input vectors.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the maximum of the elements of the input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> max(const Vec<T, SIMD_WIDTH> &a,
@@ -655,9 +623,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> max(const Vec<T, SIMD_WIDTH> &a,
  *
  * This function is only available for signed types.
  *
- * @param a The Vec to negate.
- * @return A Vec containing the negated elements of the input
- * vector.
+ * @param a Vec to negate
+ * @return Vec containing the negated elements of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> neg(const Vec<T, SIMD_WIDTH> &a)
@@ -672,9 +639,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> neg(const Vec<T, SIMD_WIDTH> &a)
  *
  * This function is only available for signed types.
  *
- * @param a The Vec to compute the absolute value of.
- * @return A Vec containing the absolute value of the elements
- * of the input vector.
+ * @param a Vec to compute the absolute value of
+ * @return Vec containing the absolute value of the elements of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> abs(const Vec<T, SIMD_WIDTH> &a)
@@ -689,9 +655,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> abs(const Vec<T, SIMD_WIDTH> &a)
  *
  * This function is only available for floating point types.
  *
- * @param a The Vec to round.
- * @return A Vec containing the rounded elements of the input
- * vector.
+ * @param a Vec to round
+ * @return Vec containing the rounded elements of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> ceil(const Vec<T, SIMD_WIDTH> &a)
@@ -707,9 +672,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> ceil(const Vec<T, SIMD_WIDTH> &a)
  *
  * This function is only available for floating point types.
  *
- * @param a The Vec to round.
- * @return A Vec containing the rounded elements of the input
- * vector.
+ * @param a Vec to round
+ * @return Vec containing the rounded elements of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> floor(const Vec<T, SIMD_WIDTH> &a)
@@ -724,9 +688,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> floor(const Vec<T, SIMD_WIDTH> &a)
  *
  * This function is only available for floating point types.
  *
- * @param a The Vec to round.
- * @return A Vec containing the rounded elements of the input
- * vector.
+ * @param a Vec to round
+ * @return Vec containing the rounded elements of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> round(const Vec<T, SIMD_WIDTH> &a)
@@ -742,9 +705,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> round(const Vec<T, SIMD_WIDTH> &a)
  *
  * This function is only available for floating point types.
  *
- * @param a The Vec to truncate.
- * @return A Vec containing the truncated elements of the input
- * vector.
+ * @param a Vec to truncate
+ * @return Vec containing the truncated elements of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> truncate(const Vec<T, SIMD_WIDTH> &a)
@@ -754,11 +716,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> truncate(const Vec<T, SIMD_WIDTH> &a)
   return internal::base::truncate(a);
 }
 
-/** @} */ // end of group special_math
+/** @} */
 
 /**
- * @defgroup logic Logical Functions
- * @brief Logical functions on Vec's.
+ * @addtogroup group_logic
  * @{
  */
 
@@ -768,10 +729,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> truncate(const Vec<T, SIMD_WIDTH> &a)
  * @note This function is called @c "and_" instead of @c "and" because the
  * latter is a reserved word in C++.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the bitwise AND of the two
- * input Vec's.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the bitwise AND of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> and_(const Vec<T, SIMD_WIDTH> &a,
@@ -786,10 +746,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> and_(const Vec<T, SIMD_WIDTH> &a,
  * @note This function is called @c "or_" instead of @c "or" because the
  * latter is a reserved word in C++.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the bitwise OR of the two
- * input Vec's.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the bitwise OR of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &a,
@@ -803,10 +762,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &a,
  *
  * The result is computed as (not @p a ) and @p b .
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the bitwise ANDNOT of the two
- * input Vec's.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the bitwise ANDNOT of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> andnot(const Vec<T, SIMD_WIDTH> &a,
@@ -821,10 +779,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> andnot(const Vec<T, SIMD_WIDTH> &a,
  * @note This function is called @c "xor_" instead of @c "xor" because the
  * latter is a reserved word in C++.
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Vec containing the bitwise XOR of the two
- * input Vec's.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Vec containing the bitwise XOR of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> xor_(const Vec<T, SIMD_WIDTH> &a,
@@ -839,9 +796,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> xor_(const Vec<T, SIMD_WIDTH> &a,
  * @note This function is called @c "not_" instead of @c "not" because the
  * latter is a reserved word in C++.
  *
- * @param a The Vec.
- * @return A Vec containing the bitwise NOT of the input
- * Vec.
+ * @param a Vec
+ * @return Vec containing the bitwise NOT of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> not_(const Vec<T, SIMD_WIDTH> &a)
@@ -849,11 +805,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> not_(const Vec<T, SIMD_WIDTH> &a)
   return internal::base::not_(a);
 }
 
-/** @} */ // end of group logic
+/** @} */
 
 /**
- * @defgroup shift Bitwise Shift Functions
- * @brief Bitwise shift functions on Vec's.
+ * @addtogroup group_shift
  * @{
  */
 
@@ -863,10 +818,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> not_(const Vec<T, SIMD_WIDTH> &a)
  *
  * @sa sra()
  *
- * @tparam COUNT The number of bits to shift by.
- * @param a The Vec to shift.
- * @return A Vec containing the shifted elements of the input
- * vector.
+ * @tparam COUNT number of bits to shift by
+ * @param a Vec to shift
+ * @return Vec containing the shifted elements of the input Vec
  */
 template <int COUNT, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srai(const Vec<T, SIMD_WIDTH> &a)
@@ -880,10 +834,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srai(const Vec<T, SIMD_WIDTH> &a)
  *
  * @sa srl()
  *
- * @tparam COUNT The number of bits to shift by.
- * @param a The Vec to shift.
- * @return A Vec containing the shifted elements of the input
- * vector.
+ * @tparam COUNT number of bits to shift by
+ * @param a Vec to shift
+ * @return Vec containing the shifted elements of the input Vec
  */
 template <int COUNT, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srli(const Vec<T, SIMD_WIDTH> &a)
@@ -897,10 +850,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srli(const Vec<T, SIMD_WIDTH> &a)
  *
  * @sa sll()
  *
- * @tparam COUNT The number of bits to shift by.
- * @param a The Vec to shift.
- * @return A Vec containing the shifted elements of the input
- * vector.
+ * @tparam COUNT number of bits to shift by
+ * @param a Vec to shift
+ * @return Vec containing the shifted elements of the input Vec
  */
 template <int COUNT, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> slli(const Vec<T, SIMD_WIDTH> &a)
@@ -916,10 +868,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> slli(const Vec<T, SIMD_WIDTH> &a)
  *
  * @sa srai()
  *
- * @param a The Vec to shift.
- * @param count The number of bits to shift by.
- * @return A Vec containing the shifted elements of the input
- * vector.
+ * @param a Vec to shift
+ * @param count number of bits to shift by
+ * @return Vec containing the shifted elements of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sra(const Vec<T, SIMD_WIDTH> &a,
@@ -934,10 +885,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sra(const Vec<T, SIMD_WIDTH> &a,
  *
  * @sa srli()
  *
- * @param a The Vec to shift.
- * @param count The number of bits to shift by.
- * @return A Vec containing the shifted elements of the input
- * vector.
+ * @param a Vec to shift
+ * @param count number of bits to shift by
+ * @return Vec containing the shifted elements of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srl(const Vec<T, SIMD_WIDTH> &a,
@@ -952,10 +902,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srl(const Vec<T, SIMD_WIDTH> &a,
  *
  * @sa slli()
  *
- * @param a The Vec to shift.
- * @param count The number of bits to shift by.
- * @return A Vec containing the shifted elements of the input
- * vector.
+ * @param a Vec to shift
+ * @param count number of bits to shift by
+ * @return Vec containing the shifted elements of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sll(const Vec<T, SIMD_WIDTH> &a,
@@ -964,11 +913,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sll(const Vec<T, SIMD_WIDTH> &a,
   return internal::base::sll(a, count);
 }
 
-/** @} */ // end of group shift
+/** @} */
 
 /**
- * @defgroup cmp Comparison Functions
- * @brief Functions for comparing elements of Vec's.
+ * @addtogroup group_cmp
  * @{
  */
 
@@ -976,11 +924,11 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sll(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for less-than
  * ( @c < ).
  *
- * @param a The first Vec to compare.
- * @param b The second Vec to compare.
- * @return A Vec containing the results of the comparison,
- * where each element is all 1 bits or all 0 bits, depending on whether
- * the corresponding comparison returned true or false, respectively.
+ * @param a first Vec to compare
+ * @param b second Vec to compare
+ * @return Vec containing the results of the comparison, where each element is
+ * all 1 bits or all 0 bits, depending on whether the corresponding comparison
+ * returned true or false, respectively
  * @sa mask_cmplt(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  * @sa mask_cmplt(const Mask<T, SIMD_WIDTH> &, const Vec<T,
@@ -997,11 +945,11 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmplt(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for
  * less-than-or-equal ( @c <= ).
  *
- * @param a The first Vec to compare.
- * @param b The second Vec to compare.
- * @return A Vec containing the results of the comparison,
- * where each element is all 1 bits or all 0 bits, depending on whether
- * the corresponding comparison returned true or false, respectively.
+ * @param a first Vec to compare
+ * @param b second Vec to compare
+ * @return Vec containing the results of the comparison, where each element is
+ * all 1 bits or all 0 bits, depending on whether the corresponding comparison
+ * returned true or false, respectively
  * @sa mask_cmple(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  * @sa mask_cmple(const Mask<T, SIMD_WIDTH> &, const Vec<T,
@@ -1018,11 +966,11 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmple(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for
  * equality ( @c == ).
  *
- * @param a The first Vec to compare.
- * @param b The second Vec to compare.
- * @return A Vec containing the results of the comparison,
- * where each element is all 1 bits or all 0 bits, depending on whether
- * the corresponding comparison returned true or false, respectively.
+ * @param a first Vec to compare
+ * @param b second Vec to compare
+ * @return Vec containing the results of the comparison, where each element is
+ * all 1 bits or all 0 bits, depending on whether the corresponding comparison
+ * returned true or false, respectively
  * @sa mask_cmpeq(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  * @sa mask_cmpeq(const Mask<T, SIMD_WIDTH> &, const Vec<T,
@@ -1039,11 +987,11 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpeq(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for
  * greater-than-or-equal ( @c >= ).
  *
- * @param a The first Vec to compare.
- * @param b The second Vec to compare.
- * @return A Vec containing the results of the comparison,
- * where each element is all 1 bits or all 0 bits, depending on whether
- * the corresponding comparison returned true or false, respectively.
+ * @param a first Vec to compare
+ * @param b second Vec to compare
+ * @return Vec containing the results of the comparison, where each element is
+ * all 1 bits or all 0 bits, depending on whether the corresponding comparison
+ * returned true or false, respectively
  * @sa mask_cmpge(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  * @sa mask_cmpge(const Mask<T, SIMD_WIDTH> &, const Vec<T,
@@ -1060,11 +1008,11 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpge(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for
  * greater-than ( @c > ).
  *
- * @param a The first Vec to compare.
- * @param b The second Vec to compare.
- * @return A Vec containing the results of the comparison,
- * where each element is all 1 bits or all 0 bits, depending on whether
- * the corresponding comparison returned true or false, respectively.
+ * @param a first Vec to compare
+ * @param b second Vec to compare
+ * @return Vec containing the results of the comparison, where each element is
+ * all 1 bits or all 0 bits, depending on whether the corresponding comparison
+ * returned true or false, respectively
  * @sa mask_cmpgt(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  * @sa mask_cmpgt(const Mask<T, SIMD_WIDTH> &, const Vec<T,
@@ -1081,11 +1029,11 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpgt(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for
  * inequality ( @c != ).
  *
- * @param a The first Vec to compare.
- * @param b The second Vec to compare.
- * @return A Vec containing the results of the comparison,
- * where each element is all 1 bits or all 0 bits, depending on whether
- * the corresponding comparison returned true or false, respectively.
+ * @param a first Vec to compare
+ * @param b second Vec to compare
+ * @return Vec containing the results of the comparison, where each element is
+ * all 1 bits or all 0 bits, depending on whether the corresponding comparison
+ * returned true or false, respectively
  * @sa mask_cmpne(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
  * @sa mask_cmpne(const Mask<T, SIMD_WIDTH> &, const Vec<T,
@@ -1101,8 +1049,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpneq(const Vec<T, SIMD_WIDTH> &a,
 /**
  * @brief Tests if all bits of a Vec are zero.
  *
- * @param a The Vec to test.
- * @return 1 if all bits are zero, 0 otherwise.
+ * @param a Vec to test
+ * @return 1 if all bits are zero, 0 otherwise
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE int test_all_zeros(const Vec<T, SIMD_WIDTH> &a)
@@ -1113,8 +1061,8 @@ static SIMD_INLINE int test_all_zeros(const Vec<T, SIMD_WIDTH> &a)
 /**
  * @brief Tests if all bits of a Vec are one.
  *
- * @param a The Vec to test.
- * @return 1 if all bits are one, 0 otherwise.
+ * @param a Vec to test
+ * @return 1 if all bits are one, 0 otherwise
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE int test_all_ones(const Vec<T, SIMD_WIDTH> &a)
@@ -1122,21 +1070,19 @@ static SIMD_INLINE int test_all_ones(const Vec<T, SIMD_WIDTH> &a)
   return internal::base::test_all_ones(a);
 }
 
-/** @} */ // end of group cmp
+/** @} */
 
 /**
- * @defgroup permutation Permutation Functions
- * @brief Functions on Vec's for reordering elements and other related
- * functions.
+ * @addtogroup group_reordering
  * @{
  */
 
 /**
  * @brief Extracts a single value from a Vec.
  *
- * @tparam INDEX The index of the value to extract.
- * @param a The Vec to extract from.
- * @return The extracted value.
+ * @tparam INDEX index of the value to extract
+ * @param a Vec to extract from
+ * @return extracted value
  */
 template <int INDEX, typename T, int SIMD_WIDTH>
 static SIMD_INLINE T extract(const Vec<T, SIMD_WIDTH> &a)
@@ -1151,8 +1097,8 @@ static SIMD_INLINE T extract(const Vec<T, SIMD_WIDTH> &a)
  *
  * @sa extract()
  *
- * @param a The Vec to extract from.
- * @return The lowest element of the Vec.
+ * @param a Vec to extract from
+ * @return lowest element of the Vec
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE T elem0(const Vec<T, SIMD_WIDTH> &a)
@@ -1163,10 +1109,10 @@ static SIMD_INLINE T elem0(const Vec<T, SIMD_WIDTH> &a)
 /**
  * @brief Extracts a 16-byte lane from a Vec as a Vec < T, 16 >.
  *
- * @tparam LANE_INDEX The lane to extract. Must be in the range
- * [0, @p SIMD_WIDTH / 16).
- * @param a The Vec to extract a lane from.
- * @return The extracted lane as a Vec < T, 16 >.
+ * @tparam LANE_INDEX lane to extract Must be in the range [0, @p SIMD_WIDTH /
+ * 16)
+ * @param a Vec to extract a lane from
+ * @return extracted lane as a Vec < T, 16 >
  */
 template <int LANE_INDEX, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, SIMD_WIDTH> &a)
@@ -1177,9 +1123,8 @@ static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, SIMD_WIDTH> &a)
 /**
  * @brief Reverses the order of the elements of a Vec.
  *
- * @param a The Vec to reverse.
- * @return A Vec containing the elements of the input
- * Vec in reverse order.
+ * @param a Vec to reverse
+ * @return Vec containing the elements of the input Vec in reverse order
  */
 template <typename T, int SIMD_WIDTH>
 static Vec<T, SIMD_WIDTH> reverse(const Vec<T, SIMD_WIDTH> &a)
@@ -1187,7 +1132,39 @@ static Vec<T, SIMD_WIDTH> reverse(const Vec<T, SIMD_WIDTH> &a)
   return internal::base::reverse(a);
 }
 
-// swizzle (AoS to SoA), in-place, with template parameter N
+/**
+ * @ingroup group_swizzle
+ * @brief Swizzle/de-interleave/convert from AoS to SoA multiple Vec's in-place.
+ *
+ * This function swizzles/de-interleaves/converts from AoS (Array of Structs) to
+ * SoA (Struct of Arrays) multiple Vec's in-place.
+ *
+ * <h4>Example:</h4>
+ * Example for a swizzle distance of 3 with 3 Vec's of 8 elements each:
+ *
+ * input stream (structures indicated by curly brackets):
+ * @code
+ * {0 1 2} {3 4 5} {6 7 8} {9 10 11} ... {21 22 23}
+ * @endcode
+ * input vectors:
+ * @code
+ * v[0] =  0  1  2  3  4  5  6  7
+ * v[1] =  8  9 10 11 12 13 14 15
+ * v[2] = 16 17 18 19 20 21 22 23
+ * @endcode
+ * output vectors:
+ * @code
+ * v[0] =  0  3  6  9 12 15 18 21
+ * v[1] =  1  4  7 10 13 16 19 22
+ * v[2] =  2  5  8 11 14 17 20 23
+ * @endcode
+ *
+ * @tparam N swizzle distance, must be between 1 and 5
+ * @param[in,out] v array of Vec's to swizzle
+ *
+ * @sa swizzle2(), swizzle3(), swizzle4(): %swizzle functions that take double
+ * the number of Vec's and might have different performance characteristics
+ */
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> v[N])
 {
@@ -1204,17 +1181,17 @@ static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> v[N])
  * half of two Vec's, starting with the lowest block of the
  * selected half of the first input Vec.
  *
- * To get both halves of the input vectors interleaved, use zip().
+ * To get both halves of the input Vec's interleaved, use zip().
  *
  * Example: TODO?
  *
- * @tparam PART Selects which half of the input vectors to use. A value
- * of 0 selects the low half, a value of 1 selects the high half.
- * @tparam NUM_ELEMS The number of elements in a block. This must be a
- * power of two (including 1) and be at most half of one Vec.
- * @param a The first input Vec.
- * @param b The second input Vec.
- * @return The interleaved Vec.
+ * @tparam PART selects which half of the input Vec's to use. A value of 0
+ * selects the low half, a value of 1 selects the high half
+ * @tparam NUM_ELEMS number of elements in a block This must be a power of two
+ * (including 1) and be at most half of one Vec
+ * @param a first input Vec
+ * @param b second input Vec
+ * @return interleaved Vec
  */
 template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack(const Vec<T, SIMD_WIDTH> &a,
@@ -1234,17 +1211,17 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack(const Vec<T, SIMD_WIDTH> &a,
  *
  * This function is the lane-oriented equivalent of unpack().
  *
- * To get both halves of the input vectors interleaved, use zip16().
+ * To get both halves of the input Vec's interleaved, use zip16().
  *
  * Example: TODO?
  *
- * @tparam PART Selects which half of the lanes of the input vectors to use.
- * A value of 0 selects the low half, a value of 1 selects the high half.
- * @tparam NUM_ELEMS The number of elements in a block. This must be a
- * power of two (including 1) and be at most half of one Vec.
- * @param a The first input Vec.
- * @param b The second input Vec.
- * @return The interleaved Vec.
+ * @tparam PART selects which half of the lanes of the input Vec's to use. A
+ * value of 0 selects the low half, a value of 1 selects the high half
+ * @tparam NUM_ELEMS number of elements in a block This must be a power of two
+ * (including 1) and be at most half of one Vec
+ * @param a first input Vec
+ * @param b second input Vec
+ * @return interleaved Vec
  */
 template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack16(const Vec<T, SIMD_WIDTH> &a,
@@ -1270,14 +1247,12 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack16(const Vec<T, SIMD_WIDTH> &a,
  * @sa unpack()
  * @sa unzip()
  *
- * @tparam NUM_ELEMS The number of elements in a block. This must be a
- * power of two (including 1) and be at most half of one Vec.
- * @param a The first input Vec.
- * @param b The second input Vec.
- * @param[out] l The output Vec containing the low half of the
- * interleaved blocks.
- * @param[out] h The output Vec containing the high half of the
- * interleaved blocks.
+ * @tparam NUM_ELEMS number of elements in a block This must be a power of two
+ * (including 1) and be at most half of one Vec
+ * @param a first input Vec
+ * @param b second input Vec
+ * @param[out] l output Vec containing the low half of the interleaved blocks
+ * @param[out] h output Vec containing the high half of the interleaved blocks
  */
 template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void zip(const Vec<T, SIMD_WIDTH> a,
@@ -1306,14 +1281,12 @@ static SIMD_INLINE void zip(const Vec<T, SIMD_WIDTH> a,
  *
  * @sa unpack16()
  *
- * @tparam NUM_ELEMS The number of elements in a block. This must be a
- * power of two (including 1) and be at most half of one Vec.
- * @param a The first input Vec.
- * @param b The second input Vec.
- * @param[out] l The output Vec containing the low half of the
- * interleaved blocks.
- * @param[out] h The output Vec containing the high half of the
- * interleaved blocks.
+ * @tparam NUM_ELEMS number of elements in a block This must be a power of two
+ * (including 1) and be at most half of one Vec
+ * @param a first input Vec
+ * @param b second input Vec
+ * @param[out] l output Vec containing the low half of the interleaved blocks
+ * @param[out] h output Vec containing the high half of the interleaved blocks
  */
 template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void zip16(const Vec<T, SIMD_WIDTH> a,
@@ -1333,14 +1306,12 @@ static SIMD_INLINE void zip16(const Vec<T, SIMD_WIDTH> a,
  *
  * @sa zip()
  *
- * @tparam NUM_ELEMS The number of elements in a block. This must be a
- * power of two (including 1) and be at most half of one Vec.
- * @param a The first input Vec.
- * @param b The second input Vec.
- * @param[out] l The output Vec containing the low half of the
- * deinterleaved blocks.
- * @param[out] h The output Vec containing the high half of the
- * deinterleaved blocks.
+ * @tparam NUM_ELEMS number of elements in a block This must be a power of two
+ * (including 1) and be at most half of one Vec
+ * @param a first input Vec
+ * @param b second input Vec
+ * @param[out] l output Vec containing the low half of the deinterleaved blocks
+ * @param[out] h output Vec containing the high half of the deinterleaved blocks
  */
 template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void unzip(const Vec<T, SIMD_WIDTH> a,
@@ -1355,9 +1326,9 @@ static SIMD_INLINE void unzip(const Vec<T, SIMD_WIDTH> a,
  * @brief Shifts a Vec right by a constant number of elements,
  * shifting in zero elements.
  *
- * @tparam COUNT The number of elements to shift by.
- * @param a The Vec to shift.
- * @return The shifted Vec.
+ * @tparam COUNT number of elements to shift by
+ * @param a Vec to shift
+ * @return shifted Vec
  */
 template <int COUNT, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srle(const Vec<T, SIMD_WIDTH> &a)
@@ -1369,9 +1340,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srle(const Vec<T, SIMD_WIDTH> &a)
  * @brief Shifts a Vec left by a constant number of elements,
  * shifting in zero elements.
  *
- * @tparam COUNT The number of elements to shift by.
- * @param a The Vec to shift.
- * @return The shifted Vec.
+ * @tparam COUNT number of elements to shift by
+ * @param a Vec to shift
+ * @return shifted Vec
  */
 template <int COUNT, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> slle(const Vec<T, SIMD_WIDTH> &a)
@@ -1384,10 +1355,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> slle(const Vec<T, SIMD_WIDTH> &a)
  * constant number of elements, and returns the low half of the
  * result.
  *
- * @tparam COUNT The number of elements to shift by.
- * @param h The first Vec. The high half of the concatenated Vec.
- * @param l The second Vec. The low half of the concatenated Vec.
- * @return The low half of the shifted concatenated Vec.
+ * @tparam COUNT number of elements to shift by
+ * @param h first Vec The high half of the concatenated Vec
+ * @param l second Vec The low half of the concatenated Vec
+ * @return low half of the shifted concatenated Vec
  */
 template <int COUNT, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &h,
@@ -1396,11 +1367,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &h,
   return internal::base::alignre<COUNT>(h, l);
 }
 
-/** @} */ // end of group permutation
+/** @} */
 
 /**
- * @defgroup type_conversion Type Conversion Functions
- * @brief Functions for converting Vec's between different types.
+ * @addtogroup group_type_conversion
  * @{
  */
 
@@ -1414,11 +1384,11 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &h,
  *
  * @sa extend()
  *
- * @tparam Tout The type of the resulting Vec. Must be the next
- * smaller type of the elements of the input Vec's.
- * @tparam Tin The type of the input Vec's.
+ * @tparam Tout type of the resulting Vec Must be the next smaller type of the
+ * elements of the input Vec's
+ * @tparam Tin type of the input Vec's
  * @param a, b The input Vec's.
- * @return A Vec with the elements of a and b packed into one.
+ * @return Vec with the elements of a and b packed into one
  */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> &a,
@@ -1440,15 +1410,15 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> &a,
  *
  * The values are zero-extended or sign-extended, depending on the type.
  *
- * Multiple output vectors are produced, where the amount of output
- * vectors is <tt>sizeof(Tout) / sizeof(Tin)</tt>.
+ * Multiple output Vec's are produced, where the amount of output
+ * Vec's is <tt>sizeof(Tout) / sizeof(Tin)</tt>.
  *
  * @sa packs()
  *
- * @tparam Tout The type to extend to.
- * @tparam Tin The type to extend from.
- * @param vIn The input Vec.
- * @param[out] vOut The output Vec's.
+ * @tparam Tout type to extend to
+ * @tparam Tin type to extend from
+ * @param vIn input Vec
+ * @param[out] vOut output Vec's
  */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE void extend(
@@ -1472,11 +1442,11 @@ static SIMD_INLINE void extend(
  *
  * The conversion @ref Float -> @ref Int is saturated.
  *
- * @tparam Tout The type of the resulting Vec. Must be one of
- * Int or @ref Float, but not the same as @p Tin.
- * @tparam Tin The type of the input Vec. Must be one of
+ * @tparam Tout type of the resulting Vec Must be one of Int or @ref Float, but
+ * not the same as @p Tin
+ * @tparam Tin type of the input Vec Must be one of
  * @ref Int or @ref Float, but not the same as @p Tout.
- * @param a The input Vec.
+ * @param a input Vec
  */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> cvts(const Vec<Tin, SIMD_WIDTH> &a)
@@ -1488,9 +1458,7 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> cvts(const Vec<Tin, SIMD_WIDTH> &a)
   return internal::base::cvts(a, internal::OutputType<Tout>());
 }
 
-/** @} */ // end of group type_conversion
-
-/** @} */ // end of group base
+/** @} */
 } // namespace simd
 
 #endif // _SIMD_VEC_BASE_H_

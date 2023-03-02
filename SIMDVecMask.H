@@ -48,14 +48,11 @@
 #endif // else SIMDVEC_SANDBOX
 
 namespace simd {
+
 /**
- * @defgroup mask Masked Functions
+ * @addtogroup group_mask
  * @{
  */
-
-// ===========================================================================
-// functions without a group
-// ===========================================================================
 
 /**
  * @brief Masked version of set1(const T).
@@ -79,38 +76,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_set1(const Mask<T, SIMD_WIDTH> &k,
 }
 
 /**
- * @brief Selects elements from two Vec's based on a condition
- * Mask.
- *
- * @param cond The condition mask.
- * @param trueVal The SIMD vector to select from if the condition is true.
- * @param falseVal The SIMD vector to select from if the condition is false.
- * @return A Vec containing the selected elements.
- */
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelse(
-  const Mask<T, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal,
-  const Vec<T, SIMD_WIDTH> &falseVal)
-{
-  return internal::mask::mask_ifelse(cond, trueVal, falseVal);
-}
-
-/**
- * @brief Selects elements from a Vec and zero based on a
- * condition Mask.
- *
- * @param cond The condition mask.
- * @param trueVal The SIMD vector to select from if the condition is true.
- * @return A Vec containing the selected elements.
- */
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelsezero(
-  const Mask<T, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal)
-{
-  return internal::mask::mask_ifelsezero(cond, trueVal);
-}
-
-/**
  * @brief Masked version of cvts(const Vec<Tin, SIMD_WIDTH> &).
  */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
@@ -131,55 +96,10 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> maskz_cvts(
   return internal::mask::maskz_cvts(k, a);
 }
 
-/**
- * @brief Masked version of
- * div2r0(const Vec<T, SIMD_WIDTH> &).
- */
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_div2r0(const Vec<T, SIMD_WIDTH> &src,
-                                                  const Mask<T, SIMD_WIDTH> &k,
-                                                  const Vec<T, SIMD_WIDTH> &a)
-{
-  return internal::mask::mask_div2r0(src, k, a);
-}
+/** @} */
 
 /**
- * @brief Zero-masked version of
- * div2r0(const Vec<T, SIMD_WIDTH> &).
- */
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_div2r0(const Mask<T, SIMD_WIDTH> &k,
-                                                   const Vec<T, SIMD_WIDTH> &a)
-{
-  return internal::mask::maskz_div2r0(k, a);
-}
-
-/**
- * @brief Masked version of
- * div2rd(const Vec<T, SIMD_WIDTH> &).
- */
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_div2rd(const Vec<T, SIMD_WIDTH> &src,
-                                                  const Mask<T, SIMD_WIDTH> &k,
-                                                  const Vec<T, SIMD_WIDTH> &a)
-{
-  return internal::mask::mask_div2rd(src, k, a);
-}
-
-/**
- * @brief Zero-masked version of
- * div2rd(const Vec<T, SIMD_WIDTH> &).
- */
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_div2rd(const Mask<T, SIMD_WIDTH> &k,
-                                                   const Vec<T, SIMD_WIDTH> &a)
-{
-  return internal::mask::maskz_div2rd(k, a);
-}
-
-/**
- * @defgroup mask_functions Pure Mask Functions
- * @brief Functions that operate on masks themselves.
+ * @addtogroup group_mask_functions
  * @{
  */
 
@@ -188,10 +108,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_div2rd(const Mask<T, SIMD_WIDTH> &k,
  *
  * The size of the element type of the Mask must be the same.
  *
- * @tparam Tout The element type of the reinterpreted Mask.
- * @tparam Tin The element type of the Mask to reinterpret.
- * @param a The Mask to reinterpret.
- * @return The reinterpreted Mask.
+ * @tparam Tout element type of the reinterpreted Mask
+ * @tparam Tin element type of the Mask to reinterpret
+ * @param a Mask to reinterpret
+ * @return reinterpreted Mask
  */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE Mask<Tout, SIMD_WIDTH> reinterpret_mask(
@@ -203,9 +123,9 @@ static SIMD_INLINE Mask<Tout, SIMD_WIDTH> reinterpret_mask(
 /**
  * @brief Adds two Mask's together as if they were integers.
  *
- * @param a The first Mask.
- * @param b The second Mask.
- * @return The sum of the two Mask's.
+ * @param a first Mask
+ * @param b second Mask
+ * @return sum of the two Mask's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kadd(const Mask<T, SIMD_WIDTH> &a,
@@ -215,16 +135,11 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kadd(const Mask<T, SIMD_WIDTH> &a,
 }
 
 /**
- * @name Bitwise functions
- * @{
- */
-
-/**
  * @brief Computes the bitwise AND of two Mask's.
  *
- * @param a The first Mask.
- * @param b The second Mask.
- * @return The bitwise AND of the two Mask's.
+ * @param a first Mask
+ * @param b second Mask
+ * @return bitwise AND of the two Mask's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kand(const Mask<T, SIMD_WIDTH> &a,
@@ -238,9 +153,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kand(const Mask<T, SIMD_WIDTH> &a,
  *
  * The result is computed as (not a) and b.
  *
- * @param a The first Mask.
- * @param b The second Mask.
- * @return The bitwise ANDNOT of the two Mask's.
+ * @param a first Mask
+ * @param b second Mask
+ * @return bitwise ANDNOT of the two Mask's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kandn(const Mask<T, SIMD_WIDTH> &a,
@@ -252,9 +167,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kandn(const Mask<T, SIMD_WIDTH> &a,
 /**
  * @brief Computes the bitwise OR of two Mask's.
  *
- * @param a The first Mask.
- * @param b The second Mask.
- * @return The bitwise OR of the two Mask's.
+ * @param a first Mask
+ * @param b second Mask
+ * @return bitwise OR of the two Mask's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kor(const Mask<T, SIMD_WIDTH> &a,
@@ -266,9 +181,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kor(const Mask<T, SIMD_WIDTH> &a,
 /**
  * @brief Computes the bitwise XOR of two Mask's.
  *
- * @param a The first Mask.
- * @param b The second Mask.
- * @return The bitwise XOR of the two Mask's.
+ * @param a first Mask
+ * @param b second Mask
+ * @return bitwise XOR of the two Mask's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kxor(const Mask<T, SIMD_WIDTH> &a,
@@ -280,9 +195,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kxor(const Mask<T, SIMD_WIDTH> &a,
 /**
  * @brief Computes the bitwise XNOR of two Mask's.
  *
- * @param a The first Mask.
- * @param b The second Mask.
- * @return The bitwise XNOR of the two Mask's.
+ * @param a first Mask
+ * @param b second Mask
+ * @return bitwise XNOR of the two Mask's
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kxnor(const Mask<T, SIMD_WIDTH> &a,
@@ -294,8 +209,8 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kxnor(const Mask<T, SIMD_WIDTH> &a,
 /**
  * @brief Computes the bitwise NOT of a Mask.
  *
- * @param a The Mask.
- * @return The bitwise NOT of the Mask.
+ * @param a Mask
+ * @return bitwise NOT of the Mask
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> knot(const Mask<T, SIMD_WIDTH> &a)
@@ -303,20 +218,13 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> knot(const Mask<T, SIMD_WIDTH> &a)
   return internal::mask::knot(a);
 }
 
-/** @} */
-
-/**
- * @name Shift functions
- * @{
- */
-
 /**
  * @brief Shifts the bits of a Mask to the right by a
  *        constant number of bits.
  *
- * @param a The Mask.
- * @tparam COUNT The number of bits to shift.
- * @return The shifted Mask.
+ * @param a Mask
+ * @tparam COUNT number of bits to shift
+ * @return shifted Mask
  */
 template <unsigned int COUNT, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftri(const Mask<T, SIMD_WIDTH> &a)
@@ -328,9 +236,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftri(const Mask<T, SIMD_WIDTH> &a)
  * @brief Shifts the bits of a Mask to the left by a
  *        constant number of bits.
  *
- * @param a The Mask.
- * @tparam COUNT The number of bits to shift.
- * @return The shifted Mask.
+ * @param a Mask
+ * @tparam COUNT number of bits to shift
+ * @return shifted Mask
  */
 template <unsigned int COUNT, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftli(const Mask<T, SIMD_WIDTH> &a)
@@ -342,9 +250,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftli(const Mask<T, SIMD_WIDTH> &a)
  * @brief Shifts the bits of a Mask to the right by a
  *        variable number of bits.
  *
- * @param a The Mask.
- * @param count The number of bits to shift.
- * @return The shifted Mask.
+ * @param a Mask
+ * @param count number of bits to shift
+ * @return shifted Mask
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftri(const Mask<T, SIMD_WIDTH> &a,
@@ -357,9 +265,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftri(const Mask<T, SIMD_WIDTH> &a,
  * @brief Shifts the bits of a Mask to the left by a
  *        variable number of bits.
  *
- * @param a The Mask.
- * @param count The number of bits to shift.
- * @return The shifted Mask.
+ * @param a Mask
+ * @param count number of bits to shift
+ * @return shifted Mask
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftli(const Mask<T, SIMD_WIDTH> &a,
@@ -368,17 +276,10 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftli(const Mask<T, SIMD_WIDTH> &a,
   return internal::mask::kshiftli(a, count);
 }
 
-/** @} */
-
-/**
- * @name Mask initialization functions
- * @{
- */
-
 /**
  * @brief Creates a Mask with all elements set to true.
  *
- * @return A Mask with all elements set to true.
+ * @return Mask with all elements set to true
  */
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_all_ones()
@@ -395,8 +296,8 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_all_ones()
  *
  * The remaining bits are set to false.
  *
- * @param x The number of bits to set to true.
- * @return The Mask with the lower @p x bits set to true.
+ * @param x number of bits to set to true
+ * @return Mask with the lower @p x bits set to true
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_low(const unsigned int x)
@@ -410,8 +311,8 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_low(const unsigned int x)
  *
  * The remaining bits are set to false.
  *
- * @param x The number of bits to set to true.
- * @return The Mask with the upper @p x bits set to true.
+ * @param x number of bits to set to true
+ * @return Mask with the upper @p x bits set to true
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_high(const unsigned int x)
@@ -425,8 +326,8 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_high(const unsigned int x)
  *
  * The remaining bits are set to true.
  *
- * @param x The number of bits to set to false.
- * @return The Mask with the lower @p x bits set to false.
+ * @param x number of bits to set to false
+ * @return Mask with the lower @p x bits set to false
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_low(const unsigned int x)
@@ -440,8 +341,8 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_low(const unsigned int x)
  *
  * The remaining bits are set to true.
  *
- * @param x The number of bits to set to false.
- * @return The Mask with the upper @p x bits set to false.
+ * @param x number of bits to set to false
+ * @return Mask with the upper @p x bits set to false
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x)
@@ -452,12 +353,8 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x)
 
 /** @} */
 
-/** @} */ // end of group mask_functions
-
 /**
- * @defgroup mask_memory Masked Memory Functions
- * @brief Functions for masked loading and storing Vec's from and to
- * memory.
+ * @addtogroup group_mask_memory
  * @{
  */
 
@@ -543,12 +440,10 @@ static SIMD_INLINE void mask_storeu(T *const p, const Mask<T, SIMD_WIDTH> &k,
   internal::mask::mask_storeu(p, k, a);
 }
 
-/** @} */ // end of group mask_memory
+/** @} */
 
 /**
- * @defgroup mask_arithmetic Masked Arithmetic Functions
- * @brief Masked arithmetic functions on Vec's, like addition,
- * multiplication, etc.
+ * @addtogroup group_mask_arithmetic
  * @{
  */
 
@@ -728,7 +623,55 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_avg(const Mask<T, SIMD_WIDTH> &k,
 }
 
 /**
- * @name Horizontal functions
+ * @brief Masked version of
+ * div2r0(const Vec<T, SIMD_WIDTH> &).
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_div2r0(const Vec<T, SIMD_WIDTH> &src,
+                                                  const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a)
+{
+  return internal::mask::mask_div2r0(src, k, a);
+}
+
+/**
+ * @brief Zero-masked version of
+ * div2r0(const Vec<T, SIMD_WIDTH> &).
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_div2r0(const Mask<T, SIMD_WIDTH> &k,
+                                                   const Vec<T, SIMD_WIDTH> &a)
+{
+  return internal::mask::maskz_div2r0(k, a);
+}
+
+/**
+ * @brief Masked version of
+ * div2rd(const Vec<T, SIMD_WIDTH> &).
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_div2rd(const Vec<T, SIMD_WIDTH> &src,
+                                                  const Mask<T, SIMD_WIDTH> &k,
+                                                  const Vec<T, SIMD_WIDTH> &a)
+{
+  return internal::mask::mask_div2rd(src, k, a);
+}
+
+/**
+ * @brief Zero-masked version of
+ * div2rd(const Vec<T, SIMD_WIDTH> &).
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_div2rd(const Mask<T, SIMD_WIDTH> &k,
+                                                   const Vec<T, SIMD_WIDTH> &a)
+{
+  return internal::mask::maskz_div2rd(k, a);
+}
+
+/** @} */
+
+/**
+ * @addtogroup group_mask_horizontal
  * @{
  */
 
@@ -834,12 +777,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_hsubs(const Mask<T, SIMD_WIDTH> &k,
 
 /** @} */
 
-/** @} */ // end of group mask_arithmetic
-
 /**
- * @defgroup mask_math_functions Masked Elementary Math Functions
- * @brief Masked elementary mathematical functions on Vec's, such as sqrt,
- * rcp, etc.
+ * @addtogroup group_mask_math_functions
  * @{
  */
 
@@ -912,12 +851,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_sqrt(const Mask<T, SIMD_WIDTH> &k,
   return internal::mask::maskz_sqrt(k, a);
 }
 
-/** @} */ // end of group mask_math_functions
+/** @} */
 
 /**
- * @defgroup mask_special_math Masked Special Math Functions
- * @brief Masked special math functions on Vec's, such as min, max,
- * rounding, etc.
+ * @addtogroup group_mask_special_math
  * @{
  */
 
@@ -1109,11 +1046,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_truncate(
   return internal::mask::maskz_truncate(k, a);
 }
 
-/** @} */ // end of group mask_special_math
+/** @} */
 
 /**
- * @defgroup mask_logic Masked Logical Functions
- * @brief Masked logical functions on Vec's.
+ * @addtogroup group_mask_logic
  * @{
  */
 
@@ -1240,11 +1176,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_not(const Mask<T, SIMD_WIDTH> &k,
   return internal::mask::maskz_not(k, a);
 }
 
-/** @} */ // end of group mask_logic
+/** @} */
 
 /**
- * @defgroup mask_shift Masked Bitwise Shift Functions
- * @brief Masked bitwise shift functions on Vec's.
+ * @addtogroup group_mask_shift
  * @{
  */
 
@@ -1319,11 +1254,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_slli(const Mask<T, SIMD_WIDTH> &k,
 
 // TODO: add masked versions of sra, srl and sll
 
-/** @} */ // end of group mask_shift
+/** @} */
 
 /**
- * @defgroup mask_cmp Masked Comparison Functions
- * @brief Functions for masked comparing elements of Vec's.
+ * @addtogroup group_mask_cmp
  * @{
  */
 
@@ -1334,10 +1268,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_slli(const Mask<T, SIMD_WIDTH> &k,
  * Bits in the resulting Mask are zeroed out if the corresponding bit in
  * the given Mask is not set.
  *
- * @param k The Mask to use for masking the results.
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the masked results of the comparisons.
+ * @param k Mask to use for masking the results
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the masked results of the comparisons
  * @sa cmplt(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmple(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
@@ -1357,10 +1291,10 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmplt(const Mask<T, SIMD_WIDTH> &k,
  * Bits in the resulting Mask are zeroed out if the corresponding bit in
  * the given Mask is not set.
  *
- * @param k The Mask to use for masking the results.
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the masked results of the comparisons.
+ * @param k Mask to use for masking the results
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the masked results of the comparisons
  * @sa cmple(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmplt(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
@@ -1380,10 +1314,10 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmple(const Mask<T, SIMD_WIDTH> &k,
  * Bits in the resulting Mask are zeroed out if the corresponding bit in
  * the given Mask is not set.
  *
- * @param k The Mask to use for masking the results.
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the masked results of the comparisons.
+ * @param k Mask to use for masking the results
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the masked results of the comparisons
  * @sa cmpeq(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
 template <typename T, int SIMD_WIDTH>
@@ -1401,10 +1335,10 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpeq(const Mask<T, SIMD_WIDTH> &k,
  * Bits in the resulting Mask are zeroed out if the corresponding bit in
  * the given Mask is not set.
  *
- * @param k The Mask to use for masking the results.
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the masked results of the comparisons.
+ * @param k Mask to use for masking the results
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the masked results of the comparisons
  * @sa cmpgt(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmpge(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
@@ -1424,10 +1358,10 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpgt(const Mask<T, SIMD_WIDTH> &k,
  * Bits in the resulting Mask are zeroed out if the corresponding bit in
  * the given Mask is not set.
  *
- * @param k The Mask to use for masking the results.
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the masked results of the comparisons.
+ * @param k Mask to use for masking the results
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the masked results of the comparisons
  * @sa cmpge(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmpgt(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
@@ -1447,10 +1381,10 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpge(const Mask<T, SIMD_WIDTH> &k,
  * Bits in the resulting Mask are zeroed out if the corresponding bit in
  * the given Mask is not set.
  *
- * @param k The Mask to use for masking the results.
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the masked results of the comparisons.
+ * @param k Mask to use for masking the results
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the masked results of the comparisons
  * @sa cmpneq(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmpneq(const Vec<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &)
@@ -1467,9 +1401,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpneq(const Mask<T, SIMD_WIDTH> &k,
  * @brief Compares corresponding elements of two Vec's for less-than
  * ( @c < ).
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the results of the comparisons.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the results of the comparisons
  * @sa cmplt(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmplt(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
@@ -1485,9 +1419,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmplt(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for
  * less-than-or-equal ( @c <= ).
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the results of the comparisons.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the results of the comparisons
  * @sa cmple(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmple(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
@@ -1503,9 +1437,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmple(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for equality
  * ( @c == ).
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the results of the comparisons.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the results of the comparisons
  * @sa cmpeq(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmpeq(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
@@ -1521,9 +1455,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpeq(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for greater-than
  * ( @c > ).
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the results of the comparisons.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the results of the comparisons
  * @sa cmpgt(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmpgt(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
@@ -1539,9 +1473,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpgt(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for
  * greater-than-or-equal ( @c >= ).
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the results of the comparisons.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the results of the comparisons
  * @sa cmpge(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmpge(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
@@ -1557,9 +1491,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpge(const Vec<T, SIMD_WIDTH> &a,
  * @brief Compares corresponding elements of two Vec's for inequality
  * ( @c != ).
  *
- * @param a The first Vec.
- * @param b The second Vec.
- * @return A Mask with the results of the comparisons.
+ * @param a first Vec
+ * @param b second Vec
+ * @return Mask with the results of the comparisons
  * @sa cmpneq(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  * @sa mask_cmpneq(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
@@ -1576,10 +1510,10 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_cmpneq(const Vec<T, SIMD_WIDTH> &a,
  * ignoring elements where the corresponding bit in an Mask is
  * zero.
  *
- * @param k The Mask to use for the test.
- * @param a The Vec to test.
- * @return 1 if all elements (except those ignored by the mask) are zero,
- * 0 otherwise.
+ * @param k Mask to use for the test
+ * @param a Vec to test
+ * @return 1 if all elements (except those ignored by the mask) are zero, 0
+ * otherwise
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE int mask_test_all_zeros(const Mask<T, SIMD_WIDTH> &k,
@@ -1593,10 +1527,10 @@ static SIMD_INLINE int mask_test_all_zeros(const Mask<T, SIMD_WIDTH> &k,
  * while ignoring elements where the corresponding bit in an Mask
  * is zero.
  *
- * @param k The Mask to use for the test.
- * @param a The Vec to test.
+ * @param k Mask to use for the test
+ * @param a Vec to test
  * @return 1 if all bits of all elements (except those ignored by the mask)
- * are one, 0 otherwise.
+ * are one, 0 otherwise
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE int mask_test_all_ones(const Mask<T, SIMD_WIDTH> &k,
@@ -1605,9 +1539,39 @@ static SIMD_INLINE int mask_test_all_ones(const Mask<T, SIMD_WIDTH> &k,
   return internal::mask::mask_test_all_ones(k, a);
 }
 
-/** @} */ // end of group mask_cmp
+/**
+ * @brief Selects elements from two Vec's based on a condition
+ * Mask.
+ *
+ * @param cond condition mask
+ * @param trueVal Vec to select from if the condition is true
+ * @param falseVal Vec to select from if the condition is false
+ * @return Vec containing the selected elements
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelse(
+  const Mask<T, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal,
+  const Vec<T, SIMD_WIDTH> &falseVal)
+{
+  return internal::mask::mask_ifelse(cond, trueVal, falseVal);
+}
 
-/** @} */ // end of group mask
+/**
+ * @brief Selects elements from a Vec and zero based on a
+ * condition Mask.
+ *
+ * @param cond condition mask
+ * @param trueVal Vec to select from if the condition is true
+ * @return Vec containing the selected elements
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelsezero(
+  const Mask<T, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal)
+{
+  return internal::mask::mask_ifelsezero(cond, trueVal);
+}
+
+/** @} */
 } // namespace simd
 
 #endif // _SIMD_VEC_MASK_H_

@@ -31,13 +31,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <type_traits>
 
 namespace simd {
-/**
- * @defgroup types Basic SIMD Types
- * @brief Basic types used for SIMD programming.
- * @{
- */
 
 // ===========================================================================
 // data types
@@ -48,7 +44,7 @@ namespace simd {
 // with __STDC_LIMIT_MACROS
 
 /**
- * @name Basic element types
+ * @addtogroup group_element_types
  * @{
  */
 typedef uint8_t Byte;      ///< Unsigned 8-bit integer
@@ -80,6 +76,7 @@ typedef float Float;       ///< Single-precision floating point number (32-bit)
 /// @endcond
 
 /**
+ * @ingroup group_types
  * @brief Used to indicate the direction of a sort function.
  */
 enum class SortSlope { ASCENDING = 0, DESCENDING = 1 };
@@ -90,7 +87,7 @@ enum class SortSlope { ASCENDING = 0, DESCENDING = 1 };
  *
  * This macro can be used to check a condition at compile time.
  *
- * @param EXPR The condition to check.
+ * @param EXPR condition to check
  */
 #define SIMD_STATIC_ASSERT(EXPR)
 
@@ -113,6 +110,11 @@ enum class SortSlope { ASCENDING = 0, DESCENDING = 1 };
 
 // defaultFormat() returns a full format specifier with % and space, can be
 // used for tests
+
+/**
+ * @addtogroup group_element_types
+ * @{
+ */
 
 namespace internal {
 namespace types {
@@ -313,12 +315,23 @@ public:
 // note that for T=Float, TypeInfo<T>::format() returns "g",
 // for which precision encodes the number of significant digits,
 // not the number of fractional digits
+/**
+ * @brief Class for generating format strings for printf for SIMD types
+ *
+ * @tparam T type for which to generate a format string
+ */
 template <typename T>
 class Format
 {
 public:
-  char format[256];
+  char format[256]; ///< The generated format string
 
+  /**
+   * @brief Constructor
+   *
+   * @param fieldWidth field width (e.g. 4 for "%4d")
+   * @param precision precision (e.g. 2 for "%.2f")
+   */
   Format(int fieldWidth = -1, int precision = -1)
   {
     char fieldWidthStr[16], precisionStr[16];
@@ -342,19 +355,31 @@ public:
 
 // a crude way to format SIMD* types as decimal number, can be used in
 // fprintf (use %s format specification)
+/**
+ * @brief Class for formatting SIMD types as decimal numbers
+ *
+ * @tparam T type to format
+ */
 template <typename T>
 class Decimal
 {
 public:
-  char str[256];
+  char str[256]; ///< The formatted string
 
+  /**
+   * @brief Constructor
+   *
+   * @param value value to format
+   * @param fieldWidth field width (e.g. 4 for "%4d")
+   * @param precision precision (e.g. 2 for "%.2f")
+   */
   Decimal(T value, int fieldWidth = -1, int precision = -1)
   {
     sprintf(str, Format<T>(fieldWidth, precision).format, value);
   }
 };
 
-/** @} */ // end of group types
+/** @} */
 
 namespace internal {
 // ===========================================================================

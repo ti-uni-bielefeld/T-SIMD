@@ -306,20 +306,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(
   return hadds(v.vec);
 }
 
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> hsub(
-  const Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> &v)
-{
-  return hsub(v.vec);
-}
-
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(
-  const Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> &v)
-{
-  return hsubs(v.vec);
-}
-
 template <int NUM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vecs<NUM, T, SIMD_WIDTH> add(
   const Vecs<NUM, T, SIMD_WIDTH> &a, const Vecs<NUM, T, SIMD_WIDTH> &b)

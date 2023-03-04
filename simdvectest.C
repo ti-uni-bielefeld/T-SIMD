@@ -1318,8 +1318,6 @@ int main()
   Vec<HORTYPE, SW> horOutVec;
   horOutVec = hadd(horInVecs);
   horOutVec = hadds(horInVecs);
-  horOutVec = hsub(horInVecs);
-  horOutVec = hsubs(horInVecs);
 
   puts("\n*********** test of print functions ***********\n");
 

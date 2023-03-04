@@ -1802,24 +1802,6 @@ static SIMD_INLINE T hadds(const SerialVec<T, SIMD_WIDTH> &a)
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE T hsub(const SerialVec<T, SIMD_WIDTH> &a)
-{
-  SerialVec<T, SIMD_WIDTH> c = a;
-  for (int n = a.elements; n > 1; n = n / 2)
-    for (int i = 0; i < n / 2; i++) c[i] = _sub(c[2 * i], c[2 * i + 1]);
-  return c[0];
-}
-
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE T hsubs(const SerialVec<T, SIMD_WIDTH> &a)
-{
-  SerialVec<T, SIMD_WIDTH> c = a;
-  for (int n = a.elements; n > 1; n = n / 2)
-    for (int i = 0; i < n / 2; i++) c[i] = _subs(c[2 * i], c[2 * i + 1]);
-  return c[0];
-}
-
-template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE T hmin(const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c = a;
@@ -1980,24 +1962,6 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadds(
 {
   SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = hadds(v[i]);
-  return c;
-}
-
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hsub(
-  const SerialVec<T, SIMD_WIDTH> v[SerialVec<T, SIMD_WIDTH>::elems])
-{
-  SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = hsub(v[i]);
-  return c;
-}
-
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hsubs(
-  const SerialVec<T, SIMD_WIDTH> v[SerialVec<T, SIMD_WIDTH>::elems])
-{
-  SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = hsubs(v[i]);
   return c;
 }
 

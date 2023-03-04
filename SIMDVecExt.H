@@ -1310,21 +1310,6 @@ public:
       Horizontal<T, SIMD_WIDTH, num / 2, i0, i0 + num / 4>::_hadds(v),
       Horizontal<T, SIMD_WIDTH, num / 2, i1, i1 + num / 4>::_hadds(v));
   }
-
-  static SIMD_INLINE Vec<T, SIMD_WIDTH> _hsub(
-    const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
-  {
-    return hsub(Horizontal<T, SIMD_WIDTH, num / 2, i0, i0 + num / 4>::_hsub(v),
-                Horizontal<T, SIMD_WIDTH, num / 2, i1, i1 + num / 4>::_hsub(v));
-  }
-
-  static SIMD_INLINE Vec<T, SIMD_WIDTH> _hsubs(
-    const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
-  {
-    return hsubs(
-      Horizontal<T, SIMD_WIDTH, num / 2, i0, i0 + num / 4>::_hsubs(v),
-      Horizontal<T, SIMD_WIDTH, num / 2, i1, i1 + num / 4>::_hsubs(v));
-  }
 };
 
 // partial specialization to end the recursion
@@ -1342,18 +1327,6 @@ public:
     const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
   {
     return hadds(v[i0], v[i1]);
-  }
-
-  static SIMD_INLINE Vec<T, SIMD_WIDTH> _hsub(
-    const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
-  {
-    return hsub(v[i0], v[i1]);
-  }
-
-  static SIMD_INLINE Vec<T, SIMD_WIDTH> _hsubs(
-    const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
-  {
-    return hsubs(v[i0], v[i1]);
   }
 };
 } // namespace ext
@@ -1394,24 +1367,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(
                                    (Vec<T, SIMD_WIDTH>::elems) / 2>::_hadds(v);
 }
 
-// function template
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> hsub(
-  const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
-{
-  return internal::ext::Horizontal<T, SIMD_WIDTH, Vec<T, SIMD_WIDTH>::elems, 0,
-                                   (Vec<T, SIMD_WIDTH>::elems) / 2>::_hsub(v);
-}
-
-// function template
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(
-  const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
-{
-  return internal::ext::Horizontal<T, SIMD_WIDTH, Vec<T, SIMD_WIDTH>::elems, 0,
-                                   (Vec<T, SIMD_WIDTH>::elems) / 2>::_hsubs(v);
-}
-
 // ===========================================================================
 // horizontal operations (generic form for single vector input)
 // ===========================================================================
@@ -1442,18 +1397,6 @@ public:
     return hadds(u, u);
   }
 
-  static SIMD_INLINE Vec<T, SIMD_WIDTH> _hsub(const Vec<T, SIMD_WIDTH> &v)
-  {
-    Vec<T, SIMD_WIDTH> u = Horizontal1<T, SIMD_WIDTH, NUM / 2>::_hsub(v);
-    return hsub(u, u);
-  }
-
-  static SIMD_INLINE Vec<T, SIMD_WIDTH> _hsubs(const Vec<T, SIMD_WIDTH> &v)
-  {
-    Vec<T, SIMD_WIDTH> u = Horizontal1<T, SIMD_WIDTH, NUM / 2>::_hsubs(v);
-    return hsubs(u, u);
-  }
-
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hmin(const Vec<T, SIMD_WIDTH> &v)
   {
     return Horizontal1<T, SIMD_WIDTH, NUM / 2>::_hmin(min(srle<NUM>(v), v));
@@ -1477,16 +1420,6 @@ public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hadds(const Vec<T, SIMD_WIDTH> &v)
   {
     return hadds(v, v);
-  }
-
-  static SIMD_INLINE Vec<T, SIMD_WIDTH> _hsub(const Vec<T, SIMD_WIDTH> &v)
-  {
-    return hsub(v, v);
-  }
-
-  static SIMD_INLINE Vec<T, SIMD_WIDTH> _hsubs(const Vec<T, SIMD_WIDTH> &v)
-  {
-    return hsubs(v, v);
   }
 
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hmin(const Vec<T, SIMD_WIDTH> &v)
@@ -1528,24 +1461,6 @@ static SIMD_INLINE T hadds(const Vec<T, SIMD_WIDTH> &v)
   return elem0(
     internal::ext::Horizontal1<T, SIMD_WIDTH,
                                SIMD_WIDTH / sizeof(T) / 2>::_hadds(v));
-}
-
-// function template
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE T hsub(const Vec<T, SIMD_WIDTH> &v)
-{
-  return elem0(
-    internal::ext::Horizontal1<T, SIMD_WIDTH,
-                               SIMD_WIDTH / sizeof(T) / 2>::_hsub(v));
-}
-
-// function template
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE T hsubs(const Vec<T, SIMD_WIDTH> &v)
-{
-  return elem0(
-    internal::ext::Horizontal1<T, SIMD_WIDTH,
-                               SIMD_WIDTH / sizeof(T) / 2>::_hsubs(v));
 }
 
 /**

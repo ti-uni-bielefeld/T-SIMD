@@ -1736,48 +1736,6 @@ struct HaddsMulti
 };
 
 template <typename T, int SIMD_WIDTH>
-struct HsubMulti
-{
-  static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsub"); }
-
-  // number of input elements
-  static constexpr int nInputs = SerialVec<T, SIMD_WIDTH>::elements;
-
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
-
-  template <template <typename, int> class VEC>
-  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(
-    const VEC<T, SIMD_WIDTH> a[nInputs])
-  {
-    return hsub(a);
-  }
-};
-
-template <typename T, int SIMD_WIDTH>
-struct HsubsMulti
-{
-  static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsubs"); }
-
-  // number of input elements
-  static constexpr int nInputs = SerialVec<T, SIMD_WIDTH>::elements;
-
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
-
-  template <template <typename, int> class VEC>
-  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(
-    const VEC<T, SIMD_WIDTH> a[nInputs])
-  {
-    return hsubs(a);
-  }
-};
-
-template <typename T, int SIMD_WIDTH>
 struct HaddSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadd"); }
@@ -1808,40 +1766,6 @@ struct HaddsSingle
   static SIMD_INLINE T apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return hadds(a);
-  }
-};
-
-template <typename T, int SIMD_WIDTH>
-struct HsubSingle
-{
-  static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsub"); }
-
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
-
-  template <template <typename, int> class VEC>
-  static SIMD_INLINE T apply(const VEC<T, SIMD_WIDTH> &a)
-  {
-    return hsub(a);
-  }
-};
-
-template <typename T, int SIMD_WIDTH>
-struct HsubsSingle
-{
-  static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsubs"); }
-
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
-
-  template <template <typename, int> class VEC>
-  static SIMD_INLINE T apply(const VEC<T, SIMD_WIDTH> &a)
-  {
-    return hsubs(a);
   }
 };
 

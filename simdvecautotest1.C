@@ -146,12 +146,8 @@ int main(int argc, char *argv[])
     repeats1, pattern);
   TestAll<Array, SW, HaddMulti>::test(repeats1, pattern);
   TestAll<Array, SW, HaddsMulti>::test(repeats1, pattern);
-  TestAll<Array, SW, HsubMulti>::test(repeats1, pattern);
-  TestAll<Array, SW, HsubsMulti>::test(repeats1, pattern);
   TestAll<UnaryScalarT, SW, HaddSingle>::test(repeats1, pattern);
   TestAll<UnaryScalarT, SW, HaddsSingle>::test(repeats1, pattern);
-  TestAll<UnaryScalarT, SW, HsubSingle>::test(repeats1, pattern);
-  TestAll<UnaryScalarT, SW, HsubsSingle>::test(repeats1, pattern);
   TestAll<UnaryScalarT, SW, HminSingle>::test(repeats1, pattern);
   TestAll<UnaryScalarT, SW, HmaxSingle>::test(repeats1, pattern);
   // TODO: partial transpose

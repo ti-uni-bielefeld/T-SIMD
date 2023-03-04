@@ -15,7 +15,7 @@
 // licensor, and the software may not be distributed by the licensee; see
 // the license agreement for details.
 //
-// (C) Ralf Möller
+// (C) Jonas Keller, Ralf Möller
 //     Computer Engineering
 //     Faculty of Technology
 //     Bielefeld University

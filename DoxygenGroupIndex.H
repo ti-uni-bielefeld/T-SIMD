@@ -1,7 +1,30 @@
+// ===========================================================================
+//
+// DoxygenGroupIndex.H --
 // File to define group structure and order for doxygen documentation of the
 // T-SIMD library.
 // This has to be the first file in the "INPUT" field in the file "Doxyfile",
 // so that the groups appear in the order defined here.
+//
+// This source code file is part of the following software:
+//
+//    - the low-level C++ template SIMD library
+//    - the SIMD implementation of the MinWarping and the 2D-Warping methods
+//      for local visual homing.
+//
+// The software is provided based on the accompanying license agreement
+// in the file LICENSE or LICENSE.doc. The software is provided "as is"
+// without any warranty by the licensor and without any liability of the
+// licensor, and the software may not be distributed by the licensee; see
+// the license agreement for details.
+//
+// (C) Jonas Keller, Ralf Möller
+//     Computer Engineering
+//     Faculty of Technology
+//     Bielefeld University
+//     www.ti.uni-bielefeld.de
+//
+// ===========================================================================
 
 /**
  * @defgroup group_types SIMD Types and Classes

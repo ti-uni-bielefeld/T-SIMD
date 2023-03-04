@@ -58,6 +58,9 @@ all_binaries = $(default_binaries) $(archspec_binaries)
 # dependency files
 depend_files = $(addsuffix .d,$(all_binaries))
 
+# single header tsimd library file
+tsimd_single_header_file = tsimd_sh.H
+
 #===========================================================================
 # object files
 #===========================================================================
@@ -212,10 +215,11 @@ endif
 
 .PHONY: clean
 clean:
-	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, backup files and html/ documentation directory
+	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, backup files, single header file and html/ documentation directory
 	@$(RM) $(all_objects) $(all_binaries) $(depend_files) \
 		$(addsuffix .exe,$(all_binaries)) \
 		$(addsuffix .ilk,$(all_binaries)) $(addsuffix .pdb,$(all_binaries)) \
+		$(tsimd_single_header_file) \
 		*~ >$(NULL) 2>&1
 	@$(RMDIR) html/ >$(NULL) 2>&1
 
@@ -265,5 +269,13 @@ format:
 doc documentation:
 	@echo "generating documentation"
 	@doxygen
+
+# 04. Mar 23 (Jonas Keller): added rule for generating single header file
+# uses quom (https://github.com/Viatorus/quom)
+.PHONY: single-header
+single-header:
+	@echo "generating tsimd single header file"
+	@./generateSingleHeader.sh $(tsimd_single_header_file)
+	@echo "single header written to $(tsimd_single_header_file)"
 
 -include $(depend_files)

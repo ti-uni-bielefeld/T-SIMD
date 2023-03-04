@@ -16,9 +16,10 @@ Templates parameters are the element data type of the vectors and the vector wid
 
 # Quick Start
 
-First, download the latest release from  <https://www.ti.uni-bielefeld.de/html/people/moeller/tsimd_warpingsimd.html> (section "Software Download"). Unpack the archive and copy the contents of the folder starting with "CODE" into your project.
+First, download the latest release from <https://www.ti.uni-bielefeld.de/html/people/moeller/tsimd_warpingsimd.html> (section "Software Download").
+Either download the single header library version `tsimd_sh.H` or download the full archive, unpack it and copy the contents of the folder starting with "CODE" into your project.
 
-To use the **T-SIMD** library, simply include the header file `tsimd.H` .
+To use the **T-SIMD** library, simply include the single-header file `tsimd_sh.H` or the `tsimd.H` header from the archive.
 
 # Example
 

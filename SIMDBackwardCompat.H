@@ -57,49 +57,49 @@ typedef SIMDShort *SIMDShortPtr;           ///< Pointer to SIMDShort.
 typedef SIMDInt *SIMDIntPtr;               ///< Pointer to SIMDInt.
 typedef SIMDFloat *SIMDFloatPtr;           ///< Pointer to SIMDFloat.
 
-/// Alias for Vec.
+/// Alias for Vec. @deprecated Use Vec instead.
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 using SIMDVec = Vec<T, SIMD_WIDTH>;
 
-/// Alias for Vecs.
+/// Alias for Vecs. @deprecated Use Vecs instead.
 template <int NUM, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 using SIMDVecs = Vecs<NUM, T, SIMD_WIDTH>;
 
-/// Alias for Mask.
+/// Alias for Mask. @deprecated Use Mask instead.
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 using SIMDMask = Mask<T, SIMD_WIDTH>;
 
-/// Alias for TypeInfo.
+/// Alias for TypeInfo. @deprecated Use TypeInfo instead.
 template <typename T>
 using SIMDTypeInfo = TypeInfo<T>;
 
-/// Alias for Format.
+/// Alias for Format. @deprecated Use Format instead.
 template <typename T>
 using SIMDFormat = Format<T>;
 
-/// Alias for Decimal.
+/// Alias for Decimal. @deprecated Use Decimal instead.
 template <typename T>
 using SIMDDecimal = Decimal<T>;
 
-/// Alias for NumVecs.
+/// Alias for NumVecs. @deprecated Use NumVecs instead.
 template <typename Tout, typename Tin>
 using NumSIMDVecs = NumVecs<Tout, Tin>;
 
-/// Alias for Vec::elems.
+/// Alias for Vec<T, SIMD_WIDTH>::elems. @deprecated Use Vec::elems instead.
 template <typename T, int SIMD_WIDTH>
 static constexpr SIMD_INLINE int numSIMDVecElements()
 {
   return Vec<T, SIMD_WIDTH>::elems;
 }
 
-/// Alias for numInVecs().
+/// Alias for numInVecs(). @deprecated Use numInVecs() instead.
 template <typename Tout, typename Tin>
 static constexpr SIMD_INLINE int numInputSIMDVecs()
 {
   return numInVecs<Tout, Tin>();
 }
 
-/// Alias for numOutVecs().
+/// Alias for numOutVecs(). @deprecated Use numOutVecs() instead.
 template <typename Tout, typename Tin>
 static constexpr SIMD_INLINE int numOutputSIMDVecs()
 {
@@ -117,6 +117,7 @@ static constexpr SIMD_INLINE int numOutputSIMDVecs()
 /**
  * @ingroup group_aliases
  * @brief Alias for @ref simd.
+ * @deprecated Use @ref simd instead.
  */
 namespace ns_simd {}
 #else

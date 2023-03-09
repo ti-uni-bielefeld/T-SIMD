@@ -195,6 +195,15 @@ static constexpr SIMD_INLINE int numOutVecs()
   return (sizeof(Tout) > sizeof(Tin)) ? (sizeof(Tout) / sizeof(Tin)) : 1;
 }
 
+/**
+ * @ingroup group_type_conversion
+ * @brief Number of elements in all input vectors for functions that potentially
+ * change the size of the elements but not the number of elements.
+ *
+ * @tparam Tout output type
+ * @tparam Tin input type
+ * @return number of elements in all input vectors
+ */
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static constexpr SIMD_INLINE int numSIMDVecsElements()
 {

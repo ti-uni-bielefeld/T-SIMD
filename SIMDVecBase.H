@@ -360,8 +360,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> add(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /**
- * @brief Adds the elements of two Vec's using saturated
- * arithmetic.
+ * @brief Adds the elements of two Vec's using saturated arithmetic.
+ *
+ * @note Does not use saturated arithmetic with floating point types.
  *
  * @param a first Vec
  * @param b second Vec
@@ -390,8 +391,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sub(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /**
- * @brief Subtracts the elements of two Vec's using saturated
- * arithmetic.
+ * @brief Subtracts the elements of two Vec's using saturated arithmetic.
+ *
+ * @note Does not use saturated arithmetic with floating point types.
  *
  * @param a first Vec
  * @param b second Vec
@@ -478,8 +480,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /**
- * @brief Horizontally adds adjacent elements of two Vec's
- * with saturation.
+ * @brief Horizontally adds adjacent elements of two Vec's with saturation.
+ *
+ * @note Does not use saturated arithmetic with floating point types.
  *
  * @param a first Vec
  * @param b second Vec
@@ -507,8 +510,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hsub(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /**
- * @brief Horizontally subtracts adjacent elements of two Vec's
- * with saturation.
+ * @brief Horizontally subtracts adjacent elements of two Vec's with saturation.
+ *
+ * @note Does not use saturated arithmetic with floating point types.
  *
  * @param a first Vec
  * @param b second Vec
@@ -1164,6 +1168,7 @@ static Vec<T, SIMD_WIDTH> reverse(const Vec<T, SIMD_WIDTH> &a)
  *
  * @sa swizzle2(), swizzle3(), swizzle4(): %swizzle functions that take double
  * the number of Vec's and might have different performance characteristics
+ * @sa unswizzle2(), unswizzle4(): %unswizzle functions
  */
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> v[N])

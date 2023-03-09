@@ -347,8 +347,8 @@ template <template <typename, int> class Store, typename T, int SIMD_WIDTH,
 class Store16
 {
 public:
-  static SIMD_INLINE void _store16(T *const p,
-                                   const Vec<T, SIMD_WIDTH> *outVecs)
+  static SIMD_INLINE void _store16(
+    T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
   {
     // printf("STORE_WIDTH=%d, SRC_OFFSET=%d, DST_OFFSET=%d\n",
     // STORE_WIDTH, SRC_OFFSET, DST_OFFSET);
@@ -370,8 +370,8 @@ class Store16<Store, T, SIMD_WIDTH, NUMROWS, ROW, STORE_STOP, 16, SRC_OFF,
   static constexpr int OFF  = (DST_OFF + ROW) * NUMROWS;
 
 public:
-  static SIMD_INLINE void _store16(T *const p,
-                                   const Vec<T, SIMD_WIDTH> *outVecs)
+  static SIMD_INLINE void _store16(
+    T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
   {
     // printf("VO=%d\n", OFF=%d\n", VO, OFF);
     Store<T, SIMD_WIDTH>::_store(p + OFF, outVecs[VO]);
@@ -386,15 +386,28 @@ class Store16<Store, T, SIMD_WIDTH, NUMROWS, STORE_STOP, STORE_STOP, 16,
               SRC_OFF, DST_OFF>
 {
 public:
-  static SIMD_INLINE void _store16(T *const, const Vec<T, SIMD_WIDTH> *) {}
+  static SIMD_INLINE void _store16(
+    T *const, const Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems])
+  {}
 };
 } // namespace ext
 } // namespace internal
 
 // -------------------- store16 functions ------------------------------------
 
+/**
+ * @ingroup group_transpose
+ * @brief Stores the rows of a matrix that was transposed with
+ * transpose1_16() to aligned memory in the correct order.
+ *
+ * The memory location must be aligned to the SIMD_WIDTH.
+ *
+ * @param[out] p pointer to the aligned memory location to store to
+ * @param[in] outVecs array of Vecs to store
+ */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void store16(T *const p, const Vec<T, SIMD_WIDTH> *outVecs)
+static SIMD_INLINE void store16(
+  T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
 {
   const int numRows   = SIMD_WIDTH / sizeof(T);
   const int storeStop = 16 / sizeof(T);
@@ -402,8 +415,20 @@ static SIMD_INLINE void store16(T *const p, const Vec<T, SIMD_WIDTH> *outVecs)
                          storeStop, SIMD_WIDTH, 0, 0>::_store16(p, outVecs);
 }
 
+/**
+ * @ingroup group_transpose
+ * @brief Stores the rows of a matrix that was transposed with
+ * transpose1_16() to unaligned memory in the correct order.
+ *
+ * In contrast to store16() the memory location does not need to be aligned
+ * any boundary.
+ *
+ * @param[out] p pointer to the memory location to store to
+ * @param[in] outVecs array of Vecs to store
+ */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void storeu16(T *const p, const Vec<T, SIMD_WIDTH> *outVecs)
+static SIMD_INLINE void storeu16(
+  T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
 {
   const int numRows   = SIMD_WIDTH / sizeof(T);
   const int storeStop = 16 / sizeof(T);
@@ -889,6 +914,16 @@ static SIMD_INLINE void fdivMsigmoidmul(
 } // namespace ext
 } // namespace internal
 
+/**
+ * @brief Special function used in MinWarping.
+ *
+ * @param[in] vecsNum Numerator vectors.
+ * @param[in] vecsDenom Denominator vectors.
+ * @param[in] w Weights.
+ * @param[in] w0 Weights.
+ * @param fac Factor.
+ * @param[out] vecsOut Output vectors.
+ */
 template <int DIM, int NVEC, typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE void fdivMsigmoidmul(
   const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
@@ -1356,6 +1391,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(
  * @brief Sums the elements of multiple Vec's independently using
  * saturated arithmetic and returns a Vec with the results.
  *
+ * @note Does not use saturated arithmetic with floating point types.
+ *
  * @param[in] v array of Vec's to be summed
  * @return Vec with the results of the saturated horizontal sums
  */
@@ -1451,6 +1488,8 @@ static SIMD_INLINE T hadd(const Vec<T, SIMD_WIDTH> &v)
 
 /**
  * @brief Adds all elements of a Vec using saturated arithmetic.
+ *
+ * @note Does not use saturated arithmetic with floating point types.
  *
  * @param v Vec to add all elements of
  * @return saturated sum of all elements of the Vec
@@ -1899,7 +1938,7 @@ class Transpose
 public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
-    Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
+    Vec<T, SIMD_WIDTH> outRows[NUM_TRANSPOSE_ROWS])
   {
     // printf("\n_transpose(NUMROWS=%d,ROW=%d)\n", NUMROWS, ROW);
     // transpose single row with index ROW
@@ -1923,17 +1962,33 @@ class Transpose<Unpack, T, SIMD_WIDTH, NUMROWS, NUM_TRANSPOSE_ROWS,
 public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems],
-    Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems])
+    Vec<T, SIMD_WIDTH>[NUM_TRANSPOSE_ROWS])
   {}
 };
 } // namespace ext
 } // namespace internal
 
 // function template: partial transpose
+
+/**
+ * @ingroup group_transpose
+ * @brief Computes the first few rows of the transposed matrix held in an array
+ * of Vec's.
+ *
+ * The matrix must be given as an array of Vec's which are the rows of
+ * the matrix. The number of rows must be equal to the number of elements
+ * in a Vec (<tt>SIMD_WIDTH/sizeof(T)</tt>), i.e. the matrix must be square.
+ *
+ * @tparam NUM_TRANSPOSE_ROWS number of rows to compute of the transposed
+ * matrix
+ * @param[in] inRows array of Vec's holding the matrix to be transposed
+ * @param[out] outRows array of Vec's where the first few rows of the transposed
+ * matrix are stored
+ */
 template <int NUM_TRANSPOSE_ROWS, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
-  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
+  Vec<T, SIMD_WIDTH> outRows[NUM_TRANSPOSE_ROWS])
 {
   internal::ext::Transpose<internal::ext::Unpack, T, SIMD_WIDTH,
                            // NUMROWS, NUM_TRANSPOSE_ROWS, ROW
@@ -1954,6 +2009,16 @@ static SIMD_INLINE void transpose(
  *
  * @param[in] inRows array of Vec's holding the matrix to be transposed
  * @param[out] outRows array of Vec's where the transposed matrix is stored
+ *
+ * @sa transpose(const
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],Vec<T,SIMD_WIDTH>[NUM_TRANSPOSE_ROWS]):
+ * function to only compute the first few rows of the transposed matrix
+ * @sa transpose(const
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems]),
+ * transpose0(), transpose2(), transpose3(), transpose4(), transpose5(),
+ * transpose6_t(), transpose16(), transpose1_16(), transpose1_16_t(): different
+ * implementations of the %transpose function that have different performance
+ * characteristics
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose(
@@ -2100,6 +2165,12 @@ public:
 // ===========================================================================
 
 // function template: full transpose
+
+/**
+ * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ * @ingroup group_transpose
+ */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose0(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2119,6 +2190,19 @@ static SIMD_INLINE void transpose0(
 // ===========================================================================
 
 // function template: full transpose
+
+/**
+ * @copybrief transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ *
+ * @warning This function does not output the rows of the transposed matrix in
+ * the correct order. Call store16() (or storeu16()) on the output rows to
+ * store the matrix in the correct order.
+ *
+ * @copydetails transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ * @ingroup group_transpose
+ */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose1_16(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2130,6 +2214,20 @@ static SIMD_INLINE void transpose1_16(
 }
 
 // function template: full transpose (for tests, includes store16)
+
+/**
+ * @copybrief transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ *
+ * @note This function is the same as transpose1_16() but includes the store16
+ * (or storeu16) step to output the rows of the transposed matrix in the correct
+ * order. This function is mainly used for testing, but can also be used
+ * normally.
+ *
+ * @copydetails transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ * @ingroup group_transpose
+ */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose1_16_t(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2225,6 +2323,11 @@ public:
 } // namespace ext
 } // namespace internal
 
+/**
+ * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ * @ingroup group_transpose
+ */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose16(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2311,6 +2414,7 @@ static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
  * @sa swizzle(): swizzles half the number of Vec's as this function
  * @sa swizzle2(), swizzle3(), swizzle4(): different implementations of this
  * function that might have different performance characteristics
+ * @sa unswizzle2(), unswizzle4(): %unswizzle functions
  */
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
@@ -2324,6 +2428,12 @@ static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
 
 // is called transpose2 as it is based on swizzle2, but expects same
 // number of vectors as transpose (not twice the number)
+
+/**
+ * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ * @ingroup group_transpose
+ */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose2(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2397,6 +2507,12 @@ static SIMD_INLINE void swizzle3(Vec<T, SIMD_WIDTH> v[2 * N])
 
 // called transpose3 as it is based on swizzle2, but expects same
 // number of vectors as transpose (not twice the number)
+
+/**
+ * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ * @ingroup group_transpose
+ */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose3(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2672,6 +2788,10 @@ public:
 
 // 15. Oct 22 (Jonas Keller): added unswizzle4 wrapper function
 
+/**
+ * @copydoc unswizzle2()
+ * @ingroup group_swizzle
+ */
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void unswizzle4(Vec<T, SIMD_WIDTH> v[2 * N])
 {
@@ -2686,6 +2806,12 @@ static SIMD_INLINE void unswizzle4(Vec<T, SIMD_WIDTH> v[2 * N])
 
 // called transpose4 as it is based on swizzle3, but expects same
 // number of vectors as transpose (not twice the number)
+
+/**
+ * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ * @ingroup group_transpose
+ */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose4(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2828,6 +2954,12 @@ public:
 
 // called transpose5 as it is based on swizzle2, but expects same
 // number of vectors as transpose (not twice the number)
+
+/**
+ * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ * @ingroup group_transpose
+ */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose5(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -3165,6 +3297,24 @@ public:
 // ---------------------------------------------------------------------------
 
 // function template: full transpose
+
+/**
+ * @ingroup group_transpose
+ * @brief Transposes a matrix held in an aligned array.
+ *
+ * The matrix must be of size <tt>n*n</tt> where <tt>n</tt> is the number of
+ * elements in a Vec (Vec<T, SIMD_WIDTH>::elems, <tt>SIMD_WIDTH/sizeof(T)</tt>.
+ *
+ * The input and output arrays must be aligned to the SIMD_WIDTH.
+ *
+ * @param inArray input array
+ * @param outArray output array
+ *
+ * @sa transpose(), transpose0(), transpose2(), transpose3(), transpose4(),
+ * transpose5(), transpose6_t(), transpose16(), transpose1_16(),
+ * transpose1_16_t(): %transpose functions that %transpose matrices that are
+ * already held in Vec's
+ */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose6(
   const T inArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
@@ -3175,6 +3325,22 @@ static SIMD_INLINE void transpose6(
 }
 
 // function template: full transpose for tests
+
+/**
+ * @copybrief transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ *
+ * @note This function is the same as transpose6(), but stores the @p inRows in
+ * an array, then calls transpose6() and loads the output into @p outRows ,
+ * making
+ * this function possibly slower. This function is mainly used for testing, but
+ * can also be used normally.
+ *
+ * @copydetails transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
+ * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
+ *
+ * @ingroup group_transpose
+ */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose6_t(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -3199,6 +3365,42 @@ static SIMD_INLINE void transpose6_t(
 // unswizzle2 (interleave)
 // ===========================================================================
 
+/**
+ * @ingroup group_swizzle
+ * @brief Unswizzle/interleave/convert from SoA to AoS multiple Vec's in-place.
+ *
+ * This function unswizzles/interleaves/converts from SoA (Struct of Arrays) to
+ * AoS (Array of Structs) multiple Vec's in-place.
+ *
+ * <h4>Example:</h4>
+ * Example for an unswizzle distance of 3 with 6 Vec's of 8 elements each:
+ *
+ * input vectors:
+ * @code
+ * v[0] =  0  6 12 18 24 30 36 42
+ * v[1] =  1  7 13 19 25 31 37 43
+ * v[2] =  2  8 14 20 26 32 38 44
+ * v[3] =  3  9 15 21 27 33 39 45
+ * v[4] =  4 10 16 22 28 34 40 46
+ * v[5] =  5 11 17 23 29 35 41 47
+ * @endcode
+ * output vectors:
+ * @code
+ * v[0] =  0  1  2  3  4  5  6  7
+ * v[1] =  8  9 10 11 12 13 14 15
+ * v[2] = 16 17 18 19 20 21 22 23
+ * v[3] = 24 25 26 27 28 29 30 31
+ * v[4] = 32 33 34 35 36 37 38 39
+ * v[5] = 40 41 42 43 44 45 46 47
+ * @endcode
+ *
+ * @tparam N unswizzle distance
+ * @param[in,out] v array of Vec's to unswizzle
+ *
+ * @sa swizzle(), swizzle2(), swizzle3(), swizzle4(): %swizzle functions
+ * @sa unswizzle2(), unswizzle4(): different implementations of this
+ * function that might have different performance characteristics
+ */
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void unswizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
 {

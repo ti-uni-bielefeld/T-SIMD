@@ -265,8 +265,9 @@ format:
 	@clang-format -i *.C *.H
 
 # 02. Mar 23 (Jonas Keller): added documenation rule
-.PHONY: documentation doc
-doc documentation:
+# this has unnecessary many aliases, but why not
+.PHONY: doc docs docu documentation doxygen dox doxy
+doc docs docu documentation doxygen dox doxy:
 	@echo "generating documentation"
 	@doxygen
 

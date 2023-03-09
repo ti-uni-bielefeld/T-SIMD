@@ -1470,7 +1470,7 @@ static SIMD_INLINE Vec<Float, 64> add(const Vec<Float, 64> &a,
 }
 
 // ---------------------------------------------------------------------------
-// adds (integer: signed, unsigned; 8/16 only, 32 without saturation) v
+// adds
 // ---------------------------------------------------------------------------
 
 #ifdef __AVX512BW__
@@ -1510,23 +1510,38 @@ static SIMD_INLINE Vec<T, 64> adds(const Vec<T, 64> &a, const Vec<T, 64> &b)
 
 #endif
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
 static SIMD_INLINE Vec<Int, 64> adds(const Vec<Int, 64> &a,
                                      const Vec<Int, 64> &b)
 {
-  return _mm512_add_epi32(a, b);
-}
-#endif
+  // 09. Mar 23 (Jonas Keller): added workaround so that this function is
+  // saturated
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
+  // _mm512_adds_epi32 does not exist, workaround:
+  // Hacker's Delight, 2-13 Overflow Detection: "Signed integer overflow of
+  // addition occurs if and only if the operands have the same sign and the
+  // sum has a sign opposite to that of the operands."
+  __m512i sum             = _mm512_add_epi32(a, b);
+  __m512i opsHaveDiffSign = _mm512_xor_si512(a, b);
+  __m512i sumHasDiffSign  = _mm512_xor_si512(a, sum);
+  // indicates when an overflow has occurred
+  __m512i overflow =
+    _mm512_srai_epi32(_mm512_andnot_si512(opsHaveDiffSign, sumHasDiffSign), 31);
+  // saturated sum for if overflow occurred (0x7FFFFFFF=max positive int, when
+  // sign of a (and thus b as well) is 0, 0x80000000=min negative int, when sign
+  // of a (and thus b as well) is 1)
+  __m512i saturatedSum =
+    _mm512_xor_si512(_mm512_srai_epi32(a, 31), _mm512_set1_epi32(0x7FFFFFFF));
+  // return saturated sum if overflow occurred, otherwise return sum
+  return _mm512_or_si512(_mm512_andnot_si512(overflow, sum),
+                         _mm512_and_si512(overflow, saturatedSum));
+}
+
+// Float not saturated
 static SIMD_INLINE Vec<Float, 64> adds(const Vec<Float, 64> &a,
                                        const Vec<Float, 64> &b)
 {
   return _mm512_add_ps(a, b);
 }
-#endif
 
 // ---------------------------------------------------------------------------
 // sub v
@@ -1582,7 +1597,7 @@ static SIMD_INLINE Vec<Float, 64> sub(const Vec<Float, 64> &a,
 }
 
 // ---------------------------------------------------------------------------
-// subs (integer: signed, unsigned; 8/16 only, 32 without saturation) v
+// subs
 // ---------------------------------------------------------------------------
 
 #ifdef __AVX512BW__
@@ -1622,23 +1637,38 @@ static SIMD_INLINE Vec<T, 64> subs(const Vec<T, 64> &a, const Vec<T, 64> &b)
 
 #endif
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
 static SIMD_INLINE Vec<Int, 64> subs(const Vec<Int, 64> &a,
                                      const Vec<Int, 64> &b)
 {
-  return _mm512_sub_epi32(a, b);
-}
-#endif
+  // 09. Mar 23 (Jonas Keller): added workaround so that this function is
+  // saturated
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
+  // _mm512_subs_epi32 does not exist, workaround:
+  // Hacker's Delight, 2-13 Overflow Detection: "[...] overflow in the final
+  // value of x−y [...] occurs if and only if x and y have opposite signs and
+  // the sign of x−y [...] is opposite to that of x [...]"
+  __m512i diff            = _mm512_sub_epi32(a, b);
+  __m512i opsHaveDiffSign = _mm512_xor_si512(a, b);
+  __m512i diffHasDiffSign = _mm512_xor_si512(a, diff);
+  // indicates when an overflow has occurred
+  __m512i overflow =
+    _mm512_srai_epi32(_mm512_and_si512(opsHaveDiffSign, diffHasDiffSign), 31);
+  // saturated diff for if overflow occurred (0x7FFFFFFF=max positive int, when
+  // sign of a (and thus b as well) is 0, 0x80000000=min negative int, when sign
+  // of a (and thus b as well) is 1)
+  __m512i saturatedDiff =
+    _mm512_xor_si512(_mm512_srai_epi32(a, 31), _mm512_set1_epi32(0x7FFFFFFF));
+  // return saturated diff if overflow occurred, otherwise return diff
+  return _mm512_or_si512(_mm512_andnot_si512(overflow, diff),
+                         _mm512_and_si512(overflow, saturatedDiff));
+}
+
+// Float not saturated
 static SIMD_INLINE Vec<Float, 64> subs(const Vec<Float, 64> &a,
                                        const Vec<Float, 64> &b)
 {
   return _mm512_sub_ps(a, b);
 }
-#endif
 
 // ---------------------------------------------------------------------------
 // neg (negate = two's complement or unary minus), only signed types v

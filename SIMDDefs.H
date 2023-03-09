@@ -39,10 +39,6 @@
 //       (e.g. by passing them to the compiler via the command line) otherwise
 //       they might not have the desired effect
 
-// SIMD_STRICT_SATURATION:
-// if defined, non-saturated work-arounds for saturated functions are
-// not included (typically for Int and Float, e.g. in adds, hadds)
-
 // SIMD_ALIGN_CHK:
 // if defined, alignment checks of pointers are added in aligned load
 // and store functions (if necessary on given architecture)

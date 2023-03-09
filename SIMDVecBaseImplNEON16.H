@@ -997,14 +997,9 @@ SIMDVEC_NEON_BINARY_ALL(add, vaddq)
 // adds
 // -------------------------------------------------------------------------
 
-#ifndef SIMD_STRICT_SATURATION
 // float NOT saturated
 SIMDVEC_NEON_BINARY_REPLACE(Float, vqaddq, vaddq, f32)
 SIMDVEC_NEON_BINARY_ALL(adds, vqaddq)
-#else
-// without float
-SIMDVEC_NEON_BINARY_ALLINT(adds, vqaddq)
-#endif
 
 // -------------------------------------------------------------------------
 // sub
@@ -1016,14 +1011,9 @@ SIMDVEC_NEON_BINARY_ALL(sub, vsubq)
 // subs
 // -------------------------------------------------------------------------
 
-#ifndef SIMD_STRICT_SATURATION
 // float NOT saturated
 SIMDVEC_NEON_BINARY_REPLACE(Float, vqsubq, vsubq, f32)
 SIMDVEC_NEON_BINARY_ALL(subs, vqsubq)
-#else
-// without float
-SIMDVEC_NEON_BINARY_ALLINT(subs, vqsubq)
-#endif
 
 // -------------------------------------------------------------------------
 // neg (negate = two's complement or unary minus), only signed types
@@ -1716,21 +1706,18 @@ static SIMD_INLINE Vec<Short, 16> hadds(const Vec<Short, 16> &a,
   return vcombine_s16(vqmovn_s32(vpaddlq_s16(a)), vqmovn_s32(vpaddlq_s16(b)));
 }
 
-// in contrast to SIMDVecIntel*, this IS SATURATED!
 static SIMD_INLINE Vec<Int, 16> hadds(const Vec<Int, 16> &a,
                                       const Vec<Int, 16> &b)
 {
   return vcombine_s32(vqmovn_s64(vpaddlq_s32(a)), vqmovn_s64(vpaddlq_s32(b)));
 }
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
+// Float not saturated
 static SIMD_INLINE Vec<Float, 16> hadds(const Vec<Float, 16> &a,
                                         const Vec<Float, 16> &b)
 {
   return hadd(a, b);
 }
-#endif
 
 // -------------------------------------------------------------------------
 // hsub
@@ -1783,10 +1770,8 @@ static SIMD_INLINE Vec<Word, 16> hsubs(const Vec<Word, 16> &a,
 
 SIMDVEC_NEON_HOR_VIA_UZP(hsubs, Short, vqsubq, s16)
 SIMDVEC_NEON_HOR_VIA_UZP(hsubs, Int, vqsubq, s32)
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
+// Float not saturated
 SIMDVEC_NEON_HOR_VIA_UZP(hsubs, Float, vsubq, f32)
-#endif
 
 // -------------------------------------------------------------------------
 // alignre (moved above srle, slle)

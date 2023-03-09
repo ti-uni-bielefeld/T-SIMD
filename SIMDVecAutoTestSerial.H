@@ -332,29 +332,26 @@ static SIMD_INLINE T _add(T a, T b)
 // _adds
 // -------------------------------------------------------------------------
 
-// Byte, SignedByte, Word, Short
+// 09. Mar 23 (Jonas Keller): removed special case of _adds for Int that made
+// _adds not be saturated for Int on Intel
+
+// Byte, SignedByte, Word, Short, Int
 template <typename T>
 static SIMD_INLINE T _adds(T a, T b)
 {
-  Int tmp = Int(a) + Int(b);
-  return (tmp > Int(TypeInfo<T>::max())) ? TypeInfo<T>::max() :
-         (tmp < Int(TypeInfo<T>::min())) ? TypeInfo<T>::min() :
-                                           T(tmp);
-}
-
-static SIMD_INLINE Int _adds(Int a, Int b)
-{
-  // Int: not saturated on Intel, saturated on ARM NEON
-#if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
-  return a + b;
-#elif defined(SIMDVEC_NEON_ENABLE)
-  int64_t tmp = int64_t(a) + int64_t(b);
-  return (tmp > int64_t(TypeInfo<Int>::max())) ? TypeInfo<Int>::max() :
-         (tmp < int64_t(TypeInfo<Int>::min())) ? TypeInfo<Int>::min() :
-                                                 Int(tmp);
-#else
-#error "unknown architecture"
-#endif
+  using BiggerInt = int64_t;
+  static_assert(std::is_integral<T>::value, "T must be an integer type");
+  static_assert(std::is_signed<BiggerInt>::value, "BiggerInt must be signed");
+  static_assert(sizeof(BiggerInt) > sizeof(T),
+                "BiggerInt must be bigger than T for saturation to work");
+  auto tmp = BiggerInt(a) + BiggerInt(b);
+  if (tmp > BiggerInt(TypeInfo<T>::max())) {
+    return TypeInfo<T>::max();
+  } else if (tmp < BiggerInt(TypeInfo<T>::min())) {
+    return TypeInfo<T>::min();
+  } else {
+    return T(tmp);
+  }
 }
 
 // Float: not saturated
@@ -377,29 +374,26 @@ static SIMD_INLINE T _sub(T a, T b)
 // _subs
 // -------------------------------------------------------------------------
 
-// Byte, SignedByte, Word, Short
+// 09. Mar 23 (Jonas Keller): removed special case of _subs for Int that made
+// _subs not be saturated for Int on Intel
+
+// Byte, SignedByte, Word, Short, Int
 template <typename T>
 static SIMD_INLINE T _subs(T a, T b)
 {
-  Int tmp = Int(a) - Int(b);
-  return (tmp > Int(TypeInfo<T>::max())) ? TypeInfo<T>::max() :
-         (tmp < Int(TypeInfo<T>::min())) ? TypeInfo<T>::min() :
-                                           T(tmp);
-}
-
-static SIMD_INLINE Int _subs(Int a, Int b)
-{
-  // Int: not saturated on Intel but saturated on ARM NEON
-#if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
-  return a - b;
-#elif defined(SIMDVEC_NEON_ENABLE)
-  int64_t tmp = int64_t(a) - int64_t(b);
-  return (tmp > int64_t(TypeInfo<Int>::max())) ? TypeInfo<Int>::max() :
-         (tmp < int64_t(TypeInfo<Int>::min())) ? TypeInfo<Int>::min() :
-                                                 Int(tmp);
-#else
-#error "unknown architecture"
-#endif
+  using BiggerInt = int64_t;
+  static_assert(std::is_integral<T>::value, "T must be an integer type");
+  static_assert(std::is_signed<BiggerInt>::value, "BiggerInt must be signed");
+  static_assert(sizeof(BiggerInt) > sizeof(T),
+                "BiggerInt must be bigger than T for saturation to work");
+  auto tmp = BiggerInt(a) - BiggerInt(b);
+  if (tmp > BiggerInt(TypeInfo<T>::max())) {
+    return TypeInfo<T>::max();
+  } else if (tmp < BiggerInt(TypeInfo<T>::min())) {
+    return TypeInfo<T>::min();
+  } else {
+    return T(tmp);
+  }
 }
 
 // Float: not saturated

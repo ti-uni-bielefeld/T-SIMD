@@ -1702,7 +1702,7 @@ static SIMD_INLINE Vec<Float, 32> add(const Vec<Float, 32> &a,
 }
 
 // ---------------------------------------------------------------------------
-// adds (integer: signed, unsigned; 8/16 only, 32 without saturation)
+// adds
 // ---------------------------------------------------------------------------
 
 #ifdef __AVX2__
@@ -1731,14 +1731,31 @@ static SIMD_INLINE Vec<Short, 32> adds(const Vec<Short, 32> &a,
   return _mm256_adds_epi16(a, b);
 }
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
 static SIMD_INLINE Vec<Int, 32> adds(const Vec<Int, 32> &a,
                                      const Vec<Int, 32> &b)
 {
-  return _mm256_add_epi32(a, b);
+  // 09. Mar 23 (Jonas Keller): added workaround so that this function is
+  // saturated
+
+  // _mm256_adds_epi32 does not exist, workaround:
+  // Hacker's Delight, 2-13 Overflow Detection: "Signed integer overflow of
+  // addition occurs if and only if the operands have the same sign and the
+  // sum has a sign opposite to that of the operands."
+  __m256i sum             = _mm256_add_epi32(a, b);
+  __m256i opsHaveDiffSign = _mm256_xor_si256(a, b);
+  __m256i sumHasDiffSign  = _mm256_xor_si256(a, sum);
+  // indicates when an overflow has occurred
+  __m256i overflow =
+    _mm256_srai_epi32(_mm256_andnot_si256(opsHaveDiffSign, sumHasDiffSign), 31);
+  // saturated sum for if overflow occurred (0x7FFFFFFF=max positive int, when
+  // sign of a (and thus b as well) is 0, 0x80000000=min negative int, when sign
+  // of a (and thus b as well) is 1)
+  __m256i saturatedSum =
+    _mm256_xor_si256(_mm256_srai_epi32(a, 31), _mm256_set1_epi32(0x7FFFFFFF));
+  // return saturated sum if overflow occurred, otherwise return sum
+  return _mm256_or_si256(_mm256_andnot_si256(overflow, sum),
+                         _mm256_and_si256(overflow, saturatedSum));
 }
-#endif
 
 #else
 
@@ -1751,14 +1768,12 @@ static SIMD_INLINE Vec<T, 32> adds(const Vec<T, 32> &a, const Vec<T, 32> &b)
 
 #endif
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
+// Float not saturated
 static SIMD_INLINE Vec<Float, 32> adds(const Vec<Float, 32> &a,
                                        const Vec<Float, 32> &b)
 {
   return _mm256_add_ps(a, b);
 }
-#endif
 
 // ---------------------------------------------------------------------------
 // sub
@@ -1814,7 +1829,7 @@ static SIMD_INLINE Vec<Float, 32> sub(const Vec<Float, 32> &a,
 }
 
 // ---------------------------------------------------------------------------
-// subs (integer: signed, unsigned; 8/16 only, 32 without saturation)
+// subs
 // ---------------------------------------------------------------------------
 
 #ifdef __AVX2__
@@ -1843,14 +1858,31 @@ static SIMD_INLINE Vec<Short, 32> subs(const Vec<Short, 32> &a,
   return _mm256_subs_epi16(a, b);
 }
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
 static SIMD_INLINE Vec<Int, 32> subs(const Vec<Int, 32> &a,
                                      const Vec<Int, 32> &b)
 {
-  return _mm256_sub_epi32(a, b);
+  // 09. Mar 23 (Jonas Keller): added workaround so that this function is
+  // saturated
+
+  // _mm256_subs_epi32 does not exist, workaround:
+  // Hacker's Delight, 2-13 Overflow Detection: "[...] overflow in the final
+  // value of x−y [...] occurs if and only if x and y have opposite signs and
+  // the sign of x−y [...] is opposite to that of x [...]"
+  __m256i diff            = _mm256_sub_epi32(a, b);
+  __m256i opsHaveDiffSign = _mm256_xor_si256(a, b);
+  __m256i diffHasDiffSign = _mm256_xor_si256(a, diff);
+  // indicates when an overflow has occurred
+  __m256i overflow =
+    _mm256_srai_epi32(_mm256_and_si256(opsHaveDiffSign, diffHasDiffSign), 31);
+  // saturated diff for if overflow occurred (0x7FFFFFFF=max positive int, when
+  // sign of a (and thus b as well) is 0, 0x80000000=min negative int, when sign
+  // of a (and thus b as well) is 1)
+  __m256i saturatedDiff =
+    _mm256_xor_si256(_mm256_srai_epi32(a, 31), _mm256_set1_epi32(0x7FFFFFFF));
+  // return saturated diff if overflow occurred, otherwise return diff
+  return _mm256_or_si256(_mm256_andnot_si256(overflow, diff),
+                         _mm256_and_si256(overflow, saturatedDiff));
 }
-#endif
 
 #else
 
@@ -1863,14 +1895,12 @@ static SIMD_INLINE Vec<T, 32> subs(const Vec<T, 32> &a, const Vec<T, 32> &b)
 
 #endif
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
+// Float not saturated
 static SIMD_INLINE Vec<Float, 32> subs(const Vec<Float, 32> &a,
                                        const Vec<Float, 32> &b)
 {
   return _mm256_sub_ps(a, b);
 }
-#endif
 
 // ---------------------------------------------------------------------------
 // neg (negate = two's complement or unary minus), only signed types
@@ -3303,26 +3333,12 @@ static SIMD_INLINE Vec<Float, 32> hadd(const Vec<Float, 32> &a,
 // hadds
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 32> hadds(const Vec<Byte, 32> &a,
-                                       const Vec<Byte, 32> &b)
-{
-  Vec<Byte, 32> x, y;
-  unzip<1>(a, b, x, y);
-  return adds(x, y);
-}
+// 09. Mar 23 (Jonas Keller): made Int version of hadds saturating
 
-static SIMD_INLINE Vec<SignedByte, 32> hadds(const Vec<SignedByte, 32> &a,
-                                             const Vec<SignedByte, 32> &b)
+template <typename T>
+static SIMD_INLINE Vec<T, 32> hadds(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  Vec<SignedByte, 32> x, y;
-  unzip<1>(a, b, x, y);
-  return adds(x, y);
-}
-
-static SIMD_INLINE Vec<Word, 32> hadds(const Vec<Word, 32> &a,
-                                       const Vec<Word, 32> &b)
-{
-  Vec<Word, 32> x, y;
+  Vec<T, 32> x, y;
   unzip<1>(a, b, x, y);
   return adds(x, y);
 }
@@ -3333,21 +3349,12 @@ static SIMD_INLINE Vec<Short, 32> hadds(const Vec<Short, 32> &a,
   return x_mm256_transpose4x64_epi64(x_mm256_hadds_epi16(a, b));
 }
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
-static SIMD_INLINE Vec<Int, 32> hadds(const Vec<Int, 32> &a,
-                                      const Vec<Int, 32> &b)
-{
-  return x_mm256_transpose4x64_epi64(x_mm256_hadd_epi32(a, b));
-}
-
-// NOT SATURATED!
+// Float not saturated
 static SIMD_INLINE Vec<Float, 32> hadds(const Vec<Float, 32> &a,
                                         const Vec<Float, 32> &b)
 {
   return x_mm256_transpose4x64_ps(_mm256_hadd_ps(a, b));
 }
-#endif
 
 // ---------------------------------------------------------------------------
 // hsub
@@ -3397,26 +3404,12 @@ static SIMD_INLINE Vec<Float, 32> hsub(const Vec<Float, 32> &a,
 // hsubs
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 32> hsubs(const Vec<Byte, 32> &a,
-                                       const Vec<Byte, 32> &b)
-{
-  Vec<Byte, 32> x, y;
-  unzip<1>(a, b, x, y);
-  return subs(x, y);
-}
+// 09. Mar 23 (Jonas Keller): made Int version of hsubs saturating
 
-static SIMD_INLINE Vec<SignedByte, 32> hsubs(const Vec<SignedByte, 32> &a,
-                                             const Vec<SignedByte, 32> &b)
+template <typename T>
+static SIMD_INLINE Vec<T, 32> hsubs(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  Vec<SignedByte, 32> x, y;
-  unzip<1>(a, b, x, y);
-  return subs(x, y);
-}
-
-static SIMD_INLINE Vec<Word, 32> hsubs(const Vec<Word, 32> &a,
-                                       const Vec<Word, 32> &b)
-{
-  Vec<Word, 32> x, y;
+  Vec<T, 32> x, y;
   unzip<1>(a, b, x, y);
   return subs(x, y);
 }
@@ -3427,21 +3420,12 @@ static SIMD_INLINE Vec<Short, 32> hsubs(const Vec<Short, 32> &a,
   return x_mm256_transpose4x64_epi64(x_mm256_hsubs_epi16(a, b));
 }
 
-#ifndef SIMD_STRICT_SATURATION
-// NOT SATURATED!
-static SIMD_INLINE Vec<Int, 32> hsubs(const Vec<Int, 32> &a,
-                                      const Vec<Int, 32> &b)
-{
-  return x_mm256_transpose4x64_epi64(x_mm256_hsub_epi32(a, b));
-}
-
-// NOT SATURATED!
+// Float not saturated
 static SIMD_INLINE Vec<Float, 32> hsubs(const Vec<Float, 32> &a,
                                         const Vec<Float, 32> &b)
 {
   return x_mm256_transpose4x64_ps(_mm256_hsub_ps(a, b));
 }
-#endif
 
 // ---------------------------------------------------------------------------
 // element-wise shift right

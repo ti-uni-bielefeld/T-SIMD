@@ -427,24 +427,8 @@ GENERATE_DOP(adds, Word, epu16)
 GENERATE_DOP(adds, Short, epi16)
 #endif
 
-#ifndef SIMD_STRICT_SATURATION
-#define ADDS_WORKAROUND(TYPE, SUF)                                             \
-  static SIMD_INLINE Vec<TYPE, 64> mask_adds(                                  \
-    const Vec<TYPE, 64> &src, const Mask<TYPE, 64> &k, const Vec<TYPE, 64> &a, \
-    const Vec<TYPE, 64> &b)                                                    \
-  {                                                                            \
-    return _mm512_mask_add_##SUF(src, k, a, b);                                \
-  }                                                                            \
-  static SIMD_INLINE Vec<TYPE, 64> maskz_adds(                                 \
-    const Mask<TYPE, 64> &k, const Vec<TYPE, 64> &a, const Vec<TYPE, 64> &b)   \
-  {                                                                            \
-    return _mm512_maskz_add_##SUF(k, a, b);                                    \
-  }
-
-// NOT SATURATED!
-ADDS_WORKAROUND(Int, epi32)
-ADDS_WORKAROUND(Float, ps)
-#endif
+// 09. Mar 23 (Jonas Keller): removed non saturating version of adds for Int and
+// Float
 
 // ---------------------------------------------------------------------------
 // mask_sub v
@@ -470,24 +454,8 @@ GENERATE_DOP(subs, Word, epu16)
 GENERATE_DOP(subs, Short, epi16)
 #endif
 
-#ifndef SIMD_STRICT_SATURATION
-#define SUBS_WORKAROUND(TYPE, SUF)                                             \
-  static SIMD_INLINE Vec<TYPE, 64> mask_subs(                                  \
-    const Vec<TYPE, 64> &src, const Mask<TYPE, 64> &k, const Vec<TYPE, 64> &a, \
-    const Vec<TYPE, 64> &b)                                                    \
-  {                                                                            \
-    return _mm512_mask_sub_##SUF(src, k, a, b);                                \
-  }                                                                            \
-  static SIMD_INLINE Vec<TYPE, 64> maskz_subs(                                 \
-    const Mask<TYPE, 64> &k, const Vec<TYPE, 64> &a, const Vec<TYPE, 64> &b)   \
-  {                                                                            \
-    return _mm512_maskz_sub_##SUF(k, a, b);                                    \
-  }
-
-// NOT SATURATED!
-SUBS_WORKAROUND(Int, epi32)
-SUBS_WORKAROUND(Float, ps)
-#endif
+// 09. Mar 23 (Jonas Keller): removed non saturating version of subs for Int and
+// Float
 
 // ---------------------------------------------------------------------------
 // mask_mul v

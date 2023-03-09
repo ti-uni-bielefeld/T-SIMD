@@ -44,8 +44,6 @@ int main() {
 
 The following preprocessor definitions can be defined to change the behavior of **T-SIMD** (**WARNING**: These definitions **must** be defined before including `tsimd.H` or any other **T-SIMD** header file):
 
-* `SIMD_STRICT_SATURATION` : Some functions that use saturated arithmetic do not actually use saturated arithmetic on some architectures. If this
-macro is defined, these functions will not be included if they do not actually use saturated arithmetic.
 * `SIMD_ALIGN_CHK` : If this macro is defined, **T-SIMD** will check whether the alignment of the data pointers passed to the functions is correct.
 * `MAX_SIMD_WIDTH` : This macro can be used to limit the maximum vector width that **T-SIMD** will use. Must be an integer of at least 16.
 # Author and Contributors

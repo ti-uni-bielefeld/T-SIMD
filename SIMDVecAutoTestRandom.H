@@ -168,71 +168,58 @@ static std::vector<T> specialValues();
 template <>
 std::vector<Byte> specialValues<Byte>()
 {
-  Byte v[]       = {0, 1, SIMDBYTE_MAX / 2, SIMDBYTE_MAX - 1, SIMDBYTE_MAX};
-  const size_t n = sizeof(v) / sizeof(Byte);
-  return std::vector<Byte>(v, v + n);
+  return {0, 1, SIMDBYTE_MAX / 2, SIMDBYTE_MAX - 1, SIMDBYTE_MAX};
 }
 
 template <>
 std::vector<SignedByte> specialValues<SignedByte>()
 {
-  SignedByte v[] = {SIMDSIGNEDBYTE_MIN,
-                    SIMDSIGNEDBYTE_MIN + 1,
-                    SIMDSIGNEDBYTE_MIN / 2,
-                    -1,
-                    0,
-                    1,
-                    SIMDSIGNEDBYTE_MAX / 2,
-                    SIMDSIGNEDBYTE_MAX - 1,
-                    SIMDSIGNEDBYTE_MAX};
-  const size_t n = sizeof(v) / sizeof(SignedByte);
-  return std::vector<SignedByte>(v, v + n);
+  return {SIMDSIGNEDBYTE_MIN,
+          SIMDSIGNEDBYTE_MIN + 1,
+          SIMDSIGNEDBYTE_MIN / 2,
+          -1,
+          0,
+          1,
+          SIMDSIGNEDBYTE_MAX / 2,
+          SIMDSIGNEDBYTE_MAX - 1,
+          SIMDSIGNEDBYTE_MAX};
 }
 
 template <>
 std::vector<Word> specialValues<Word>()
 {
-  Word v[]       = {0, 1, SIMDWORD_MAX / 2, SIMDWORD_MAX - 1, SIMDWORD_MAX};
-  const size_t n = sizeof(v) / sizeof(Word);
-  return std::vector<Word>(v, v + n);
+  return {0, 1, SIMDWORD_MAX / 2, SIMDWORD_MAX - 1, SIMDWORD_MAX};
 }
 
 template <>
 std::vector<Short> specialValues<Short>()
 {
-  Short v[] = {
-    SIMDSHORT_MIN,     SIMDSHORT_MIN + 1, SIMDSHORT_MIN / 2, -1, 0, 1,
-    SIMDSHORT_MAX / 2, SIMDSHORT_MAX - 1, SIMDSHORT_MAX};
-  const size_t n = sizeof(v) / sizeof(Short);
-  return std::vector<Short>(v, v + n);
+  return {SIMDSHORT_MIN,     SIMDSHORT_MIN + 1, SIMDSHORT_MIN / 2, -1, 0, 1,
+          SIMDSHORT_MAX / 2, SIMDSHORT_MAX - 1, SIMDSHORT_MAX};
 }
 
 template <>
 std::vector<Int> specialValues<Int>()
 {
-  Int v[] = {SIMDINT_MIN, SIMDINT_MIN + 1, SIMDINT_MIN / 2, -1,         0,
-             1,           SIMDINT_MAX / 2, SIMDINT_MAX - 1, SIMDINT_MAX};
-  const size_t n = sizeof(v) / sizeof(Int);
-  return std::vector<Int>(v, v + n);
+  return {SIMDINT_MIN, SIMDINT_MIN + 1, SIMDINT_MIN / 2, -1,         0,
+          1,           SIMDINT_MAX / 2, SIMDINT_MAX - 1, SIMDINT_MAX};
 }
 
 template <>
 std::vector<Float> specialValues<Float>()
 {
-  Float v[]      = {SIMDFLOAT_MIN,
-                    SIMDFLOAT_MIN / 2,
-                    SIMDFLOAT_MAX / 2,
-                    SIMDFLOAT_MAX,
-                    -1.0f,
-                    -0.5f,
-                    -0.0f,
-                    0.0f,
-                    0.5f,
-                    1.0f,
-                    MAX_POS_FLOAT_CONVERTIBLE_TO_INT32,
-                    MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 + 1};
-  const size_t n = sizeof(v) / sizeof(Float);
-  return std::vector<Float>(v, v + n);
+  return {SIMDFLOAT_MIN,
+          SIMDFLOAT_MIN / 2,
+          SIMDFLOAT_MAX / 2,
+          SIMDFLOAT_MAX,
+          -1.0f,
+          -0.5f,
+          -0.0f,
+          0.0f,
+          0.5f,
+          1.0f,
+          MAX_POS_FLOAT_CONVERTIBLE_TO_INT32,
+          MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 + 1};
 }
 } // namespace internal
 

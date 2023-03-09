@@ -159,11 +159,11 @@ if ($opt_arch_test) then
       make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} flags-info flags_arch="$arch_defines" \
 	      >& "COMPILE_AND_TEST/opt_arch/$arch/flags_info.log"
       if ($doitAlsoRunAutoTest) then
-        ./build/simdvecautotest0 "" 10000 \
+        ./simdvecautotest0 "" 10000 \
           >& "COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest0.log" &
-        ./build/simdvecautotest1 "" 1000 \
+        ./simdvecautotest1 "" 1000 \
           >& "COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest1.log" &
-        ./build/simdvecautotestM "" 10000 \
+        ./simdvecautotestM "" 10000 \
           >& "COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotestM.log" &
       endif
       wait

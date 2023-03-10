@@ -23,6 +23,11 @@
 //
 // ===========================================================================
 
+// 22. Jan 23 (Jonas Keller): introduced wrapper layer that wraps the internal
+// architecture-specific implementations
+
+// 09. Mar 23 (Jonas Keller): added doxygen documentation
+
 #ifndef _SIMD_VEC_BASE_H_
 #define _SIMD_VEC_BASE_H_
 

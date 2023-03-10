@@ -23,6 +23,11 @@
 //
 // ===========================================================================
 
+// 22. Jan 23 (Jonas Keller): introduced wrapper layer that wraps the internal
+// architecture-specific implementations
+
+// 02. Mar 23 (Jonas Keller): added doxygen documentation
+
 #ifndef _SIMD_VEC_MASK_H_
 #define _SIMD_VEC_MASK_H_
 
@@ -102,6 +107,8 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> maskz_cvts(
  * @addtogroup group_mask_functions
  * @{
  */
+
+// 06. Feb 23 (Jonas Keller): added reinterpret_mask
 
 /**
  * @brief Reinterprets a Mask of one type as a Mask of another type.

@@ -23,6 +23,12 @@
 //
 // ===========================================================================
 
+// 13. Feb 23 (Jonas Keller): removed "SIMD"-prefix from most types
+// (versions with "SIMD"-prefix are still available for backward
+// compatibility in SIMDBackwardCompat.H)
+
+// 09. Mar 23 (Jonas Keller): added doxygen documentation
+
 #ifndef _SIMD_VEC_H_
 #define _SIMD_VEC_H_
 
@@ -210,6 +216,10 @@ static constexpr SIMD_INLINE int numSIMDVecsElements()
   return (sizeof(Tout) > sizeof(Tin)) ? Vec<Tin, SIMD_WIDTH>::elems :
                                         Vec<Tout, SIMD_WIDTH>::elems;
 }
+
+// 22. Jan 23 (Jonas Keller): removed primary template functions, as they are
+// not needed anymore due to a wrapper layer
+
 } // namespace simd
 
 #endif

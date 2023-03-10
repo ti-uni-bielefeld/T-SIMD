@@ -45,6 +45,9 @@
 // added an inner loop to the time measurement with at-compile-time-known
 // number of iterations to make the compiler unroll the loop
 
+// 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
+// namespace
+
 #ifndef _SIMD_VEC_AUTO_TEST_H_
 #define _SIMD_VEC_AUTO_TEST_H_
 

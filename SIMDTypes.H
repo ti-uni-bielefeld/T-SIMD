@@ -23,6 +23,8 @@
 //
 // ===========================================================================
 
+// 02. Mar 23 (Jonas Keller): added doxygen documentation
+
 #ifndef _SIMD_TYPES_H_
 #define _SIMD_TYPES_H_
 
@@ -75,6 +77,8 @@ typedef float Float;       ///< Single-precision floating point number (32-bit)
 #define MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 2147483520.0f
 /// @endcond
 
+// 28. Feb 23 (Jonas Keller): added SortSlope enum
+
 /**
  * @ingroup group_types
  * @brief Used to indicate the direction of a sort function.
@@ -115,6 +119,9 @@ enum class SortSlope { ASCENDING = 0, DESCENDING = 1 };
  * @addtogroup group_element_types
  * @{
  */
+
+// 27. Jan 23 (Jonas Keller): added wrapper class for TypeInfo for doxygen
+// documentation
 
 namespace internal {
 namespace types {
@@ -380,6 +387,9 @@ public:
 };
 
 /** @} */
+
+// 22. Jan 23 (Jonas Keller): moved tag dispatching classes into internal
+// namespace
 
 namespace internal {
 // ===========================================================================

@@ -23,6 +23,8 @@
 #
 #===========================================================================
 
+# 01. Feb 23 (Jonas Keller): added syntax only option (see below)
+
 # see notes below marked ARM for compilation on ARM architecture
 
 #===========================================================================

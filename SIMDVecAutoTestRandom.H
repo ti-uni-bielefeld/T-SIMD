@@ -14,6 +14,9 @@
 // from SIMDVecAutoTestSerial.H to this file and added functions for generating
 // random numbers where special values have higher probability
 
+// 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
+// namespace
+
 namespace simd {
 namespace auto_test {
 

@@ -23,6 +23,8 @@
 //
 // ===========================================================================
 
+// 27. Jan 23 (Jonas Keller): added doxygen documentation
+
 /**
  * @file SIMDAlloc.H
  * @brief Aligned memory allocation and deallocation.

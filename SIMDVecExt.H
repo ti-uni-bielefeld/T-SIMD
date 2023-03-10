@@ -23,6 +23,14 @@
 //
 // ===========================================================================
 
+// 22. Jan 23 (Jonas Keller): moved internal implementations into internal
+// namespace
+
+// 03. Mar 23 (Jonas Keller): removed hsub and hsubs extensions, as they do not
+// do something useful
+
+// 09. Mar 23 (Jonas Keller): added doxygen documentation
+
 #ifndef _SIMD_VEC_EXT_H_
 #define _SIMD_VEC_EXT_H_
 

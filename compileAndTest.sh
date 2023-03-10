@@ -16,6 +16,9 @@
 
 # NOTE: when using compileAndTest in PROG system execute "vset" first
 
+# 07. Feb 23 (Jonas Keller): added syntax only option
+# 09. Mar 23 (Jonas Keller): added documentation generation to compileAndTest
+
 date
 
 set onlyCheckSyntax = 0

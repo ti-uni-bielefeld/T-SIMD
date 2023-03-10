@@ -23,6 +23,8 @@
 //
 // ===========================================================================
 
+// 02. Mar 23 (Jonas Keller): added doxygen documentation
+
 // https://
 // en.wikibooks.org/wiki/C%2B%2B_Programming/Code/Design_Patterns#Factory
 

@@ -26,6 +26,9 @@
 //
 // ===========================================================================
 
+// 22. Jan 23 (Jonas Keller): moved internal implementations into internal
+// namespace
+
 #ifndef _SIMD_VEC_MASK_IMPL_INTEL_64_H_
 #define _SIMD_VEC_MASK_IMPL_INTEL_64_H_
 
@@ -180,6 +183,8 @@ MASK_IFELSEZERO(Float)
 // ---------------------------------------------------------------------------
 // reinterpret_mask v
 // ---------------------------------------------------------------------------
+
+// 06. Feb 23 (Jonas Keller): added reinterpret_mask
 
 template <typename Tout, typename Tin>
 static SIMD_INLINE Mask<Tout, 64> reinterpret_mask(const Mask<Tin, 64> &k)

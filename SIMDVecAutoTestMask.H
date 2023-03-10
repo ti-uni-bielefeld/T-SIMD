@@ -26,6 +26,9 @@
 // 05. Nov 22 (Jonas Keller):
 // added time measurement for SIMD versions of all tested functions
 
+// 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
+// namespace
+
 #ifndef _SIMD_VEC_AUTO_TEST_MASK_H_
 #define _SIMD_VEC_AUTO_TEST_MASK_H_
 

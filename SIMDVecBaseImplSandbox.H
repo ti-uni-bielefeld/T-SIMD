@@ -25,6 +25,9 @@
 //
 // ===========================================================================
 
+// 22. Jan 23 (Jonas Keller): moved sandbox implementations into internal
+// namespace
+
 #ifndef _SIMD_VEC_BASE_IMPL_SANDBOX_H_
 #define _SIMD_VEC_BASE_IMPL_SANDBOX_H_
 

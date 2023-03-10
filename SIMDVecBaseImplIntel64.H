@@ -30,6 +30,9 @@
 //
 // ===========================================================================
 
+// 22. Jan 23 (Jonas Keller): moved internal implementations into internal
+// namespace
+
 #ifndef _SIMD_VEC_BASE_IMPL_INTEL_64_H_
 #define _SIMD_VEC_BASE_IMPL_INTEL_64_H_
 

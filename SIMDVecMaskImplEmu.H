@@ -25,6 +25,9 @@
 //
 // ===========================================================================
 
+// 22. Jan 23 (Jonas Keller): moved internal implementations into internal
+// namespace
+
 // 01. Feb 23 (Jonas Keller): implemented the emulated mask functions in a more
 // efficient way, described below and also optimized other small things.
 // 30. Nov 22 (Jonas Keller):
@@ -105,6 +108,9 @@ mask_add(const Vec<Float, SIMD_WIDTH> &src,
 #include <stdint.h>
 
 namespace simd {
+// 05. Feb 23 (Jonas Keller): introduced generic emulated Mask class using the
+// Vec class
+
 /// @cond
 template <typename T, int SIMD_WIDTH>
 class Mask
@@ -245,6 +251,13 @@ SIMD_INLINE Vec<Float, SIMD_WIDTH> mask_cvts(const Vec<Float, SIMD_WIDTH> &src,
   return mask::mask_ifelse(mask::reinterpret_mask<Float>(k),
                            ::simd::cvts<Float>(a), src);
 }
+
+// =======================================================================
+// emulated load/store
+// =======================================================================
+
+// 04. Feb 23 (Jonas Keller): improved implementation of masked load/store
+// functions
 
 template <int SIMD_WIDTH, typename T>
 static SIMD_INLINE bool is_within_same_page(const T *const p)

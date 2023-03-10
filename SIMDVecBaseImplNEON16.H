@@ -27,6 +27,9 @@
 //
 // ===========================================================================
 
+// 22. Jan 23 (Jonas Keller): moved internal implementations into internal
+// namespace
+
 // NOTES:
 //
 // echo | gcc -E -dM -mcpu=cortex-a9 -mfpu=neon - | more

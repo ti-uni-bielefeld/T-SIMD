@@ -23,6 +23,11 @@
 //
 // ===========================================================================
 
+// 13. Feb 23 (Jonas Keller): added SIMDBackwardCompat.H for backward
+// compatibility of renamed types and functions
+
+// 09. Mar 23 (Jonas Keller): added doxygen documentation
+
 /**
  * @file SIMDBackwardCompat.H
  * @brief Aliases for backward compatibility.

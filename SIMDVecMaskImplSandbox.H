@@ -26,6 +26,9 @@
 
 // 04. Aug 22 (Jonas Keller): added masked functions
 
+// 22. Jan 23 (Jonas Keller): moved sandbox implementations into internal
+// namespace
+
 #ifndef _SIMD_VEC_MASK_IMPL_SANDBOX_H_
 #define _SIMD_VEC_MASK_IMPL_SANDBOX_H_
 
@@ -90,6 +93,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelsezero(
   printf("mask_ifelsezero<%s,%d>(M,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
+
+// 06. Feb 23 (Jonas Keller): added reinterpret_mask
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
 static SIMD_INLINE Mask<Tout, SIMD_WIDTH> reinterpret_mask(

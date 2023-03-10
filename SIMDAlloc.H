@@ -23,7 +23,7 @@
 //
 // ===========================================================================
 
-// 27. Jan 23 (Jonas Keller): added doxygen documentation
+// 02. Mar 23 (Jonas Keller): added doxygen documentation
 
 /**
  * @file SIMDAlloc.H

@@ -1,5 +1,5 @@
-#ifndef _SIMD_VEC_AUTO_TEST_RANDOM_H_
-#define _SIMD_VEC_AUTO_TEST_RANDOM_H_
+#ifndef SIMD_VEC_AUTO_TEST_RANDOM_H_
+#define SIMD_VEC_AUTO_TEST_RANDOM_H_
 
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
@@ -299,4 +299,4 @@ SIMD_INLINE Float getRandomOrSpecialValueRanges<Float>()
 } // namespace auto_test
 } // namespace simd
 
-#endif // _SIMD_VEC_AUTO_TEST_RANDOM_H_
+#endif // SIMD_VEC_AUTO_TEST_RANDOM_H_

@@ -33,8 +33,8 @@
 // 22. Jan 23 (Jonas Keller): moved internal implementations into internal
 // namespace
 
-#ifndef _SIMD_VEC_BASE_IMPL_INTEL_64_H_
-#define _SIMD_VEC_BASE_IMPL_INTEL_64_H_
+#ifndef SIMD_VEC_BASE_IMPL_INTEL_64_H_
+#define SIMD_VEC_BASE_IMPL_INTEL_64_H_
 
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
@@ -5039,4 +5039,4 @@ static SIMD_INLINE Vec<Float, 64> iota(OutputType<Float>, Integer<64>)
 
 #endif // __AVX512F__
 
-#endif // _SIMD_VEC_BASE_IMPL_INTEL_64_H_
+#endif // SIMD_VEC_BASE_IMPL_INTEL_64_H_

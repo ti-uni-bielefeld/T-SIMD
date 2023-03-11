@@ -29,8 +29,8 @@
 // 22. Jan 23 (Jonas Keller): moved sandbox implementations into internal
 // namespace
 
-#ifndef _SIMD_VEC_MASK_IMPL_SANDBOX_H_
-#define _SIMD_VEC_MASK_IMPL_SANDBOX_H_
+#ifndef SIMD_VEC_MASK_IMPL_SANDBOX_H_
+#define SIMD_VEC_MASK_IMPL_SANDBOX_H_
 
 // TODO: should this only contain level 0 functions?
 
@@ -1067,4 +1067,4 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x,
 
 #endif // SIMDVEC_SANDBOX
 
-#endif // _SIMD_VEC_MASK_IMPL_SANDBOX_H_
+#endif // SIMD_VEC_MASK_IMPL_SANDBOX_H_

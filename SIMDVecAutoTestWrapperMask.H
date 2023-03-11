@@ -26,8 +26,8 @@
 // 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
 // namespace
 
-#ifndef _SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_
-#define _SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_
+#ifndef SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_
+#define SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_
 
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
@@ -604,4 +604,4 @@ struct Mask_set_false_high
 } // namespace auto_test
 } // namespace simd
 
-#endif // _SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_
+#endif // SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_

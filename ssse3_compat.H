@@ -23,8 +23,8 @@
 //
 // ===========================================================================
 
-#ifndef _SSSE3_COMPAT_H_
-#define _SSSE3_COMPAT_H_
+#ifndef SSSE3_COMPAT_H_
+#define SSSE3_COMPAT_H_
 
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
@@ -301,4 +301,4 @@ static inline __m128i _mm_sign_epi16(__m128i a, __m128i b)
 
 #endif // __SSE2__
 
-#endif // _SSSE3_COMPAT_H_
+#endif // SSSE3_COMPAT_H_

@@ -23,8 +23,8 @@
 //
 // ===========================================================================
 
-#ifndef _SIMD_INTRINS_NEON_H_
-#define _SIMD_INTRINS_NEON_H_
+#ifndef SIMD_INTRINS_NEON_H_
+#define SIMD_INTRINS_NEON_H_
 
 #include "SIMDDefs.H"
 
@@ -32,4 +32,4 @@
 #include <arm_neon.h>
 #endif
 
-#endif // _SIMD_INTRINS_NEON_H_
+#endif // SIMD_INTRINS_NEON_H_

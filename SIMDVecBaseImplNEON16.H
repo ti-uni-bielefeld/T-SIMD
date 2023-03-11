@@ -50,8 +50,8 @@
 // option. Similar support was added for the combination of Cortex-A15
 // and Cortex-A7 through the -mcpu=cortex-a15.cortex-a7 option.
 
-#ifndef _SIMD_VEC_BASE_IMPL_NEON_16_H_
-#define _SIMD_VEC_BASE_IMPL_NEON_16_H_
+#ifndef SIMD_VEC_BASE_IMPL_NEON_16_H_
+#define SIMD_VEC_BASE_IMPL_NEON_16_H_
 
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
@@ -2502,4 +2502,4 @@ static SIMD_INLINE Vec<Float, 16> iota(OutputType<Float>, Integer<16>)
 
 #endif // SIMDVEC_NEON_ENABLE
 
-#endif // _SIMD_VEC_BASE_IMPL_NEON_16_H_
+#endif // SIMD_VEC_BASE_IMPL_NEON_16_H_

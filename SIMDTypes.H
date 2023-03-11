@@ -25,8 +25,8 @@
 
 // 02. Mar 23 (Jonas Keller): added doxygen documentation
 
-#ifndef _SIMD_TYPES_H_
-#define _SIMD_TYPES_H_
+#ifndef SIMD_TYPES_H_
+#define SIMD_TYPES_H_
 
 #include "SIMDDefs.H"
 

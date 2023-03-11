@@ -23,8 +23,8 @@
 //
 // ===========================================================================
 
-#ifndef _SIMD_DEFS_H_
-#define _SIMD_DEFS_H_
+#ifndef SIMD_DEFS_H_
+#define SIMD_DEFS_H_
 
 // TODO: implement and test for other compilers
 // TODO: static inline on primary function templates useful?

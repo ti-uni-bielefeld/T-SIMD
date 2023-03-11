@@ -23,8 +23,8 @@
 //
 // ===========================================================================
 
-#ifndef _SIMD_INTRINS_INTEL_H_
-#define _SIMD_INTRINS_INTEL_H_
+#ifndef SIMD_INTRINS_INTEL_H_
+#define SIMD_INTRINS_INTEL_H_
 
 #include "SIMDDefs.H"
 
@@ -79,4 +79,4 @@ extern __inline __m512i
 
 #endif // SIMDVEC_INTEL_ENABLE
 
-#endif // _SIMD_INTRINS_INTEL_H_
+#endif // SIMD_INTRINS_INTEL_H_

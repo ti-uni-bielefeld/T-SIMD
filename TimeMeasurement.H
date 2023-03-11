@@ -28,8 +28,8 @@
 // https://
 // en.wikibooks.org/wiki/C%2B%2B_Programming/Code/Design_Patterns#Factory
 
-#ifndef _TIME_MEASUREMENT_H_
-#define _TIME_MEASUREMENT_H_
+#ifndef TIME_MEASUREMENT_H_
+#define TIME_MEASUREMENT_H_
 
 #include <time.h>
 // 20. Apr 18 (rm): thanks to Benedikt Volkmer

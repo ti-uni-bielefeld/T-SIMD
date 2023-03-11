@@ -30,8 +30,8 @@
  * tsimd.H instead.
  */
 
-#ifndef _SIMD_VEC_ALL_H_
-#define _SIMD_VEC_ALL_H_
+#ifndef SIMD_VEC_ALL_H_
+#define SIMD_VEC_ALL_H_
 
 #include "tsimd.H"
 

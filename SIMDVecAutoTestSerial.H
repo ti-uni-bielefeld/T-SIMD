@@ -27,8 +27,8 @@
 // 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
 // namespace
 
-#ifndef _SIMD_VEC_AUTO_TEST_SERIAL_H_
-#define _SIMD_VEC_AUTO_TEST_SERIAL_H_
+#ifndef SIMD_VEC_AUTO_TEST_SERIAL_H_
+#define SIMD_VEC_AUTO_TEST_SERIAL_H_
 
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
@@ -2220,4 +2220,4 @@ static SIMD_INLINE uint64_t msb2int(const SerialVec<Float, SIMD_WIDTH> &a)
 } // namespace auto_test
 } // namespace simd
 
-#endif // _SIMD_VEC_AUTO_TEST_SERIAL_H_
+#endif // SIMD_VEC_AUTO_TEST_SERIAL_H_

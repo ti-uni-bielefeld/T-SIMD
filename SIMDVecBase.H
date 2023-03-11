@@ -28,8 +28,8 @@
 
 // 09. Mar 23 (Jonas Keller): added doxygen documentation
 
-#ifndef _SIMD_VEC_BASE_H_
-#define _SIMD_VEC_BASE_H_
+#ifndef SIMD_VEC_BASE_H_
+#define SIMD_VEC_BASE_H_
 
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
@@ -1471,4 +1471,4 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> cvts(const Vec<Tin, SIMD_WIDTH> &a)
 /** @} */
 } // namespace simd
 
-#endif // _SIMD_VEC_BASE_H_
+#endif // SIMD_VEC_BASE_H_

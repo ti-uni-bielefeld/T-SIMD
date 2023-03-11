@@ -28,8 +28,8 @@
 // 22. Jan 23 (Jonas Keller): moved sandbox implementations into internal
 // namespace
 
-#ifndef _SIMD_VEC_BASE_IMPL_SANDBOX_H_
-#define _SIMD_VEC_BASE_IMPL_SANDBOX_H_
+#ifndef SIMD_VEC_BASE_IMPL_SANDBOX_H_
+#define SIMD_VEC_BASE_IMPL_SANDBOX_H_
 
 // TODO: should this only contain level 0 functions?
 
@@ -700,4 +700,4 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> iota(OutputType<T>, Integer<SIMD_WIDTH>)
 
 #endif // SIMDVEC_SANDBOX
 
-#endif // _SIMD_VEC_BASE_IMPL_SANDBOX_H_
+#endif // SIMD_VEC_BASE_IMPL_SANDBOX_H_

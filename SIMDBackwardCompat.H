@@ -33,8 +33,8 @@
  * @brief Aliases for backward compatibility.
  */
 
-#ifndef _SIMD_BACKWARD_COMPAT_H_
-#define _SIMD_BACKWARD_COMPAT_H_
+#ifndef SIMD_BACKWARD_COMPAT_H_
+#define SIMD_BACKWARD_COMPAT_H_
 
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"

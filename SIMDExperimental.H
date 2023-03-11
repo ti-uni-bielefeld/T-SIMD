@@ -23,8 +23,8 @@
 //
 // ===========================================================================
 
-#ifndef _SIMD_EXPERIMENTAL_H_
-#define _SIMD_EXPERIMENTAL_H_
+#ifndef SIMD_EXPERIMENTAL_H_
+#define SIMD_EXPERIMENTAL_H_
 
 namespace simd {} // namespace simd
 

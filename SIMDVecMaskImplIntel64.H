@@ -29,8 +29,8 @@
 // 22. Jan 23 (Jonas Keller): moved internal implementations into internal
 // namespace
 
-#ifndef _SIMD_VEC_MASK_IMPL_INTEL_64_H_
-#define _SIMD_VEC_MASK_IMPL_INTEL_64_H_
+#ifndef SIMD_VEC_MASK_IMPL_INTEL_64_H_
+#define SIMD_VEC_MASK_IMPL_INTEL_64_H_
 
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
@@ -1593,4 +1593,4 @@ static SIMD_INLINE Mask<T, 64> kshiftri(const Mask<T, 64> &a, uint64_t count)
 
 #endif // __AVX512F__
 
-#endif // _SIMD_VEC_MASK_IMPL_INTEL_64_H_
+#endif // SIMD_VEC_MASK_IMPL_INTEL_64_H_

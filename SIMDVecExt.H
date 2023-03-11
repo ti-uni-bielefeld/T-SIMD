@@ -31,8 +31,8 @@
 
 // 09. Mar 23 (Jonas Keller): added doxygen documentation
 
-#ifndef _SIMD_VEC_EXT_H_
-#define _SIMD_VEC_EXT_H_
+#ifndef SIMD_VEC_EXT_H_
+#define SIMD_VEC_EXT_H_
 
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"

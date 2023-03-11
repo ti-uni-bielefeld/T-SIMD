@@ -23,8 +23,8 @@
 //
 // ===========================================================================
 
-#ifndef _SIMD_VECS_H_
-#define _SIMD_VECS_H_
+#ifndef SIMD_VECS_H_
+#define SIMD_VECS_H_
 
 #include "SIMDDefs.H"
 #include "SIMDVec.H"

@@ -37,8 +37,8 @@
  * @author Jonas Keller
  */
 
-#ifndef _SIMDALLOC_H_
-#define _SIMDALLOC_H_
+#ifndef SIMDALLOC_H_
+#define SIMDALLOC_H_
 
 // 30. Aug 22 (Jonas Keller): added simd_aligned_malloc and simd_aligned_free
 
@@ -88,4 +88,4 @@ void simd_aligned_free(void *ptr)
 #endif
 }
 
-#endif // _SIMDALLOC_H_
+#endif // SIMDALLOC_H_

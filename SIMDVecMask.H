@@ -28,8 +28,8 @@
 
 // 02. Mar 23 (Jonas Keller): added doxygen documentation
 
-#ifndef _SIMD_VEC_MASK_H_
-#define _SIMD_VEC_MASK_H_
+#ifndef SIMD_VEC_MASK_H_
+#define SIMD_VEC_MASK_H_
 
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
@@ -1581,4 +1581,4 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelsezero(
 /** @} */
 } // namespace simd
 
-#endif // _SIMD_VEC_MASK_H_
+#endif // SIMD_VEC_MASK_H_

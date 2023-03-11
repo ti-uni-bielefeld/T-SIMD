@@ -28,8 +28,8 @@
  * @brief Main include file for using the T-SIMD library.
  */
 
-#ifndef _T_SIMD_H_
-#define _T_SIMD_H_
+#ifndef T_SIMD_H_
+#define T_SIMD_H_
 
 // base-level templates/functions
 #include "SIMDVecBase.H"

@@ -92,8 +92,8 @@ mask_add(const Vec<Float, SIMD_WIDTH> &src,
 // way to use flags or exceptions, so emulating them does not make much
 // sense anyway.
 
-#ifndef _SIMD_VEC_MASK_IMPL_EMU_H_
-#define _SIMD_VEC_MASK_IMPL_EMU_H_
+#ifndef SIMD_VEC_MASK_IMPL_EMU_H_
+#define SIMD_VEC_MASK_IMPL_EMU_H_
 
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
@@ -707,4 +707,4 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x,
 } // namespace internal
 } // namespace simd
 
-#endif // _SIMD_VEC_MASK_IMPL_EMU_H_
+#endif // SIMD_VEC_MASK_IMPL_EMU_H_

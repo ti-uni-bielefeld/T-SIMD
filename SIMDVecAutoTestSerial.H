@@ -35,15 +35,19 @@
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
 #include "SIMDVecAutoTestRandom.H"
+#include "SIMDVecBase.H"
+#include "SIMDVecExt.H"
 
 #include <algorithm>
 #include <assert.h>
+#include <bits/std_abs.h>
+#include <cmath>
 #include <functional>
-#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <type_traits>
 
 // design considerations
 //=======================

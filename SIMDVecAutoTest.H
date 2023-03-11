@@ -58,13 +58,13 @@
 #include "SIMDVecExt.H"
 #include "TimeMeasurement.H"
 
+#include <cmath>
 #include <inttypes.h>
-#include <math.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <string>
 #include <time.h>
+#include <vector>
 
 namespace simd {
 namespace auto_test {

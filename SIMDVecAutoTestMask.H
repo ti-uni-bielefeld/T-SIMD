@@ -37,6 +37,7 @@
 #include "SIMDVecAutoTest.H"
 #include "SIMDVecAutoTestSerial.H"
 #include "SIMDVecAutoTestSerialMask.H"
+#include "SIMDVecMask.H"
 #include "TimeMeasurement.H"
 
 #include <bitset>

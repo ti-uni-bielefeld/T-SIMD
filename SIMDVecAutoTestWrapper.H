@@ -31,6 +31,7 @@
 
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
+#include "SIMDVec.H"
 #include "SIMDVecAutoTestRandom.H"
 #include "SIMDVecAutoTestSerial.H"
 #include "SIMDVecBase.H"
@@ -1497,9 +1498,9 @@ struct Convert
     return tt2s<Tout, Tin, SIMD_WIDTH>("convert");
   }
 
-  static constexpr int numInVecs   = numInputSIMDVecs<Tout, Tin>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, Tin>();
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE void randomizeInput(SerialVec<Tin, SIMD_WIDTH> &vec)
@@ -1523,9 +1524,9 @@ struct Fdivmul
     return tt2s<Tout, T, SIMD_WIDTH>("fdivmul");
   }
 
-  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, T>();
   static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, T>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE Float randomizeInputFloat()
@@ -1561,9 +1562,9 @@ struct Fmul
     return tt2s<Tout, T, SIMD_WIDTH>("fmul");
   }
 
-  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, T>();
   static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, T>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE Float randomizeInputFloat()
@@ -1596,9 +1597,9 @@ struct Faddmul
     return tt2s<Tout, T, SIMD_WIDTH>("faddmul");
   }
 
-  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, T>();
   static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, T>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE Float randomizeInputFloat()
@@ -1631,9 +1632,9 @@ struct Fmuladd
     return tt2s<Tout, T, SIMD_WIDTH>("fmuladd");
   }
 
-  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, T>();
   static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, T>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE Float randomizeInputFloat()
@@ -1666,9 +1667,9 @@ struct Fwaddmul
     return tt2s<Tout, T, SIMD_WIDTH>("fwaddmul");
   }
 
-  static constexpr int numInVecs   = numInputSIMDVecs<Tout, T>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, T>();
   static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = numOutputSIMDVecs<Tout, T>();
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, T>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE Float randomizeInputFloat()

@@ -1,2 +1,2 @@
 CompileFlags:
-  Add: [-march=native, -std=c++17, -Wall, -Wextra, -Wpedantic, -fno-operator-names, -pthread, -D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1, -D_CRT_SECURE_NO_WARNINGS]
+  Add: [-march=native, -std=c++11, -Wall, -Wextra, -Wpedantic, -fno-operator-names, -pthread, -D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1, -D_CRT_SECURE_NO_WARNINGS]

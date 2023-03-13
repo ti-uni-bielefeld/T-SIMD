@@ -40,9 +40,9 @@
 #include "SIMDVec.H"
 #include "ssse3_compat.H"
 
+#include <cstddef>
+#include <cstdint>
 #include <emmintrin.h>
-#include <stddef.h>
-#include <stdint.h>
 
 #ifdef __SSE2__
 
@@ -75,12 +75,12 @@ template <typename T>
 class Vec<T, 16>
 {
 public:
-  typedef T Type;
+  using Type                    = T;
   static constexpr int elements = 16 / sizeof(T);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 16;
   __m128i xmm;
-  Vec() {}
+  Vec() = default;
   Vec(const __m128i &x) { xmm = x; }
   Vec &operator=(const __m128i &x)
   {
@@ -105,12 +105,12 @@ template <>
 class Vec<Float, 16>
 {
 public:
-  typedef Float Type;
+  using Type                    = Float;
   static constexpr int elements = 16 / sizeof(Float);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 16;
   __m128 xmm;
-  Vec() {}
+  Vec() = default;
   Vec(const __m128 &x) { xmm = x; }
   Vec &operator=(const __m128 &x)
   {

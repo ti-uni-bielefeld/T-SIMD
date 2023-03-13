@@ -5,9 +5,9 @@
 #include "SIMDTypes.H"
 
 #include <cmath>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 
 // 16. Nov 22 (Jonas Keller): moved functions for generating random numbers

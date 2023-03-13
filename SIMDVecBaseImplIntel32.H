@@ -40,8 +40,8 @@
 #include "SIMDVec.H"
 #include "SIMDVecBaseImplIntel16.H"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #ifdef __AVX__
 
@@ -80,12 +80,12 @@ template <typename T>
 class Vec<T, 32>
 {
 public:
-  typedef T Type;
+  using Type                    = T;
   static constexpr int elements = 32 / sizeof(T);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 32;
   __m256i ymm;
-  Vec() {}
+  Vec() = default;
   Vec(const __m256i &x) { ymm = x; }
   Vec &operator=(const __m256i &x)
   {
@@ -117,12 +117,12 @@ template <>
 class Vec<Float, 32>
 {
 public:
-  typedef Float Type;
+  using Type                    = Float;
   static constexpr int elements = 32 / sizeof(Float);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 32;
   __m256 ymm;
-  Vec() {}
+  Vec() = default;
   Vec(const __m256 &x) { ymm = x; }
   Vec &operator=(const __m256 &x)
   {

@@ -105,7 +105,7 @@ mask_add(const Vec<Float, SIMD_WIDTH> &src,
 #include "SIMDVecMaskImplIntel64.H"
 #endif // SIMDVEC_INTEL_ENABLE
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace simd {
 // 05. Feb 23 (Jonas Keller): introduced generic emulated Mask class using the
@@ -118,7 +118,7 @@ class Mask
   Vec<T, SIMD_WIDTH> mask;
 
 public:
-  Mask<T, SIMD_WIDTH>() {}
+  Mask<T, SIMD_WIDTH>() = default;
   explicit SIMD_INLINE Mask<T, SIMD_WIDTH>(const Vec<T, SIMD_WIDTH> &x)
     : mask(x)
   {}

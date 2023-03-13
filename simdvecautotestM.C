@@ -29,10 +29,10 @@
 #include "SIMDVecAutoTestMask.H"
 #include "SIMDVecAutoTestWrapperMask.H"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <string>
-#include <time.h>
 
 using namespace simd;
 using namespace auto_test;
@@ -40,11 +40,11 @@ using namespace auto_test;
 // SW = SIMD width = number of bytes in a single SIMD vector
 #define SW NATIVE_SIMD_WIDTH
 
-#define REPEATS1 100000
+enum { REPEATS1 = 100000 };
 
 int main(int argc, char *argv[])
 {
-  srand(time(NULL));
+  srand(time(nullptr));
   // default values
   int repeats1        = REPEATS1;
   std::string pattern = "";

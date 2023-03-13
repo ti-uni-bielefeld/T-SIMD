@@ -33,9 +33,9 @@
 #include "SIMDVecAutoTestSerial.H"
 #include "SIMDVecMask.H"
 
-#include <assert.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdint>
+#include <cstdlib>
 
 namespace simd {
 namespace auto_test {
@@ -45,34 +45,34 @@ struct _UInt;
 template <>
 struct _UInt<4>
 {
-  typedef uint8_t type;
+  using type = uint8_t;
 };
 template <>
 struct _UInt<8>
 {
-  typedef uint8_t type;
+  using type = uint8_t;
 };
 template <>
 struct _UInt<16>
 {
-  typedef uint16_t type;
+  using type = uint16_t;
 };
 template <>
 struct _UInt<32>
 {
-  typedef uint32_t type;
+  using type = uint32_t;
 };
 template <>
 struct _UInt<64>
 {
-  typedef uint64_t type;
+  using type = uint64_t;
 };
 
 template <int Bits>
 struct UInt
 {
   typename _UInt<Bits>::type value;
-  UInt() {}
+  UInt() = default;
   UInt(const typename _UInt<Bits>::type &v) : value(maskValue(v)) {}
   operator typename _UInt<Bits>::type() const { return value; }
 

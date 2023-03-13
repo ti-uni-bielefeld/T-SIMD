@@ -37,9 +37,9 @@
 #include "SIMDVecBase.H"
 #include "SIMDVecExt.H"
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 
 // - template parameters T and SIMD_WIDTH are included in class
@@ -57,37 +57,35 @@ namespace auto_test {
 // aux. functions
 // -------------------------------------------------------------------------
 
+// 13. Mar 23 (Jonas Keller): used C++ string concatenation instead of
+// sprintf for theses functions
+
 template <typename T, int SIMD_WIDTH>
-static std::string t2s(const char *fct)
+static std::string t2s(const std::string &fct)
 {
-  char res[256];
-  sprintf(res, "%s<%s,%d>", fct, TypeInfo<T>::name(), SIMD_WIDTH);
-  return std::string(res);
+  return fct + "<" + TypeInfo<T>::name() + "," + std::to_string(SIMD_WIDTH) +
+         ">";
 }
 
 template <int I, typename T, int SIMD_WIDTH>
-static std::string ti2s(const char *fct)
+static std::string ti2s(const std::string &fct)
 {
-  char res[256];
-  sprintf(res, "%s<%d,%s,%d>", fct, I, TypeInfo<T>::name(), SIMD_WIDTH);
-  return std::string(res);
+  return fct + "<" + std::to_string(I) + "," + TypeInfo<T>::name() + "," +
+         std::to_string(SIMD_WIDTH) + ">";
 }
 
 template <int I, int J, typename T, int SIMD_WIDTH>
-static std::string tii2s(const char *fct)
+static std::string tii2s(const std::string &fct)
 {
-  char res[256];
-  sprintf(res, "%s<%d,%d,%s,%d>", fct, I, J, TypeInfo<T>::name(), SIMD_WIDTH);
-  return std::string(res);
+  return fct + "<" + std::to_string(I) + "," + std::to_string(J) + "," +
+         TypeInfo<T>::name() + "," + std::to_string(SIMD_WIDTH) + ">";
 }
 
 template <typename Tout, typename T, int SIMD_WIDTH>
-static std::string tt2s(const char *fct)
+static std::string tt2s(const std::string &fct)
 {
-  char res[256];
-  sprintf(res, "%s<%s,%s,%d>", fct, TypeInfo<Tout>::name(), TypeInfo<T>::name(),
-          SIMD_WIDTH);
-  return std::string(res);
+  return fct + "<" + TypeInfo<Tout>::name() + "," + TypeInfo<T>::name() + "," +
+         std::to_string(SIMD_WIDTH) + ">";
 }
 
 // -------------------------------------------------------------------------

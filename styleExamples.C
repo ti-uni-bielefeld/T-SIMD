@@ -23,10 +23,10 @@
 //
 // ===========================================================================
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 // #define MAX_SIMD_WIDTH 16
 
@@ -40,7 +40,7 @@
 // 20. Sep 22 (Jonas Keller): on Windows ssize_t is not defined, so we
 // define it here
 #ifdef _WIN32
-typedef int64_t ssize_t;
+using ssize_t = int64_t;
 #endif
 
 // ===========================================================================
@@ -49,7 +49,7 @@ typedef int64_t ssize_t;
 // SW = SIMD width = number of bytes in a single SIMD vector
 
 // use fixed SIMD_WIDTH (16, 32, 64)
-#define SW 16
+enum { SW = 16 };
 
 // alternative: use widest SIMD_WIDTH available
 // #define SW NATIVE_SIMD_WIDTH
@@ -69,7 +69,7 @@ public:
   Vector(ssize_t size, ssize_t alignment) : size(size)
   {
     data = (T *) simd_aligned_malloc(alignment, size * sizeof(T));
-    assert(data != NULL);
+    assert(data != nullptr);
     // 20. Sep 22 (Jonas Keller): use memset instead of bzero, since bzero
     // is not available on Windows
     // bzero(data, size * sizeof(T));
@@ -148,7 +148,7 @@ T vectorSumClassic(const Vector<T> &input)
 // ===========================================================================
 
 // for simplicity, we use a fixed alignment here
-#define ALIGN 64
+enum { ALIGN = 64 };
 
 int main(int argc, char *argv[])
 {
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
   // 20. Sep 22 (Jonas Keller): use srand and rand instead of srand48 and
   // drand48, since srand48 and drand48 are not available on Windows
   // srand48(time(NULL));
-  srand(time(NULL));
+  srand(time(nullptr));
   Vector<float> input(size, ALIGN);
   float s = 0;
   for (ssize_t i = 0; i < input.size; i++) {

@@ -40,7 +40,7 @@
 // 20. Sep 22 (Jonas Keller): on Windows ssize_t is not defined, so we
 // define it here
 #ifdef _WIN32
-typedef int64_t ssize_t;
+using ssize_t = int64_t;
 #endif
 
 // ===========================================================================

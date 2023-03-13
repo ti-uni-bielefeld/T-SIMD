@@ -1312,7 +1312,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> sra(
   SerialVec<T, SIMD_WIDTH> c;
   // operator >> on signed types is *usually* an arithmetic right
   // shift, but this is not guaranteed, so we use a workaround
-  typedef typename TypeInfo<T>::UnsignedType U;
+  using U       = typename TypeInfo<T>::UnsignedType;
   U signBitMask = U(1) << (sizeof(T) * 8 - 1);
   for (int i = 0; i < c.elements; i++) {
     U result = U(a[i]);
@@ -1334,7 +1334,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> srl(
 {
   SerialVec<T, SIMD_WIDTH> c;
   // on signed types, we force the compiler to use an unsigned shift
-  typedef typename TypeInfo<T>::UnsignedType U;
+  using U = typename TypeInfo<T>::UnsignedType;
   for (int i = 0; i < c.elements; i++) {
     if (count >= sizeof(T) * 8) {
       c[i] = 0;
@@ -1351,7 +1351,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> sll(
 {
   SerialVec<T, SIMD_WIDTH> c;
   // on signed types, we force the compiler to use an unsigned shift
-  typedef typename TypeInfo<T>::UnsignedType U;
+  using U = typename TypeInfo<T>::UnsignedType;
   for (int i = 0; i < c.elements; i++) {
     if (count >= sizeof(T) * 8) {
       c[i] = 0;

@@ -100,7 +100,7 @@ int main()
 
 using namespace simd;
 
-typedef uint64_t uinttest_t;
+using uinttest_t = uint64_t;
 #define PRIutest PRIu64
 
 #ifdef __SSE__

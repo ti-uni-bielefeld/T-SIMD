@@ -48,12 +48,12 @@ namespace simd {
  * @addtogroup group_element_types
  * @{
  */
-typedef uint8_t Byte;      ///< Unsigned 8-bit integer
-typedef int8_t SignedByte; ///< Signed 8-bit integer
-typedef uint16_t Word;     ///< Unsigned 16-bit integer
-typedef int16_t Short;     ///< Signed 16-bit integer
-typedef int32_t Int;       ///< Signed 32-bit integer
-typedef float Float;       ///< Single-precision floating point number (32-bit)
+using Byte       = uint8_t;  ///< Unsigned 8-bit integer
+using SignedByte = int8_t;   ///< Signed 8-bit integer
+using Word       = uint16_t; ///< Unsigned 16-bit integer
+using Short      = int16_t;  ///< Signed 16-bit integer
+using Int        = int32_t;  ///< Signed 32-bit integer
+using Float      = float; ///< Single-precision floating point number (32-bit)
 /** @} */
 
 /// @cond
@@ -141,9 +141,9 @@ public:
   static constexpr SIMD_INLINE Byte min() { return 0; }
   static constexpr SIMD_INLINE Byte max() { return SIMDBYTE_MAX; }
   static constexpr SIMD_INLINE Byte trueval() { return SIMDBYTE_TRUE; }
-  typedef Word NextLargerType;
-  typedef Byte UnsignedType;
-  typedef SignedByte SignedType;
+  using NextLargerType = Word;
+  using UnsignedType   = Byte;
+  using SignedType     = SignedByte;
 };
 
 template <>
@@ -163,9 +163,9 @@ public:
   {
     return SIMDSIGNEDBYTE_TRUE;
   }
-  typedef Short NextLargerType;
-  typedef Byte UnsignedType;
-  typedef SignedByte SignedType;
+  using NextLargerType = Short;
+  using UnsignedType   = Byte;
+  using SignedType     = SignedByte;
 };
 
 template <>
@@ -182,9 +182,9 @@ public:
   static constexpr SIMD_INLINE Word min() { return 0; }
   static constexpr SIMD_INLINE Word max() { return SIMDWORD_MAX; }
   static constexpr SIMD_INLINE Word trueval() { return SIMDWORD_TRUE; }
-  typedef Int NextLargerType; // no larger unsigned type, use Int
-  typedef Word UnsignedType;
-  typedef Short SignedType;
+  using NextLargerType = Int; // no larger unsigned type, use Int
+  using UnsignedType   = Word;
+  using SignedType     = Short;
 };
 
 template <>
@@ -201,9 +201,9 @@ public:
   static constexpr SIMD_INLINE Short min() { return SIMDSHORT_MIN; }
   static constexpr SIMD_INLINE Short max() { return SIMDSHORT_MAX; }
   static constexpr SIMD_INLINE Short trueval() { return SIMDSHORT_TRUE; }
-  typedef Int NextLargerType;
-  typedef Word UnsignedType;
-  typedef Short SignedType;
+  using NextLargerType = Int;
+  using UnsignedType   = Word;
+  using SignedType     = Short;
 };
 
 template <>
@@ -220,9 +220,9 @@ public:
   static constexpr SIMD_INLINE Int min() { return SIMDINT_MIN; }
   static constexpr SIMD_INLINE Int max() { return SIMDINT_MAX; }
   static constexpr SIMD_INLINE Int trueval() { return SIMDINT_TRUE; }
-  typedef Int NextLargerType;    // no larger integer type than Int
-  typedef uint32_t UnsignedType; // not a SIMD type
-  typedef Int SignedType;
+  using NextLargerType = Int;      // no larger integer type than Int
+  using UnsignedType   = uint32_t; // not a SIMD type
+  using SignedType     = Int;
 };
 
 template <>
@@ -246,9 +246,9 @@ public:
     memcpy(&f, &i, sizeof(f));
     return f;
   }
-  typedef Float NextLargerType; // no larger float type than Float
-  typedef Float UnsignedType;   // no unsigned float type
-  typedef Float SignedType;
+  using NextLargerType = Float; // no larger float type than Float
+  using UnsignedType   = Float; // no unsigned float type
+  using SignedType     = Float;
 };
 } // namespace types
 } // namespace internal
@@ -305,13 +305,13 @@ public:
   }
   /// @brief The next larger type (e.g. Word for Byte), or the same
   /// type if there is no larger type
-  typedef typename internal::types::TypeInfo<T>::NextLargerType NextLargerType;
+  using NextLargerType = typename internal::types::TypeInfo<T>::NextLargerType;
   /// @brief The unsigned type (e.g. Byte for SignedByte), or the same
   /// type if there is no unsigned type
-  typedef typename internal::types::TypeInfo<T>::UnsignedType UnsignedType;
+  using UnsignedType = typename internal::types::TypeInfo<T>::UnsignedType;
   /// @brief The signed type (e.g. SignedByte for Byte), or the same
   /// type if there is no signed type
-  typedef typename internal::types::TypeInfo<T>::SignedType SignedType;
+  using SignedType = typename internal::types::TypeInfo<T>::SignedType;
 };
 
 // ===========================================================================
@@ -531,11 +531,11 @@ struct CompareTypesGreaterOrEqual
             (sizeof(Tout) >= sizeof(Tin))>
 {};
 
-typedef Compare<true, false, false> CompareLess;
-typedef Compare<true, true, false> CompareLessOrEqual;
-typedef Compare<false, true, false> CompareEqual;
-typedef Compare<false, true, true> CompareGreaterOrEqual;
-typedef Compare<false, false, true> CompareGreater;
+using CompareLess           = Compare<true, false, false>;
+using CompareLessOrEqual    = Compare<true, true, false>;
+using CompareEqual          = Compare<false, true, false>;
+using CompareGreaterOrEqual = Compare<false, true, true>;
+using CompareGreater        = Compare<false, false, true>;
 } // namespace internal
 
 } // namespace simd

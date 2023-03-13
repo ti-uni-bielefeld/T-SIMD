@@ -52,7 +52,7 @@ template <typename T, int SIMD_WIDTH>
 class Vec
 {
 public:
-  typedef T Type;
+  using Type                    = T;
   static constexpr int elements = SIMD_WIDTH / sizeof(T);
   static constexpr int elems    = elements;
   static constexpr int bytes    = SIMD_WIDTH;

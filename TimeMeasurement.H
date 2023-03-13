@@ -55,7 +55,7 @@
 #define POW10_7 10000000
 #define POW10_9 1000000000
 
-typedef int clockid_t;
+using clockid_t = int;
 
 #define CLOCK_REALTIME           0
 #define CLOCK_MONOTONIC          1

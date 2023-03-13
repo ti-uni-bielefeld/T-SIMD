@@ -80,7 +80,7 @@ template <typename T>
 class Vec<T, 32>
 {
 public:
-  typedef T Type;
+  using Type                    = T;
   static constexpr int elements = 32 / sizeof(T);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 32;
@@ -117,7 +117,7 @@ template <>
 class Vec<Float, 32>
 {
 public:
-  typedef Float Type;
+  using Type                    = Float;
   static constexpr int elements = 32 / sizeof(Float);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 32;

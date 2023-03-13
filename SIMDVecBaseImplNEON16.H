@@ -82,10 +82,10 @@ struct SIMDVecNeon;
   template <>                                                                  \
   struct SIMDVecNeon<T>                                                        \
   {                                                                            \
-    typedef NEON_T##_t ScalarType;                                             \
-    typedef NEON_T##x##NUM##_t Type;                                           \
-    typedef NEON_T##x##NUM64##_t Type64;                                       \
-    typedef NEON_T##x##NUM##x2_t TypeX2;                                       \
+    using ScalarType = NEON_T##_t;                                             \
+    using Type       = NEON_T##x##NUM##_t;                                     \
+    using Type64     = NEON_T##x##NUM64##_t;                                   \
+    using TypeX2     = NEON_T##x##NUM##x2_t;                                   \
   };
 
 SIMDVEC_NEON(Byte, uint8, 16, 8)
@@ -102,7 +102,7 @@ SIMDVEC_NEON(Float, float32, 4, 2)
 // defined as the other array types in arm_neon.h
 // but with type conversion constructor and operator=
 #define SIMDVEC_NEON_64X1(NEON_T)                                              \
-  typedef struct NEON_T##x1_t                                                  \
+  struct NEON_T##x1_t                                                          \
   {                                                                            \
     NEON_T##_t val[1];                                                         \
     NEON_T##x1_t()                                                             \
@@ -116,7 +116,7 @@ SIMDVEC_NEON(Float, float32, 4, 2)
       val[0] = x;                                                              \
       return *this;                                                            \
     }                                                                          \
-  } NEON_T##x1_t;
+  };
 
 SIMDVEC_NEON_64X1(uint8x8)
 SIMDVEC_NEON_64X1(int8x8)
@@ -136,8 +136,8 @@ struct SIMDVecNeonArray64;
   template <>                                                                  \
   struct SIMDVecNeonArray64<NUM, T>                                            \
   {                                                                            \
-    typedef NEON_T##x##NUM##_t Type;                                           \
-    typedef NEON_T##_t ValType;                                                \
+    using Type    = NEON_T##x##NUM##_t;                                        \
+    using ValType = NEON_T##_t;                                                \
   };
 
 #define SIMDVEC_NEON_ARRAY64_ALLNUM(T, NEON_T)                                 \
@@ -164,8 +164,8 @@ template <typename T>
 class Vec<T, 16>
 {
 public:
-  typedef T Type;
-  typedef typename internal::base::SIMDVecNeon<T>::Type RegType;
+  using Type                    = T;
+  using RegType                 = typename internal::base::SIMDVecNeon<T>::Type;
   static constexpr int elements = 16 / sizeof(T);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 16;
@@ -1873,10 +1873,10 @@ struct SwizzleTable;
   template <>                                                                  \
   struct SwizzleTable<NUM, T, 16>                                              \
   {                                                                            \
-    typedef SIMDVecNeon<T>::ScalarType ScalarType;                             \
-    typedef SIMDVecNeonArray64<NUM, T>::Type TableLoadType;                    \
-    typedef SIMDVecNeonArray64<NUM, Byte>::Type TableType;                     \
-    typedef SIMDVecNeon<Byte>::Type64 TableValType;                            \
+    using ScalarType    = SIMDVecNeon<T>::ScalarType;                          \
+    using TableLoadType = SIMDVecNeonArray64<NUM, T>::Type;                    \
+    using TableType     = SIMDVecNeonArray64<NUM, Byte>::Type;                 \
+    using TableValType  = SIMDVecNeon<Byte>::Type64;                           \
     TableType table;                                                           \
     SwizzleTable()                                                             \
     {                                                                          \
@@ -1900,9 +1900,9 @@ struct SwizzleTable;
 template <typename T>
 struct SwizzleTable<5, T, 16>
 {
-  typedef typename SIMDVecNeon<Byte>::ScalarType ScalarType;
-  typedef typename SIMDVecNeonArray64<3, Byte>::Type TableType;
-  typedef typename SIMDVecNeon<Byte>::Type64 TableValType;
+  using ScalarType   = typename SIMDVecNeon<Byte>::ScalarType;
+  using TableType    = typename SIMDVecNeonArray64<3, Byte>::Type;
+  using TableValType = typename SIMDVecNeon<Byte>::Type64;
   // two tables for n=3
   TableType table[2];
   SwizzleTable()

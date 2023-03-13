@@ -55,12 +55,12 @@ using SIMDShort      = Short;      ///< Alias for Short.
 using SIMDInt        = Int;        ///< Alias for Int.
 using SIMDFloat      = Float;      ///< Alias for Float.
 
-typedef SIMDByte *SIMDBytePtr;             ///< Pointer to SIMDByte.
-typedef SIMDSignedByte *SIMDSignedBytePtr; ///< Pointer to SIMDSignedByte.
-typedef SIMDWord *SIMDWordPtr;             ///< Pointer to SIMDWord.
-typedef SIMDShort *SIMDShortPtr;           ///< Pointer to SIMDShort.
-typedef SIMDInt *SIMDIntPtr;               ///< Pointer to SIMDInt.
-typedef SIMDFloat *SIMDFloatPtr;           ///< Pointer to SIMDFloat.
+using SIMDBytePtr       = SIMDByte *;       ///< Pointer to SIMDByte.
+using SIMDSignedBytePtr = SIMDSignedByte *; ///< Pointer to SIMDSignedByte.
+using SIMDWordPtr       = SIMDWord *;       ///< Pointer to SIMDWord.
+using SIMDShortPtr      = SIMDShort *;      ///< Pointer to SIMDShort.
+using SIMDIntPtr        = SIMDInt *;        ///< Pointer to SIMDInt.
+using SIMDFloatPtr      = SIMDFloat *;      ///< Pointer to SIMDFloat.
 
 /// Alias for Vec. @deprecated Use Vec instead.
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>

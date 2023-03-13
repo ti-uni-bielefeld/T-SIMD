@@ -25,7 +25,7 @@
 
 #include "SIMDVecAll.H"
 
-#include <stdio.h>
+#include <cstdio>
 
 using namespace simd;
 

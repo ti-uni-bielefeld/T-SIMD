@@ -37,9 +37,9 @@
 #include "SIMDVecBase.H"
 #include "SIMDVecExt.H"
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 
 // - template parameters T and SIMD_WIDTH are included in class

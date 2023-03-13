@@ -40,9 +40,9 @@
 #include "SIMDVec.H"
 #include "ssse3_compat.H"
 
+#include <cstddef>
+#include <cstdint>
 #include <emmintrin.h>
-#include <stddef.h>
-#include <stdint.h>
 
 #ifdef __SSE2__
 

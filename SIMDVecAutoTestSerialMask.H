@@ -33,9 +33,9 @@
 #include "SIMDVecAutoTestSerial.H"
 #include "SIMDVecMask.H"
 
-#include <assert.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdint>
+#include <cstdlib>
 
 namespace simd {
 namespace auto_test {

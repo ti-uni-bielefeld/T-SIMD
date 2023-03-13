@@ -35,7 +35,7 @@
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
 
-#include <stdint.h>
+#include <cstdint>
 
 #ifdef SIMDVEC_SANDBOX
 

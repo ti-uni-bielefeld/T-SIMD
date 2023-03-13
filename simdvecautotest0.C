@@ -35,10 +35,10 @@
 #include "SIMDVecAutoTest.H"
 #include "SIMDVecAutoTestWrapper.H"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <string>
-#include <time.h>
 
 using namespace simd;
 using namespace auto_test;

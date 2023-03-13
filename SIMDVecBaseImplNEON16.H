@@ -60,7 +60,7 @@
 #include "SIMDVec.H"
 
 #include <algorithm>
-#include <stdint.h>
+#include <cstdint>
 
 #ifdef SIMDVEC_NEON_ENABLE
 

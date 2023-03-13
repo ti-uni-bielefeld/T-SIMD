@@ -41,10 +41,10 @@
 #include "TimeMeasurement.H"
 
 #include <bitset>
+#include <cstdio>
+#include <ctime>
 #include <iostream>
-#include <stdio.h>
 #include <string>
-#include <time.h>
 
 // 02. Oct 22 (Jonas Keller): added support for different comparators
 

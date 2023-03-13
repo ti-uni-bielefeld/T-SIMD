@@ -40,8 +40,8 @@
 #include "SIMDVec.H"
 #include "SIMDVecBaseImplIntel16.H"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #ifdef __AVX__
 

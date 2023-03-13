@@ -50,11 +50,11 @@
 
 #include "SIMDVecAll.H"
 
-#include <inttypes.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cinttypes>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 // 30. aug 22 (Jonas Keller): add workaround for gettimeofday on windows
 // from https://stackoverflow.com/a/26085827/8461272

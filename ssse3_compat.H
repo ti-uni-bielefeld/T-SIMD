@@ -29,8 +29,8 @@
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 
 // SSE3/SSSE3 emulation for very old CPUs (very inefficient sequential code!)
 

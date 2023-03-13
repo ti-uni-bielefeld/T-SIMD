@@ -39,8 +39,8 @@
 #include "SIMDVecBase.H"
 #include "SIMDVecBaseImplIntel64.H"
 
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
 #ifdef __AVX512F__
 

@@ -44,8 +44,8 @@
 #include "SIMDVecBaseImplIntel16.H"
 #include "SIMDVecBaseImplIntel32.H"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #ifdef __AVX512F__
 

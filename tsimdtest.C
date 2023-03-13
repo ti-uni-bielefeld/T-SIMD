@@ -32,7 +32,7 @@
 
 #include "tsimd.H"
 
-#include <stdio.h>
+#include <cstdio>
 
 #define SW 16
 

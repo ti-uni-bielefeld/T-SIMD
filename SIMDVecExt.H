@@ -41,8 +41,8 @@
 #include "SIMDVecBase.H"
 
 #include <cassert>
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 #include <string>
 
 namespace simd {

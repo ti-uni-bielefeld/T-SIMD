@@ -31,9 +31,9 @@
 #ifndef TIME_MEASUREMENT_H_
 #define TIME_MEASUREMENT_H_
 
-#include <time.h>
+#include <ctime>
 // 20. Apr 18 (rm): thanks to Benedikt Volkmer
-#include <assert.h>
+#include <cassert>
 
 // 20. Sep 22 (Jonas Keller): add clock_gettime replacement implementation for
 // Windows

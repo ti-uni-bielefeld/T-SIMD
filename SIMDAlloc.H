@@ -45,7 +45,7 @@
 #ifdef _WIN32
 #include <malloc.h>
 #else
-#include <stdlib.h>
+#include <cstdlib>
 #endif
 
 /**

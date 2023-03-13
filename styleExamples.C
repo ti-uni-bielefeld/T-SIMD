@@ -23,10 +23,10 @@
 //
 // ===========================================================================
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 // #define MAX_SIMD_WIDTH 16
 

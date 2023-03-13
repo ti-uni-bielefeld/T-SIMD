@@ -39,14 +39,14 @@
 #include "SIMDVecExt.H"
 
 #include <algorithm>
-#include <assert.h>
 #include <bits/std_abs.h>
+#include <cassert>
 #include <cmath>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <functional>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <type_traits>
 
 // design considerations

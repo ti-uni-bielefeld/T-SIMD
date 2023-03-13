@@ -63,6 +63,12 @@ There may be other slight differences that are not listed here.
 
 Other contributors are: Jonas Keller, Markus Vieth, Adam Marschall, Jan-Lukas Wolf, Lukas Schiermeier, and Moritz Breipohl.
 
+Their specific contributions are noted in the source code.
+
+# License
+
+**T-SIMD** is licensed under the license contained in the files `LICENSE` and `LICENSE.doc` .
+
 # Contact and Bug Reports
 
 Please report any bugs or errors found to [Ralf Möller](http://www.ti.uni-bielefeld.de/html/people/moeller/) (moeller@ti.uni-bielefeld.de).

@@ -69,7 +69,7 @@ public:
   Vector(ssize_t size, ssize_t alignment) : size(size)
   {
     data = (T *) simd_aligned_malloc(alignment, size * sizeof(T));
-    assert(data != NULL);
+    assert(data != nullptr);
     // 20. Sep 22 (Jonas Keller): use memset instead of bzero, since bzero
     // is not available on Windows
     // bzero(data, size * sizeof(T));
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
   // 20. Sep 22 (Jonas Keller): use srand and rand instead of srand48 and
   // drand48, since srand48 and drand48 are not available on Windows
   // srand48(time(NULL));
-  srand(time(NULL));
+  srand(time(nullptr));
   Vector<float> input(size, ALIGN);
   float s = 0;
   for (ssize_t i = 0; i < input.size; i++) {

@@ -65,8 +65,8 @@ void *simd_aligned_malloc(size_t alignment, size_t size)
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
 #else
-  void *ptr = NULL;
-  if (posix_memalign(&ptr, alignment, size) != 0) { return NULL; }
+  void *ptr = nullptr;
+  if (posix_memalign(&ptr, alignment, size) != 0) { return nullptr; }
   return ptr;
 #endif
 }

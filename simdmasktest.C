@@ -803,10 +803,10 @@ void benchmark()
     return;
   }
   struct timeval start, end;
-  srand(time(NULL));
+  srand(time(nullptr));
   for (i = 0; i < SIMD_WIDTH; i++) { ((uint8_t *) buffer)[i] = rand() & 0xff; }
 
-  gettimeofday(&start, NULL);
+  gettimeofday(&start, nullptr);
   for (i = 0; i < 0x8fffffff; i++) {
     krand = random64();
     krand2 =
@@ -825,7 +825,7 @@ void benchmark()
 #endif
     sum    = add(sum, result);
   }
-  gettimeofday(&end, NULL);
+  gettimeofday(&end, nullptr);
   print("%i ", sum); // TODO change format according to type T
   // printf("%f seconds elapsed\n",
   // ((end.tv_sec-start.tv_sec)+(end.tv_usec-start.tv_usec)/1000000.0));
@@ -1139,7 +1139,7 @@ void testsuite()
 int main()
 {
   // printf("RAND_MAX=%u\n", RAND_MAX);
-  srand(time(NULL));
+  srand(time(nullptr));
   /*Vec<Short, 64> a=getRandomVector<Short, 64>(),
   b=getRandomVector<Short, 64>(); uinttest_t mask=random64();
   printf("%" PRIutest "\n", mask);

@@ -54,7 +54,7 @@ using namespace auto_test;
 
 int main(int argc, char *argv[])
 {
-  srand(time(NULL));
+  srand(time(nullptr));
   // default values
   int repeats1        = REPEATS1;
   std::string pattern = "";

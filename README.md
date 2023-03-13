@@ -27,7 +27,7 @@ The following example shows how to use **T-SIMD** to compute the sum of two vect
 and print the result to the standard output.
 
 ```cpp
-#include "tsimd.H"
+#include "tsimd.H" // or "tsimd_sh.H" if you use the single-header version
 #include <stdio.h>
 
 int main() {

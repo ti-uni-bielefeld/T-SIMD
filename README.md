@@ -51,7 +51,7 @@ The following preprocessor definitions can be defined to change the behavior of 
 
 **T-SIMD** tries to behave as similar as possible on different architectures. However, there are some differences that are due to the different instruction sets and the different implementations of the intrinsics. The following list gives an overview of the differences:
 
-* Denormalized floating-point numbers are flushed to zero on ARM7. This is not the case on all other supported architectures.
+* Denormalized floating-point numbers are flushed to zero on ARMv7. This is not the case on all other supported architectures.
 * The `simd::div` and `simd::sqrt` functions are approximations on ARM in contrast to the exact results on all other supported architectures.
 * Converting from floating-point to integer values results in slightly different results on ARM.
 

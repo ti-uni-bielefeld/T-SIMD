@@ -235,7 +235,6 @@ public:
   static constexpr bool isSigned        = true;
   static constexpr bool isInteger       = false;
   static constexpr bool isFloatingPoint = true;
-  static constexpr const char *test     = "st";
   static constexpr SIMD_INLINE Float min() { return SIMDFLOAT_MIN; }
   static constexpr SIMD_INLINE Float max() { return SIMDFLOAT_MAX; }
   // very inconvenient: how can I specify a float constant with all bits 1?

@@ -85,7 +85,7 @@ public:
   static constexpr int elems    = elements;
   static constexpr int bytes    = 32;
   __m256i ymm;
-  Vec() {}
+  Vec() = default;
   Vec(const __m256i &x) { ymm = x; }
   Vec &operator=(const __m256i &x)
   {
@@ -122,7 +122,7 @@ public:
   static constexpr int elems    = elements;
   static constexpr int bytes    = 32;
   __m256 ymm;
-  Vec() {}
+  Vec() = default;
   Vec(const __m256 &x) { ymm = x; }
   Vec &operator=(const __m256 &x)
   {

@@ -170,7 +170,7 @@ public:
   static constexpr int elems    = elements;
   static constexpr int bytes    = 16;
   RegType reg;
-  Vec() {}
+  Vec() = default;
   Vec(const RegType &x) { reg = x; }
   Vec &operator=(const RegType &x)
   {

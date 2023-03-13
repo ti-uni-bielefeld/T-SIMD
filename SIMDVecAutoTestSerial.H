@@ -83,7 +83,7 @@ public:
 
   T vec[elements] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
 
-  SerialVec() {}
+  SerialVec() = default;
   template <typename U>
   SerialVec(const SerialVec<U, SIMD_WIDTH> &x)
   {

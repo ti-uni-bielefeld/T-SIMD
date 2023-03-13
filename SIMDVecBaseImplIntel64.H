@@ -121,7 +121,7 @@ public:
   static constexpr int elems    = elements;
   static constexpr int bytes    = 64;
   __m512i zmm;
-  Vec() {}
+  Vec() = default;
   Vec(const __m512i &x) { zmm = x; }
   Vec &operator=(const __m512i &x)
   {
@@ -164,7 +164,7 @@ public:
   static constexpr int elems    = elements;
   static constexpr int bytes    = 64;
   __m512 zmm;
-  Vec() {}
+  Vec() = default;
   Vec(const __m512 &x) { zmm = x; }
   Vec &operator=(const __m512 &x)
   {

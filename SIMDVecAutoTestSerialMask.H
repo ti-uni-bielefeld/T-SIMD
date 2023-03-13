@@ -72,7 +72,7 @@ template <int Bits>
 struct UInt
 {
   typename _UInt<Bits>::type value;
-  UInt() {}
+  UInt() = default;
   UInt(const typename _UInt<Bits>::type &v) : value(maskValue(v)) {}
   operator typename _UInt<Bits>::type() const { return value; }
 

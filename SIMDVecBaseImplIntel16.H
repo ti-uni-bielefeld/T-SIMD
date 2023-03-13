@@ -80,7 +80,7 @@ public:
   static constexpr int elems    = elements;
   static constexpr int bytes    = 16;
   __m128i xmm;
-  Vec() {}
+  Vec() = default;
   Vec(const __m128i &x) { xmm = x; }
   Vec &operator=(const __m128i &x)
   {
@@ -110,7 +110,7 @@ public:
   static constexpr int elems    = elements;
   static constexpr int bytes    = 16;
   __m128 xmm;
-  Vec() {}
+  Vec() = default;
   Vec(const __m128 &x) { xmm = x; }
   Vec &operator=(const __m128 &x)
   {

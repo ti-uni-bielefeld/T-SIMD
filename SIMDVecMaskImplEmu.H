@@ -118,7 +118,7 @@ class Mask
   Vec<T, SIMD_WIDTH> mask;
 
 public:
-  Mask<T, SIMD_WIDTH>() {}
+  Mask<T, SIMD_WIDTH>() = default;
   explicit SIMD_INLINE Mask<T, SIMD_WIDTH>(const Vec<T, SIMD_WIDTH> &x)
     : mask(x)
   {}

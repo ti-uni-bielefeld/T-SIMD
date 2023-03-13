@@ -49,7 +49,7 @@ using ssize_t = int64_t;
 // SW = SIMD width = number of bytes in a single SIMD vector
 
 // use fixed SIMD_WIDTH (16, 32, 64)
-#define SW 16
+enum { SW = 16 };
 
 // alternative: use widest SIMD_WIDTH available
 // #define SW NATIVE_SIMD_WIDTH
@@ -148,7 +148,7 @@ T vectorSumClassic(const Vector<T> &input)
 // ===========================================================================
 
 // for simplicity, we use a fixed alignment here
-#define ALIGN 64
+enum { ALIGN = 64 };
 
 int main(int argc, char *argv[])
 {

@@ -46,7 +46,7 @@ using namespace auto_test;
 // SW = SIMD width = number of bytes in a single SIMD vector
 #define SW NATIVE_SIMD_WIDTH
 
-#define REPEATS1 100000
+enum { REPEATS1 = 100000 };
 
 // ===========================================================================
 // main

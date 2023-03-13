@@ -34,7 +34,7 @@
 
 #include <cstdio>
 
-#define SW 16
+enum { SW = 16 };
 
 int main()
 {

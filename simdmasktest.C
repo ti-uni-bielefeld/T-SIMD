@@ -88,7 +88,7 @@ int gettimeofday(struct timeval *tp, struct timezone *)
 #include <sys/time.h> //gettimeofday
 #endif
 
-#define PRINT_PASS 0
+enum { PRINT_PASS = 0 };
 
 #ifdef SIMDVEC_SANDBOX
 int main()

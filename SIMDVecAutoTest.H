@@ -76,6 +76,11 @@ namespace auto_test {
 // how many iterations of the time measurement loop should be unrolled
 #define SIMD_TIME_MEASUREMENT_UNROLL 16
 
+// 15. Mar 23 (Jonas Keller): added ONLY_TIME_MEASUREMENT
+// if true, only time measurements are performed, no correctness checks, which
+// speeds up the test significantly
+#define ONLY_TIME_MEASUREMENT false
+
 // ===========================================================================
 // aux. functions and macros
 // ===========================================================================
@@ -189,7 +194,6 @@ SIMD_INLINE void doNotOptimize(Tp &value)
   asm volatile("" : "+m"(value) : : "memory");
 }
 #endif
-
 // #define EXIT break
 #define EXIT
 // #define EXIT exit(-1)
@@ -627,10 +631,13 @@ struct Nullary
   {
     std::string args = "";
     SerialVec<T, SIMD_WIDTH> cs, cp;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         cs = FCT<T, SIMD_WIDTH>::template apply<SerialVec>();
@@ -646,7 +653,7 @@ struct Nullary
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
         for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
@@ -673,10 +680,13 @@ struct Unary
   {
     std::string args = "v";
     SerialVec<T, SIMD_WIDTH> a, cs, cp;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
@@ -694,7 +704,7 @@ struct Unary
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -725,10 +735,13 @@ struct Scalar
     std::string args = "s";
     T a;
     SerialVec<T, SIMD_WIDTH> cs, cp;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         a  = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
@@ -746,7 +759,7 @@ struct Scalar
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       T input               = T();
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -777,12 +790,15 @@ struct ScalarUInt64
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "s";
-    uint64_t a;
     SerialVec<T, SIMD_WIDTH> cs, cp;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    uint64_t a;
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         a  = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
@@ -800,7 +816,7 @@ struct ScalarUInt64
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       uint64_t input        = uint64_t();
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -832,11 +848,14 @@ struct UnaryScalar
     std::string args = "v";
     SerialVec<T, SIMD_WIDTH> a;
     TRES cs, cp;
+#if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtRes = TypeInfo<TRES>::defaultFormat();
-    std::string name   = FCT<T, SIMD_WIDTH>::name();
+#endif
+    std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
@@ -854,7 +873,7 @@ struct UnaryScalar
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -890,12 +909,15 @@ struct UnaryScalarUInt64
   {
     std::string args = "v";
     SerialVec<T, SIMD_WIDTH> a;
+#if !ONLY_TIME_MEASUREMENT
     uint64_t cs, cp;
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtRes = "%" PRIu64;
-    std::string name   = FCT<T, SIMD_WIDTH>::name();
+#endif
+    std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
@@ -913,7 +935,7 @@ struct UnaryScalarUInt64
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -944,13 +966,16 @@ struct UnaryUInt8
   {
     std::string args = "v";
     SerialVec<T, SIMD_WIDTH> a;
-    uint8_t b;
     SerialVec<T, SIMD_WIDTH> cs, cp;
+#if !ONLY_TIME_MEASUREMENT
+    uint8_t b;
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtRes = TypeInfo<T>::defaultFormat();
-    std::string name   = FCT<T, SIMD_WIDTH>::name();
+#endif
+    std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
@@ -970,7 +995,7 @@ struct UnaryUInt8
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1000,11 +1025,14 @@ struct UnaryTemplateType
     std::string args = "v";
     SerialVec<T, SIMD_WIDTH> a;
     SerialVec<Tout, SIMD_WIDTH> cs, cp;
+#if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
-    std::string name   = FCT<Tout, T, SIMD_WIDTH>::name();
+#endif
+    std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
@@ -1022,7 +1050,7 @@ struct UnaryTemplateType
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1052,10 +1080,13 @@ struct UnaryTemplateIntScalar
     std::string args = "v";
     SerialVec<T, SIMD_WIDTH> a;
     T cp, cs;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
@@ -1073,7 +1104,7 @@ struct UnaryTemplateIntScalar
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1124,10 +1155,13 @@ struct UnaryTemplateInt
   {
     std::string args = "v";
     SerialVec<T, SIMD_WIDTH> a, cp, cs;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
@@ -1145,7 +1179,7 @@ struct UnaryTemplateInt
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1200,10 +1234,13 @@ struct UnaryTemplateInt16
     std::string args = "v";
     SerialVec<T, SIMD_WIDTH> a;
     SerialVec<T, 16> cp, cs;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
@@ -1221,7 +1258,7 @@ struct UnaryTemplateInt16
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1272,10 +1309,13 @@ struct Binary
   {
     std::string args = "v,v";
     SerialVec<T, SIMD_WIDTH> a, b, cs, cp;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
@@ -1295,7 +1335,7 @@ struct Binary
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1326,11 +1366,14 @@ struct BinaryTemplateType
     std::string args = "v,v";
     SerialVec<T, SIMD_WIDTH> a, b;
     SerialVec<Tout, SIMD_WIDTH> cs, cp;
+#if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
-    std::string name   = FCT<Tout, T, SIMD_WIDTH>::name();
+#endif
+    std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
@@ -1350,7 +1393,7 @@ struct BinaryTemplateType
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1382,11 +1425,14 @@ struct UnaryArrayTemplateType
     std::string args   = "v,*v";
     const int nOutVecs = sizeof(Tout) / sizeof(T);
     SerialVec<T, SIMD_WIDTH> a;
+#if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
-    std::string name   = FCT<Tout, T, SIMD_WIDTH>::name();
+#endif
+    std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(nOutVecs), cp(nOutVecs);
       std::vector<Vec<Tout, SIMD_WIDTH>> _cp(nOutVecs);
@@ -1414,7 +1460,7 @@ struct UnaryArrayTemplateType
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1445,10 +1491,13 @@ struct Array
     std::string args  = "*v";
     const int nInVecs = FCT<T, SIMD_WIDTH>::nInputs;
     SerialVec<T, SIMD_WIDTH> cs, cp;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> a(nInVecs);
       std::vector<Vec<T, SIMD_WIDTH>> _a(nInVecs);
@@ -1472,7 +1521,7 @@ struct Array
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input[nInVecs];
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1502,11 +1551,14 @@ struct ArrayTemplateType
     std::string args  = "*v";
     const int nInVecs = FCT<Tout, T, SIMD_WIDTH>::nInputs;
     SerialVec<Tout, SIMD_WIDTH> cs, cp;
+#if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
-    std::string name   = FCT<Tout, T, SIMD_WIDTH>::name();
+#endif
+    std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> a(nInVecs);
       std::vector<Vec<T, SIMD_WIDTH>> _a(nInVecs);
@@ -1530,7 +1582,7 @@ struct ArrayTemplateType
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input[nInVecs];
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1559,10 +1611,13 @@ struct ArrayArrayVoid
   {
     std::string args = "*v,*v";
     const int n      = SIMD_WIDTH / sizeof(T);
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(n), cs(n), cp(n);
       std::vector<Vec<T, SIMD_WIDTH>> _ap(n), _cp(n);
@@ -1598,7 +1653,7 @@ struct ArrayArrayVoid
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input[n];
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1629,11 +1684,14 @@ struct ArrayArrayVoidTemplateType
     std::string args     = "*v,*v";
     const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
     const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
-    const char *fmt      = TypeInfo<T>::defaultFormat();
-    const char *fmtOut   = TypeInfo<Tout>::defaultFormat();
-    std::string name     = FCT<Tout, T, SIMD_WIDTH>::name();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtOut = TypeInfo<Tout>::defaultFormat();
+#endif
+    std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
@@ -1671,7 +1729,7 @@ struct ArrayArrayVoidTemplateType
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input[numInVecs];
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -1702,11 +1760,14 @@ struct ArrayDoubleArrayVoidTemplateType
     std::string args     = "*v,s,*v";
     const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
     const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
-    const char *fmt      = TypeInfo<T>::defaultFormat();
-    const char *fmtOut   = TypeInfo<Tout>::defaultFormat();
-    std::string name     = FCT<Tout, T, SIMD_WIDTH>::name();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtOut = TypeInfo<Tout>::defaultFormat();
+#endif
+    std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
@@ -1746,7 +1807,7 @@ struct ArrayDoubleArrayVoidTemplateType
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input[numInVecs];
       double inputD         = 1.0;
       struct timespec start = getTimeSpecMonotonic();
@@ -1779,11 +1840,14 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
     std::string args     = "*v,s,s,*v";
     const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
     const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
-    const char *fmt      = TypeInfo<T>::defaultFormat();
-    const char *fmtOut   = TypeInfo<Tout>::defaultFormat();
-    std::string name     = FCT<Tout, T, SIMD_WIDTH>::name();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtOut = TypeInfo<Tout>::defaultFormat();
+#endif
+    std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
@@ -1824,7 +1888,7 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input[numInVecs];
       double inputD1 = 1.0, inputD2 = 1.0;
       struct timespec start = getTimeSpecMonotonic();
@@ -1858,11 +1922,14 @@ struct ArrayArrayDoubleArrayVoidTemplateType
     std::string args     = "*v,*v,s,*v";
     const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
     const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
-    const char *fmt      = TypeInfo<T>::defaultFormat();
-    const char *fmtOut   = TypeInfo<Tout>::defaultFormat();
-    std::string name     = FCT<Tout, T, SIMD_WIDTH>::name();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtOut = TypeInfo<Tout>::defaultFormat();
+#endif
+    std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs), bs(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
@@ -1907,7 +1974,7 @@ struct ArrayArrayDoubleArrayVoidTemplateType
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
       double inputD         = 1.0;
       struct timespec start = getTimeSpecMonotonic();
@@ -1941,11 +2008,14 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
     std::string args     = "*v,*v,s,s,*v";
     const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
     const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
-    const char *fmt      = TypeInfo<T>::defaultFormat();
-    const char *fmtOut   = TypeInfo<Tout>::defaultFormat();
-    std::string name     = FCT<Tout, T, SIMD_WIDTH>::name();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtOut = TypeInfo<Tout>::defaultFormat();
+#endif
+    std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs), bs(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
@@ -1993,7 +2063,7 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
       double inputD1 = 1.0, inputD2 = 1.0;
       struct timespec start = getTimeSpecMonotonic();
@@ -2028,10 +2098,13 @@ struct ArrayVoidTemplateInt
   {
     std::string args  = "*v";
     const int numVecs = FCT<I, T, SIMD_WIDTH>::numVecs;
-    const char *fmt   = TypeInfo<T>::defaultFormat();
-    std::string name  = FCT<I, T, SIMD_WIDTH>::name();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
+    std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numVecs), ap(numVecs),
         a(numVecs);
@@ -2070,7 +2143,7 @@ struct ArrayVoidTemplateInt
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input[numVecs];
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -2120,10 +2193,13 @@ struct BinaryTemplateInt
   {
     std::string args = "v,v";
     SerialVec<T, SIMD_WIDTH> a, b, cp, cs;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
@@ -2143,7 +2219,7 @@ struct BinaryTemplateInt
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -2197,10 +2273,13 @@ struct BinaryBinaryTemplateInt
     std::string args = "v,v,v&,v&";
     SerialVec<T, SIMD_WIDTH> a, b, cs, cp, ds, dp;
     Vec<T, SIMD_WIDTH> _cp, _dp;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
@@ -2224,7 +2303,7 @@ struct BinaryBinaryTemplateInt
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -2278,10 +2357,13 @@ struct BinaryTemplateIntInt
   {
     std::string args = "v,v";
     SerialVec<T, SIMD_WIDTH> a, b, cp, cs;
-    const char *fmt  = TypeInfo<T>::defaultFormat();
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
     std::string name = FCT<I, J, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<I, J, T, SIMD_WIDTH>::randomizeInput(a);
@@ -2301,7 +2383,7 @@ struct BinaryTemplateIntInt
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
       for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
@@ -2359,11 +2441,14 @@ struct TernaryConditionTemplateType
     SerialVec<T, SIMD_WIDTH> a, b;
     SerialVec<Tcond, SIMD_WIDTH> cond;
     SerialVec<T, SIMD_WIDTH> cs, cp;
+#if !ONLY_TIME_MEASUREMENT
     const char *fmt     = TypeInfo<T>::defaultFormat();
     const char *fmtCond = TypeInfo<Tcond>::defaultFormat();
-    std::string name    = FCT<Tcond, T, SIMD_WIDTH>::name();
+#endif
+    std::string name = FCT<Tcond, T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<Tcond, T, SIMD_WIDTH>::randomizeCond(cond);
@@ -2386,7 +2471,7 @@ struct TernaryConditionTemplateType
         }
       }
       printErrorStats(errors, trials);
-
+#endif
       Vec<T, SIMD_WIDTH> input1, input2;
       Vec<Tcond, SIMD_WIDTH> inputCond;
       struct timespec start = getTimeSpecMonotonic();

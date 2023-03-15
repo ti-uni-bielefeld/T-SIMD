@@ -29,6 +29,9 @@
 // 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
 // namespace
 
+// 15. Mar 23 (Jonas Keller): added ONLY_TIME_MEASUREMENT (see
+// SIMDVecAutoTest.H)
+
 #ifndef SIMD_VEC_AUTO_TEST_MASK_H_
 #define SIMD_VEC_AUTO_TEST_MASK_H_
 
@@ -77,6 +80,7 @@ struct TesterMaskUnary
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,m,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> src, a;
@@ -103,6 +107,7 @@ struct TesterMaskUnary
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> inputSrc, input;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -137,6 +142,7 @@ struct TesterMaskZUnary
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a;
@@ -159,6 +165,7 @@ struct TesterMaskZUnary
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -193,6 +200,7 @@ struct TesterMaskBinary
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,m,v,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> src, a, b;
@@ -221,6 +229,7 @@ struct TesterMaskBinary
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> inputSrc, input1, input2;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -256,6 +265,7 @@ struct TesterMaskZBinary
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a, b;
@@ -281,6 +291,7 @@ struct TesterMaskZBinary
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> input1, input2;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -315,6 +326,7 @@ struct TesterMaskConditionBinary
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a, b;
@@ -340,6 +352,7 @@ struct TesterMaskConditionBinary
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> input1, input2;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -374,6 +387,7 @@ struct TesterMaskConditionUnary
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a;
@@ -396,6 +410,7 @@ struct TesterMaskConditionUnary
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -430,6 +445,7 @@ struct TesterMaskUnaryTemplateType
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,m,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<Tout, SIMD_WIDTH> src;
@@ -457,6 +473,7 @@ struct TesterMaskUnaryTemplateType
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<Tout, SIMD_WIDTH> inputSrc;
     Vec<T, SIMD_WIDTH> input;
@@ -493,6 +510,7 @@ struct TesterMaskZUnaryTemplateType
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a;
@@ -516,6 +534,7 @@ struct TesterMaskZUnaryTemplateType
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -549,6 +568,7 @@ struct TesterMaskScalar
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,m,s";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> src;
@@ -574,6 +594,7 @@ struct TesterMaskScalar
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> inputSrc, input;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -610,6 +631,7 @@ struct TesterMaskZScalar
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,s";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
@@ -632,6 +654,7 @@ struct TesterMaskZScalar
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Mask<T, SIMD_WIDTH> inputMask;
     T inputScalar         = T();
@@ -666,6 +689,7 @@ struct TesterMaskCmp
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
@@ -692,6 +716,7 @@ struct TesterMaskCmp
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> input1, input2;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -728,6 +753,7 @@ struct TesterCmpMask
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a, b;
@@ -750,6 +776,7 @@ struct TesterCmpMask
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> input1, input2;
     struct timespec start = getTimeSpecMonotonic();
@@ -783,6 +810,7 @@ struct TesterMaskUnaryInt
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
@@ -804,6 +832,7 @@ struct TesterMaskUnaryInt
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -836,6 +865,7 @@ struct TesterUnaryK
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
@@ -855,6 +885,7 @@ struct TesterUnaryK
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
@@ -886,6 +917,7 @@ struct TesterBinaryK
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,m";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k, l;
@@ -907,6 +939,7 @@ struct TesterBinaryK
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Mask<T, SIMD_WIDTH> inputMask1, inputMask2;
     struct timespec start = getTimeSpecMonotonic();
@@ -940,6 +973,7 @@ struct TesterMaskUnaryTI
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,m,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> src, a;
@@ -966,6 +1000,7 @@ struct TesterMaskUnaryTI
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> input, inputSrc;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -1023,6 +1058,7 @@ struct TesterMaskZUnaryTI
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a;
@@ -1045,6 +1081,7 @@ struct TesterMaskZUnaryTI
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
@@ -1101,6 +1138,7 @@ struct TesterUnaryKTI
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
@@ -1120,6 +1158,7 @@ struct TesterUnaryKTI
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
@@ -1170,6 +1209,7 @@ struct TesterIntToMask
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "i";
     printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
     int errors = 0, trials = 0;
     for (int i = 0; i < repeats; i++, trials++) {
       unsigned int k = FCT<T, SIMD_WIDTH>::randomizeInputUInt();
@@ -1189,6 +1229,7 @@ struct TesterIntToMask
       }
     }
     printErrorStats(errors, trials);
+#endif
 
     int input             = 0;
     struct timespec start = getTimeSpecMonotonic();

@@ -701,12 +701,44 @@ static SIMD_INLINE void convert(
 // float-based operations on arbitrary input and output types
 // ===========================================================================
 
+// internal helper functions for float-based operations:
+namespace internal {
+namespace ext {
+template <typename Tin, typename Tout>
+static constexpr SIMD_INLINE int numFloatVecs()
+{
+  static_assert(numInVecs<Tout, Tin>() * sizeof(Float) / sizeof(Tin) ==
+                  numOutVecs<Tout, Tin>() * sizeof(Float) / sizeof(Tout),
+                "numFloatVecs() must be equal for input and output");
+  return numInVecs<Tout, Tin>() * sizeof(Float) / sizeof(Tin);
+}
+
+template <typename Tin, typename Tout, int SIMD_WIDTH>
+static SIMD_INLINE void extendInToFloat(
+  const Vec<Tin, SIMD_WIDTH> inVecs[numInVecs<Tout, Tin>()],
+  Vec<Float, SIMD_WIDTH> floatVecs[numFloatVecs<Tout, Tin>()])
+{
+  for (int i = 0; i < numInVecs<Tout, Tin>(); ++i) {
+    extend(inVecs[i], &floatVecs[i * sizeof(Float) / sizeof(Tin)]);
+  }
+}
+
+template <typename Tin, typename Tout, int SIMD_WIDTH>
+static SIMD_INLINE void packsOutFromFloat(
+  const Vec<Float, SIMD_WIDTH> floatVecs[numFloatVecs<Tout, Tin>()],
+  Vec<Tout, SIMD_WIDTH> outVecs[numOutVecs<Tout, Tin>()])
+{
+  for (int i = 0; i < numOutVecs<Tout, Tin>(); ++i) {
+    outVecs[i] = packs<Tout>(&floatVecs[i * sizeof(Float) / sizeof(Tout)]);
+  }
+}
+} // namespace ext
+} // namespace internal
+
 /**
  * @addtogroup group_fops
  * @{
  */
-
-// TODO: is there a way to fuse the three cases in fdivmul/...?
 
 // ---------------------------------------------------------------------------
 // divide then multiply with float constant in float arithmetic
@@ -714,76 +746,7 @@ static SIMD_INLINE void convert(
 
 // TODO: fdivmul: better fmuldiv = first multiply then divide?
 
-namespace internal {
-namespace ext {
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fdivmul(
-  CompareLess, const Vec<Tin, SIMD_WIDTH> vecsNum[sizeof(Tin) / sizeof(Tout)],
-  const Vec<Tin, SIMD_WIDTH> vecsDenom[sizeof(Tin) / sizeof(Tout)], double fac,
-  Vec<Tout, SIMD_WIDTH> vecsOut[1])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  const int nIn               = sizeof(Tin) / sizeof(Tout);
-  const int fanIn             = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> numF[fanIn], denomF[fanIn];
-  Vec<Float, SIMD_WIDTH> resF[nIn * fanIn];
-  for (int i = 0, k = 0; i < nIn; i++) {
-    extend(vecsNum[i], numF);
-    extend(vecsDenom[i], denomF);
-    for (int j = 0; j < fanIn; j++, k++)
-      resF[k] = mul(div(numF[j], denomF[j]), facF);
-  }
-  vecsOut[0] = packs<Tout>(resF);
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fdivmul(
-  CompareGreater, const Vec<Tin, SIMD_WIDTH> vecsNum[1],
-  const Vec<Tin, SIMD_WIDTH> vecsDenom[1], double fac,
-  Vec<Tout, SIMD_WIDTH> vecsOut[sizeof(Tout) / sizeof(Tin)])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  const int nOut              = sizeof(Tout) / sizeof(Tin);
-  const int fanOut            = sizeof(Float) / sizeof(Tout);
-  Vec<Float, SIMD_WIDTH> numF[nOut * fanOut], denomF[nOut * fanOut];
-  Vec<Float, SIMD_WIDTH> resF[fanOut];
-  extend(vecsNum[0], numF);
-  extend(vecsDenom[0], denomF);
-  for (int i = 0, k = 0; i < nOut; i++) {
-    for (int j = 0; j < fanOut; j++, k++)
-      resF[j] = mul(div(numF[k], denomF[k]), facF);
-    vecsOut[i] = packs<Tout>(resF);
-  }
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fdivmul(CompareEqual,
-                                const Vec<Tin, SIMD_WIDTH> vecsNum[1],
-                                const Vec<Tin, SIMD_WIDTH> vecsDenom[1],
-                                double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  // sizeof(Tout) == sizeof(Tin)
-  const int fanInOut = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> numF[fanInOut], denomF[fanInOut];
-  Vec<Float, SIMD_WIDTH> resF[fanInOut];
-  extend(vecsNum[0], numF);
-  extend(vecsDenom[0], denomF);
-  for (int j = 0; j < fanInOut; j++)
-    resF[j] = mul(div(numF[j], denomF[j]), facF);
-  vecsOut[0] = packs<Tout>(resF);
-}
-} // namespace ext
-} // namespace internal
+// 15. Mar 23 (Jonas Keller): fused the three cases
 
 /**
  * @brief Divides Vec's element-wise, then multiplies with a constant factor in
@@ -801,8 +764,17 @@ static SIMD_INLINE void fdivmul(
   const Vec<Tin, SIMD_WIDTH> vecsDenom[numInVecs<Tout, Tin>()], double fac,
   Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  internal::ext::fdivmul(internal::CompareTypes<Tout, Tin>(), vecsNum,
-                         vecsDenom, fac, vecsOut);
+  static_assert(sizeof(Tin) <= sizeof(Float), "");
+  static_assert(sizeof(Tout) <= sizeof(Float), "");
+  constexpr auto nFloatVecs = internal::ext::numFloatVecs<Tout, Tin>();
+  const auto facF           = set1<Float, SIMD_WIDTH>(fac);
+  Vec<Float, SIMD_WIDTH> numF[nFloatVecs], denomF[nFloatVecs], resF[nFloatVecs];
+  internal::ext::extendInToFloat<Tin, Tout>(vecsNum, numF);
+  internal::ext::extendInToFloat<Tin, Tout>(vecsDenom, denomF);
+  for (std::size_t i = 0; i < nFloatVecs; i++) {
+    resF[i] = mul(div(numF[i], denomF[i]), facF);
+  }
+  internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
 // ---------------------------------------------------------------------------
 // divide, apply multidimensional sigmoid and then multiply with float
@@ -939,9 +911,8 @@ static SIMD_INLINE void fdivMsigmoidmul(
   const double w0[DIM], double fac,
   Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
+  static_assert(sizeof(Tin) <= sizeof(Float), "");
+  static_assert(sizeof(Tout) <= sizeof(Float), "");
   internal::ext::fdivMsigmoidmul<DIM, NVEC>(internal::CompareTypes<Tout, Tin>(),
                                             vecsNum, vecsDenom, w, w0, fac,
                                             vecsOut);
@@ -951,66 +922,7 @@ static SIMD_INLINE void fdivMsigmoidmul(
 // multiply with float constant in float arithmetic
 // ---------------------------------------------------------------------------
 
-namespace internal {
-namespace ext {
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fmul(
-  CompareLess, const Vec<Tin, SIMD_WIDTH> vecsIn[sizeof(Tin) / sizeof(Tout)],
-  double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  const int nIn               = sizeof(Tin) / sizeof(Tout);
-  const int fanIn             = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> inF[fanIn];
-  Vec<Float, SIMD_WIDTH> resF[nIn * fanIn];
-  for (int i = 0, k = 0; i < nIn; i++) {
-    extend(vecsIn[i], inF);
-    for (int j = 0; j < fanIn; j++, k++) resF[k] = mul(inF[j], facF);
-  }
-  vecsOut[0] = packs<Tout>(resF);
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fmul(
-  CompareGreater, const Vec<Tin, SIMD_WIDTH> vecsIn[1], double fac,
-  Vec<Tout, SIMD_WIDTH> vecsOut[sizeof(Tout) / sizeof(Tin)])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  const int nOut              = sizeof(Tout) / sizeof(Tin);
-  const int fanOut            = sizeof(Float) / sizeof(Tout);
-  Vec<Float, SIMD_WIDTH> inF[nOut * fanOut];
-  Vec<Float, SIMD_WIDTH> resF[fanOut];
-  extend(vecsIn[0], inF);
-  for (int i = 0, k = 0; i < nOut; i++) {
-    for (int j = 0; j < fanOut; j++, k++) resF[j] = mul(inF[k], facF);
-    vecsOut[i] = packs<Tout>(resF);
-  }
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fmul(CompareEqual, const Vec<Tin, SIMD_WIDTH> vecsIn[1],
-                             double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  // sizeof(Tout) == sizeof(Tin)
-  const int fanInOut = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> inF[fanInOut];
-  Vec<Float, SIMD_WIDTH> resF[fanInOut];
-  extend(vecsIn[0], inF);
-  for (int j = 0; j < fanInOut; j++) resF[j] = mul(inF[j], facF);
-  vecsOut[0] = packs<Tout>(resF);
-}
-} // namespace ext
-} // namespace internal
+// 15. Mar 23 (Jonas Keller): fused the three cases
 
 /**
  * @brief Multiplies Vec's element-wise with a float constant in float
@@ -1025,84 +937,25 @@ static SIMD_INLINE void fmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double fac,
   Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  internal::ext::fmul(internal::CompareTypes<Tout, Tin>(), vecsIn, fac,
-                      vecsOut);
+  static_assert(sizeof(Tin) <= sizeof(Float), "");
+  static_assert(sizeof(Tout) <= sizeof(Float), "");
+  constexpr auto nFloatVecs = internal::ext::numFloatVecs<Tout, Tin>();
+  const auto facF           = set1<Float, SIMD_WIDTH>(fac);
+  Vec<Float, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
+  internal::ext::extendInToFloat<Tin, Tout>(vecsIn, inF);
+  for (std::size_t i = 0; i < nFloatVecs; i++) { resF[i] = mul(inF[i], facF); }
+  internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
 
 // ---------------------------------------------------------------------------
 // add then multiply with float constant in float arithmetic
 // ---------------------------------------------------------------------------
 
-namespace internal {
-namespace ext {
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void faddmul(
-  CompareLess, const Vec<Tin, SIMD_WIDTH> vecsIn[sizeof(Tin) / sizeof(Tout)],
-  double off, double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> offF = set1<Float, SIMD_WIDTH>(off);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  const int nIn               = sizeof(Tin) / sizeof(Tout);
-  const int fanIn             = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> inF[fanIn];
-  Vec<Float, SIMD_WIDTH> resF[nIn * fanIn];
-  for (int i = 0, k = 0; i < nIn; i++) {
-    extend(vecsIn[i], inF);
-    for (int j = 0; j < fanIn; j++, k++) resF[k] = mul(add(inF[j], offF), facF);
-  }
-  vecsOut[0] = packs<Tout>(resF);
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void faddmul(
-  CompareGreater, const Vec<Tin, SIMD_WIDTH> vecsIn[1], double off, double fac,
-  Vec<Tout, SIMD_WIDTH> vecsOut[sizeof(Tout) / sizeof(Tin)])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> offF = set1<Float, SIMD_WIDTH>(off);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  const int nOut              = sizeof(Tout) / sizeof(Tin);
-  const int fanOut            = sizeof(Float) / sizeof(Tout);
-  Vec<Float, SIMD_WIDTH> inF[nOut * fanOut];
-  Vec<Float, SIMD_WIDTH> resF[fanOut];
-  extend(vecsIn[0], inF);
-  for (int i = 0, k = 0; i < nOut; i++) {
-    for (int j = 0; j < fanOut; j++, k++)
-      resF[j] = mul(add(inF[k], offF), facF);
-    vecsOut[i] = packs<Tout>(resF);
-  }
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void faddmul(CompareEqual,
-                                const Vec<Tin, SIMD_WIDTH> vecsIn[1],
-                                double off, double fac,
-                                Vec<Tout, SIMD_WIDTH> vecsOut[1])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> offF = set1<Float, SIMD_WIDTH>(off);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  // sizeof(Tout) == sizeof(Tin)
-  const int fanInOut = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> inF[fanInOut];
-  Vec<Float, SIMD_WIDTH> resF[fanInOut];
-  extend(vecsIn[0], inF);
-  for (int j = 0; j < fanInOut; j++) resF[j] = mul(add(inF[j], offF), facF);
-  vecsOut[0] = packs<Tout>(resF);
-}
-} // namespace ext
-} // namespace internal
+// 15. Mar 23 (Jonas Keller): fused the three cases
 
 /**
- * @brief Adds a float constant to the elements of Vec's, then multiplies with a
- * float constant in floating point arithmetic
+ * @brief Adds a float constant to the elements of Vec's, then multiplies with
+ * a float constant in floating point arithmetic
  *
  * @param[in] vecsIn input Vec's
  * @param off float constant to add
@@ -1114,8 +967,17 @@ static SIMD_INLINE void faddmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double off,
   double fac, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  internal::ext::faddmul(internal::CompareTypes<Tout, Tin>(), vecsIn, off, fac,
-                         vecsOut);
+  static_assert(sizeof(Tin) <= sizeof(Float), "");
+  static_assert(sizeof(Tout) <= sizeof(Float), "");
+  constexpr auto nFloatVecs = internal::ext::numFloatVecs<Tout, Tin>();
+  const auto offF           = set1<Float, SIMD_WIDTH>(off);
+  const auto facF           = set1<Float, SIMD_WIDTH>(fac);
+  Vec<Float, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
+  internal::ext::extendInToFloat<Tin, Tout>(vecsIn, inF);
+  for (std::size_t i = 0; i < nFloatVecs; i++) {
+    resF[i] = mul(add(inF[i], offF), facF);
+  }
+  internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
 
 // ---------------------------------------------------------------------------
@@ -1124,72 +986,7 @@ static SIMD_INLINE void faddmul(
 
 // better for conversion of zero-centered data to unsigned pixel format
 
-namespace internal {
-namespace ext {
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fmuladd(
-  CompareLess, const Vec<Tin, SIMD_WIDTH> vecsIn[sizeof(Tin) / sizeof(Tout)],
-  double fac, double off, Vec<Tout, SIMD_WIDTH> vecsOut[1])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> offF = set1<Float, SIMD_WIDTH>(off);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  const int nIn               = sizeof(Tin) / sizeof(Tout);
-  const int fanIn             = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> inF[fanIn];
-  Vec<Float, SIMD_WIDTH> resF[nIn * fanIn];
-  for (int i = 0, k = 0; i < nIn; i++) {
-    extend(vecsIn[i], inF);
-    for (int j = 0; j < fanIn; j++, k++) resF[k] = add(mul(inF[j], facF), offF);
-  }
-  vecsOut[0] = packs<Tout>(resF);
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fmuladd(
-  CompareGreater, const Vec<Tin, SIMD_WIDTH> vecsIn[1], double fac, double off,
-  Vec<Tout, SIMD_WIDTH> vecsOut[sizeof(Tout) / sizeof(Tin)])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> offF = set1<Float, SIMD_WIDTH>(off);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  const int nOut              = sizeof(Tout) / sizeof(Tin);
-  const int fanOut            = sizeof(Float) / sizeof(Tout);
-  Vec<Float, SIMD_WIDTH> inF[nOut * fanOut];
-  Vec<Float, SIMD_WIDTH> resF[fanOut];
-  extend(vecsIn[0], inF);
-  for (int i = 0, k = 0; i < nOut; i++) {
-    for (int j = 0; j < fanOut; j++, k++)
-      resF[j] = add(mul(inF[k], facF), offF);
-    vecsOut[i] = packs<Tout>(resF);
-  }
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fmuladd(CompareEqual,
-                                const Vec<Tin, SIMD_WIDTH> vecsIn[1],
-                                double fac, double off,
-                                Vec<Tout, SIMD_WIDTH> vecsOut[1])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> offF = set1<Float, SIMD_WIDTH>(off);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  // sizeof(Tout) == sizeof(Tin)
-  const int fanInOut = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> inF[fanInOut];
-  Vec<Float, SIMD_WIDTH> resF[fanInOut];
-  extend(vecsIn[0], inF);
-  for (int j = 0; j < fanInOut; j++) resF[j] = add(mul(inF[j], facF), offF);
-  vecsOut[0] = packs<Tout>(resF);
-}
-} // namespace ext
-} // namespace internal
+// 15. Mar 23 (Jonas Keller): fused the three cases
 
 /**
  * @brief Multiplies the elements of Vec's with a float constant, then adds a
@@ -1205,92 +1002,28 @@ static SIMD_INLINE void fmuladd(
   const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double fac,
   double off, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  internal::ext::fmuladd(internal::CompareTypes<Tout, Tin>(), vecsIn, fac, off,
-                         vecsOut);
+  static_assert(sizeof(Tin) <= sizeof(Float), "");
+  static_assert(sizeof(Tout) <= sizeof(Float), "");
+  constexpr auto nFloatVecs = internal::ext::numFloatVecs<Tout, Tin>();
+  const auto facF           = set1<Float, SIMD_WIDTH>(fac);
+  const auto offF           = set1<Float, SIMD_WIDTH>(off);
+  Vec<Float, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
+  internal::ext::extendInToFloat<Tin, Tout>(vecsIn, inF);
+  for (std::size_t i = 0; i < nFloatVecs; i++) {
+    resF[i] = add(mul(inF[i], facF), offF);
+  }
+  internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
 
 // ---------------------------------------------------------------------------
 // multiply with float constant in float arithmetic
 // ---------------------------------------------------------------------------
 
+// 15. Mar 23 (Jonas Keller): fused the three cases
+
 // fac * [v2 + w * (v1 - v2)] = fac * [w * v1 + (1 - w) * v2], w in [0,1]
 // w: weight factor (in [0,1])
 // fac: scale factor
-
-namespace internal {
-namespace ext {
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fwaddmul(
-  CompareLess, const Vec<Tin, SIMD_WIDTH> vecsIn1[sizeof(Tin) / sizeof(Tout)],
-  const Vec<Tin, SIMD_WIDTH> vecsIn2[sizeof(Tin) / sizeof(Tout)], double w,
-  double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> wF   = set1<Float, SIMD_WIDTH>(w);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  const int nIn               = sizeof(Tin) / sizeof(Tout);
-  const int fanIn             = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> inF1[fanIn], inF2[fanIn];
-  Vec<Float, SIMD_WIDTH> resF[nIn * fanIn];
-  for (int i = 0, k = 0; i < nIn; i++) {
-    extend(vecsIn1[i], inF1);
-    extend(vecsIn2[i], inF2);
-    for (int j = 0; j < fanIn; j++, k++)
-      resF[k] = mul(facF, add(inF2[j], mul(wF, sub(inF1[j], inF2[j]))));
-  }
-  vecsOut[0] = packs<Tout>(resF);
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fwaddmul(
-  CompareGreater, const Vec<Tin, SIMD_WIDTH> vecsIn1[1],
-  const Vec<Tin, SIMD_WIDTH> vecsIn2[1], double w, double fac,
-  Vec<Tout, SIMD_WIDTH> vecsOut[sizeof(Tout) / sizeof(Tin)])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> wF   = set1<Float, SIMD_WIDTH>(w);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  const int nOut              = sizeof(Tout) / sizeof(Tin);
-  const int fanOut            = sizeof(Float) / sizeof(Tout);
-  Vec<Float, SIMD_WIDTH> inF1[nOut * fanOut], inF2[nOut * fanOut];
-  Vec<Float, SIMD_WIDTH> resF[fanOut];
-  extend(vecsIn1[0], inF1);
-  extend(vecsIn2[0], inF2);
-  for (int i = 0, k = 0; i < nOut; i++) {
-    for (int j = 0; j < fanOut; j++, k++)
-      resF[j] = mul(facF, add(inF2[k], mul(wF, sub(inF1[k], inF2[k]))));
-    vecsOut[i] = packs<Tout>(resF);
-  }
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void fwaddmul(CompareEqual,
-                                 const Vec<Tin, SIMD_WIDTH> vecsIn1[1],
-                                 const Vec<Tin, SIMD_WIDTH> vecsIn2[1],
-                                 double w, double fac,
-                                 Vec<Tout, SIMD_WIDTH> vecsOut[1])
-{
-  // we assume that sizeof(Tout),sizeof(Tin) <= sizeof(Float)
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  Vec<Float, SIMD_WIDTH> wF   = set1<Float, SIMD_WIDTH>(w);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac);
-  // sizeof(Tout) == sizeof(Tin)
-  const int fanInOut = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> inF1[fanInOut], inF2[fanInOut];
-  Vec<Float, SIMD_WIDTH> resF[fanInOut];
-  extend(vecsIn1[0], inF1);
-  extend(vecsIn2[0], inF2);
-  for (int j = 0; j < fanInOut; j++)
-    resF[j] = mul(facF, add(inF2[j], mul(wF, sub(inF1[j], inF2[j]))));
-  vecsOut[0] = packs<Tout>(resF);
-}
-} // namespace ext
-} // namespace internal
 
 /**
  * @brief Linearly interpolates Vec's element-wise with a constant weight and
@@ -1312,8 +1045,18 @@ static SIMD_INLINE void fwaddmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn2[numInVecs<Tout, Tin>()], double w,
   double fac, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  internal::ext::fwaddmul(internal::CompareTypes<Tout, Tin>(), vecsIn1, vecsIn2,
-                          w, fac, vecsOut);
+  static_assert(sizeof(Tin) <= sizeof(Float), "");
+  static_assert(sizeof(Tout) <= sizeof(Float), "");
+  constexpr auto nFloatVecs = internal::ext::numFloatVecs<Tout, Tin>();
+  const auto wF             = set1<Float, SIMD_WIDTH>(w);
+  const auto facF           = set1<Float, SIMD_WIDTH>(fac);
+  Vec<Float, SIMD_WIDTH> inF1[nFloatVecs], inF2[nFloatVecs], resF[nFloatVecs];
+  internal::ext::extendInToFloat<Tin, Tout>(vecsIn1, inF1);
+  internal::ext::extendInToFloat<Tin, Tout>(vecsIn2, inF2);
+  for (std::size_t i = 0; i < nFloatVecs; i++) {
+    resF[i] = mul(facF, add(inF2[i], mul(wF, sub(inF1[i], inF2[i]))));
+  }
+  internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
 
 /** @} */

@@ -792,12 +792,12 @@ static SIMD_INLINE void fdivMsigmoidmul(
   const Vec<Tin, SIMD_WIDTH> vecsDenom[DIM][NVEC], const double w[DIM],
   const double w0[DIM], double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
 {
-  const int nIn               = sizeof(Tin) / sizeof(Tout);
-  const int fanIn             = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac / 2.0f),
-                         oneF = set1<Float, SIMD_WIDTH>(1.0f), wF[DIM],
-                         w0F[DIM], yF, y4F, numF[DIM][fanIn],
-                         denomF[DIM][fanIn], resF[nIn * fanIn];
+  const int nIn   = sizeof(Tin) / sizeof(Tout);
+  const int fanIn = sizeof(Float) / sizeof(Tin);
+  const auto facF = set1<Float, SIMD_WIDTH>(fac / 2.0f);
+  const auto oneF = set1<Float, SIMD_WIDTH>(1.0f);
+  Vec<Float, SIMD_WIDTH> wF[DIM], w0F[DIM], numF[DIM][fanIn],
+    denomF[DIM][fanIn], resF[nIn * fanIn];
   for (int d = 0; d < DIM; d++) {
     wF[d]  = set1<Float, SIMD_WIDTH>(-0.433f * w[d]);
     w0F[d] = set1<Float, SIMD_WIDTH>(w0[d]);
@@ -806,21 +806,20 @@ static SIMD_INLINE void fdivMsigmoidmul(
   // j: index of extended input vector
   // k: index of output vectors
   // TODO: sometimes i < nIn does not work with -O2 is always true?
-  for (int i = 0, k = 0; i < nIn; /*i++*/) {
+  for (int i = 0, k = 0; i < nIn; i++) {
     for (int d = 0; d < DIM; d++) {
       extend(vecsNum[d][i], numF[d]);
       extend(vecsDenom[d][i], denomF[d]);
     }
     for (int j = 0; j < fanIn; j++, k++) {
-      yF = setzero<Float, SIMD_WIDTH>();
+      auto yF = setzero<Float, SIMD_WIDTH>();
       for (int d = 0; d < DIM; d++) {
         yF = add(yF, mul(wF[d], sub(div(numF[d][j], denomF[d][j]), w0F[d])));
       }
-      y4F     = mul(yF, yF);
-      y4F     = mul(y4F, y4F);
-      resF[k] = mul(add(div(yF, sqrt(sqrt(add(oneF, y4F)))), oneF), facF);
+      auto y4F = mul(yF, yF);
+      y4F      = mul(y4F, y4F);
+      resF[k]  = mul(add(div(yF, sqrt(sqrt(add(oneF, y4F)))), oneF), facF);
     }
-    i++;
   }
   vecsOut[0] = packs<Tout>(resF);
 }
@@ -832,12 +831,12 @@ static SIMD_INLINE void fdivMsigmoidmul(
   const double w0[DIM], double fac,
   Vec<Tout, SIMD_WIDTH> vecsOut[sizeof(Tout) / sizeof(Tin)])
 {
-  const int nOut              = sizeof(Tout) / sizeof(Tin);
-  const int fanOut            = sizeof(Float) / sizeof(Tout);
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac / 2.0f),
-                         oneF = set1<Float, SIMD_WIDTH>(1.0f), wF[DIM],
-                         w0F[DIM], yF, y4F, numF[DIM][nOut * fanOut],
-                         denomF[DIM][nOut * fanOut], resF[fanOut];
+  const int nOut   = sizeof(Tout) / sizeof(Tin);
+  const int fanOut = sizeof(Float) / sizeof(Tout);
+  const auto facF  = set1<Float, SIMD_WIDTH>(fac / 2.0f);
+  const auto oneF  = set1<Float, SIMD_WIDTH>(1.0f);
+  Vec<Float, SIMD_WIDTH> wF[DIM], w0F[DIM], numF[DIM][nOut * fanOut],
+    denomF[DIM][nOut * fanOut], resF[fanOut];
   for (int d = 0; d < DIM; d++) {
     wF[d]  = set1<Float, SIMD_WIDTH>(-0.433f * w[d]);
     w0F[d] = set1<Float, SIMD_WIDTH>(w0[d]);
@@ -849,13 +848,13 @@ static SIMD_INLINE void fdivMsigmoidmul(
   // k: index of input vector
   for (int i = 0, k = 0; i < nOut; i++) {
     for (int j = 0; j < fanOut; j++, k++) {
-      yF = setzero<Float, SIMD_WIDTH>();
+      auto yF = setzero<Float, SIMD_WIDTH>();
       for (int d = 0; d < DIM; d++) {
         yF = add(yF, mul(wF[d], sub(div(numF[d][k], denomF[d][k]), w0F[d])));
       }
-      y4F     = mul(yF, yF);
-      y4F     = mul(y4F, y4F);
-      resF[j] = mul(add(div(yF, sqrt(sqrt(add(oneF, y4F)))), oneF), facF);
+      auto y4F = mul(yF, yF);
+      y4F      = mul(y4F, y4F);
+      resF[j]  = mul(add(div(yF, sqrt(sqrt(add(oneF, y4F)))), oneF), facF);
     }
     vecsOut[i] = packs<Tout>(resF);
   }
@@ -867,12 +866,11 @@ static SIMD_INLINE void fdivMsigmoidmul(
   const Vec<Tin, SIMD_WIDTH> vecsDenom[DIM][NVEC], const double w[DIM],
   const double w0[DIM], double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
 {
-  Vec<Float, SIMD_WIDTH> facF = set1<Float, SIMD_WIDTH>(fac / 2.0f),
-                         oneF = set1<Float, SIMD_WIDTH>(1.0f), wF[DIM],
-                         w0F[DIM], yF, y4F;
   const int fanInOut = sizeof(Float) / sizeof(Tin);
-  Vec<Float, SIMD_WIDTH> numF[DIM][fanInOut], denomF[DIM][fanInOut],
-    resF[fanInOut];
+  const auto facF    = set1<Float, SIMD_WIDTH>(fac / 2.0f);
+  const auto oneF    = set1<Float, SIMD_WIDTH>(1.0f);
+  Vec<Float, SIMD_WIDTH> wF[DIM], w0F[DIM], numF[DIM][fanInOut],
+    denomF[DIM][fanInOut], resF[fanInOut];
   for (int d = 0; d < DIM; d++) {
     wF[d]  = set1<Float, SIMD_WIDTH>(-0.433f * w[d]);
     w0F[d] = set1<Float, SIMD_WIDTH>(w0[d]);
@@ -881,13 +879,13 @@ static SIMD_INLINE void fdivMsigmoidmul(
   }
   // j: index of extended input/output vector
   for (int j = 0; j < fanInOut; j++) {
-    yF = setzero<Float, SIMD_WIDTH>();
+    auto yF = setzero<Float, SIMD_WIDTH>();
     for (int d = 0; d < DIM; d++) {
       yF = add(yF, mul(wF[d], sub(div(numF[d][j], denomF[d][j]), w0F[d])));
     }
-    y4F     = mul(yF, yF);
-    y4F     = mul(y4F, y4F);
-    resF[j] = mul(add(div(yF, sqrt(sqrt(add(oneF, y4F)))), oneF), facF);
+    auto y4F = mul(yF, yF);
+    y4F      = mul(y4F, y4F);
+    resF[j]  = mul(add(div(yF, sqrt(sqrt(add(oneF, y4F)))), oneF), facF);
   }
   vecsOut[0] = packs<Tout>(resF);
 }

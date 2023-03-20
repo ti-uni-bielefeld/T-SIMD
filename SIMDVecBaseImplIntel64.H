@@ -4652,29 +4652,43 @@ static SIMD_INLINE int test_all_ones(const Vec<T, 64> &a)
 // reverse
 // ---------------------------------------------------------------------------
 
-// also used for intra-lane shuffle (uses only lower 4 bit)
-const Byte reverse_mask_1[64] SIMD_ATTR_ALIGNED(64) = {
-  63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48,
-  47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32,
-  31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16,
-  15, 14, 13, 12, 11, 10, 9,  8,  7,  6,  5,  4,  3,  2,  1,  0};
+// 20. Mar 23 (Jonas Keller): implemented reverse masks as functions instead of
+// as arrays that need to be loaded first
 
-const Byte reverse_mask_2[64] SIMD_ATTR_ALIGNED(64) = {
-  62, 63, 60, 61, 58, 59, 56, 57, 54, 55, 52, 53, 50, 51, 48, 49,
-  46, 47, 44, 45, 42, 43, 40, 41, 38, 39, 36, 37, 34, 35, 32, 33,
-  30, 31, 28, 29, 26, 27, 24, 25, 22, 23, 20, 21, 18, 19, 16, 17,
-  14, 15, 12, 13, 10, 11, 8,  9,  6,  7,  4,  5,  2,  3,  0,  1};
+template <int Bytes>
+static SIMD_INLINE __m512i reverse_mask();
 
-const Int reverse_mask_4[16] SIMD_ATTR_ALIGNED(64) = {
-  15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+template <>
+SIMD_INLINE __m512i reverse_mask<1>()
+{
+  return _mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50,
+                         49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36,
+                         35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22,
+                         21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8,
+                         7, 6, 5, 4, 3, 2, 1, 0);
+}
+
+template <>
+SIMD_INLINE __m512i reverse_mask<2>()
+{
+  return _mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
+                          18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
+                          3, 2, 1, 0);
+}
+
+template <>
+SIMD_INLINE __m512i reverse_mask<4>()
+{
+  return _mm512_set_epi32(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+}
+
 
 static SIMD_INLINE Vec<Byte, 64> reverse(const Vec<Byte, 64> &a)
 {
 #ifdef __AVX512VBMI__
-  return _mm512_permutexvar_epi8(load(reverse_mask_1, Integer<64>()), a);
+  return _mm512_permutexvar_epi8(reverse_mask<1>(), a);
 #else
-  Vec<Byte, 64> r =
-    x_mm512_shuffle_epi8(a, load(reverse_mask_1, Integer<64>()));
+  Vec<Byte, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<1>());
   return permute_64_16_1<3, 2, 1, 0>(r);
 #endif
 }
@@ -4682,10 +4696,9 @@ static SIMD_INLINE Vec<Byte, 64> reverse(const Vec<Byte, 64> &a)
 static SIMD_INLINE Vec<SignedByte, 64> reverse(const Vec<SignedByte, 64> &a)
 {
 #ifdef __AVX512VBMI__
-  return _mm512_permutexvar_epi8(load(reverse_mask_1, Integer<64>()), a);
+  return _mm512_permutexvar_epi8(reverse_mask<1>(), a);
 #else
-  Vec<SignedByte, 64> r =
-    x_mm512_shuffle_epi8(a, load(reverse_mask_1, Integer<64>()));
+  Vec<SignedByte, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<1>());
   return permute_64_16_1<3, 2, 1, 0>(r);
 #endif
 }
@@ -4693,10 +4706,9 @@ static SIMD_INLINE Vec<SignedByte, 64> reverse(const Vec<SignedByte, 64> &a)
 static SIMD_INLINE Vec<Word, 64> reverse(const Vec<Word, 64> &a)
 {
 #ifdef __AVX512VBMI__
-  return _mm512_permutexvar_epi8(load(reverse_mask_2, Integer<64>()), a);
+  return _mm512_permutexvar_epi8(reverse_mask<2>(), a);
 #else
-  Vec<Word, 64> r =
-    x_mm512_shuffle_epi8(a, load(reverse_mask_2, Integer<64>()));
+  Vec<Word, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<2>());
   return permute_64_16_1<3, 2, 1, 0>(r);
 #endif
 }
@@ -4704,10 +4716,9 @@ static SIMD_INLINE Vec<Word, 64> reverse(const Vec<Word, 64> &a)
 static SIMD_INLINE Vec<Short, 64> reverse(const Vec<Short, 64> &a)
 {
 #ifdef __AVX512VBMI__
-  return _mm512_permutexvar_epi8(load(reverse_mask_2, Integer<64>()), a);
+  return _mm512_permutexvar_epi8(reverse_mask<2>(), a);
 #else
-  Vec<Short, 64> r =
-    x_mm512_shuffle_epi8(a, load(reverse_mask_2, Integer<64>()));
+  Vec<Short, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<2>());
   return permute_64_16_1<3, 2, 1, 0>(r);
 #endif
 }
@@ -4715,14 +4726,14 @@ static SIMD_INLINE Vec<Short, 64> reverse(const Vec<Short, 64> &a)
 static SIMD_INLINE Vec<Int, 64> reverse(const Vec<Int, 64> &a)
 {
   // AVX512F
-  return _mm512_permutexvar_epi32(load(reverse_mask_4, Integer<64>()), a);
+  return _mm512_permutexvar_epi32(reverse_mask<4>(), a);
 }
 
 // float version, slightly changed int version
 static SIMD_INLINE Vec<Float, 64> reverse(const Vec<Float, 64> &a)
 {
   // AVX512F
-  return _mm512_permutexvar_ps(load(reverse_mask_4, Integer<64>()), a);
+  return _mm512_permutexvar_ps(reverse_mask<4>(), a);
 }
 
 // ---------------------------------------------------------------------------

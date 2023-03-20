@@ -27,3 +27,4 @@ Tilt
 TiltSearchDemo
 warpingSIMDSmallTest
 warpingSIMDTest
+tsimd_sh.H

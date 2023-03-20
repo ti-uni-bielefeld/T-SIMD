@@ -4422,10 +4422,8 @@ static SIMD_INLINE Vec<T, 64> ifelse(const Vec<T, 64> &cond,
                                      const Vec<T, 64> &trueVal,
                                      const Vec<T, 64> &falseVal)
 {
-  return _mm512_castps_si512(x_mm512_or_ps(
-    x_mm512_and_ps(_mm512_castsi512_ps(cond), _mm512_castsi512_ps(trueVal)),
-    x_mm512_andnot_ps(_mm512_castsi512_ps(cond),
-                      _mm512_castsi512_ps(falseVal))));
+  return _mm512_or_si512(_mm512_and_si512(cond, trueVal),
+                         _mm512_andnot_si512(cond, falseVal));
 }
 #endif
 

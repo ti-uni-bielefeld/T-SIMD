@@ -1876,17 +1876,32 @@ static SIMD_INLINE Vec<Float, 64> truncate(const Vec<Float, 64> &a)
 // ---------------------------------------------------------------------------
 
 // estimate of a reciprocal
+// NOTE: this has better precision than SSE and AVX versions!
 static SIMD_INLINE Vec<Float, 64> rcp(const Vec<Float, 64> &a)
 {
-  // NOTE: this has better precision than SSE and AVX versions!
+  // 20. Mar 23 (Jonas Keller):
+  // use _mm512_rcp28_ps if available, which has even better precision
+  // and does not seem to be any slower (at least according to this:
+  // https://github.com/tanakamura/instruction-bench/blob/master/knl.log)
+#ifdef __AVX512ER__
+  return _mm512_rcp28_ps(a);
+#else
   return _mm512_rcp14_ps(a);
+#endif
 }
 
 // estimate of reverse square root
+// NOTE: this has better precision than SSE and AVX versions!
 static SIMD_INLINE Vec<Float, 64> rsqrt(const Vec<Float, 64> &a)
 {
-  // NOTE: this has better precision than SSE and AVX versions!
+  // 20. Mar 23 (Jonas Keller):
+  // use _mm512_rsqrt28_ps if available, which has even better precision
+  // and does not seem to be any slower (probably)
+#ifdef __AVX512ER__
+  return _mm512_rsqrt28_ps(a);
+#else
   return _mm512_rsqrt14_ps(a);
+#endif
 }
 
 // square root

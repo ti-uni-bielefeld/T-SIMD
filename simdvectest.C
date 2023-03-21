@@ -408,7 +408,7 @@ using namespace simd;
   {                                                                            \
     puts("\n" #TYPE);                                                          \
     const int nElems = Vec<TYPE, SW>::elements;                                \
-    Vec<TYPE, SW> v[nElems], res;                                              \
+    Vec<TYPE, SW> v[nElems];                                                   \
     TYPE buf[nElems];                                                          \
     for (unsigned i = 0; i < nElems; i++) {                                    \
       for (unsigned int j = 0; j < nElems; j++)                                \
@@ -429,7 +429,7 @@ using namespace simd;
     const int nElems = Vec<TYPE, SW>::elements;                                \
     TYPE buf[nElems], val = VAL0;                                              \
     for (int i = 0; i < nElems; i++, val += VALS) buf[i] = val;                \
-    Vec<TYPE, SW> in = loadu<SW>(buf), out;                                    \
+    Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in          = ");                                                  \
     print(FORMAT, in);                                                         \
     puts("");                                                                  \
@@ -444,7 +444,7 @@ using namespace simd;
     const int nElems = SW / sizeof(TYPE);                                      \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
     for (int i = 0; i < nElems; i++, val += TYPE(1)) { buf[i] = val; }         \
-    Vec<TYPE, SW> in = loadu<SW>(buf), out;                                    \
+    Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in          = ");                                                  \
     print(FORMAT, in);                                                         \
     puts("");                                                                  \
@@ -654,7 +654,6 @@ using namespace simd;
     printf("in2        = ");                                                   \
     print(FORMAT, in2);                                                        \
     puts("");                                                                  \
-    Vec<TYPE, SW> out;                                                         \
     printf("in1 <  in2 = ");                                                   \
     print(FORMAT, cmplt(in1, in2));                                            \
     puts("");                                                                  \

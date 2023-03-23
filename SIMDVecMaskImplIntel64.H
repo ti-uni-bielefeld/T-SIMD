@@ -82,7 +82,7 @@ namespace simd {
     }                                                                          \
     SIMD_INLINE bool operator==(const Mask<TYPE, 64> &x) const                 \
     {                                                                          \
-      return k == x;                                                           \
+      return k == x.k;                                                         \
     }                                                                          \
   };
 

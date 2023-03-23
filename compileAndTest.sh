@@ -176,17 +176,27 @@ endif
 
 if ($cppstd_test) then
   mkdir -p COMPILE_AND_TEST/cppstd
-  foreach cppstd ("c++11")
+  # 23. Mar 23 (Jonas Keller):
+  # test all c++ version from c++11 to c++2a instead of only c++11
+  # also, test all archs in parallel for each c++ version
+  # also, run these tests in syntax_only mode always
+  make clean
+  foreach cppstd ("c++11" "c++14" "c++17" "c++20" "c++2a")
     set cppstd_defines = "-std=$cppstd"
-    echo "================= flags_cppstd $cppstd_defines ================="
-    if ($doitCompile) then
-      make $syntax_only_defines clean
-      make $syntax_only_defines dep # only does something when run in PROG system
-      make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} flags_cppstd="$cppstd_defines" \
-        all_tsimd $autotest_target \
-        >& "COMPILE_AND_TEST/cppstd/compile_${cppstd}.log"
-      rehash
-    endif
+    foreach arch_info ($arch_info_list)
+      # https://stackoverflow.com/questions/7735160/how-do-i-split-a-string-in-csh
+      set arch_list = ($arch_info:as/,/ /)
+      set arch = $arch_list[1]
+      set arch_defines = "$arch_list[2-]"
+      echo "================= flags_cppstd $cppstd_defines flags_arch $arch_defines ================="
+      if ($doitCompile) then
+        make syntax_only=1 -j ${COMPILE_AND_TEST_JOBS} \
+          flags_cppstd="$cppstd_defines" flags_arch="$arch_defines" \
+          all_tsimd $autotest_target \
+          >& "COMPILE_AND_TEST/cppstd/compile_${cppstd}_${arch}.log" &
+      endif
+    end
+    wait
   end
 endif
 

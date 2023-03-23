@@ -26,7 +26,7 @@ Either download the single header library version `tsimd_sh.H` or download the f
 
 You can also generate the single header include file `tsimd_sh.H` by `make single-header`. You need to install `quom` beforehand (please run `pip3 install --user quom`).
 
-To generate the documentation, run `make doc`. Open the file `html/index.html` in your web browser. You need to install the `doxygen` package beforehand.
+To generate the documentation, run `make doc`. Open the file `html/index.html` in your web browser. You need to install the `doxygen` package beforehand (version 1.9.5 or later).
 
 To use the **T-SIMD** library, simply include the single-header file `tsimd_sh.H` or the `tsimd.H` header from the archive.
 

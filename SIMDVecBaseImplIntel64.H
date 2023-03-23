@@ -4682,7 +4682,6 @@ SIMD_INLINE __m512i reverse_mask<4>()
   return _mm512_set_epi32(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 }
 
-
 static SIMD_INLINE Vec<Byte, 64> reverse(const Vec<Byte, 64> &a)
 {
 #ifdef __AVX512VBMI__

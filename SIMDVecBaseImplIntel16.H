@@ -138,7 +138,7 @@ namespace base {
 // immediate arguments as template parameter), or switch between
 // implementations with different SSE* extensions, or provide
 // altered or additional functionality.
-// Only for use in wrapper functinos!
+// Only for use in wrapper functions!
 
 // ---------------------------------------------------------------------------
 // min / max

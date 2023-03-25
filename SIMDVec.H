@@ -42,7 +42,6 @@ namespace simd {
 // TODO: - absdiff also for unsigned types -> SSE lecture vecintrin66
 // TODO: - bitwise shift: what about float?
 // TODO: - loadr / storer
-// TODO: - saturated workarounds for adds/hadds for Int?
 // TODO: - element-wise rotation in a vector using alignre
 // TODO: - functions for rsqrt, rcp Newton *steps*?
 // TODO: - add to names rcp, rsqrt something with "estimate"?

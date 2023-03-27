@@ -43,6 +43,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <emmintrin.h>
+#include <type_traits>
 
 #ifdef __SSE2__
 
@@ -1462,7 +1463,8 @@ static SIMD_INLINE Vec<Float, 16> div(const Vec<Float, 16> &a,
 // ceil, floor, round, truncate
 // ---------------------------------------------------------------------------
 
-// TODO: add versions of ceil/floor/round for int types?
+// 25. Mar 23 (Jonas Keller): added versions for integer types
+
 // TODO: import complex workaround for non-SSE4.1 from Agner Fog's VCL?
 
 // NOTE: behavior for workarounds differs for results of -0.0f and +0.0f
@@ -1481,6 +1483,36 @@ static SIMD_INLINE Vec<Float, 16> div(const Vec<Float, 16> &a,
 //
 // floor(x) = ceil(x)  - (x in Z ? 0 : 1)
 // ceil(x)  = floor(x) + (x in Z ? 0 : 1)
+
+// versions for integer types do nothing:
+
+template <typename T>
+static SIMD_INLINE Vec<T, 16> ceil(const Vec<T, 16> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 16> floor(const Vec<T, 16> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 16> round(const Vec<T, 16> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 16> truncate(const Vec<T, 16> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
 
 static SIMD_INLINE Vec<Float, 16> ceil(const Vec<Float, 16> &a)
 {
@@ -1596,8 +1628,18 @@ static SIMD_INLINE Vec<Float, 16> sqrt(const Vec<Float, 16> &a)
 }
 
 // ---------------------------------------------------------------------------
-// abs (integer: signed only)
+// abs
 // ---------------------------------------------------------------------------
+
+// 25. Mar 25 (Jonas Keller): added abs for unsigned integers
+
+// unsigned integers
+template <typename T>
+static SIMD_INLINE Vec<T, 16> abs(const Vec<T, 16> &a)
+{
+  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
+  return a;
+}
 
 static SIMD_INLINE Vec<SignedByte, 16> abs(const Vec<SignedByte, 16> &a)
 {

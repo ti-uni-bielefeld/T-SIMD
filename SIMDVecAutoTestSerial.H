@@ -472,16 +472,42 @@ static SIMD_INLINE Float _max(Float a, Float b)
 // _abs
 // -------------------------------------------------------------------------
 
-// Byte, SignedByte, Word, Short, Int
-template <typename T>
-static SIMD_INLINE T _abs(T a)
+// 25. Mar 23 (Jonas Keller): added _abs for unsigned integer types
+
+// signed integer types
+
+static SIMD_INLINE SignedByte _abs(SignedByte a)
 {
   return std::abs(a);
 }
 
-// no daz also on NEON
+static SIMD_INLINE Short _abs(Short a)
+{
+  return std::abs(a);
+}
+
+static SIMD_INLINE Int _abs(Int a)
+{
+  return std::abs(a);
+}
+
+// unsigned integer types
+
+static SIMD_INLINE Byte _abs(Byte a)
+{
+  return a;
+}
+
+static SIMD_INLINE Word _abs(Word a)
+{
+  return a;
+}
+
+// no unsigned int
+
 static SIMD_INLINE Float _abs(Float a)
 {
+  // no daz also on NEON
   return fabsf(a);
 }
 
@@ -964,6 +990,16 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> ceil(
   return c;
 }
 
+// 25. Mar 23 (Jonas Keller): added ceil for integer types
+// do nothing for integer types
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ceil(
+  const SerialVec<T, SIMD_WIDTH> &a)
+{
+  static_assert(std::is_integral<T>::value, "T must be integral");
+  return a;
+}
+
 template <int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> floor(
   const SerialVec<Float, SIMD_WIDTH> &a)
@@ -971,6 +1007,16 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> floor(
   SerialVec<Float, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = std::floor(daz_neon(a[i]));
   return c;
+}
+
+// 25. Mar 23 (Jonas Keller): added floor for integer types
+// do nothing for integer types
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> floor(
+  const SerialVec<T, SIMD_WIDTH> &a)
+{
+  static_assert(std::is_integral<T>::value, "T must be integral");
+  return a;
 }
 
 template <int SIMD_WIDTH>
@@ -997,6 +1043,16 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> round(
 #endif
 }
 
+// 25. Mar 23 (Jonas Keller): added round for integer types
+// do nothing for integer types
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> round(
+  const SerialVec<T, SIMD_WIDTH> &a)
+{
+  static_assert(std::is_integral<T>::value, "T must be integral");
+  return a;
+}
+
 template <int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> truncate(
   const SerialVec<Float, SIMD_WIDTH> &a)
@@ -1004,6 +1060,16 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> truncate(
   SerialVec<Float, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = ::truncf(daz_neon(a[i]));
   return c;
+}
+
+// 25. Mar 23 (Jonas Keller): added truncate for integer types
+// do nothing for integer types
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> truncate(
+  const SerialVec<T, SIMD_WIDTH> &a)
+{
+  static_assert(std::is_integral<T>::value, "T must be integral");
+  return a;
 }
 
 // 02. Oct 22 (Jonas Keller): added rcp and rsqrt

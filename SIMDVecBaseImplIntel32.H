@@ -42,6 +42,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 #ifdef __AVX__
 
@@ -2077,7 +2078,37 @@ static SIMD_INLINE Vec<Float, 32> div(const Vec<Float, 32> &a,
 // ceil, floor, round, truncate
 // ---------------------------------------------------------------------------
 
-// TODO: add versions of ceil/floor/round for int types?
+// 25. Mar 23 (Jonas Keller): added versions for integer types
+
+// versions for integer types do nothing:
+
+template <typename T>
+static SIMD_INLINE Vec<T, 32> ceil(const Vec<T, 32> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 32> floor(const Vec<T, 32> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 32> round(const Vec<T, 32> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 32> truncate(const Vec<T, 32> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
 
 static SIMD_INLINE Vec<Float, 32> ceil(const Vec<Float, 32> &a)
 {
@@ -2125,8 +2156,18 @@ static SIMD_INLINE Vec<Float, 32> sqrt(const Vec<Float, 32> &a)
 }
 
 // ---------------------------------------------------------------------------
-// abs (integer: signed only)
+// abs
 // ---------------------------------------------------------------------------
+
+// 25. Mar 25 (Jonas Keller): added abs for unsigned integers
+
+// unsigned integers
+template <typename T>
+static SIMD_INLINE Vec<T, 32> abs(const Vec<T, 32> &a)
+{
+  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
+  return a;
+}
 
 #ifdef __AVX2__
 

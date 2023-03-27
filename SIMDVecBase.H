@@ -643,10 +643,13 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> neg(const Vec<T, SIMD_WIDTH> &a)
   return internal::base::neg(a);
 }
 
+// 25. Mar 23 (Jonas Keller): added integer version of ceil, floor, round,
+// truncate and unsigned version of abs
+
 /**
  * @brief Computes the absolute value of the elements of a Vec.
  *
- * This function is only available for signed types.
+ * For unsigned types, this function simply returns the input Vec.
  *
  * @param a Vec to compute the absolute value of
  * @return Vec containing the absolute value of the elements of the input Vec
@@ -654,15 +657,13 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> neg(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> abs(const Vec<T, SIMD_WIDTH> &a)
 {
-  static_assert(TypeInfo<T>::isSigned,
-                "abs() is only available for signed types");
   return internal::base::abs(a);
 }
 
 /**
  * @brief Rounds the elements of a Vec up to the nearest integer.
  *
- * This function is only available for floating point types.
+ * For integer types, this function simply returns the input Vec.
  *
  * @param a Vec to round
  * @return Vec containing the rounded elements of the input Vec
@@ -670,8 +671,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> abs(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> ceil(const Vec<T, SIMD_WIDTH> &a)
 {
-  static_assert(TypeInfo<T>::isFloatingPoint,
-                "ceil() is only available for floating point types");
   return internal::base::ceil(a);
 }
 
@@ -679,7 +678,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> ceil(const Vec<T, SIMD_WIDTH> &a)
  * @brief Rounds the elements of a Vec down to the nearest
  * integer.
  *
- * This function is only available for floating point types.
+ * For integer types, this function simply returns the input Vec.
  *
  * @param a Vec to round
  * @return Vec containing the rounded elements of the input Vec
@@ -687,15 +686,13 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> ceil(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> floor(const Vec<T, SIMD_WIDTH> &a)
 {
-  static_assert(TypeInfo<T>::isFloatingPoint,
-                "floor() is only available for floating point types");
   return internal::base::floor(a);
 }
 
 /**
  * @brief Rounds the elements of a Vec to the nearest integer.
  *
- * This function is only available for floating point types.
+ * For integer types, this function simply returns the input Vec.
  *
  * @param a Vec to round
  * @return Vec containing the rounded elements of the input Vec
@@ -703,8 +700,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> floor(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> round(const Vec<T, SIMD_WIDTH> &a)
 {
-  static_assert(TypeInfo<T>::isFloatingPoint,
-                "round() is only available for floating point types");
   return internal::base::round(a);
 }
 
@@ -712,7 +707,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> round(const Vec<T, SIMD_WIDTH> &a)
  * @brief Truncates the elements of a Vec to the nearest integer
  * i.e. rounds towards zero.
  *
- * This function is only available for floating point types.
+ * For integer types, this function simply returns the input Vec.
  *
  * @param a Vec to truncate
  * @return Vec containing the truncated elements of the input Vec
@@ -720,8 +715,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> round(const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> truncate(const Vec<T, SIMD_WIDTH> &a)
 {
-  static_assert(TypeInfo<T>::isFloatingPoint,
-                "truncate() is only available for floating point types");
   return internal::base::truncate(a);
 }
 

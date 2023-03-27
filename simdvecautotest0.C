@@ -95,10 +95,10 @@ int main(int argc, char *argv[])
   TestAll<Binary, SW, Subs>::test(repeats1, pattern);
   TestSigned<Unary, SW, Neg>::test(repeats1, pattern);
   TestFloat<Binary, SW, Mul>::test(repeats1, pattern);
-  TestFloat<Unary, SW, Ceil>::test(repeats1, pattern);
-  TestFloat<Unary, SW, Floor>::test(repeats1, pattern);
-  TestFloat<Unary, SW, Round>::test(repeats1, pattern);
-  TestFloat<Unary, SW, Truncate>::test(repeats1, pattern);
+  TestAll<Unary, SW, Ceil>::test(repeats1, pattern);
+  TestAll<Unary, SW, Floor>::test(repeats1, pattern);
+  TestAll<Unary, SW, Round>::test(repeats1, pattern);
+  TestAll<Unary, SW, Truncate>::test(repeats1, pattern);
   // TODO: div and sqrt are approximations on NEON, figure out max relative
   // error
   TestFloat<Binary, SW, Div>::test(repeats1, pattern);
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 #endif
   TestAll<Binary, SW, Min>::test(repeats1, pattern);
   TestAll<Binary, SW, Max>::test(repeats1, pattern);
-  TestSignedInt<Unary, SW, Abs>::test(repeats1, pattern);
+  TestAll<Unary, SW, Abs>::test(repeats1, pattern);
   TestAllTII<BinaryTemplateIntIntMinToMax, SW, Unpack>::test(repeats1, pattern);
   // 10. Oct 22 (Jonas Keller): added test for Unpack16
   TestAllTII<BinaryTemplateIntIntMinToMax, SW, Unpack16>::test(repeats1,

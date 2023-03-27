@@ -61,6 +61,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <type_traits>
 
 #ifdef SIMDVEC_NEON_ENABLE
 
@@ -1061,6 +1062,38 @@ static SIMD_INLINE Vec<Float, 16> div(const Vec<Float, 16> &num,
 // ceil, floor, round, truncate
 // -------------------------------------------------------------------------
 
+// 25. Mar 23 (Jonas Keller): added versions for integer types
+
+// versions for integer types do nothing:
+
+template <typename T>
+static SIMD_INLINE Vec<T, 16> ceil(const Vec<T, 16> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 16> floor(const Vec<T, 16> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 16> round(const Vec<T, 16> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 16> truncate(const Vec<T, 16> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return a;
+}
+
 // http://www.rowleydownload.co.uk/arm/documentation/gnu/gcc/
 //   ARM-NEON-Intrinsics.html
 // vrnd, only some architectures, see arm_neon.h
@@ -1188,8 +1221,18 @@ static SIMD_INLINE Vec<Float, 16> sqrt(const Vec<Float, 16> &a)
 }
 
 // -------------------------------------------------------------------------
-// abs (integer: signed only)
+// abs
 // -------------------------------------------------------------------------
+
+// 25. Mar 25 (Jonas Keller): added abs for unsigned integers
+
+// unsigned integers
+template <typename T>
+static SIMD_INLINE Vec<T, 16> abs(const Vec<T, 16> &a)
+{
+  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
+  return a;
+}
 
 SIMDVEC_NEON_UNARY_ALLSIGNED(abs, vabsq)
 

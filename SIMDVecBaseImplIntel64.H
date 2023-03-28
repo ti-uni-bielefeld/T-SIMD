@@ -4097,6 +4097,14 @@ static SIMD_INLINE void swizzle(Vec<Float, 64> v[5], Integer<5>,
 }
 
 // ---------------------------------------------------------------------------
+// comparison functions
+// ---------------------------------------------------------------------------
+
+// 28. Mar 23 (Jonas Keller): checked the constants for _mm512_cmp_ps_mask in
+// the Float comparison functions, they match the implementation of the SSE
+// versions (see cmpps in Intel manual) and added corresponding comments
+
+// ---------------------------------------------------------------------------
 // compare < v
 // ---------------------------------------------------------------------------
 
@@ -4149,6 +4157,8 @@ static SIMD_INLINE Vec<Int, 64> cmplt(const Vec<Int, 64> &a,
 static SIMD_INLINE Vec<Float, 64> cmplt(const Vec<Float, 64> &a,
                                         const Vec<Float, 64> &b)
 {
+  // same constant as in implementation of _mm_cmplt_ps (see cmpps instruction
+  // in Intel manual)
   return _mm512_castsi512_ps(
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_LT_OS)));
 }
@@ -4206,6 +4216,8 @@ static SIMD_INLINE Vec<Int, 64> cmple(const Vec<Int, 64> &a,
 static SIMD_INLINE Vec<Float, 64> cmple(const Vec<Float, 64> &a,
                                         const Vec<Float, 64> &b)
 {
+  // same constant as in implementation of _mm_cmple_ps (see cmpps instruction
+  // in Intel manual)
   return _mm512_castsi512_ps(
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_LE_OS)));
 }
@@ -4263,6 +4275,8 @@ static SIMD_INLINE Vec<Int, 64> cmpeq(const Vec<Int, 64> &a,
 static SIMD_INLINE Vec<Float, 64> cmpeq(const Vec<Float, 64> &a,
                                         const Vec<Float, 64> &b)
 {
+  // same constant as in implementation of _mm_cmpeq_ps (see cmpps instruction
+  // in Intel manual)
   return _mm512_castsi512_ps(
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_EQ_OQ)));
 }
@@ -4320,6 +4334,8 @@ static SIMD_INLINE Vec<Int, 64> cmpgt(const Vec<Int, 64> &a,
 static SIMD_INLINE Vec<Float, 64> cmpgt(const Vec<Float, 64> &a,
                                         const Vec<Float, 64> &b)
 {
+  // same constant as in implementation of _mm_cmplt_ps (see cmpps instruction
+  // in Intel manual), except this is > instead of <
   return _mm512_castsi512_ps(
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_GT_OS)));
 }
@@ -4377,6 +4393,8 @@ static SIMD_INLINE Vec<Int, 64> cmpge(const Vec<Int, 64> &a,
 static SIMD_INLINE Vec<Float, 64> cmpge(const Vec<Float, 64> &a,
                                         const Vec<Float, 64> &b)
 {
+  // same constant as in implementation of _mm_cmple_ps (see cmpps instruction
+  // in Intel manual), except this is >= instead of <=
   return _mm512_castsi512_ps(
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_GE_OS)));
 }
@@ -4434,6 +4452,8 @@ static SIMD_INLINE Vec<Int, 64> cmpneq(const Vec<Int, 64> &a,
 static SIMD_INLINE Vec<Float, 64> cmpneq(const Vec<Float, 64> &a,
                                          const Vec<Float, 64> &b)
 {
+  // same constant as in implementation of _mm_cmpneq_ps (see cmpps instruction
+  // in Intel manual)
   return _mm512_castsi512_ps(
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_NEQ_OQ)));
 }

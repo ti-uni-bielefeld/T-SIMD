@@ -4028,10 +4028,16 @@ static SIMD_INLINE void swizzle(Vec<Float, 32> v[5], Integer<5>,
 }
 
 // ---------------------------------------------------------------------------
-// compare <
+// comparison functions
 // ---------------------------------------------------------------------------
 
-// TODO: constants in _mm256_cmp_ps ok? (ordered/unordered, signaling/non-s.)?
+// 28. Mar 23 (Jonas Keller): checked the constants for _mm256_cmp_ps in the
+// Float comparison functions, they match the implementation of the SSE versions
+// (see cmpps in Intel manual) and added corresponding comments
+
+// ---------------------------------------------------------------------------
+// compare <
+// ---------------------------------------------------------------------------
 
 // http://stackoverflow.com/questions/16204663/
 //   sse-compare-packed-unsigned-bytes
@@ -4088,7 +4094,8 @@ static SIMD_INLINE Vec<T, 32> cmplt(const Vec<T, 32> &a, const Vec<T, 32> &b)
 static SIMD_INLINE Vec<Float, 32> cmplt(const Vec<Float, 32> &a,
                                         const Vec<Float, 32> &b)
 {
-  // same constant as in Agner Fog's VCL (1): ordered, signaling
+  // same constant as in implementation of _mm_cmplt_ps (see cmpps instruction
+  // in Intel manual)
   return _mm256_cmp_ps(a, b, _CMP_LT_OS);
 }
 
@@ -4152,7 +4159,8 @@ static SIMD_INLINE Vec<T, 32> cmple(const Vec<T, 32> &a, const Vec<T, 32> &b)
 static SIMD_INLINE Vec<Float, 32> cmple(const Vec<Float, 32> &a,
                                         const Vec<Float, 32> &b)
 {
-  // same constant as in Agner Fog's VCL (2): ordered, signaling
+  // same constant as in implementation of _mm_cmple_ps (see cmpps instruction
+  // in Intel manual)
   return _mm256_cmp_ps(a, b, _CMP_LE_OS);
 }
 
@@ -4206,7 +4214,8 @@ static SIMD_INLINE Vec<T, 32> cmpeq(const Vec<T, 32> &a, const Vec<T, 32> &b)
 static SIMD_INLINE Vec<Float, 32> cmpeq(const Vec<Float, 32> &a,
                                         const Vec<Float, 32> &b)
 {
-  // same constant as in Agner Fog's VCL (0): ordered, non-signaling
+  // same constant as in implementation of _mm_cmpeq_ps (see cmpps instruction
+  // in Intel manual)
   return _mm256_cmp_ps(a, b, _CMP_EQ_OQ);
 }
 
@@ -4269,7 +4278,8 @@ static SIMD_INLINE Vec<T, 32> cmpgt(const Vec<T, 32> &a, const Vec<T, 32> &b)
 static SIMD_INLINE Vec<Float, 32> cmpgt(const Vec<Float, 32> &a,
                                         const Vec<Float, 32> &b)
 {
-  // same constant as in Agner Fog's VCL (1): ordered, signaling
+  // same constant as in implementation of _mm_cmplt_ps (see cmpps instruction
+  // in Intel manual)
   return _mm256_cmp_ps(b, a, _CMP_LT_OS);
 }
 
@@ -4333,7 +4343,8 @@ static SIMD_INLINE Vec<T, 32> cmpge(const Vec<T, 32> &a, const Vec<T, 32> &b)
 static SIMD_INLINE Vec<Float, 32> cmpge(const Vec<Float, 32> &a,
                                         const Vec<Float, 32> &b)
 {
-  // same constant as in Agner Fog's VCL (2): ordered, signaling
+  // same constant as in implementation of _mm_cmple_ps (see cmpps instruction
+  // in Intel manual)
   return _mm256_cmp_ps(b, a, _CMP_LE_OS);
 }
 
@@ -4387,7 +4398,8 @@ static SIMD_INLINE Vec<T, 32> cmpneq(const Vec<T, 32> &a, const Vec<T, 32> &b)
 static SIMD_INLINE Vec<Float, 32> cmpneq(const Vec<Float, 32> &a,
                                          const Vec<Float, 32> &b)
 {
-  // same constant as in Agner Fog's VCL (4): unordered, signaling
+  // same constant as in implementation of _mm_cmpneq_ps (see cmpps instruction
+  // in Intel manual)
   return _mm256_cmp_ps(a, b, _CMP_NEQ_UQ);
 }
 

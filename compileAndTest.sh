@@ -42,6 +42,14 @@ set default_compilation = 1
 
 set COMPILE_AND_TEST_JOBS = 16
 
+set opt_flag_list = (\
+  "-O0" \
+  "-O1" \
+  "-O2" \
+  "-O3" \
+  "-O3,-funroll-loops" \
+)
+
 if ($useGccClang) then
   # g++, clang++
   # set compiler = g++
@@ -120,7 +128,8 @@ endif
 
 if ($opt_test) then
   mkdir -p COMPILE_AND_TEST/opt
-  foreach opt_flags ("-O3 -funroll-loops")# "-O0"
+  foreach opt_info ($opt_flag_list)
+    set opt_flags = ($opt_info:as/,/ /)
     echo "==================== optflags $opt_flags ===================="
     if ($doitCompile) then
       make $syntax_only_defines clean
@@ -145,7 +154,8 @@ if ($opt_arch_test) then
     # echo "arch_info = $arch_info"
     # echo "arch = $arch"
     # echo "arch_defines = $arch_defines"
-    foreach opt_flags ("-O3 -funroll-loops") #"-O0"
+    foreach opt_info ($opt_flag_list)
+      set opt_flags = ($opt_info:as/,/ /)
       echo "======== flags_arch $arch_defines optflags $opt_flags ========"
       if ($doitCompile) then
         make $syntax_only_defines clean
@@ -180,23 +190,27 @@ if ($cppstd_test) then
   # test all c++ version from c++11 to c++2a instead of only c++11
   # also, test all archs in parallel for each c++ version
   # also, run these tests in syntax_only mode always
+  # and also test each opt_flags for each c++ version
   make clean
   foreach cppstd ("c++11" "c++14" "c++17" "c++20" "c++2a")
     set cppstd_defines = "-std=$cppstd"
-    foreach arch_info ($arch_info_list)
-      # https://stackoverflow.com/questions/7735160/how-do-i-split-a-string-in-csh
-      set arch_list = ($arch_info:as/,/ /)
-      set arch = $arch_list[1]
-      set arch_defines = "$arch_list[2-]"
-      echo "================= flags_cppstd $cppstd_defines flags_arch $arch_defines ================="
-      if ($doitCompile) then
-        make syntax_only=1 -j ${COMPILE_AND_TEST_JOBS} \
-          flags_cppstd="$cppstd_defines" flags_arch="$arch_defines" \
-          all_tsimd $autotest_target \
-          >& "COMPILE_AND_TEST/cppstd/compile_${cppstd}_${arch}.log" &
-      endif
+    foreach opt_info ($opt_flag_list)
+      set opt_flags = ($opt_info:as/,/ /)
+      foreach arch_info ($arch_info_list)
+        # https://stackoverflow.com/questions/7735160/how-do-i-split-a-string-in-csh
+        set arch_list = ($arch_info:as/,/ /)
+        set arch = $arch_list[1]
+        set arch_defines = "$arch_list[2-]"
+        echo "================= flags_cppstd $cppstd_defines flags_arch $arch_defines optflags $opt_flags ================="
+        if ($doitCompile) then
+          make syntax_only=1 -j ${COMPILE_AND_TEST_JOBS} \
+            flags_cppstd="$cppstd_defines" flags_arch="$arch_defines" \
+            optflags="$opt_flags" all_tsimd $autotest_target \
+            >& "COMPILE_AND_TEST/cppstd/compile_${cppstd}_${arch}_${opt_flags}.log" &
+        endif
+      end
+      wait
     end
-    wait
   end
 endif
 

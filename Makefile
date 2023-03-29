@@ -256,9 +256,12 @@ flags-info:
 		| grep -e SSE -e AVX -e POPCNT | sort
 
 # for compileAndTest to be compatible with PROG system
+# echo -n is to prevent make from printing "nothing to be done"
 .PHONY: platform_dirs dep
-platform_dirs: ;
-dep: ;
+platform_dirs:
+	@echo -n
+dep:
+	@echo -n
 
 # 10. Feb 23 (Jonas Keller): added format rule
 .PHONY: format

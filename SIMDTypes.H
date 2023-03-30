@@ -33,6 +33,8 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <limits>
+#include <type_traits>
 
 namespace simd {
 
@@ -57,21 +59,40 @@ using Float      = float; ///< Single-precision floating point number (32-bit)
 /** @} */
 
 /// @cond
-#define SIMDBYTE_MAX        (255)
-#define SIMDBYTE_TRUE       (255)
-#define SIMDSIGNEDBYTE_MIN  (-128)
-#define SIMDSIGNEDBYTE_MAX  (127)
-#define SIMDSIGNEDBYTE_TRUE (-1)
-#define SIMDWORD_MAX        (65535)
-#define SIMDWORD_TRUE       (65535)
-#define SIMDSHORT_MIN       (-32768)
-#define SIMDSHORT_MAX       (32767)
-#define SIMDSHORT_TRUE      (-1)
-#define SIMDINT_MIN         (-2147483647 - 1)
-#define SIMDINT_MAX         (2147483647)
-#define SIMDINT_TRUE        (-1)
-#define SIMDFLOAT_MIN       (-3.402823466E+38F)
-#define SIMDFLOAT_MAX       (3.402823466E+38F)
+// 30. Mar 23 (Jonas Keller): replaced the magic numbers in these macros with
+// std::numeric_limits<T>::max() and std::numeric_limits<T>::lowest()
+// and also added SIMDFLOAT_TRUE using an immediately invoked lambda and
+// std::memcpy
+
+#define SIMDBYTE_TRUE       (~(::simd::Byte(0)))
+#define SIMDSIGNEDBYTE_TRUE (~(::simd::SignedByte(0)))
+#define SIMDWORD_TRUE       (~(::simd::Word(0)))
+#define SIMDSHORT_TRUE      (~(::simd::Short(0)))
+#define SIMDINT_TRUE        (~(::simd::Int(0)))
+// use an immediately invoked lambda to be able to use memcpy
+#define SIMDFLOAT_TRUE                                                         \
+  ([]() -> ::simd::Float {                                                     \
+    static_assert(sizeof(::simd::Float) == sizeof(::simd::Int),                \
+                  "Float and Int must have the same size");                    \
+    ::simd::Int i = ~(::simd::Int(0));                                         \
+    ::simd::Float f;                                                           \
+    ::std::memcpy(&f, &i, sizeof(::simd::Float));                              \
+    return f;                                                                  \
+  }())
+
+#define SIMDBYTE_MIN       (::std::numeric_limits<Byte>::lowest())
+#define SIMDSIGNEDBYTE_MIN (::std::numeric_limits<SignedByte>::lowest())
+#define SIMDWORD_MIN       (::std::numeric_limits<Word>::lowest())
+#define SIMDSHORT_MIN      (::std::numeric_limits<Short>::lowest())
+#define SIMDINT_MIN        (::std::numeric_limits<Int>::lowest())
+#define SIMDFLOAT_MIN      (::std::numeric_limits<Float>::lowest())
+
+#define SIMDBYTE_MAX       (::std::numeric_limits<Byte>::max())
+#define SIMDSIGNEDBYTE_MAX (::std::numeric_limits<SignedByte>::max())
+#define SIMDWORD_MAX       (::std::numeric_limits<Word>::max())
+#define SIMDSHORT_MAX      (::std::numeric_limits<Short>::max())
+#define SIMDINT_MAX        (::std::numeric_limits<Int>::max())
+#define SIMDFLOAT_MAX      (::std::numeric_limits<Float>::max())
 // 0x7fffff80
 #define MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 2147483520.0f
 /// @endcond
@@ -121,6 +142,10 @@ enum class SortSlope { ASCENDING = 0, DESCENDING = 1 };
 
 // 27. Jan 23 (Jonas Keller): added wrapper class for TypeInfo for doxygen
 // documentation
+// 30. Mar 23 (Jonas Keller): deprecated isSigned, isInteger, isFloatingPoint,
+// min() and max() in TypeInfo in favor of the corresponding functions in
+// the std library and used those functions in the implementation of
+// TypeInfo
 
 namespace internal {
 namespace types {
@@ -131,15 +156,10 @@ template <>
 class TypeInfo<Byte>
 {
 public:
-  static constexpr SIMD_INLINE const char *name() { return "Byte"; };
-  static constexpr SIMD_INLINE const char *format() { return "u"; };
-  static constexpr SIMD_INLINE const char *defaultFormat() { return "%u "; };
+  static constexpr SIMD_INLINE const char *name() { return "Byte"; }
+  static constexpr SIMD_INLINE const char *format() { return "u"; }
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%u "; }
   static constexpr SIMD_INLINE const char *hexFormat() { return "%02x "; }
-  static constexpr bool isSigned        = false;
-  static constexpr bool isInteger       = true;
-  static constexpr bool isFloatingPoint = false;
-  static constexpr SIMD_INLINE Byte min() { return 0; }
-  static constexpr SIMD_INLINE Byte max() { return SIMDBYTE_MAX; }
   static constexpr SIMD_INLINE Byte trueval() { return SIMDBYTE_TRUE; }
   using NextLargerType = Word;
   using UnsignedType   = Byte;
@@ -150,15 +170,10 @@ template <>
 class TypeInfo<SignedByte>
 {
 public:
-  static constexpr SIMD_INLINE const char *name() { return "SignedByte"; };
-  static constexpr SIMD_INLINE const char *format() { return "d"; };
-  static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; };
+  static constexpr SIMD_INLINE const char *name() { return "SignedByte"; }
+  static constexpr SIMD_INLINE const char *format() { return "d"; }
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; }
   static constexpr SIMD_INLINE const char *hexFormat() { return "%02x "; }
-  static constexpr bool isSigned        = true;
-  static constexpr bool isInteger       = true;
-  static constexpr bool isFloatingPoint = false;
-  static constexpr SIMD_INLINE SignedByte min() { return SIMDSIGNEDBYTE_MIN; }
-  static constexpr SIMD_INLINE SignedByte max() { return SIMDSIGNEDBYTE_MAX; }
   static constexpr SIMD_INLINE SignedByte trueval()
   {
     return SIMDSIGNEDBYTE_TRUE;
@@ -172,15 +187,10 @@ template <>
 class TypeInfo<Word>
 {
 public:
-  static constexpr SIMD_INLINE const char *name() { return "Word"; };
-  static constexpr SIMD_INLINE const char *format() { return "u"; };
-  static constexpr SIMD_INLINE const char *defaultFormat() { return "%u "; };
+  static constexpr SIMD_INLINE const char *name() { return "Word"; }
+  static constexpr SIMD_INLINE const char *format() { return "u"; }
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%u "; }
   static constexpr SIMD_INLINE const char *hexFormat() { return "%04x "; }
-  static constexpr bool isSigned        = false;
-  static constexpr bool isInteger       = true;
-  static constexpr bool isFloatingPoint = false;
-  static constexpr SIMD_INLINE Word min() { return 0; }
-  static constexpr SIMD_INLINE Word max() { return SIMDWORD_MAX; }
   static constexpr SIMD_INLINE Word trueval() { return SIMDWORD_TRUE; }
   using NextLargerType = Int; // no larger unsigned type, use Int
   using UnsignedType   = Word;
@@ -191,15 +201,10 @@ template <>
 class TypeInfo<Short>
 {
 public:
-  static constexpr SIMD_INLINE const char *name() { return "Short"; };
-  static constexpr SIMD_INLINE const char *format() { return "d"; };
-  static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; };
+  static constexpr SIMD_INLINE const char *name() { return "Short"; }
+  static constexpr SIMD_INLINE const char *format() { return "d"; }
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; }
   static constexpr SIMD_INLINE const char *hexFormat() { return "%04x "; }
-  static constexpr bool isSigned        = true;
-  static constexpr bool isInteger       = true;
-  static constexpr bool isFloatingPoint = false;
-  static constexpr SIMD_INLINE Short min() { return SIMDSHORT_MIN; }
-  static constexpr SIMD_INLINE Short max() { return SIMDSHORT_MAX; }
   static constexpr SIMD_INLINE Short trueval() { return SIMDSHORT_TRUE; }
   using NextLargerType = Int;
   using UnsignedType   = Word;
@@ -210,15 +215,10 @@ template <>
 class TypeInfo<Int>
 {
 public:
-  static constexpr SIMD_INLINE const char *name() { return "Int"; };
-  static constexpr SIMD_INLINE const char *format() { return "d"; };
-  static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; };
+  static constexpr SIMD_INLINE const char *name() { return "Int"; }
+  static constexpr SIMD_INLINE const char *format() { return "d"; }
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; }
   static constexpr SIMD_INLINE const char *hexFormat() { return "%08x "; }
-  static constexpr bool isSigned        = true;
-  static constexpr bool isInteger       = true;
-  static constexpr bool isFloatingPoint = false;
-  static constexpr SIMD_INLINE Int min() { return SIMDINT_MIN; }
-  static constexpr SIMD_INLINE Int max() { return SIMDINT_MAX; }
   static constexpr SIMD_INLINE Int trueval() { return SIMDINT_TRUE; }
   using NextLargerType = Int;      // no larger integer type than Int
   using UnsignedType   = uint32_t; // not a SIMD type
@@ -229,22 +229,10 @@ template <>
 class TypeInfo<Float>
 {
 public:
-  static constexpr SIMD_INLINE const char *name() { return "Float"; };
-  static constexpr SIMD_INLINE const char *format() { return "g"; };
-  static constexpr SIMD_INLINE const char *defaultFormat() { return "%g "; };
-  static constexpr bool isSigned        = true;
-  static constexpr bool isInteger       = false;
-  static constexpr bool isFloatingPoint = true;
-  static constexpr SIMD_INLINE Float min() { return SIMDFLOAT_MIN; }
-  static constexpr SIMD_INLINE Float max() { return SIMDFLOAT_MAX; }
-  // very inconvenient: how can I specify a float constant with all bits 1?
-  static SIMD_INLINE Float trueval()
-  {
-    Int i = SIMDINT_TRUE;
-    Float f;
-    memcpy(&f, &i, sizeof(f));
-    return f;
-  }
+  static constexpr SIMD_INLINE const char *name() { return "Float"; }
+  static constexpr SIMD_INLINE const char *format() { return "g"; }
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%g "; }
+  static SIMD_INLINE Float trueval() { return SIMDFLOAT_TRUE; }
   using NextLargerType = Float; // no larger float type than Float
   using UnsignedType   = Float; // no unsigned float type
   using SignedType     = Float;
@@ -280,23 +268,37 @@ public:
   {
     return internal::types::TypeInfo<T>::hexFormat();
   }
-  /// @brief Whether the type is signed
-  static constexpr bool isSigned = internal::types::TypeInfo<T>::isSigned;
-  /// @brief Whether the type is an integer
-  static constexpr bool isInteger = internal::types::TypeInfo<T>::isInteger;
-  /// @brief Whether the type is a floating point type
-  static constexpr bool isFloatingPoint =
-    internal::types::TypeInfo<T>::isFloatingPoint;
-  /// @brief Returns the minimum value of the type
+  /**
+   * @brief Whether the type is signed
+   * @deprecated Use std::is_signed<T>::value or (if C++17 is available)
+   * std::is_signed_v<T> instead
+   */
+  static constexpr bool isSigned = std::is_signed<T>::value;
+  /**
+   * @brief Whether the type is an integer
+   * @deprecated Use std::is_integral<T>::value or (if C++17 is available)
+   * std::is_integral_v<T> instead
+   */
+  static constexpr bool isInteger = std::is_integral<T>::value;
+  /**
+   * @brief Whether the type is a floating point type
+   * @deprecated Use std::is_floating_point<T>::value or (if C++17 is
+   * available) std::is_floating_point_v<T> instead
+   */
+  static constexpr bool isFloatingPoint = std::is_floating_point<T>::value;
+  /**
+   * @brief Returns the minimum value of the type
+   * @deprecated Use std::numeric_limits<T>::lowest() instead
+   */
   static constexpr SIMD_INLINE T min()
   {
-    return internal::types::TypeInfo<T>::min();
+    return std::numeric_limits<T>::lowest();
   }
-  /// @brief Returns the maximum value of the type
-  static constexpr SIMD_INLINE T max()
-  {
-    return internal::types::TypeInfo<T>::max();
-  }
+  /**
+   * @brief Returns the maximum value of the type
+   * @deprecated Use std::numeric_limits<T>::max() instead
+   */
+  static constexpr SIMD_INLINE T max() { return std::numeric_limits<T>::max(); }
   /// @brief Returns a value where all bits are 1
   static constexpr SIMD_INLINE T trueval()
   {

@@ -494,8 +494,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &,
 
 // swizzle (AoS to SoA), in-place, with template parameter N
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH>[N], Integer<N>,
-                                TypeIsIntSize<T>)
+static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH>[N], Integer<N>)
 {
   printf("swizzle<%d,%s,%d>(V,V*)\n", N, TypeInfo<T>::name(), SIMD_WIDTH);
 }

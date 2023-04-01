@@ -2001,8 +2001,7 @@ SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(Float, f32)
 
 #define SIMDVEC_NEON_SWIZZLE(NUM)                                              \
   template <typename T>                                                        \
-  static SIMD_INLINE void swizzle(Vec<T, 16> v[NUM], Integer<NUM>,             \
-                                  TypeIsIntSize<T>)                            \
+  static SIMD_INLINE void swizzle(Vec<T, 16> v[NUM], Integer<NUM>)             \
   {                                                                            \
     static const SwizzleTable<NUM, T, 16> t;                                   \
     typename SwizzleTable<NUM, T, 16>::TableType vu[2];                        \
@@ -2023,7 +2022,7 @@ SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(Float, f32)
 // -------------------- n = 1 --------------------
 
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16>[1], Integer<1>, TypeIsIntSize<T>)
+static SIMD_INLINE void swizzle(Vec<T, 16>[1], Integer<1>)
 {
   // v remains unchanged
 }
@@ -2043,7 +2042,7 @@ SIMDVEC_NEON_SWIZZLE(4)
 // -------------------- n = 5 --------------------
 
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>, TypeIsIntSize<T>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>)
 {
   //     |  v0l  v0h  |  v1l  v1h  |  v2l  v2h  |  v3l  v3h  |  v4l  v4h  |
   // i=0:

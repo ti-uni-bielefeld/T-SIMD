@@ -3400,59 +3400,49 @@ static SIMD_INLINE void swizzle_64_16(const Vec<T, 64> vIn[N],
 
 // ---------- swizzle (AoS to SoA) ----------
 
+// 01. Apr 23 (Jonas Keller): switched from using tag dispatching to using
+// enable_if SFINAE, which allows more cases with the same implementation
+// to be combined
+
 // -------------------- n = 1 --------------------
 
 // all types
 template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64>[1], Integer<1>, TypeIsIntSize<T>)
+static SIMD_INLINE void swizzle(Vec<T, 64>[1], Integer<1>)
 {
   // v remains unchanged
 }
 
 // -------------------- n = 2 --------------------
 
-// Byte, SignedByte
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[2], Integer<2>, IsIntSize<true, 1>)
+// Byte, SignedByte, Word, Short
+template <typename T,
+          SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte, Word, Short>::value))>
+static SIMD_INLINE void swizzle(Vec<T, 64> v[2], Integer<2>)
 {
   Vec<T, 64> vs[2];
   swizzle_64_16<2>(v, vs);
   __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<2, T>());
   __m512i s[2];
-  for (int j = 0; j < 2; j++) s[j] = x_mm512_shuffle_epi8(vs[j], mask);
-  v[0] = _mm512_unpacklo_epi64(s[0], s[1]);
-  v[1] = _mm512_unpackhi_epi64(s[0], s[1]);
-}
-
-// Word, Short
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[2], Integer<2>, IsIntSize<true, 2>)
-{
-  Vec<T, 64> vs[2];
-  swizzle_64_16<2>(v, vs);
-  __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<2, T>());
-  __m512i s[2];
-  for (int j = 0; j < 2; j++) s[j] = x_mm512_shuffle_epi8(vs[j], mask);
+  s[0] = x_mm512_shuffle_epi8(vs[0], mask);
+  s[1] = x_mm512_shuffle_epi8(vs[1], mask);
   v[0] = _mm512_unpacklo_epi64(s[0], s[1]);
   v[1] = _mm512_unpackhi_epi64(s[0], s[1]);
 }
 
 // Int
 // TODO: swizzle<2,Int,...>: which version is faster?
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[2], Integer<2>, IsIntSize<true, 4>)
+static SIMD_INLINE void swizzle(Vec<Int, 64> v[2], Integer<2>)
 {
+  Vec<Int, 64> vs[2];
+  swizzle_64_16<2>(v, vs);
 #if 0
-    Vec<T, 64> vs[2];
-    swizzle_64_16<2>(v, vs);  
     __m512i s[2];
     s[0] = _mm512_shuffle_epi32(vs[0], _MM_SHUFFLE(3,1,2,0));
     s[1] = _mm512_shuffle_epi32(vs[1], _MM_SHUFFLE(3,1,2,0));
     v[0] = _mm512_unpacklo_epi64(s[0], s[1]);
     v[1] = _mm512_unpackhi_epi64(s[0], s[1]);
 #else
-  Vec<T, 64> vs[2];
-  swizzle_64_16<2>(v, vs);
   __m512 v0tmp = _mm512_castsi512_ps(vs[0]);
   __m512 v1tmp = _mm512_castsi512_ps(vs[1]);
   v[0]         = _mm512_castps_si512(
@@ -3464,8 +3454,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[2], Integer<2>, IsIntSize<true, 4>)
 
 // Float
 // same code as for Int
-static SIMD_INLINE void swizzle(Vec<Float, 64> v[2], Integer<2>,
-                                IsIntSize<false, 4>)
+static SIMD_INLINE void swizzle(Vec<Float, 64> v[2], Integer<2>)
 {
   Vec<Float, 64> vs[2];
   swizzle_64_16<2>(v, vs);
@@ -3477,9 +3466,10 @@ static SIMD_INLINE void swizzle(Vec<Float, 64> v[2], Integer<2>,
 
 // -------------------- n = 3 --------------------
 
-// Byte, SignedByte
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[3], Integer<3>, IsIntSize<true, 1>)
+// Byte, SignedByte, Word, Short
+template <typename T,
+          SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte, Word, Short>::value))>
+static SIMD_INLINE void swizzle(Vec<T, 64> v[3], Integer<3>)
 {
   Vec<T, 64> vs[3];
   swizzle_64_16<3>(v, vs);
@@ -3498,34 +3488,12 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[3], Integer<3>, IsIntSize<true, 1>)
   v[2]        = _mm512_unpacklo_epi64(h01, h23);
 }
 
-// Word, Short
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[3], Integer<3>, IsIntSize<true, 2>)
-{
-  Vec<T, 64> vs[3];
-  swizzle_64_16<3>(v, vs);
-  __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<3, T>());
-  __m512i s0   = align_shuffle_word_512<0>(vs[0], vs[1], mask);
-  __m512i s1   = align_shuffle_word_512<6>(vs[0], vs[1], mask);
-  __m512i s2   = align_shuffle_word_512<4>(vs[1], vs[2], mask);
-  __m512i s3   = align_shuffle_word_512<2>(vs[2], vs[0], mask);
-  // s3: v[0] is a dummy
-  __m512i l01 = _mm512_unpacklo_epi32(s0, s1);
-  __m512i h01 = _mm512_unpackhi_epi32(s0, s1);
-  __m512i l23 = _mm512_unpacklo_epi32(s2, s3);
-  __m512i h23 = _mm512_unpackhi_epi32(s2, s3);
-  v[0]        = _mm512_unpacklo_epi64(l01, l23);
-  v[1]        = _mm512_unpackhi_epi64(l01, l23);
-  v[2]        = _mm512_unpacklo_epi64(h01, h23);
-}
-
 // Int
 // from Stan Melax: "3D Vector Normalization..."
 // https://software.intel.com/en-us/articles/3d-vector-normalization-using-256-bit-intel-advanced-vector-extensions-intel-avx
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[3], Integer<3>, IsIntSize<true, 4>)
+static SIMD_INLINE void swizzle(Vec<Int, 64> v[3], Integer<3>)
 {
-  Vec<T, 64> vs[3];
+  Vec<Int, 64> vs[3];
   swizzle_64_16<3>(v, vs);
   __m512 x0y0z0x1 = _mm512_castsi512_ps(vs[0]);
   __m512 y1z1x2y2 = _mm512_castsi512_ps(vs[1]);
@@ -3549,8 +3517,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[3], Integer<3>, IsIntSize<true, 4>)
 // from Stan Melax: "3D Vector Normalization..."
 // https://software.intel.com/en-us/articles/3d-vector-normalization-using-512-bit-intel-advanced-vector-extensions-intel-avx
 // same code as for Int
-static SIMD_INLINE void swizzle(Vec<Float, 64> v[3], Integer<3>,
-                                IsIntSize<false, 4>)
+static SIMD_INLINE void swizzle(Vec<Float, 64> v[3], Integer<3>)
 {
   Vec<Float, 64> vs[3];
   swizzle_64_16<3>(v, vs);
@@ -3569,28 +3536,10 @@ static SIMD_INLINE void swizzle(Vec<Float, 64> v[3], Integer<3>,
 
 // -------------------- n = 4 --------------------
 
-// Byte, SignedByte
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>, IsIntSize<true, 1>)
-{
-  Vec<T, 64> vs[4];
-  swizzle_64_16<4>(v, vs);
-  __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<4, T>());
-  __m512i s[4];
-  for (int j = 0; j < 4; j++) s[j] = x_mm512_shuffle_epi8(vs[j], mask);
-  __m512i l01 = _mm512_unpacklo_epi32(s[0], s[1]);
-  __m512i h01 = _mm512_unpackhi_epi32(s[0], s[1]);
-  __m512i l23 = _mm512_unpacklo_epi32(s[2], s[3]);
-  __m512i h23 = _mm512_unpackhi_epi32(s[2], s[3]);
-  v[0]        = _mm512_unpacklo_epi64(l01, l23);
-  v[1]        = _mm512_unpackhi_epi64(l01, l23);
-  v[2]        = _mm512_unpacklo_epi64(h01, h23);
-  v[3]        = _mm512_unpackhi_epi64(h01, h23);
-}
-
-// Word, Short
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>, IsIntSize<true, 2>)
+// Byte, SignedByte, Short, Word
+template <typename T,
+          SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte, Short, Word>::value))>
+static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>)
 {
   Vec<T, 64> vs[4];
   swizzle_64_16<4>(v, vs);
@@ -3608,10 +3557,9 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>, IsIntSize<true, 2>)
 }
 
 // Int
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>, IsIntSize<true, 4>)
+static SIMD_INLINE void swizzle(Vec<Int, 64> v[4], Integer<4>)
 {
-  Vec<T, 64> vs[4];
+  Vec<Int, 64> vs[4];
   swizzle_64_16<4>(v, vs);
   __m512i s[4];
   s[0] = _mm512_unpacklo_epi32(vs[0], vs[1]);
@@ -3625,8 +3573,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>, IsIntSize<true, 4>)
 }
 
 // Float
-static SIMD_INLINE void swizzle(Vec<Float, 64> v[4], Integer<4>,
-                                IsIntSize<false, 4>)
+static SIMD_INLINE void swizzle(Vec<Float, 64> v[4], Integer<4>)
 {
   Vec<Float, 64> vs[4];
   swizzle_64_16<4>(v, vs);
@@ -3644,8 +3591,8 @@ static SIMD_INLINE void swizzle(Vec<Float, 64> v[4], Integer<4>,
 // -------------------- n = 5 --------------------
 
 // Byte, SignedByte
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>, IsIntSize<true, 1>)
+template <typename T, SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte>::value))>
+static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
 {
   Vec<T, 64> vs[5];
   swizzle_64_16<5>(v, vs);
@@ -3681,8 +3628,9 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>, IsIntSize<true, 1>)
 }
 
 // Word, Short
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>, IsIntSize<true, 2>)
+template <typename T, SIMD_ENABLE_IF((IsOneOf<T, Word, Short>::value)),
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
 {
   Vec<T, 64> vs[5];
   swizzle_64_16<5>(v, vs);
@@ -3710,10 +3658,9 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>, IsIntSize<true, 2>)
 }
 
 // Int
-template <typename T>
-static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>, IsIntSize<true, 4>)
+static SIMD_INLINE void swizzle(Vec<Int, 64> v[5], Integer<5>)
 {
-  Vec<T, 64> vs[5];
+  Vec<Int, 64> vs[5];
   swizzle_64_16<5>(v, vs);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   // v[0]: 0 1 2 3
@@ -3764,8 +3711,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>, IsIntSize<true, 4>)
 
 // Float
 // same code as for Int, modified
-static SIMD_INLINE void swizzle(Vec<Float, 64> v[5], Integer<5>,
-                                IsIntSize<false, 4>)
+static SIMD_INLINE void swizzle(Vec<Float, 64> v[5], Integer<5>)
 {
   Vec<Float, 64> vs[5];
   swizzle_64_16<5>(v, vs);
@@ -4488,43 +4434,14 @@ SIMD_INLINE __m512i reverse_mask<4>()
   return _mm512_set_epi32(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
 }
 
-static SIMD_INLINE Vec<Byte, 64> reverse(const Vec<Byte, 64> &a)
+template <typename T>
+static SIMD_INLINE Vec<T, 64> reverse(const Vec<T, 64> &a)
 {
 #ifdef __AVX512VBMI__
-  return _mm512_permutexvar_epi8(reverse_mask<1>(), a);
+  return _mm512_permutexvar_epi8(reverse_mask<sizeof(T)>(), a);
 #else
-  Vec<Byte, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<1>());
-  return permute_64_16_1<3, 2, 1, 0>(r);
-#endif
-}
-
-static SIMD_INLINE Vec<SignedByte, 64> reverse(const Vec<SignedByte, 64> &a)
-{
-#ifdef __AVX512VBMI__
-  return _mm512_permutexvar_epi8(reverse_mask<1>(), a);
-#else
-  Vec<SignedByte, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<1>());
-  return permute_64_16_1<3, 2, 1, 0>(r);
-#endif
-}
-
-static SIMD_INLINE Vec<Word, 64> reverse(const Vec<Word, 64> &a)
-{
-#ifdef __AVX512VBMI__
-  return _mm512_permutexvar_epi8(reverse_mask<2>(), a);
-#else
-  Vec<Word, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<2>());
-  return permute_64_16_1<3, 2, 1, 0>(r);
-#endif
-}
-
-static SIMD_INLINE Vec<Short, 64> reverse(const Vec<Short, 64> &a)
-{
-#ifdef __AVX512VBMI__
-  return _mm512_permutexvar_epi8(reverse_mask<2>(), a);
-#else
-  Vec<Short, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<2>());
-  return permute_64_16_1<3, 2, 1, 0>(r);
+  Vec<T, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<sizeof(T)>());
+  return _mm512_permutexvar_epi64(_mm512_set_epi64(1, 0, 3, 2, 5, 4, 7, 6), r);
 #endif
 }
 

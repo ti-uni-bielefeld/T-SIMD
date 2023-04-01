@@ -4389,7 +4389,7 @@ template <typename T>
 static SIMD_INLINE Vec<T, 64> not_(const Vec<T, 64> &a)
 {
   // from Agner Fog's VCL vectori256.h operator ~
-  return _mm512_xor_si512(a, _mm512_set1_epi32(-1))(a);
+  return _mm512_xor_si512(a, _mm512_set1_epi32(-1));
 }
 
 // float version

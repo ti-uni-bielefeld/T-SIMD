@@ -683,48 +683,8 @@ static SIMD_INLINE Vec<Float, 16> set1(Float a, Integer<16>)
 // load
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 16> load(const Byte *const p, Integer<16>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // SSE load and store instructions need alignment to 16 byte
-  // (lower 4 bit need to be zero)
-  assert((((uintptr_t) p) & 0xf) == 0);
-#endif
-  return _mm_load_si128((__m128i *) p);
-}
-
-static SIMD_INLINE Vec<SignedByte, 16> load(const SignedByte *const p,
-                                            Integer<16>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // SSE load and store instructions need alignment to 16 byte
-  // (lower 4 bit need to be zero)
-  assert((((uintptr_t) p) & 0xf) == 0);
-#endif
-  return _mm_load_si128((__m128i *) p);
-}
-
-static SIMD_INLINE Vec<Word, 16> load(const Word *const p, Integer<16>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // SSE load and store instructions need alignment to 16 byte
-  // (lower 4 bit need to be zero)
-  assert((((uintptr_t) p) & 0xf) == 0);
-#endif
-  return _mm_load_si128((__m128i *) p);
-}
-
-static SIMD_INLINE Vec<Short, 16> load(const Short *const p, Integer<16>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // SSE load and store instructions need alignment to 16 byte
-  // (lower 4 bit need to be zero)
-  assert((((uintptr_t) p) & 0xf) == 0);
-#endif
-  return _mm_load_si128((__m128i *) p);
-}
-
-static SIMD_INLINE Vec<Int, 16> load(const Int *const p, Integer<16>)
+template <typename T>
+static SIMD_INLINE Vec<T, 16> load(const T *const p, Integer<16>)
 {
 #ifdef SIMD_ALIGN_CHK
   // SSE load and store instructions need alignment to 16 byte
@@ -748,28 +708,8 @@ static SIMD_INLINE Vec<Float, 16> load(const Float *const p, Integer<16>)
 // loadu
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 16> loadu(const Byte *const p, Integer<16>)
-{
-  return _mm_loadu_si128((__m128i *) p);
-}
-
-static SIMD_INLINE Vec<SignedByte, 16> loadu(const SignedByte *const p,
-                                             Integer<16>)
-{
-  return _mm_loadu_si128((__m128i *) p);
-}
-
-static SIMD_INLINE Vec<Word, 16> loadu(const Word *const p, Integer<16>)
-{
-  return _mm_loadu_si128((__m128i *) p);
-}
-
-static SIMD_INLINE Vec<Short, 16> loadu(const Short *const p, Integer<16>)
-{
-  return _mm_loadu_si128((__m128i *) p);
-}
-
-static SIMD_INLINE Vec<Int, 16> loadu(const Int *const p, Integer<16>)
+template <typename T>
+static SIMD_INLINE Vec<T, 16> loadu(const T *const p, Integer<16>)
 {
   return _mm_loadu_si128((__m128i *) p);
 }

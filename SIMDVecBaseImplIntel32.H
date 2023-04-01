@@ -1324,48 +1324,8 @@ static SIMD_INLINE Vec<Float, 32> set1(Float a, Integer<32>)
 // load
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 32> load(const Byte *const p, Integer<32>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // AVX load and store instructions need alignment to 32 byte
-  // (lower 5 bit need to be zero)
-  assert((((uintptr_t) p) & 0x1f) == 0);
-#endif
-  return _mm256_load_si256((__m256i *) p);
-}
-
-static SIMD_INLINE Vec<SignedByte, 32> load(const SignedByte *const p,
-                                            Integer<32>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // AVX load and store instructions need alignment to 32 byte
-  // (lower 5 bit need to be zero)
-  assert((((uintptr_t) p) & 0x1f) == 0);
-#endif
-  return _mm256_load_si256((__m256i *) p);
-}
-
-static SIMD_INLINE Vec<Word, 32> load(const Word *const p, Integer<32>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // AVX load and store instructions need alignment to 32 byte
-  // (lower 5 bit need to be zero)
-  assert((((uintptr_t) p) & 0x1f) == 0);
-#endif
-  return _mm256_load_si256((__m256i *) p);
-}
-
-static SIMD_INLINE Vec<Short, 32> load(const Short *const p, Integer<32>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // AVX load and store instructions need alignment to 32 byte
-  // (lower 5 bit need to be zero)
-  assert((((uintptr_t) p) & 0x1f) == 0);
-#endif
-  return _mm256_load_si256((__m256i *) p);
-}
-
-static SIMD_INLINE Vec<Int, 32> load(const Int *const p, Integer<32>)
+template <typename T>
+static SIMD_INLINE Vec<T, 32> load(const T *const p, Integer<32>)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 32 byte
@@ -1389,28 +1349,8 @@ static SIMD_INLINE Vec<Float, 32> load(const Float *const p, Integer<32>)
 // loadu
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 32> loadu(const Byte *const p, Integer<32>)
-{
-  return _mm256_loadu_si256((__m256i *) p);
-}
-
-static SIMD_INLINE Vec<SignedByte, 32> loadu(const SignedByte *const p,
-                                             Integer<32>)
-{
-  return _mm256_loadu_si256((__m256i *) p);
-}
-
-static SIMD_INLINE Vec<Word, 32> loadu(const Word *const p, Integer<32>)
-{
-  return _mm256_loadu_si256((__m256i *) p);
-}
-
-static SIMD_INLINE Vec<Short, 32> loadu(const Short *const p, Integer<32>)
-{
-  return _mm256_loadu_si256((__m256i *) p);
-}
-
-static SIMD_INLINE Vec<Int, 32> loadu(const Int *const p, Integer<32>)
+template <typename T>
+static SIMD_INLINE Vec<T, 32> loadu(const T *const p, Integer<32>)
 {
   return _mm256_loadu_si256((__m256i *) p);
 }

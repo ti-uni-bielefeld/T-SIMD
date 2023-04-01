@@ -801,48 +801,8 @@ static SIMD_INLINE Vec<Float, 64> set1(Float a, Integer<64>)
 // load v
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 64> load(const Byte *const p, Integer<64>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // AVX load and store instructions need alignment to 64 byte
-  // (lower 6 bit need to be zero)
-  assert((((uintptr_t) p) & 0x3f) == 0);
-#endif
-  return _mm512_load_si512((__m512i *) p);
-}
-
-static SIMD_INLINE Vec<SignedByte, 64> load(const SignedByte *const p,
-                                            Integer<64>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // AVX load and store instructions need alignment to 64 byte
-  // (lower 6 bit need to be zero)
-  assert((((uintptr_t) p) & 0x3f) == 0);
-#endif
-  return _mm512_load_si512((__m512i *) p);
-}
-
-static SIMD_INLINE Vec<Word, 64> load(const Word *const p, Integer<64>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // AVX load and store instructions need alignment to 64 byte
-  // (lower 6 bit need to be zero)
-  assert((((uintptr_t) p) & 0x3f) == 0);
-#endif
-  return _mm512_load_si512((__m512i *) p);
-}
-
-static SIMD_INLINE Vec<Short, 64> load(const Short *const p, Integer<64>)
-{
-#ifdef SIMD_ALIGN_CHK
-  // AVX load and store instructions need alignment to 64 byte
-  // (lower 6 bit need to be zero)
-  assert((((uintptr_t) p) & 0x3f) == 0);
-#endif
-  return _mm512_load_si512((__m512i *) p);
-}
-
-static SIMD_INLINE Vec<Int, 64> load(const Int *const p, Integer<64>)
+template <typename T>
+static SIMD_INLINE Vec<T, 64> load(const T *const p, Integer<64>)
 {
 #ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 64 byte
@@ -866,28 +826,8 @@ static SIMD_INLINE Vec<Float, 64> load(const Float *const p, Integer<64>)
 // loadu v
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 64> loadu(const Byte *const p, Integer<64>)
-{
-  return _mm512_loadu_si512((__m512i *) p);
-}
-
-static SIMD_INLINE Vec<SignedByte, 64> loadu(const SignedByte *const p,
-                                             Integer<64>)
-{
-  return _mm512_loadu_si512((__m512i *) p);
-}
-
-static SIMD_INLINE Vec<Word, 64> loadu(const Word *const p, Integer<64>)
-{
-  return _mm512_loadu_si512((__m512i *) p);
-}
-
-static SIMD_INLINE Vec<Short, 64> loadu(const Short *const p, Integer<64>)
-{
-  return _mm512_loadu_si512((__m512i *) p);
-}
-
-static SIMD_INLINE Vec<Int, 64> loadu(const Int *const p, Integer<64>)
+template <typename T>
+static SIMD_INLINE Vec<T, 64> loadu(const T *const p, Integer<64>)
 {
   return _mm512_loadu_si512((__m512i *) p);
 }

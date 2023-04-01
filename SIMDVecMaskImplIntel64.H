@@ -142,22 +142,25 @@ namespace mask {
 // mask_ifelse v
 // ---------------------------------------------------------------------------
 
-#define MASK_IFELSE(TYPE, SUF)                                                 \
+// 29. Mar 23 (Jonas Keller): added explicit cast to __m512(i) register to avoid
+// compiler errors (can't convert simd::Vec to __v64qi, etc...)
+
+#define MASK_IFELSE(TYPE, SUF, REG)                                            \
   static SIMD_INLINE Vec<TYPE, 64> mask_ifelse(const Mask<TYPE, 64> &cond,     \
                                                const Vec<TYPE, 64> &a,         \
                                                const Vec<TYPE, 64> &b)         \
   {                                                                            \
-    return _mm512_mask_blend_##SUF(cond, b, a);                                \
+    return (REG) _mm512_mask_blend_##SUF(cond, (REG) b, (REG) a);              \
   }
 
 #ifdef __AVX512BW__
-MASK_IFELSE(Byte, epi8)
-MASK_IFELSE(SignedByte, epi8)
-MASK_IFELSE(Word, epi16)
-MASK_IFELSE(Short, epi16)
+MASK_IFELSE(Byte, epi8, __m512i)
+MASK_IFELSE(SignedByte, epi8, __m512i)
+MASK_IFELSE(Word, epi16, __m512i)
+MASK_IFELSE(Short, epi16, __m512i)
 #endif
-MASK_IFELSE(Int, epi32)
-MASK_IFELSE(Float, ps)
+MASK_IFELSE(Int, epi32, __m512i)
+MASK_IFELSE(Float, ps, __m512)
 
 // ---------------------------------------------------------------------------
 // mask_ifelsezero (mask_ifelsezero(cond, a) is the same as mask_ifelse(cond, a,

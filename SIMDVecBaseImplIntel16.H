@@ -916,7 +916,7 @@ static SIMD_INLINE Float extract(const Vec<Float, 16> &a)
 // elements of cond must be all 1's or all 0's (blendv just tests top
 // bit in each byte, but work-around needs this)
 
-template <typename T, SIMD_ENABLE_IF_INT(T)>
+template <typename T>
 static SIMD_INLINE Vec<T, 16> ifelse(const Vec<T, 16> &cond,
                                      const Vec<T, 16> &trueVal,
                                      const Vec<T, 16> &falseVal)

@@ -141,148 +141,8 @@ namespace base {
 // altered or additional functionality.
 // Only for use in wrapper functions!
 
-// ---------------------------------------------------------------------------
-// min / max
-// ---------------------------------------------------------------------------
-
-static SIMD_INLINE __m128i x_mm_min_epi8(__m128i a, __m128i b)
-{
-#ifdef __SSE4_1__
-  return _mm_min_epi8(a, b);
-#else
-  // from Agner Fog's VCL vectori128.h
-  __m128i signbit = _mm_set1_epi32(0x80808080);
-  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x80
-  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x80
-  __m128i m1      = _mm_min_epu8(a1, b1);      // unsigned min
-  return _mm_xor_si128(m1, signbit);           // sub 0x80
-#endif
-}
-
-static SIMD_INLINE __m128i x_mm_min_epu16(__m128i a, __m128i b)
-{
-#ifdef __SSE4_1__
-  return _mm_min_epu16(a, b);
-#else
-  // from Agner Fog's VCL vectori128.h
-  __m128i signbit = _mm_set1_epi32(0x80008000);
-  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x8000
-  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x8000
-  __m128i m1      = _mm_min_epi16(a1, b1);     // signed min
-  return _mm_xor_si128(m1, signbit);           // sub 0x8000
-#endif
-}
-
-static SIMD_INLINE __m128i x_mm_min_epi32(__m128i a, __m128i b)
-{
-#ifdef __SSE4_1__
-  return _mm_min_epi32(a, b);
-#else
-  // from Agner Fog's VCL vectori128.h (modified)
-  __m128i gt = _mm_cmpgt_epi32(a, b);
-  return _mm_or_si128(_mm_and_si128(gt, b), _mm_andnot_si128(gt, a));
-#endif
-}
-
-static SIMD_INLINE __m128i x_mm_max_epi8(__m128i a, __m128i b)
-{
-#ifdef __SSE4_1__
-  return _mm_max_epi8(a, b);
-#else
-  // from Agner Fog's VCL vectori128.h
-  __m128i signbit = _mm_set1_epi32(0x80808080);
-  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x80
-  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x80
-  __m128i m1      = _mm_max_epu8(a1, b1);      // unsigned max
-  return _mm_xor_si128(m1, signbit);           // sub 0x80
-#endif
-}
-
-static SIMD_INLINE __m128i x_mm_max_epu16(__m128i a, __m128i b)
-{
-#ifdef __SSE4_1__
-  return _mm_max_epu16(a, b);
-#else
-  // from Agner Fog's VCL vectori128.h
-  __m128i signbit = _mm_set1_epi32(0x80008000);
-  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x8000
-  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x8000
-  __m128i m1      = _mm_max_epi16(a1, b1);     // signed max
-  return _mm_xor_si128(m1, signbit);           // sub 0x8000
-#endif
-}
-
-static SIMD_INLINE __m128i x_mm_max_epi32(__m128i a, __m128i b)
-{
-#ifdef __SSE4_1__
-  return _mm_max_epi32(a, b);
-#else
-  // from Agner Fog's VCL vectori128.h
-  __m128i gt = _mm_cmpgt_epi32(a, b);
-  return _mm_or_si128(_mm_and_si128(gt, a), _mm_andnot_si128(gt, b));
-#endif
-}
-
-// ---------------------------------------------------------------------------
-// packus
-// ---------------------------------------------------------------------------
-
-static SIMD_INLINE __m128i x_mm_packus_epi32(__m128i a, __m128i b)
-{
-#ifdef __SSE4_1__
-  return _mm_packus_epi32(a, b);
-#else
-  // mask for lower 16 bit
-  __m128i mask = _mm_set1_epi32(0x0000ffff);
-  // a >= 0 ? asat = a : asat = 0
-  // 23. Nov 17 (rm): 32->31
-  __m128i asat = _mm_andnot_si128(_mm_srai_epi32(a, 31), a);
-  // cmp/or is used to restrict number to 16 bit
-  // srai/slli is used for sign extension of 16 bit number,
-  // makes signed saturation (in packs) a no-op, see
-  // http://stackoverflow.com/questions/12118910/
-  // converting-float-vector-to-16-bit-int-without-saturating
-  // e.g.
-  // a = 0xffffffff (-1)  -> asat  = 0x00000000
-  //                      -> cmpgt = 0x00000000
-  //                      -> slli  = 0x00000000
-  //                      -> or    = 0x00000000
-  //                      -> srai  = 0x00000000
-  //                      -> packs = 0x0000
-  // a = 0x7fffffff (>=0) -> asat  = 0x7fffffff
-  //                      -> cmpgt = 0xffffffff
-  //                      -> slli  = 0xffff0000
-  //                      -> or    = 0xffffffff
-  //                      -> srai  = 0xffffffff
-  //                      -> packs = 0xffff
-  // a = 0x0000ffff (>=0) -> asat  = 0x0000ffff
-  //                      -> cmpgt = 0x00000000
-  //                      -> slli  = 0xffff0000
-  //                      -> or    = 0xffff0000
-  //                      -> srai  = 0xffffffff
-  //                      -> packs = 0xffff
-  // a = 0x0000fffe (>=0) -> asat  = 0x0000fffe
-  //                      -> cmpgt = 0x00000000
-  //                      -> slli  = 0xfffe0000
-  //                      -> or    = 0xfffe0000
-  //                      -> srai  = 0xfffffffe
-  //                      -> packs = 0xfffe
-  // a = 0x00007fff (>=0) -> asat  = 0x00007fff
-  //                      -> cmpgt = 0x00000000
-  //                      -> slli  = 0x7fff0000
-  //                      -> or    = 0x7fff0000
-  //                      -> srai  = 0x00007fff
-  //                      -> packs = 0x7fff
-  asat = _mm_srai_epi32(
-    _mm_or_si128(_mm_slli_epi32(asat, 16), _mm_cmpgt_epi32(asat, mask)), 16);
-  // same for b
-  // 23. Nov 17 (rm): 32->31
-  __m128i bsat = _mm_andnot_si128(_mm_srai_epi32(b, 31), b);
-  bsat         = _mm_srai_epi32(
-    _mm_or_si128(_mm_slli_epi32(bsat, 16), _mm_cmpgt_epi32(bsat, mask)), 16);
-  return _mm_packs_epi32(asat, bsat);
-#endif
-}
+// 01. Apr 23 (Jonas Keller): removed some not really necessary internal
+// wrapper functions and inlined them directly into where they were used
 
 // ---------------------------------------------------------------------------
 // byte-wise shifts
@@ -656,22 +516,6 @@ static SIMD_INLINE __m128i x_mm_alignr_epi8(__m128i h, __m128i l)
 }
 
 // ---------------------------------------------------------------------------
-// not (missing from instruction set)
-// ---------------------------------------------------------------------------
-
-// from Agner Fog's VCL vectori128.h operator ~
-static SIMD_INLINE __m128i x_mm_not_si128(__m128i a)
-{
-  return _mm_xor_si128(a, _mm_set1_epi32(-1));
-}
-
-// from Agner Fog's VCL vectorf128.h operator ~
-static SIMD_INLINE __m128 x_mm_not_ps(__m128 a)
-{
-  return _mm_xor_ps(a, _mm_castsi128_ps(_mm_set1_epi32(-1)));
-}
-
-// ---------------------------------------------------------------------------
 // abs
 // ---------------------------------------------------------------------------
 
@@ -681,69 +525,6 @@ static SIMD_INLINE __m128 x_mm_abs_ps(__m128 a)
   // -0.0F is 0x8000000, 0x7fffffff by andnot, sign bit is cleared
   return _mm_andnot_ps(_mm_set1_ps(-0.0F), a);
 }
-
-// ---------------------------------------------------------------------------
-// test functions
-// ---------------------------------------------------------------------------
-
-#ifdef __SSE4_1__
-static SIMD_INLINE int x_mm_test_all_zeros(__m128i a)
-{
-  // 10. Oct 22 (Jonas Keller):
-  // replaced unnecessary "_mm_cmpeq_epi8(a, a)" with "a"
-  // return _mm_test_all_zeros(a, _mm_cmpeq_epi8(a, a));
-  return _mm_test_all_zeros(a, a);
-}
-#else
-static SIMD_INLINE int x_mm_test_all_zeros(__m128i a)
-{
-  return (_mm_movemask_epi8(_mm_cmpeq_epi8(_mm_setzero_si128(), a)) == 0xffff);
-}
-#endif
-
-#ifdef __SSE4_1__
-static SIMD_INLINE int x_mm_test_all_ones(__m128i a)
-{
-  return _mm_test_all_ones(a);
-}
-#else
-static SIMD_INLINE int x_mm_test_all_ones(__m128i a)
-{
-  __m128i zero = _mm_setzero_si128();
-  __m128i ones = _mm_cmpeq_epi8(zero, zero);
-  return _mm_movemask_epi8(_mm_cmpeq_epi8(ones, a)) == 0xffff;
-}
-#endif
-
-// ---------------------------------------------------------------------------
-// ifelse
-// ---------------------------------------------------------------------------
-
-#ifdef __SSE4_1__
-static SIMD_INLINE __m128i x_mm_ifelsei(__m128i cond, __m128i trueVal,
-                                        __m128i falseVal)
-{
-  return _mm_blendv_epi8(falseVal, trueVal, cond);
-}
-static SIMD_INLINE __m128 x_mm_ifelsef(__m128 cond, __m128 trueVal,
-                                       __m128 falseVal)
-{
-  return _mm_blendv_ps(falseVal, trueVal, cond);
-}
-#else
-static SIMD_INLINE __m128i x_mm_ifelsei(__m128i cond, __m128i trueVal,
-                                        __m128i falseVal)
-{
-  return _mm_or_si128(_mm_and_si128(cond, trueVal),
-                      _mm_andnot_si128(cond, falseVal));
-}
-// emulation of _mm_blendv_ps
-static SIMD_INLINE __m128 x_mm_ifelsef(__m128 cond, __m128 trueVal,
-                                       __m128 falseVal)
-{
-  return _mm_or_ps(_mm_and_ps(cond, trueVal), _mm_andnot_ps(cond, falseVal));
-}
-#endif
 
 // ###########################################################################
 // ###########################################################################
@@ -1129,6 +910,37 @@ static SIMD_INLINE Float extract(const Vec<Float, 16> &a)
 }
 
 // ---------------------------------------------------------------------------
+// ifelse
+// ---------------------------------------------------------------------------
+
+// elements of cond must be all 1's or all 0's (blendv just tests top
+// bit in each byte, but work-around needs this)
+
+template <typename T, SIMD_ENABLE_IF_INT(T)>
+static SIMD_INLINE Vec<T, 16> ifelse(const Vec<T, 16> &cond,
+                                     const Vec<T, 16> &trueVal,
+                                     const Vec<T, 16> &falseVal)
+{
+#ifdef __SSE4_1__
+  return _mm_blendv_epi8(falseVal, trueVal, cond);
+#else
+  return _mm_or_si128(_mm_and_si128(cond, trueVal),
+                      _mm_andnot_si128(cond, falseVal));
+#endif
+}
+
+static SIMD_INLINE Vec<Float, 16> ifelse(const Vec<Float, 16> &cond,
+                                         const Vec<Float, 16> &trueVal,
+                                         const Vec<Float, 16> &falseVal)
+{
+#ifdef __SSE4_1__
+  return _mm_blendv_ps(falseVal, trueVal, cond);
+#else
+  return _mm_or_ps(_mm_and_ps(cond, trueVal), _mm_andnot_ps(cond, falseVal));
+#endif
+}
+
+// ---------------------------------------------------------------------------
 // add
 // ---------------------------------------------------------------------------
 
@@ -1367,13 +1179,31 @@ static SIMD_INLINE Vec<Byte, 16> min(const Vec<Byte, 16> &a,
 static SIMD_INLINE Vec<SignedByte, 16> min(const Vec<SignedByte, 16> &a,
                                            const Vec<SignedByte, 16> &b)
 {
-  return x_mm_min_epi8(a, b);
+#ifdef __SSE4_1__
+  return _mm_min_epi8(a, b);
+#else
+  // from Agner Fog's VCL vectori128.h
+  __m128i signbit = _mm_set1_epi32(0x80808080);
+  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x80
+  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x80
+  __m128i m1      = _mm_min_epu8(a1, b1);      // unsigned min
+  return _mm_xor_si128(m1, signbit);           // sub 0x80
+#endif
 }
 
 static SIMD_INLINE Vec<Word, 16> min(const Vec<Word, 16> &a,
                                      const Vec<Word, 16> &b)
 {
-  return x_mm_min_epu16(a, b);
+#ifdef __SSE4_1__
+  return _mm_min_epu16(a, b);
+#else
+  // from Agner Fog's VCL vectori128.h
+  __m128i signbit = _mm_set1_epi32(0x80008000);
+  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x8000
+  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x8000
+  __m128i m1      = _mm_min_epi16(a1, b1);     // signed min
+  return _mm_xor_si128(m1, signbit);           // sub 0x8000
+#endif
 }
 
 static SIMD_INLINE Vec<Short, 16> min(const Vec<Short, 16> &a,
@@ -1385,7 +1215,13 @@ static SIMD_INLINE Vec<Short, 16> min(const Vec<Short, 16> &a,
 static SIMD_INLINE Vec<Int, 16> min(const Vec<Int, 16> &a,
                                     const Vec<Int, 16> &b)
 {
-  return x_mm_min_epi32(a, b);
+#ifdef __SSE4_1__
+  return _mm_min_epi32(a, b);
+#else
+  // from Agner Fog's VCL vectori128.h (modified)
+  __m128i gt = _mm_cmpgt_epi32(a, b);
+  return _mm_or_si128(_mm_and_si128(gt, b), _mm_andnot_si128(gt, a));
+#endif
 }
 
 // there is an unsigned version of min for 32 bit but we currently
@@ -1410,13 +1246,31 @@ static SIMD_INLINE Vec<Byte, 16> max(const Vec<Byte, 16> &a,
 static SIMD_INLINE Vec<SignedByte, 16> max(const Vec<SignedByte, 16> &a,
                                            const Vec<SignedByte, 16> &b)
 {
-  return x_mm_max_epi8(a, b);
+#ifdef __SSE4_1__
+  return _mm_max_epi8(a, b);
+#else
+  // from Agner Fog's VCL vectori128.h
+  __m128i signbit = _mm_set1_epi32(0x80808080);
+  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x80
+  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x80
+  __m128i m1      = _mm_max_epu8(a1, b1);      // unsigned max
+  return _mm_xor_si128(m1, signbit);           // sub 0x80
+#endif
 }
 
 static SIMD_INLINE Vec<Word, 16> max(const Vec<Word, 16> &a,
                                      const Vec<Word, 16> &b)
 {
-  return x_mm_max_epu16(a, b);
+#ifdef __SSE4_1__
+  return _mm_max_epu16(a, b);
+#else
+  // from Agner Fog's VCL vectori128.h
+  __m128i signbit = _mm_set1_epi32(0x80008000);
+  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x8000
+  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x8000
+  __m128i m1      = _mm_max_epi16(a1, b1);     // signed max
+  return _mm_xor_si128(m1, signbit);           // sub 0x8000
+#endif
 }
 
 static SIMD_INLINE Vec<Short, 16> max(const Vec<Short, 16> &a,
@@ -1428,7 +1282,13 @@ static SIMD_INLINE Vec<Short, 16> max(const Vec<Short, 16> &a,
 static SIMD_INLINE Vec<Int, 16> max(const Vec<Int, 16> &a,
                                     const Vec<Int, 16> &b)
 {
-  return x_mm_max_epi32(a, b);
+#ifdef __SSE4_1__
+  return _mm_max_epi32(a, b);
+#else
+  // from Agner Fog's VCL vectori128.h
+  __m128i gt = _mm_cmpgt_epi32(a, b);
+  return _mm_or_si128(_mm_and_si128(gt, a), _mm_andnot_si128(gt, b));
+#endif
 }
 
 // there is an unsigned version of max for 32 bit but we currently
@@ -1537,7 +1397,7 @@ static SIMD_INLINE Vec<Float, 16> ceil(const Vec<Float, 16> &a)
   // add 1 if aTrunc is non-integer
   aTrunc = _mm_add_ps(aTrunc, oneMask);
   // select result (a or aTrunc)
-  return x_mm_ifelsef(noRndReq, a, aTrunc);
+  return ifelse(noRndReq, a, aTrunc);
 #endif
 }
 
@@ -1564,7 +1424,7 @@ static SIMD_INLINE Vec<Float, 16> floor(const Vec<Float, 16> &a)
   // 1 if aTrunc is non-integer
   aTrunc = _mm_sub_ps(aTrunc, oneMask);
   // select result (a or aTrunc)
-  return x_mm_ifelsef(noRndReq, a, aTrunc);
+  return ifelse(noRndReq, a, aTrunc);
 #endif
 }
 
@@ -1585,7 +1445,7 @@ static SIMD_INLINE Vec<Float, 16> round(const Vec<Float, 16> &a)
   // (for |a| < limit)
   __m128 aRnd = _mm_cvtepi32_ps(_mm_cvtps_epi32(a));
   // select result
-  return x_mm_ifelsef(noRndReq, a, aRnd);
+  return ifelse(noRndReq, a, aRnd);
 #endif
 }
 
@@ -1601,7 +1461,7 @@ static SIMD_INLINE Vec<Float, 16> truncate(const Vec<Float, 16> &a)
   // truncated result (for |a| < limit) (cvtTps!)
   __m128 aTrunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(a));
   // select result
-  return x_mm_ifelsef(noRndReq, a, aTrunc);
+  return ifelse(noRndReq, a, aTrunc);
 #endif
 }
 
@@ -1928,7 +1788,59 @@ static SIMD_INLINE Vec<Byte, 16> packs(const Vec<Short, 16> &a,
 static SIMD_INLINE Vec<Word, 16> packs(const Vec<Int, 16> &a,
                                        const Vec<Int, 16> &b, OutputType<Word>)
 {
-  return x_mm_packus_epi32(a, b);
+#ifdef __SSE4_1__
+  return _mm_packus_epi32(a, b);
+#else
+  // mask for lower 16 bit
+  __m128i mask = _mm_set1_epi32(0x0000ffff);
+  // a >= 0 ? asat = a : asat = 0
+  // 23. Nov 17 (rm): 32->31
+  __m128i asat = _mm_andnot_si128(_mm_srai_epi32(a, 31), a);
+  // cmp/or is used to restrict number to 16 bit
+  // srai/slli is used for sign extension of 16 bit number,
+  // makes signed saturation (in packs) a no-op, see
+  // http://stackoverflow.com/questions/12118910/
+  // converting-float-vector-to-16-bit-int-without-saturating
+  // e.g.
+  // a = 0xffffffff (-1)  -> asat  = 0x00000000
+  //                      -> cmpgt = 0x00000000
+  //                      -> slli  = 0x00000000
+  //                      -> or    = 0x00000000
+  //                      -> srai  = 0x00000000
+  //                      -> packs = 0x0000
+  // a = 0x7fffffff (>=0) -> asat  = 0x7fffffff
+  //                      -> cmpgt = 0xffffffff
+  //                      -> slli  = 0xffff0000
+  //                      -> or    = 0xffffffff
+  //                      -> srai  = 0xffffffff
+  //                      -> packs = 0xffff
+  // a = 0x0000ffff (>=0) -> asat  = 0x0000ffff
+  //                      -> cmpgt = 0x00000000
+  //                      -> slli  = 0xffff0000
+  //                      -> or    = 0xffff0000
+  //                      -> srai  = 0xffffffff
+  //                      -> packs = 0xffff
+  // a = 0x0000fffe (>=0) -> asat  = 0x0000fffe
+  //                      -> cmpgt = 0x00000000
+  //                      -> slli  = 0xfffe0000
+  //                      -> or    = 0xfffe0000
+  //                      -> srai  = 0xfffffffe
+  //                      -> packs = 0xfffe
+  // a = 0x00007fff (>=0) -> asat  = 0x00007fff
+  //                      -> cmpgt = 0x00000000
+  //                      -> slli  = 0x7fff0000
+  //                      -> or    = 0x7fff0000
+  //                      -> srai  = 0x00007fff
+  //                      -> packs = 0x7fff
+  asat = _mm_srai_epi32(
+    _mm_or_si128(_mm_slli_epi32(asat, 16), _mm_cmpgt_epi32(asat, mask)), 16);
+  // same for b
+  // 23. Nov 17 (rm): 32->31
+  __m128i bsat = _mm_andnot_si128(_mm_srai_epi32(b, 31), b);
+  bsat         = _mm_srai_epi32(
+    _mm_or_si128(_mm_slli_epi32(bsat, 16), _mm_cmpgt_epi32(bsat, mask)), 16);
+  return _mm_packs_epi32(asat, bsat);
+#endif
 }
 
 static SIMD_INLINE Vec<Word, 16> packs(const Vec<Float, 16> &a,
@@ -2025,8 +1937,8 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Short, 16> vOut[2])
   vOut[1] = _mm_cvtepu8_epi16(_mm_srli_si128(vIn, 8));
 #else
   __m128i zero = _mm_setzero_si128();
-  vOut[0] = _mm_unpacklo_epi8(vIn, zero);
-  vOut[1] = _mm_unpackhi_epi8(vIn, zero);
+  vOut[0]      = _mm_unpacklo_epi8(vIn, zero);
+  vOut[1]      = _mm_unpackhi_epi8(vIn, zero);
 #endif
 }
 
@@ -2037,8 +1949,8 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Int, 16> vOut[2])
   vOut[1] = _mm_cvtepu16_epi32(_mm_srli_si128(vIn, 8));
 #else
   __m128i zero = _mm_setzero_si128();
-  vOut[0] = _mm_unpacklo_epi16(vIn, zero);
-  vOut[1] = _mm_unpackhi_epi16(vIn, zero);
+  vOut[0]      = _mm_unpacklo_epi16(vIn, zero);
+  vOut[1]      = _mm_unpackhi_epi16(vIn, zero);
 #endif
 }
 
@@ -2049,8 +1961,8 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Float, 16> vOut[2])
   vOut[1] = _mm_cvtepi32_ps(_mm_cvtepu16_epi32(_mm_srli_si128(vIn, 8)));
 #else
   __m128i zero = _mm_setzero_si128();
-  vOut[0] = _mm_cvtepi32_ps(_mm_unpacklo_epi16(vIn, zero));
-  vOut[1] = _mm_cvtepi32_ps(_mm_unpackhi_epi16(vIn, zero));
+  vOut[0]      = _mm_cvtepi32_ps(_mm_unpacklo_epi16(vIn, zero));
+  vOut[1]      = _mm_cvtepi32_ps(_mm_unpackhi_epi16(vIn, zero));
 #endif
 }
 
@@ -2069,12 +1981,12 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
   vOut[2] = _mm_cvtepi8_epi32(_mm_srli_si128(vIn, 8));
   vOut[3] = _mm_cvtepi8_epi32(_mm_srli_si128(vIn, 12));
 #else
-  __m128i lo8 = _mm_unpacklo_epi8(vIn, vIn);
-  vOut[0] = _mm_srai_epi32(_mm_unpacklo_epi16(lo8, lo8), 24);
-  vOut[1] = _mm_srai_epi32(_mm_unpackhi_epi16(lo8, lo8), 24);
-  __m128i hi8 = _mm_unpackhi_epi8(vIn, vIn);
-  vOut[2] = _mm_srai_epi32(_mm_unpacklo_epi16(hi8, hi8), 24);
-  vOut[3] = _mm_srai_epi32(_mm_unpackhi_epi16(hi8, hi8), 24);
+  __m128i lo8  = _mm_unpacklo_epi8(vIn, vIn);
+  vOut[0]      = _mm_srai_epi32(_mm_unpacklo_epi16(lo8, lo8), 24);
+  vOut[1]      = _mm_srai_epi32(_mm_unpackhi_epi16(lo8, lo8), 24);
+  __m128i hi8  = _mm_unpackhi_epi8(vIn, vIn);
+  vOut[2]      = _mm_srai_epi32(_mm_unpacklo_epi16(hi8, hi8), 24);
+  vOut[3]      = _mm_srai_epi32(_mm_unpackhi_epi16(hi8, hi8), 24);
 #endif
 }
 
@@ -2107,12 +2019,12 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Int, 16> vOut[4])
   vOut[3] = _mm_cvtepu8_epi32(_mm_srli_si128(vIn, 12));
 #else
   __m128i zero = _mm_setzero_si128();
-  __m128i lo8 = _mm_unpacklo_epi8(vIn, zero);
-  vOut[0] = _mm_unpacklo_epi16(lo8, zero);
-  vOut[1] = _mm_unpackhi_epi16(lo8, zero);
-  __m128i hi8 = _mm_unpackhi_epi8(vIn, zero);
-  vOut[2] = _mm_unpacklo_epi16(hi8, zero);
-  vOut[3] = _mm_unpackhi_epi16(hi8, zero);
+  __m128i lo8  = _mm_unpacklo_epi8(vIn, zero);
+  vOut[0]      = _mm_unpacklo_epi16(lo8, zero);
+  vOut[1]      = _mm_unpackhi_epi16(lo8, zero);
+  __m128i hi8  = _mm_unpackhi_epi8(vIn, zero);
+  vOut[2]      = _mm_unpacklo_epi16(hi8, zero);
+  vOut[3]      = _mm_unpackhi_epi16(hi8, zero);
 #endif
 }
 
@@ -2125,12 +2037,12 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Float, 16> vOut[4])
   vOut[3] = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 12)));
 #else
   __m128i zero = _mm_setzero_si128();
-  __m128i lo8 = _mm_unpacklo_epi8(vIn, zero);
-  vOut[0] = _mm_cvtepi32_ps(_mm_unpacklo_epi16(lo8, zero));
-  vOut[1] = _mm_cvtepi32_ps(_mm_unpackhi_epi16(lo8, zero));
-  __m128i hi8 = _mm_unpackhi_epi8(vIn, zero);
-  vOut[2] = _mm_cvtepi32_ps(_mm_unpacklo_epi16(hi8, zero));
-  vOut[3] = _mm_cvtepi32_ps(_mm_unpackhi_epi16(hi8, zero));
+  __m128i lo8  = _mm_unpacklo_epi8(vIn, zero);
+  vOut[0]      = _mm_cvtepi32_ps(_mm_unpacklo_epi16(lo8, zero));
+  vOut[1]      = _mm_cvtepi32_ps(_mm_unpackhi_epi16(lo8, zero));
+  __m128i hi8  = _mm_unpackhi_epi8(vIn, zero);
+  vOut[2]      = _mm_cvtepi32_ps(_mm_unpacklo_epi16(hi8, zero));
+  vOut[3]      = _mm_cvtepi32_ps(_mm_unpackhi_epi16(hi8, zero));
 #endif
 }
 
@@ -2273,13 +2185,29 @@ static SIMD_INLINE Vec<Int, 16> slli(const Vec<Int, 16> &a)
 static SIMD_INLINE Vec<Byte, 16> sra(const Vec<Byte, 16> &a,
                                      const uint8_t count)
 {
-  return x_mm_sra_epi8(a, count);
+  // there is no _mm_sra_epi8 intrinsic
+  if (count >= 8) {
+    // result should be all ones if a is negative, all zeros otherwise
+    return _mm_cmplt_epi8(a, _mm_setzero_si128());
+  }
+  __m128i odd = _mm_sra_epi16(a, _mm_cvtsi32_si128(count));
+  __m128i even =
+    _mm_sra_epi16(_mm_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
+  return ifelse<Byte>(_mm_set1_epi16((int16_t) 0xFF00), odd, even);
 }
 
 static SIMD_INLINE Vec<SignedByte, 16> sra(const Vec<SignedByte, 16> &a,
                                            const uint8_t count)
 {
-  return x_mm_sra_epi8(a, count);
+  // there is no _mm_sra_epi8 intrinsic
+  if (count >= 8) {
+    // result should be all ones if a is negative, all zeros otherwise
+    return _mm_cmplt_epi8(a, _mm_setzero_si128());
+  }
+  __m128i odd = _mm_sra_epi16(a, _mm_cvtsi32_si128(count));
+  __m128i even =
+    _mm_sra_epi16(_mm_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
+  return ifelse<SignedByte>(_mm_set1_epi16((int16_t) 0xFF00), odd, even);
 }
 
 static SIMD_INLINE Vec<Word, 16> sra(const Vec<Word, 16> &a,
@@ -2977,27 +2905,27 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>, IsIntSize<true, 4>)
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                   x x x   x
   // 5 6 7 8
-  __m128i s2 = x_mm_alignr_epi8<4>(v[2], v[1]);
+  __m128i s2 = _mm_alignr_epi8(v[2], v[1], 4);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                             x  x  x    x
   // 9 x x x
-  __m128i s3 = x_mm_alignr_epi8<4>(v[3], v[2]);
+  __m128i s3 = _mm_alignr_epi8(v[3], v[2], 4);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                x  x    x  x
   // 10 11 12 13
-  __m128i s4 = x_mm_alignr_epi8<8>(v[3], v[2]);
+  __m128i s4 = _mm_alignr_epi8(v[3], v[2], 8);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                              x  x    x  x
   // 14 x x x
-  __m128i s5 = x_mm_alignr_epi8<8>(v[4], v[3]);
+  __m128i s5 = _mm_alignr_epi8(v[4], v[3], 8);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                 X    X  X  X
   // 15 16 17 18
-  __m128i s6 = x_mm_alignr_epi8<12>(v[4], v[3]);
+  __m128i s6 = _mm_alignr_epi8(v[4], v[3], 12);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                               X X X X
   // 19 x x x
-  __m128i s7 = x_mm_alignr_epi8<12>(v[0], v[4]);
+  __m128i s7 = _mm_alignr_epi8(v[0], v[4], 12);
   // 0 1 2 3 / 5 6 7 8 -> 0 5 1 6 / 2 7 3 8
   __m128i l02 = _mm_unpacklo_epi32(v[0], s2);
   __m128i h02 = _mm_unpackhi_epi32(v[0], s2);
@@ -3041,27 +2969,27 @@ static SIMD_INLINE void swizzle(Vec<Float, 16> v[5], Integer<5>,
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                   x x x   x
   // 5 6 7 8
-  __m128 s2 = _mm_castsi128_ps(x_mm_alignr_epi8<4>(v2, v1));
+  __m128 s2 = _mm_castsi128_ps(_mm_alignr_epi8(v2, v1, 4));
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                             x  x  x    x
   // 9 x x x
-  __m128 s3 = _mm_castsi128_ps(x_mm_alignr_epi8<4>(v3, v2));
+  __m128 s3 = _mm_castsi128_ps(_mm_alignr_epi8(v3, v2, 4));
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                x  x    x  x
   // 10 11 12 13
-  __m128 s4 = _mm_castsi128_ps(x_mm_alignr_epi8<8>(v3, v2));
+  __m128 s4 = _mm_castsi128_ps(_mm_alignr_epi8(v3, v2, 8));
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                              x  x    x  x
   // 14 x x x
-  __m128 s5 = _mm_castsi128_ps(x_mm_alignr_epi8<8>(v4, v3));
+  __m128 s5 = _mm_castsi128_ps(_mm_alignr_epi8(v4, v3, 8));
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                 X    X  X  X
   // 15 16 17 18
-  __m128 s6 = _mm_castsi128_ps(x_mm_alignr_epi8<12>(v4, v3));
+  __m128 s6 = _mm_castsi128_ps(_mm_alignr_epi8(v4, v3, 12));
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                               X X X X
   // 19 x x x
-  __m128 s7 = _mm_castsi128_ps(x_mm_alignr_epi8<12>(v0, v4));
+  __m128 s7 = _mm_castsi128_ps(_mm_alignr_epi8(v0, v4, 12));
   // 0 1 2 3 / 5 6 7 8 -> 0 5 1 6 / 2 7 3 8
   __m128 l02 = _mm_unpacklo_ps(s0, s2);
   __m128 h02 = _mm_unpackhi_ps(s0, s2);
@@ -3314,64 +3242,43 @@ static SIMD_INLINE Vec<Float, 16> cmpge(const Vec<Float, 16> &a,
 // compare !=
 // ---------------------------------------------------------------------------
 
+// there is no cmpneq for integers and no not, so use cmpeq and xor with all
+// ones to invert the result
+
 static SIMD_INLINE Vec<Byte, 16> cmpneq(const Vec<Byte, 16> &a,
                                         const Vec<Byte, 16> &b)
 {
-  return x_mm_not_si128(_mm_cmpeq_epi8(a, b));
+  return _mm_xor_si128(_mm_cmpeq_epi8(a, b), _mm_set1_epi32(-1));
 }
 
 static SIMD_INLINE Vec<SignedByte, 16> cmpneq(const Vec<SignedByte, 16> &a,
                                               const Vec<SignedByte, 16> &b)
 {
-  return x_mm_not_si128(_mm_cmpeq_epi8(a, b));
+  return _mm_xor_si128(_mm_cmpeq_epi8(a, b), _mm_set1_epi32(-1));
 }
 
 static SIMD_INLINE Vec<Word, 16> cmpneq(const Vec<Word, 16> &a,
                                         const Vec<Word, 16> &b)
 {
-  return x_mm_not_si128(_mm_cmpeq_epi16(a, b));
+  return _mm_xor_si128(_mm_cmpeq_epi16(a, b), _mm_set1_epi32(-1));
 }
 
 static SIMD_INLINE Vec<Short, 16> cmpneq(const Vec<Short, 16> &a,
                                          const Vec<Short, 16> &b)
 {
-  return x_mm_not_si128(_mm_cmpeq_epi16(a, b));
+  return _mm_xor_si128(_mm_cmpeq_epi16(a, b), _mm_set1_epi32(-1));
 }
 
 static SIMD_INLINE Vec<Int, 16> cmpneq(const Vec<Int, 16> &a,
                                        const Vec<Int, 16> &b)
 {
-  return x_mm_not_si128(_mm_cmpeq_epi32(a, b));
+  return _mm_xor_si128(_mm_cmpeq_epi32(a, b), _mm_set1_epi32(-1));
 }
 
 static SIMD_INLINE Vec<Float, 16> cmpneq(const Vec<Float, 16> &a,
                                          const Vec<Float, 16> &b)
 {
   return _mm_cmpneq_ps(a, b);
-}
-
-// ---------------------------------------------------------------------------
-// ifelse
-// ---------------------------------------------------------------------------
-
-// elements of cond must be all 1's or all 0's (blendv just tests top
-// bit in each byte, but work-around needs this)
-
-// all integer versions
-template <typename T>
-static SIMD_INLINE Vec<T, 16> ifelse(const Vec<T, 16> &cond,
-                                     const Vec<T, 16> &trueVal,
-                                     const Vec<T, 16> &falseVal)
-{
-  return x_mm_ifelsei(cond, trueVal, falseVal);
-}
-
-// float version
-static SIMD_INLINE Vec<Float, 16> ifelse(const Vec<Float, 16> &cond,
-                                         const Vec<Float, 16> &trueVal,
-                                         const Vec<Float, 16> &falseVal)
-{
-  return x_mm_ifelsef(cond, trueVal, falseVal);
 }
 
 // ---------------------------------------------------------------------------
@@ -3454,13 +3361,15 @@ static SIMD_INLINE Vec<Float, 16> xor_(const Vec<Float, 16> &a,
 template <typename T>
 static SIMD_INLINE Vec<T, 16> not_(const Vec<T, 16> &a)
 {
-  return x_mm_not_si128(a);
+  // there is no _mm_not_si128, so xor with all 1's
+  return _mm_xor_si128(a, _mm_set1_epi32(-1));
 }
 
 // float version
 static SIMD_INLINE Vec<Float, 16> not_(const Vec<Float, 16> &a)
 {
-  return x_mm_not_ps(a);
+  // there is no _mm_not_ps, so xor with all 1's
+  return _mm_xor_ps(a, _mm_castsi128_ps(_mm_set1_epi32(-1)));
 }
 
 // ---------------------------------------------------------------------------
@@ -3529,34 +3438,38 @@ static SIMD_INLINE Vec<Float, 16> avg(const Vec<Float, 16> &a,
 // test_all_zeros
 // ---------------------------------------------------------------------------
 
-// all integer versions
 template <typename T>
 static SIMD_INLINE int test_all_zeros(const Vec<T, 16> &a)
 {
-  return x_mm_test_all_zeros(a);
-}
-
-// float version
-static SIMD_INLINE int test_all_zeros(const Vec<Float, 16> &a)
-{
-  return x_mm_test_all_zeros(_mm_castps_si128(a));
+  // reinterpret to int in case T is float
+  const auto intA = reinterpret(a, OutputType<Int>());
+#ifdef __SSE4_1__
+  // 10. Oct 22 (Jonas Keller):
+  // replaced unnecessary "_mm_cmpeq_epi8(a, a)" with "a"
+  // return _mm_test_all_zeros(a, _mm_cmpeq_epi8(a, a));
+  return _mm_test_all_zeros(intA, intA);
+#else
+  return (_mm_movemask_epi8(_mm_cmpeq_epi8(_mm_setzero_si128(), intA)) ==
+          0xffff);
+#endif
 }
 
 // ---------------------------------------------------------------------------
 // test_all_ones
 // ---------------------------------------------------------------------------
 
-// all integer versions
 template <typename T>
 static SIMD_INLINE int test_all_ones(const Vec<T, 16> &a)
 {
-  return x_mm_test_all_ones(a);
-}
-
-// float version
-static SIMD_INLINE int test_all_ones(const Vec<Float, 16> &a)
-{
-  return x_mm_test_all_ones(_mm_castps_si128(a));
+  // reinterpret to int in case T is float
+  const auto intA = reinterpret(a, OutputType<Int>());
+#ifdef __SSE4_1__
+  return _mm_test_all_ones(intA);
+#else
+  __m128i undef = _mm_undefined_si128();
+  __m128i ones  = _mm_cmpeq_epi8(undef, undef);
+  return _mm_movemask_epi8(_mm_cmpeq_epi8(ones, intA)) == 0xffff;
+#endif
 }
 
 // ---------------------------------------------------------------------------
@@ -3674,9 +3587,9 @@ static SIMD_INLINE Vec<Byte, 16> int2msb(const uint64_t a, OutputType<Byte>,
   __m128i aVec = _mm_shuffle_epi8(_mm_cvtsi32_si128(a), shuffleIndeces);
 #else
   __m128i maskLo = _mm_set_epi64x(0, 0xffffffffffffffff);
-  __m128i aLo = _mm_and_si128(maskLo, _mm_set1_epi8(a));
-  __m128i aHi = _mm_andnot_si128(maskLo, _mm_set1_epi8(a >> 8));
-  __m128i aVec = _mm_or_si128(aLo, aHi);
+  __m128i aLo    = _mm_and_si128(maskLo, _mm_set1_epi8(a));
+  __m128i aHi    = _mm_andnot_si128(maskLo, _mm_set1_epi8(a >> 8));
+  __m128i aVec   = _mm_or_si128(aLo, aHi);
 #endif
   __m128i sel      = _mm_set1_epi64x(0x8040201008040201);
   __m128i selected = _mm_and_si128(aVec, sel);
@@ -3742,9 +3655,9 @@ static SIMD_INLINE Vec<Byte, 16> int2bits(const uint64_t a, OutputType<Byte>,
   __m128i aVec = _mm_shuffle_epi8(_mm_cvtsi32_si128(a), shuffleIndeces);
 #else
   __m128i maskLo = _mm_set_epi64x(0, 0xffffffffffffffff);
-  __m128i aLo = _mm_and_si128(maskLo, _mm_set1_epi8(a));
-  __m128i aHi = _mm_andnot_si128(maskLo, _mm_set1_epi8(a >> 8));
-  __m128i aVec = _mm_or_si128(aLo, aHi);
+  __m128i aLo    = _mm_and_si128(maskLo, _mm_set1_epi8(a));
+  __m128i aHi    = _mm_andnot_si128(maskLo, _mm_set1_epi8(a >> 8));
+  __m128i aVec   = _mm_or_si128(aLo, aHi);
 #endif
   __m128i sel      = _mm_set1_epi64x(0x8040201008040201);
   __m128i selected = _mm_and_si128(aVec, sel);

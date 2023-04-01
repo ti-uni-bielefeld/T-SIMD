@@ -198,4 +198,9 @@
 #define SIMD_VECTORS_CEIL(NSIMD, NDATA)                                        \
   ((unsigned(NDATA) + (unsigned(NSIMD) - 1u)) / unsigned(NSIMD))
 
+// 29. Mar 23 (Jonas Keller): added SIMD_ENABLE_IF macro
+
+// macros to make enable_if SFINAE more convenient and readable
+#define SIMD_ENABLE_IF(EXPR) typename = typename std::enable_if<(EXPR)>::type
+
 #endif

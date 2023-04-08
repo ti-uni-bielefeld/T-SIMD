@@ -399,6 +399,8 @@ namespace internal {
 // int2type trick from
 // Andrei Alexandrescu: Modern C++ Design (Addison Wesley)
 
+// 08. Apr 23 (Jonas Keller): removed IsIntSize; it is no longer used
+
 template <bool isFloatingPoint>
 struct IsFloatingPoint
 {};
@@ -406,14 +408,6 @@ struct IsFloatingPoint
 template <typename T>
 struct TypeIsFloatingPoint
   : public IsFloatingPoint<TypeInfo<T>::isFloatingPoint>
-{};
-
-template <bool IS_INT, int SIZE>
-struct IsIntSize
-{};
-
-template <typename T>
-struct TypeIsIntSize : public IsIntSize<TypeInfo<T>::isInteger, sizeof(T)>
 {};
 
 template <bool IS_INT, bool IS_SIGNED>

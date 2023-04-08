@@ -668,8 +668,11 @@ static SIMD_INLINE __m512i x_mm512_movm_epi32(__mmask16 k)
 // reinterpretation casts v
 // ---------------------------------------------------------------------------
 
+// 08. Apr 23 (Jonas Keller): used enable_if for cleaner implementation
+
 // between all integer types
-template <typename Tdst, typename Tsrc>
+template <typename Tdst, typename Tsrc,
+          SIMD_ENABLE_IF((!std::is_same<Tdst, Tsrc>::value))>
 static SIMD_INLINE Vec<Tdst, 64> reinterpret(const Vec<Tsrc, 64> &vec,
                                              OutputType<Tdst>)
 {
@@ -680,7 +683,7 @@ static SIMD_INLINE Vec<Tdst, 64> reinterpret(const Vec<Tsrc, 64> &vec,
 }
 
 // from float to any integer type
-template <typename Tdst>
+template <typename Tdst, SIMD_ENABLE_IF((!std::is_same<Tdst, Float>::value))>
 static SIMD_INLINE Vec<Tdst, 64> reinterpret(const Vec<Float, 64> &vec,
                                              OutputType<Tdst>)
 {
@@ -688,16 +691,16 @@ static SIMD_INLINE Vec<Tdst, 64> reinterpret(const Vec<Float, 64> &vec,
 }
 
 // from any integer type to float
-template <typename Tsrc>
+template <typename Tsrc, SIMD_ENABLE_IF((!std::is_same<Tsrc, Float>::value))>
 static SIMD_INLINE Vec<Float, 64> reinterpret(const Vec<Tsrc, 64> &vec,
                                               OutputType<Float>)
 {
   return _mm512_castsi512_ps(vec);
 }
 
-// between float and float
-static SIMD_INLINE Vec<Float, 64> reinterpret(const Vec<Float, 64> &vec,
-                                              OutputType<Float>)
+// between identical types
+template <typename T>
+static SIMD_INLINE Vec<T, 64> reinterpret(const Vec<T, 64> &vec, OutputType<T>)
 {
   return vec;
 }

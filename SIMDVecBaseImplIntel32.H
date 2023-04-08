@@ -1180,8 +1180,11 @@ SIMDVEC_INTEL_X_INT_UNFCT_IMM_PSPD_32(shuffle, epi32, ps)
 // reinterpretation casts
 // ---------------------------------------------------------------------------
 
+// 08. Apr 23 (Jonas Keller): used enable_if for cleaner implementation
+
 // between all integer types
-template <typename Tdst, typename Tsrc>
+template <typename Tdst, typename Tsrc,
+          SIMD_ENABLE_IF((!std::is_same<Tdst, Tsrc>::value))>
 static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Tsrc, 32> &vec,
                                              OutputType<Tdst>)
 {
@@ -1192,7 +1195,7 @@ static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Tsrc, 32> &vec,
 }
 
 // from float to any integer type
-template <typename Tdst>
+template <typename Tdst, SIMD_ENABLE_IF((!std::is_same<Tdst, Float>::value))>
 static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Float, 32> &vec,
                                              OutputType<Tdst>)
 {
@@ -1200,27 +1203,16 @@ static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Float, 32> &vec,
 }
 
 // from any integer type to float
-template <typename Tsrc>
+template <typename Tsrc, SIMD_ENABLE_IF((!std::is_same<Tsrc, Float>::value))>
 static SIMD_INLINE Vec<Float, 32> reinterpret(const Vec<Tsrc, 32> &vec,
                                               OutputType<Float>)
 {
   return _mm256_castsi256_ps(vec);
 }
 
-/*
 // between identical types
 template <typename T>
-static SIMD_INLINE Vec<T,32>
-reinterpret(const Vec<T,32>& vec, OutputType<T>)
-{
-  return vec;
-}
-*/
-
-// BUGFIX:  1. Aug 17 (rm): remove code above, added this one
-// between float and float
-static SIMD_INLINE Vec<Float, 32> reinterpret(const Vec<Float, 32> &vec,
-                                              OutputType<Float>)
+static SIMD_INLINE Vec<T, 32> reinterpret(const Vec<T, 32> &vec, OutputType<T>)
 {
   return vec;
 }

@@ -33,7 +33,6 @@
 #include "SIMDVecAutoTestSerial.H"
 #include "SIMDVecMask.H"
 
-#include <cassert>
 #include <cstdint>
 #include <cstdlib>
 
@@ -79,7 +78,7 @@ struct UInt
 private:
   typename _UInt<Bits>::type maskValue(typename _UInt<Bits>::type x) const
   {
-    assert(Bits >= 4 && Bits <= 64);
+    static_assert(Bits >= 4 && Bits <= 64, "");
     if (Bits == 4) { return x & 0x0f; }
     return x;
   }

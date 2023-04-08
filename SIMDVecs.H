@@ -44,9 +44,8 @@ namespace simd {
 // class to compute number of input and output vectors of conversion functions
 // (convert, packs, extend, f*)
 template <typename Tout, typename Tin>
-class NumVecs
+struct NumVecs
 {
-public:
   static constexpr int in =
     (sizeof(Tout) < sizeof(Tin)) ? (sizeof(Tin) / sizeof(Tout)) : 1;
   static constexpr int out =
@@ -56,9 +55,8 @@ public:
 // multiple Vec
 
 template <int NUM, typename T, int SIMD_WIDTH>
-class Vecs
+struct Vecs
 {
-public:
   static constexpr int vectors  = NUM;
   static constexpr int elements = NUM * Vec<T, SIMD_WIDTH>::elements;
   static constexpr int bytes    = NUM * Vec<T, SIMD_WIDTH>::bytes;

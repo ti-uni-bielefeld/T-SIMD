@@ -59,9 +59,8 @@ enum { SW = 16 };
 // ===========================================================================
 
 template <typename T>
-class Vector
+struct Vector
 {
-public:
   T *data;
   ssize_t size;
 

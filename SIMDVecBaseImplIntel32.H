@@ -80,12 +80,14 @@ namespace simd {
 template <typename T>
 class Vec<T, 32>
 {
+  __m256i ymm;
+
 public:
   using Type                    = T;
   static constexpr int elements = 32 / sizeof(T);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 32;
-  __m256i ymm;
+
   Vec() = default;
   Vec(const __m256i &x) { ymm = x; }
   Vec &operator=(const __m256i &x)
@@ -117,12 +119,14 @@ public:
 template <>
 class Vec<Float, 32>
 {
+  __m256 ymm;
+
 public:
   using Type                    = Float;
   static constexpr int elements = 32 / sizeof(Float);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 32;
-  __m256 ymm;
+
   Vec() = default;
   Vec(const __m256 &x) { ymm = x; }
   Vec &operator=(const __m256 &x)
@@ -198,9 +202,8 @@ namespace base {
 
 // primary template
 template <int N, int I = 0>
-class Swizzle_32_16
+struct Swizzle_32_16
 {
-public:
   template <typename T>
   static SIMD_INLINE void _swizzle_32_16(const Vec<T, 32> vIn[N],
                                          Vec<T, 32> vOut[N])
@@ -236,9 +239,8 @@ public:
 
 // termination
 template <int N>
-class Swizzle_32_16<N, N>
+struct Swizzle_32_16<N, N>
 {
-public:
   template <typename T>
   static SIMD_INLINE void _swizzle_32_16(const Vec<T, 32>[N], Vec<T, 32>[N])
   {}
@@ -1191,7 +1193,7 @@ static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Tsrc, 32> &vec,
   // 26. Nov 22 (Jonas Keller): reinterpret_cast is technically undefined
   // behavior, so just rewrapping the vector register in a new Vec instead
   // return reinterpret_cast<const Vec<Tdst,32>&>(vec);
-  return Vec<Tdst, 32>(vec.ymm);
+  return Vec<Tdst, 32>(__m256i(vec));
 }
 
 // from float to any integer type

@@ -75,12 +75,14 @@ namespace simd {
 template <typename T>
 class Vec<T, 16>
 {
+  __m128i xmm;
+
 public:
   using Type                    = T;
   static constexpr int elements = 16 / sizeof(T);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 16;
-  __m128i xmm;
+
   Vec() = default;
   Vec(const __m128i &x) { xmm = x; }
   Vec &operator=(const __m128i &x)
@@ -105,12 +107,14 @@ public:
 template <>
 class Vec<Float, 16>
 {
+  __m128 xmm;
+
 public:
   using Type                    = Float;
   static constexpr int elements = 16 / sizeof(Float);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 16;
-  __m128 xmm;
+
   Vec() = default;
   Vec(const __m128 &x) { xmm = x; }
   Vec &operator=(const __m128 &x)
@@ -549,7 +553,7 @@ static SIMD_INLINE Vec<Tdst, 16> reinterpret(const Vec<Tsrc, 16> &vec,
   // 26. Nov 22 (Jonas Keller): reinterpret_cast is technically undefined
   // behavior, so just rewrapping the vector register in a new Vec instead
   // return reinterpret_cast<const Vec<Tdst,16>&>(vec);
-  return Vec<Tdst, 16>(vec.xmm);
+  return Vec<Tdst, 16>(__m128(vec));
 }
 
 // from float to any integer type
@@ -1919,7 +1923,7 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
   vOut[2] = _mm_cvtepi32_ps(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 8)));
   vOut[3] = _mm_cvtepi32_ps(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 12)));
 #else
-  __m128i lo8 = _mm_unpacklo_epi8(vIn, vIn);
+  __m128i lo8  = _mm_unpacklo_epi8(vIn, vIn);
   vOut[0] = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpacklo_epi16(lo8, lo8), 24));
   vOut[1] = _mm_cvtepi32_ps(_mm_srai_epi32(_mm_unpackhi_epi16(lo8, lo8), 24));
   __m128i hi8 = _mm_unpackhi_epi8(vIn, vIn);

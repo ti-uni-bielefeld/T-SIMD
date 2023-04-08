@@ -164,13 +164,15 @@ SIMDVEC_NEON_ARRAY64_ALLNUM(Float, float32x2)
 template <typename T>
 class Vec<T, 16>
 {
+  using RegType = typename internal::base::SIMDVecNeon<T>::Type;
+  RegType reg;
+
 public:
   using Type                    = T;
-  using RegType                 = typename internal::base::SIMDVecNeon<T>::Type;
   static constexpr int elements = 16 / sizeof(T);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 16;
-  RegType reg;
+
   Vec() = default;
   Vec(const RegType &x) { reg = x; }
   Vec &operator=(const RegType &x)
@@ -2250,7 +2252,7 @@ SIMDVEC_NEON_BINARY_FLOAT_BY_INT_64(vorr)
 #define SIMDVEC_NEON_TESTALLZEROS(T, NEON_SUF)                                 \
   static SIMD_INLINE int test_all_zeros(const Vec<T, 16> &a)                   \
   {                                                                            \
-    uint32x4_t au  = vreinterpretq_u32_##NEON_SUF(a.reg);                      \
+    uint32x4_t au  = vreinterpretq_u32_##NEON_SUF(a);                          \
     uint32x2_t tmp = vorr_u32(vget_low_u32(au), vget_high_u32(au));            \
     return !(vget_lane_u32(vpmax_u32(tmp, tmp), 0));                           \
   }

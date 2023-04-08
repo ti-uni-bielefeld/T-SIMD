@@ -320,9 +320,8 @@ static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> &outVec,
 namespace internal {
 namespace ext {
 template <typename T, int SIMD_WIDTH>
-class Store
+struct Store
 {
-public:
   static SIMD_INLINE void _store(T *const p, const Vec<T, SIMD_WIDTH> &outVec)
   {
     return store(p, outVec);
@@ -330,9 +329,8 @@ public:
 };
 
 template <typename T, int SIMD_WIDTH>
-class StoreU
+struct StoreU
 {
-public:
   static SIMD_INLINE void _store(T *const p, const Vec<T, SIMD_WIDTH> &outVec)
   {
     return storeu(p, outVec);
@@ -352,9 +350,8 @@ public:
 template <template <typename, int> class Store, typename T, int SIMD_WIDTH,
           int NUMROWS, int ROW, int STORE_STOP, int STORE_WIDTH, int SRC_OFF,
           int DST_OFF>
-class Store16
+struct Store16
 {
-public:
   static SIMD_INLINE void _store16(
     T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
   {
@@ -370,14 +367,13 @@ public:
 
 template <template <typename, int> class Store, typename T, int SIMD_WIDTH,
           int NUMROWS, int ROW, int STORE_STOP, int SRC_OFF, int DST_OFF>
-class Store16<Store, T, SIMD_WIDTH, NUMROWS, ROW, STORE_STOP, 16, SRC_OFF,
-              DST_OFF>
+struct Store16<Store, T, SIMD_WIDTH, NUMROWS, ROW, STORE_STOP, 16, SRC_OFF,
+               DST_OFF>
 {
   static constexpr int STEP = SIMD_WIDTH / 16;
   static constexpr int VO   = SRC_OFF + ROW * STEP;
   static constexpr int OFF  = (DST_OFF + ROW) * NUMROWS;
 
-public:
   static SIMD_INLINE void _store16(
     T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
   {
@@ -390,10 +386,9 @@ public:
 
 template <template <typename, int> class Store, typename T, int SIMD_WIDTH,
           int NUMROWS, int STORE_STOP, int SRC_OFF, int DST_OFF>
-class Store16<Store, T, SIMD_WIDTH, NUMROWS, STORE_STOP, STORE_STOP, 16,
-              SRC_OFF, DST_OFF>
+struct Store16<Store, T, SIMD_WIDTH, NUMROWS, STORE_STOP, STORE_STOP, 16,
+               SRC_OFF, DST_OFF>
 {
-public:
   static SIMD_INLINE void _store16(
     T *const, const Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems])
   {}
@@ -1077,9 +1072,8 @@ namespace ext {
 // num: number of elements processed
 // i0, i1: indices of lowest elements of block
 template <typename T, int SIMD_WIDTH, int num, int i0, int i1>
-class Horizontal
+struct Horizontal
 {
-public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hadd(
     const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
   {
@@ -1098,9 +1092,8 @@ public:
 
 // partial specialization to end the recursion
 template <typename T, int SIMD_WIDTH, int i0, int i1>
-class Horizontal<T, SIMD_WIDTH, 2, i0, i1>
+struct Horizontal<T, SIMD_WIDTH, 2, i0, i1>
 {
-public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hadd(
     const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
   {
@@ -1168,9 +1161,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(
 namespace internal {
 namespace ext {
 template <typename T, int SIMD_WIDTH, int NUM>
-class Horizontal1
+struct Horizontal1
 {
-public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hadd(const Vec<T, SIMD_WIDTH> &v)
   {
     Vec<T, SIMD_WIDTH> u = Horizontal1<T, SIMD_WIDTH, NUM / 2>::_hadd(v);
@@ -1195,9 +1187,8 @@ public:
 };
 
 template <typename T, int SIMD_WIDTH>
-class Horizontal1<T, SIMD_WIDTH, 1>
+struct Horizontal1<T, SIMD_WIDTH, 1>
 {
-public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hadd(const Vec<T, SIMD_WIDTH> &v)
   {
     return hadd(v, v);
@@ -1602,9 +1593,8 @@ namespace ext {
 // -------------------- different unpack functions ---------------------------
 
 template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
-class Unpack
+struct Unpack
 {
-public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _unpack(const Vec<T, SIMD_WIDTH> &a,
                                                 const Vec<T, SIMD_WIDTH> &b)
   {
@@ -1613,9 +1603,8 @@ public:
 };
 
 template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
-class Unpack16
+struct Unpack16
 {
-public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _unpack(const Vec<T, SIMD_WIDTH> &a,
                                                 const Vec<T, SIMD_WIDTH> &b)
   {
@@ -1632,7 +1621,7 @@ template <template <int, int, typename, int> class Unpack, typename T,
           // NLOHI: low/high unpack selector index
           // ELEMS: number of elements to unpack in this stage
           int INDEX, int NLOHI, int ELEMS>
-class Transpose1
+struct Transpose1
 {
   static constexpr int PART = (NLOHI & 0x01);
   static constexpr int NEXT = (NLOHI >> 1);
@@ -1640,7 +1629,6 @@ class Transpose1
   static constexpr int RIDX = INDEX + ELEMS;
   static constexpr int HALF = ELEMS / 2;
 
-public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _transpose1(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems])
   {
@@ -1657,11 +1645,10 @@ public:
 // partial specialization to end the iteration (ELEMS=1)
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int INDEX, int NLOHI>
-class Transpose1<Unpack, T, SIMD_WIDTH, INDEX, NLOHI, 1>
+struct Transpose1<Unpack, T, SIMD_WIDTH, INDEX, NLOHI, 1>
 {
   static constexpr int PART = (NLOHI & 0x01);
 
-public:
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _transpose1(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems])
   {
@@ -1682,9 +1669,8 @@ template <template <int, int, typename, int> class Unpack, typename T,
           // NUM_TRANSPOSE_ROWS: number of rows to transpose
           // ROW: index of row to transpose
           int NUMROWS, int NUM_TRANSPOSE_ROWS, int ROW>
-class Transpose
+struct Transpose
 {
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[NUM_TRANSPOSE_ROWS])
@@ -1705,10 +1691,9 @@ public:
 // partial specialization to end the iteration
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int NUMROWS, int NUM_TRANSPOSE_ROWS>
-class Transpose<Unpack, T, SIMD_WIDTH, NUMROWS, NUM_TRANSPOSE_ROWS,
-                NUM_TRANSPOSE_ROWS>
+struct Transpose<Unpack, T, SIMD_WIDTH, NUMROWS, NUM_TRANSPOSE_ROWS,
+                 NUM_TRANSPOSE_ROWS>
 {
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH>[NUM_TRANSPOSE_ROWS])
@@ -1785,11 +1770,10 @@ namespace ext {
 
 // primary template
 template <typename T, int SIMD_WIDTH, int ROW, int ROW_STOP>
-class CopyMatrix
+struct CopyMatrix
 {
   static_assert(ROW < ROW_STOP, "ROW must be less than ROW_STOP");
 
-public:
   static SIMD_INLINE void _copy(Vec<T, SIMD_WIDTH> v[ROW_STOP],
                                 Vec<T, SIMD_WIDTH> v2[ROW_STOP])
   {
@@ -1800,9 +1784,8 @@ public:
 
 // partial specialization to end the iteration
 template <typename T, int SIMD_WIDTH, int ROW_STOP>
-class CopyMatrix<T, SIMD_WIDTH, ROW_STOP, ROW_STOP>
+struct CopyMatrix<T, SIMD_WIDTH, ROW_STOP, ROW_STOP>
 {
-public:
   static SIMD_INLINE void _copy(Vec<T, SIMD_WIDTH>[ROW_STOP],
                                 Vec<T, SIMD_WIDTH>[ROW_STOP])
   {}
@@ -1818,9 +1801,8 @@ public:
 // primary template
 template <typename T, int SIMD_WIDTH, int NUMROWS, int ROW, int ROW_STOP,
           int TRANSPOSE_WIDTH, int SRC_OFF, int DST_OFF>
-class TransposePostprocess16
+struct TransposePostprocess16
 {
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -1840,14 +1822,13 @@ public:
 // partial specialization
 template <typename T, int SIMD_WIDTH, int NUMROWS, int ROW, int ROW_STOP,
           int SRC_OFF, int DST_OFF>
-class TransposePostprocess16<T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16, SRC_OFF,
-                             DST_OFF>
+struct TransposePostprocess16<T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16,
+                              SRC_OFF, DST_OFF>
 {
   static constexpr int STEP    = SIMD_WIDTH / 16;
   static constexpr int SRC_ROW = SRC_OFF + ROW * STEP;
   static constexpr int DST_ROW = DST_OFF + ROW;
 
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -1864,10 +1845,9 @@ public:
 // partial specialization to end the iteration
 template <typename T, int SIMD_WIDTH, int NUMROWS, int ROW_STOP, int SRC_OFF,
           int DST_OFF>
-class TransposePostprocess16<T, SIMD_WIDTH, NUMROWS, ROW_STOP, ROW_STOP, 16,
-                             SRC_OFF, DST_OFF>
+struct TransposePostprocess16<T, SIMD_WIDTH, NUMROWS, ROW_STOP, ROW_STOP, 16,
+                              SRC_OFF, DST_OFF>
 {
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems])
@@ -1879,9 +1859,8 @@ public:
 // primary template
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH>
-class TransposePostprocess
+struct TransposePostprocess
 {
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems])
@@ -1890,12 +1869,11 @@ public:
 
 // partial specialization to post-process Transpose<Unpack16>
 template <typename T, int SIMD_WIDTH>
-class TransposePostprocess<Unpack16, T, SIMD_WIDTH>
+struct TransposePostprocess<Unpack16, T, SIMD_WIDTH>
 {
   static constexpr int NUMROWS  = SIMD_WIDTH / sizeof(T);
   static constexpr int ROW_STOP = 16 / sizeof(T);
 
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -2012,9 +1990,8 @@ template <template <int, int, typename, int> class Unpack, typename T,
           // ROW: index of row to transpose
           int NUMROWS, int ROW, int ROW_STOP, int TRANSPOSE_WIDTH, int SRC_OFF,
           int DST_OFF>
-class Transpose16
+struct Transpose16
 {
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -2032,14 +2009,13 @@ public:
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int NUMROWS, int ROW, int ROW_STOP, int SRC_OFF,
           int DST_OFF>
-class Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16, SRC_OFF,
-                  DST_OFF>
+struct Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16, SRC_OFF,
+                   DST_OFF>
 {
   static constexpr int STEP    = SIMD_WIDTH / 16;
   static constexpr int SRC_ROW = SRC_OFF + ROW * STEP;
   static constexpr int DST_ROW = DST_OFF + ROW;
 
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -2060,10 +2036,9 @@ public:
 // partial specialization to end the iteration
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int NUMROWS, int ROW_STOP, int SRC_OFF, int DST_OFF>
-class Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW_STOP, ROW_STOP, 16,
-                  SRC_OFF, DST_OFF>
+struct Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW_STOP, ROW_STOP, 16,
+                   SRC_OFF, DST_OFF>
 {
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems])
@@ -2285,9 +2260,8 @@ namespace ext {
 // -------------------- different zip functions ------------------------------
 
 template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
-class Zip
+struct Zip
 {
-public:
   static SIMD_INLINE void _zip(Vec<T, SIMD_WIDTH> a, Vec<T, SIMD_WIDTH> b,
                                Vec<T, SIMD_WIDTH> &l, Vec<T, SIMD_WIDTH> &h)
   {
@@ -2296,9 +2270,8 @@ public:
 };
 
 template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
-class Zip16
+struct Zip16
 {
-public:
   static SIMD_INLINE void _zip(Vec<T, SIMD_WIDTH> a, Vec<T, SIMD_WIDTH> b,
                                Vec<T, SIMD_WIDTH> &l, Vec<T, SIMD_WIDTH> &h)
   {
@@ -2311,12 +2284,11 @@ public:
 // primary template
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int SRC, int DST>
-class Swizzle4Once
+struct Swizzle4Once
 {
   static constexpr int SRC2 = SRC + N;
   static constexpr int DST2 = DST + 1;
 
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
   {
@@ -2330,9 +2302,8 @@ public:
 // partial specialization to end the iteration
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int DST>
-class Swizzle4Once<Zip, T, SIMD_WIDTH, N, N, DST>
+struct Swizzle4Once<Zip, T, SIMD_WIDTH, N, N, DST>
 {
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N] /*v*/,
                                    Vec<T, SIMD_WIDTH>[2 * N] /*v2*/)
   {
@@ -2348,9 +2319,8 @@ public:
 // primary template
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int REP, int FINAL_REPS, int ODD>
-class Swizzle4Multiple
+struct Swizzle4Multiple
 {
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
   {
@@ -2366,9 +2336,8 @@ public:
 // partial specialization to end the iteration without swizzle post-amble
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int FINAL_REPS, int ODD>
-class Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
+struct Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
 {
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N],
                                    Vec<T, SIMD_WIDTH>[2 * N])
   {}
@@ -2377,11 +2346,10 @@ public:
 // partial specialization to end the iteration with swizzle post-amble
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int FINAL_REPS>
-class Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
+struct Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 {
   static constexpr int ROW_STOP = 2 * N;
 
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
   {
@@ -2399,13 +2367,12 @@ public:
 // primary template
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int FINALBLKSIZE>
-class Swizzle4
+struct Swizzle4
 {
   static constexpr int ORIG_REPS  = (int) floorlog2(FINALBLKSIZE) + 1;
   static constexpr int FINAL_REPS = ORIG_REPS / 2;
   static constexpr int ODD        = (ORIG_REPS & 0x01);
 
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N])
   {
     Vec<T, SIMD_WIDTH> v2[2 * N];
@@ -2453,9 +2420,8 @@ namespace ext {
 // template parameter is not needed.
 
 template <typename T, int SIMD_WIDTH, int N, int SRC, int DST>
-class Unswizzle4Once
+struct Unswizzle4Once
 {
-public:
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                      Vec<T, SIMD_WIDTH> v2[2 * N])
   {
@@ -2466,18 +2432,16 @@ public:
 
 // partial specialization to end the iteration
 template <typename T, int SIMD_WIDTH, int N, int SRC>
-class Unswizzle4Once<T, SIMD_WIDTH, N, SRC, N>
+struct Unswizzle4Once<T, SIMD_WIDTH, N, SRC, N>
 {
-public:
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH>[2 * N],
                                      Vec<T, SIMD_WIDTH>[2 * N])
   {}
 };
 
 template <typename T, int SIMD_WIDTH, int N, int REP, int FINAL_REPS, int ODD>
-class Unswizzle4Multiple
+struct Unswizzle4Multiple
 {
-public:
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                      Vec<T, SIMD_WIDTH> v2[2 * N])
   {
@@ -2490,9 +2454,8 @@ public:
 
 // partial specialization to end the iteration without unswizzle post-amble
 template <typename T, int SIMD_WIDTH, int N, int FINAL_REPS, int ODD>
-class Unswizzle4Multiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
+struct Unswizzle4Multiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
 {
-public:
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH>[2 * N],
                                      Vec<T, SIMD_WIDTH>[2 * N])
   {}
@@ -2500,9 +2463,8 @@ public:
 
 // partial specialization to end the iteration with unswizzle post-amble
 template <typename T, int SIMD_WIDTH, int N, int FINAL_REPS>
-class Unswizzle4Multiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
+struct Unswizzle4Multiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 {
-public:
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                      Vec<T, SIMD_WIDTH> v2[2 * N])
   {
@@ -2514,14 +2476,13 @@ public:
 // ------------------------ unswizzle main meta template ---------------------
 
 template <typename T, int SIMD_WIDTH, int N>
-class Unswizzle4
+struct Unswizzle4
 {
   static constexpr int FINALBLKSIZE = Vec<T, SIMD_WIDTH>::elements;
   static constexpr int ORIG_REPS    = (int) floorlog2(FINALBLKSIZE) + 1;
   static constexpr int FINAL_REPS   = ORIG_REPS / 2;
   static constexpr int ODD          = (ORIG_REPS & 0x01);
 
-public:
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N])
   {
     Vec<T, SIMD_WIDTH> v2[2 * N];
@@ -2584,12 +2545,11 @@ namespace ext {
 
 // primary template
 template <typename T, int SIMD_WIDTH, int N, int SRC, int DST, int LANE_ELEMS>
-class Swizzle4Postprocess16Once
+struct Swizzle4Postprocess16Once
 {
   static constexpr int SRC2 = SRC + 1;
   static constexpr int DST2 = DST + N;
 
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
   {
@@ -2603,9 +2563,8 @@ public:
 
 // partial specialization to end the iteration
 template <typename T, int SIMD_WIDTH, int N, int SRC, int LANE_ELEMS>
-class Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, SRC, N, LANE_ELEMS>
+struct Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, SRC, N, LANE_ELEMS>
 {
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N] /*v*/,
                                    Vec<T, SIMD_WIDTH>[2 * N] /*v2*/)
   {
@@ -2621,9 +2580,8 @@ public:
 // primary template
 template <typename T, int SIMD_WIDTH, int N, int LANE_ELEMS, int REP,
           int FINAL_REPS, int ODD>
-class Swizzle4Postprocess16
+struct Swizzle4Postprocess16
 {
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
   {
@@ -2642,10 +2600,9 @@ public:
 // partial specialization to end the iteration without post-process post-amble
 template <typename T, int SIMD_WIDTH, int N, int LANE_ELEMS, int FINAL_REPS,
           int ODD>
-class Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
-                            FINAL_REPS, ODD>
+struct Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
+                             FINAL_REPS, ODD>
 {
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N],
                                    Vec<T, SIMD_WIDTH>[2 * N])
   {}
@@ -2653,12 +2610,11 @@ public:
 
 // partial specialization to end the iteration with post-process post-amble
 template <typename T, int SIMD_WIDTH, int N, int LANE_ELEMS, int FINAL_REPS>
-class Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
-                            FINAL_REPS, 1>
+struct Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
+                             FINAL_REPS, 1>
 {
   static constexpr int ROW_STOP = 2 * N;
 
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
   {
@@ -2673,22 +2629,20 @@ public:
 // primary template
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N>
-class Swizzle4Postprocess
+struct Swizzle4Postprocess
 {
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N]) {}
 };
 
 // partial specialization to post-process Swizzle<Zip16>
 template <typename T, int SIMD_WIDTH, int N>
-class Swizzle4Postprocess<Zip16, T, SIMD_WIDTH, N>
+struct Swizzle4Postprocess<Zip16, T, SIMD_WIDTH, N>
 {
   static constexpr int ORIG_REPS  = (int) floorlog2(SIMD_WIDTH) - 4;
   static constexpr int FINAL_REPS = ORIG_REPS / 2;
   static constexpr int ODD        = (ORIG_REPS & 0x01);
   static constexpr int LANE_ELEMS = 16 / sizeof(T);
 
-public:
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N])
   {
     Vec<T, SIMD_WIDTH> v2[2 * N];
@@ -2734,7 +2688,7 @@ namespace ext {
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int PROCESS_ROW, int PROCESS_ROWS, int UNPACK_ELEMS,
           int UNPACK_REP, int UNPACK_REPS, int SUB_BASE, int SUB>
-class TransposeRcUnpackSingle
+struct TransposeRcUnpackSingle
 {
   static constexpr int UNPACK_PART =
     (PROCESS_ROW >> (UNPACK_REPS - UNPACK_REP - 1)) & 0x01;
@@ -2749,7 +2703,6 @@ class TransposeRcUnpackSingle
   // static constexpr int SRC1 = ((PROCESS_ROW * 2) % PROCESS_ROWS) ;
   // static constexpr int SRC2 = ((PROCESS_ROW * 2) % PROCESS_ROWS) + 1 ;
 
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[PROCESS_ROWS],
     Vec<T, SIMD_WIDTH> outRows[PROCESS_ROWS])
@@ -2773,11 +2726,10 @@ public:
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int PROCESS_ROWS, int UNPACK_ELEMS, int UNPACK_REP,
           int UNPACK_REPS, int SUB_BASE, int SUB>
-class TransposeRcUnpackSingle<Unpack, T, SIMD_WIDTH, PROCESS_ROWS, PROCESS_ROWS,
-                              UNPACK_ELEMS, UNPACK_REP, UNPACK_REPS, SUB_BASE,
-                              SUB>
+struct TransposeRcUnpackSingle<Unpack, T, SIMD_WIDTH, PROCESS_ROWS,
+                               PROCESS_ROWS, UNPACK_ELEMS, UNPACK_REP,
+                               UNPACK_REPS, SUB_BASE, SUB>
 {
-public:
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH>[PROCESS_ROWS] /*inRows*/,
     Vec<T, SIMD_WIDTH>[PROCESS_ROWS] /*outRows*/)
@@ -2797,9 +2749,8 @@ public:
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int UNPACK_REP, int UNPACK_REPS, int PROCESS_ROWS,
           int UNPACK_ELEMS, int SUB_BASE, int UNPACK_ODD>
-class TransposeRcUnpackMultiple
+struct TransposeRcUnpackMultiple
 {
-public:
   static SIMD_INLINE void _transpose(Vec<T, SIMD_WIDTH> inRows[PROCESS_ROWS],
                                      Vec<T, SIMD_WIDTH> outRows[PROCESS_ROWS])
   {
@@ -2819,11 +2770,10 @@ public:
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int UNPACK_REPS, int PROCESS_ROWS, int UNPACK_ELEMS,
           int SUB_BASE, int UNPACK_ODD>
-class TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH, UNPACK_REPS, UNPACK_REPS,
-                                PROCESS_ROWS, UNPACK_ELEMS, SUB_BASE,
-                                UNPACK_ODD>
+struct TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH, UNPACK_REPS,
+                                 UNPACK_REPS, PROCESS_ROWS, UNPACK_ELEMS,
+                                 SUB_BASE, UNPACK_ODD>
 {
-public:
   static SIMD_INLINE void _transpose(Vec<T, SIMD_WIDTH>[PROCESS_ROWS],
                                      Vec<T, SIMD_WIDTH>[PROCESS_ROWS])
   {}
@@ -2833,10 +2783,10 @@ public:
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int UNPACK_REPS, int PROCESS_ROWS, int UNPACK_ELEMS,
           int SUB_BASE>
-class TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH, UNPACK_REPS, UNPACK_REPS,
-                                PROCESS_ROWS, UNPACK_ELEMS, SUB_BASE, 0>
+struct TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH, UNPACK_REPS,
+                                 UNPACK_REPS, PROCESS_ROWS, UNPACK_ELEMS,
+                                 SUB_BASE, 0>
 {
-public:
   static SIMD_INLINE void _transpose(Vec<T, SIMD_WIDTH> inRows[PROCESS_ROWS],
                                      Vec<T, SIMD_WIDTH> outRows[PROCESS_ROWS])
   {
@@ -2851,11 +2801,10 @@ public:
 // primary template: store all registers lane-wise
 template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
           int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF, int VO, int LANE>
-class TransposeRcStoreLane
+struct TransposeRcStoreLane
 {
   static constexpr int VEC_ELEMS_OUT = Vec<T, SIMD_WIDTH>::elems;
 
-public:
   static SIMD_INLINE void _store(
     T outArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[PROCESS_ROWS])
@@ -2870,11 +2819,10 @@ public:
 // partial specialisation to end iteration LANE=PROCESS_REPS
 template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
           int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF, int VO>
-class TransposeRcStoreLane<T, SIMD_WIDTH, PROCESS_REP, PROCESS_REPS,
-                           PROCESS_ROWS, UNPACK_REPS, STORE_OFF, VO,
-                           PROCESS_REPS>
+struct TransposeRcStoreLane<T, SIMD_WIDTH, PROCESS_REP, PROCESS_REPS,
+                            PROCESS_ROWS, UNPACK_REPS, STORE_OFF, VO,
+                            PROCESS_REPS>
 {
-public:
   static SIMD_INLINE void _store(
     T[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH>[PROCESS_ROWS])
@@ -2886,11 +2834,10 @@ public:
 // primary template: store all registers lane-wise
 template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
           int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF, int VO>
-class TransposeRcStoreLanes
+struct TransposeRcStoreLanes
 {
   static constexpr int VEC_ELEMS_OUT = Vec<T, SIMD_WIDTH>::elems;
 
-public:
   static SIMD_INLINE void _store(
     T outArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[PROCESS_ROWS])
@@ -2907,10 +2854,9 @@ public:
 // partial specialisation to end iteration VO=PROCESS_ROWS
 template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
           int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF>
-class TransposeRcStoreLanes<T, SIMD_WIDTH, PROCESS_REP, PROCESS_REPS,
-                            PROCESS_ROWS, UNPACK_REPS, STORE_OFF, PROCESS_ROWS>
+struct TransposeRcStoreLanes<T, SIMD_WIDTH, PROCESS_REP, PROCESS_REPS,
+                             PROCESS_ROWS, UNPACK_REPS, STORE_OFF, PROCESS_ROWS>
 {
-public:
   static SIMD_INLINE void _store(
     T[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH>[PROCESS_ROWS])
@@ -2923,12 +2869,11 @@ public:
 // decides whether to store directly (Store16) or to store lane-wise
 template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
           int PROCESS_ROWS, int UNPACK_REPS>
-class TransposeRcStore
+struct TransposeRcStore
 {
   static constexpr int ELEMS_PER_LANE = 16 / sizeof(T);
   static constexpr int STORE_OFF      = PROCESS_REP * ELEMS_PER_LANE;
 
-public:
   static SIMD_INLINE void _store(
     T outArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[PROCESS_ROWS])
@@ -2941,9 +2886,9 @@ public:
 
 template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_ROWS,
           int UNPACK_REPS>
-class TransposeRcStore<T, SIMD_WIDTH, PROCESS_REP, 1, PROCESS_ROWS, UNPACK_REPS>
+struct TransposeRcStore<T, SIMD_WIDTH, PROCESS_REP, 1, PROCESS_ROWS,
+                        UNPACK_REPS>
 {
-public:
   static SIMD_INLINE void _store(
     T outArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[PROCESS_ROWS])
@@ -2961,13 +2906,12 @@ public:
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS, int PROCESS_ROWS,
           int UNPACK_REPS, int UNPACK_ODD>
-class TransposeRcRep
+struct TransposeRcRep
 {
   static constexpr int LOAD_OFF =
     PROCESS_REP * PROCESS_ROWS * SIMD_WIDTH / sizeof(T);
   static constexpr int SUB_BASE = 1 << (floorlog2(PROCESS_ROWS) - 1);
 
-public:
   static SIMD_INLINE void _transpose(
     const T inArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
     T outArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems])
@@ -3003,10 +2947,9 @@ public:
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int PROCESS_REPS, int PROCESS_ROWS, int UNPACK_REPS,
           int UNPACK_ODD>
-class TransposeRcRep<Unpack, T, SIMD_WIDTH, PROCESS_REPS, PROCESS_REPS,
-                     PROCESS_ROWS, UNPACK_REPS, UNPACK_ODD>
+struct TransposeRcRep<Unpack, T, SIMD_WIDTH, PROCESS_REPS, PROCESS_REPS,
+                      PROCESS_ROWS, UNPACK_REPS, UNPACK_ODD>
 {
-public:
   static SIMD_INLINE void _transpose(
     const T[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
     T[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems])
@@ -3018,18 +2961,17 @@ public:
 // primary template: main entrance
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH>
-class TransposeRc
+struct TransposeRc
 {
   static constexpr int SIMD_REGS = NATIVE_SIMD_REG_COUNT / 2;
   static constexpr int NUM_ROWS  = SIMD_WIDTH / sizeof(T);
   static constexpr int PROCESS_REPS =
-    (int) NUM_ROWS > (int) SIMD_REGS ? SIMD_WIDTH / 16 : 1;
+    NUM_ROWS > SIMD_REGS ? SIMD_WIDTH / 16 : 1;
   static constexpr int PROCESS_ROWS = NUM_ROWS / PROCESS_REPS;
   static constexpr int UNPACK_REPS =
     PROCESS_REPS == 1 ? floorlog2(PROCESS_ROWS) : floorlog2(16 / sizeof(T));
   static constexpr int UNPACK_ODD = (UNPACK_REPS & 0x01);
 
-public:
   static SIMD_INLINE void _transpose(
     const T inArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
     T outArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems])
@@ -3339,9 +3281,8 @@ class Cas;
 
 // specialization for DESCENDING
 template <typename T, int SIMD_WIDTH>
-class Cas<SortSlope::DESCENDING, T, SIMD_WIDTH>
+struct Cas<SortSlope::DESCENDING, T, SIMD_WIDTH>
 {
-public:
   static void compareAndSwap(Vec<T, SIMD_WIDTH> &a, Vec<T, SIMD_WIDTH> &b)
   {
     Vec<T, SIMD_WIDTH> temp = min(a, b);
@@ -3352,9 +3293,8 @@ public:
 
 // specialization for ASCENDING
 template <typename T, int SIMD_WIDTH>
-class Cas<SortSlope::ASCENDING, T, SIMD_WIDTH>
+struct Cas<SortSlope::ASCENDING, T, SIMD_WIDTH>
 {
-public:
   static void compareAndSwap(Vec<T, SIMD_WIDTH> &a, Vec<T, SIMD_WIDTH> &b)
   {
     Vec<T, SIMD_WIDTH> temp = max(a, b);

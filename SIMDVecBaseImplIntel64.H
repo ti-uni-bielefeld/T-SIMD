@@ -72,12 +72,14 @@ namespace simd {
 template <typename T>
 class Vec<T, 64>
 {
+  __m512i zmm;
+
 public:
   using Type                    = T;
   static constexpr int elements = 64 / sizeof(T);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 64;
-  __m512i zmm;
+
   Vec() = default;
   Vec(const __m512i &x) { zmm = x; }
   Vec &operator=(const __m512i &x)
@@ -112,12 +114,14 @@ public:
 template <>
 class Vec<Float, 64>
 {
+  __m512 zmm;
+
 public:
   using Type                    = Float;
   static constexpr int elements = 64 / sizeof(Float);
   static constexpr int elems    = elements;
   static constexpr int bytes    = 64;
-  __m512 zmm;
+
   Vec() = default;
   Vec(const __m512 &x) { zmm = x; }
   Vec &operator=(const __m512 &x)
@@ -679,7 +683,7 @@ static SIMD_INLINE Vec<Tdst, 64> reinterpret(const Vec<Tsrc, 64> &vec,
   // 26. Nov 22 (Jonas Keller): reinterpret_cast is technically undefined
   // behavior, so just rewrapping the vector register in a new Vec instead
   // return reinterpret_cast<const Vec<Tdst,64>&>(vec);
-  return Vec<Tdst, 64>(vec.zmm);
+  return Vec<Tdst, 64>(__m512i(vec));
 }
 
 // from float to any integer type
@@ -3298,9 +3302,8 @@ class Swizzle_64_16;
 // vIn:  0 1 2 3 | 4 5 6 7
 // vOut: 0 2 4 6 | 1 3 5 7
 template <typename T>
-class Swizzle_64_16<2, T>
+struct Swizzle_64_16<2, T>
 {
-public:
   static SIMD_INLINE void _swizzle_64_16(const Vec<T, 64> vIn[2],
                                          Vec<T, 64> vOut[2])
   {
@@ -3314,9 +3317,8 @@ public:
 // vTmp: 0 6 1 4 | 7 10 5  8 | 3 9  2 11
 // vOut: 0 3 6 9 | 1  4 7 10 | 2 5  8 11
 template <typename T>
-class Swizzle_64_16<3, T>
+struct Swizzle_64_16<3, T>
 {
-public:
   static SIMD_INLINE void _swizzle_64_16(const Vec<T, 64> vIn[3],
                                          Vec<T, 64> vOut[3])
   {
@@ -3336,9 +3338,8 @@ public:
 // vTmp: 0 4 1  5 | 2 6 3  7 | 8 12  9 13 | 10 14 11 15
 // vOut: 0 4 8 12 | 1 5 9 13 | 2  6 10 14 |  3  7 11 15
 template <typename T>
-class Swizzle_64_16<4, T>
+struct Swizzle_64_16<4, T>
 {
-public:
   static SIMD_INLINE void _swizzle_64_16(const Vec<T, 64> vIn[4],
                                          Vec<T, 64> vOut[4])
   {
@@ -3360,9 +3361,8 @@ public:
 // vTmp: 5 10  6 11 | 1 16  3 18 | 8 13  9 14 |  7 17  4 19 |  0 15  2 12
 // vOut: 0  5 10 15 | 1  6 11 16 | 2  7 12 17 |  3  8 13 18 |  4  9 14 19
 template <typename T>
-class Swizzle_64_16<5, T>
+struct Swizzle_64_16<5, T>
 {
-public:
   static SIMD_INLINE void _swizzle_64_16(const Vec<T, 64> vIn[5],
                                          Vec<T, 64> vOut[5])
   {

@@ -153,9 +153,8 @@ template <typename T>
 class TypeInfo;
 
 template <>
-class TypeInfo<Byte>
+struct TypeInfo<Byte>
 {
-public:
   static constexpr SIMD_INLINE const char *name() { return "Byte"; }
   static constexpr SIMD_INLINE const char *format() { return "u"; }
   static constexpr SIMD_INLINE const char *defaultFormat() { return "%u "; }
@@ -167,9 +166,8 @@ public:
 };
 
 template <>
-class TypeInfo<SignedByte>
+struct TypeInfo<SignedByte>
 {
-public:
   static constexpr SIMD_INLINE const char *name() { return "SignedByte"; }
   static constexpr SIMD_INLINE const char *format() { return "d"; }
   static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; }
@@ -184,9 +182,8 @@ public:
 };
 
 template <>
-class TypeInfo<Word>
+struct TypeInfo<Word>
 {
-public:
   static constexpr SIMD_INLINE const char *name() { return "Word"; }
   static constexpr SIMD_INLINE const char *format() { return "u"; }
   static constexpr SIMD_INLINE const char *defaultFormat() { return "%u "; }
@@ -198,9 +195,8 @@ public:
 };
 
 template <>
-class TypeInfo<Short>
+struct TypeInfo<Short>
 {
-public:
   static constexpr SIMD_INLINE const char *name() { return "Short"; }
   static constexpr SIMD_INLINE const char *format() { return "d"; }
   static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; }
@@ -212,9 +208,8 @@ public:
 };
 
 template <>
-class TypeInfo<Int>
+struct TypeInfo<Int>
 {
-public:
   static constexpr SIMD_INLINE const char *name() { return "Int"; }
   static constexpr SIMD_INLINE const char *format() { return "d"; }
   static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; }
@@ -226,9 +221,8 @@ public:
 };
 
 template <>
-class TypeInfo<Float>
+struct TypeInfo<Float>
 {
-public:
   static constexpr SIMD_INLINE const char *name() { return "Float"; }
   static constexpr SIMD_INLINE const char *format() { return "g"; }
   static constexpr SIMD_INLINE const char *defaultFormat() { return "%g "; }
@@ -244,9 +238,8 @@ public:
  * @brief Type information for SIMD types
  */
 template <typename T>
-class TypeInfo
+struct TypeInfo
 {
-public:
   /// @brief Returns the name of the type (e.g. "Int" for Int)
   static constexpr SIMD_INLINE const char *name()
   {
@@ -328,9 +321,8 @@ public:
  * @tparam T type for which to generate a format string
  */
 template <typename T>
-class Format
+struct Format
 {
-public:
   char format[256]; ///< The generated format string
 
   /**
@@ -368,9 +360,8 @@ public:
  * @tparam T type to format
  */
 template <typename T>
-class Decimal
+struct Decimal
 {
-public:
   char str[256]; ///< The formatted string
 
   /**

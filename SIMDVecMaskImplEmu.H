@@ -638,9 +638,8 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kshiftli(const Mask<T, SIMD_WIDTH> &a)
 // mask_set_true/false_low/high.
 
 template <bool UP, typename T, int SIMD_WIDTH>
-class MaskSetBuffer
+struct MaskSetBuffer
 {
-public:
   T buffer[Vec<T, SIMD_WIDTH>::elems * 2];
   MaskSetBuffer()
   {

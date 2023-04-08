@@ -102,9 +102,8 @@ UInt<4> getRandomUInt<4>()
 // in the autotests.
 
 template <typename T, int SIMD_WIDTH>
-class SerialMask
+struct SerialMask
 {
-public:
   static constexpr int bits = Vec<T, SIMD_WIDTH>::elems;
   UInt<bits> mask;
 

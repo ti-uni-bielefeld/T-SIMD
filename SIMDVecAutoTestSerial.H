@@ -74,9 +74,8 @@ namespace auto_test {
 // SerialVec in the autotests.
 
 template <typename T, int SIMD_WIDTH>
-class SerialVec
+struct SerialVec
 {
-public:
   static constexpr int elements = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int elems    = elements;
   static constexpr int bytes    = SIMD_WIDTH;

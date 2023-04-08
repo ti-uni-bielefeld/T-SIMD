@@ -1972,33 +1972,35 @@ static SIMD_INLINE Vec<T, 32> abs(const Vec<T, 32> &a)
   return a;
 }
 
-#ifdef __AVX2__
-
 static SIMD_INLINE Vec<SignedByte, 32> abs(const Vec<SignedByte, 32> &a)
 {
+#ifdef __AVX2__
   return _mm256_abs_epi8(a);
+#else
+  // non-avx2 workaround
+  return Vec<SignedByte, 32>(abs(a.lo()), abs(a.hi()));
+#endif
 }
 
 static SIMD_INLINE Vec<Short, 32> abs(const Vec<Short, 32> &a)
 {
+#ifdef __AVX2__
   return _mm256_abs_epi16(a);
+#else
+  // non-avx2 workaround
+  return Vec<Short, 32>(abs(a.lo()), abs(a.hi()));
+#endif
 }
 
 static SIMD_INLINE Vec<Int, 32> abs(const Vec<Int, 32> &a)
 {
+#ifdef __AVX2__
   return _mm256_abs_epi32(a);
-}
-
 #else
-
-// non-avx2 workaround
-template <typename T>
-static SIMD_INLINE Vec<T, 32> abs(const Vec<T, 32> &a)
-{
-  return Vec<T, 32>(abs(a.lo()), abs(a.hi()));
-}
-
+  // non-avx2 workaround
+  return Vec<Int, 32>(abs(a.lo()), abs(a.hi()));
 #endif
+}
 
 static SIMD_INLINE Vec<Float, 32> abs(const Vec<Float, 32> &a)
 {

@@ -1479,28 +1479,25 @@ static SIMD_INLINE Vec<T, 64> abs(const Vec<T, 64> &a)
   return a;
 }
 
-#ifdef __AVX512BW__
-
 static SIMD_INLINE Vec<SignedByte, 64> abs(const Vec<SignedByte, 64> &a)
 {
+#ifdef __AVX512BW__
   return _mm512_abs_epi8(a);
+#else
+  // non-avx512bw workaround
+  return Vec<SignedByte, 64>(abs(a.lo()), abs(a.hi()));
+#endif
 }
 
 static SIMD_INLINE Vec<Short, 64> abs(const Vec<Short, 64> &a)
 {
+#ifdef __AVX512BW__
   return _mm512_abs_epi16(a);
-}
-
 #else
-
-// non-avx512bw workaround
-template <typename T>
-static SIMD_INLINE Vec<T, 64> abs(const Vec<T, 64> &a)
-{
-  return Vec<T, 64>(abs(a.lo()), abs(a.hi()));
-}
-
+  // non-avx512bw workaround
+  return Vec<Short, 64>(abs(a.lo()), abs(a.hi()));
 #endif
+}
 
 static SIMD_INLINE Vec<Int, 64> abs(const Vec<Int, 64> &a)
 {

@@ -950,8 +950,8 @@ static SIMD_INLINE Vec<Int, 16> adds(const Vec<Int, 16> &a,
   __m128i saturatedSum =
     _mm_xor_si128(_mm_srai_epi32(a, 31), _mm_set1_epi32(0x7FFFFFFF));
   // return saturated sum if overflow occurred, otherwise return sum
-  return _mm_or_si128(_mm_andnot_si128(overflow, sum),
-                      _mm_and_si128(overflow, saturatedSum));
+  return ifelse(Vec<Int, 16>(overflow), Vec<Int, 16>(saturatedSum),
+                Vec<Int, 16>(sum));
 }
 
 // Float not saturated
@@ -1051,8 +1051,8 @@ static SIMD_INLINE Vec<Int, 16> subs(const Vec<Int, 16> &a,
   __m128i saturatedDiff =
     _mm_xor_si128(_mm_srai_epi32(a, 31), _mm_set1_epi32(0x7FFFFFFF));
   // return saturated diff if overflow occurred, otherwise return diff
-  return _mm_or_si128(_mm_andnot_si128(overflow, diff),
-                      _mm_and_si128(overflow, saturatedDiff));
+  return ifelse(Vec<Int, 16>(overflow), Vec<Int, 16>(saturatedDiff),
+                Vec<Int, 16>(diff));
 }
 
 // Float not saturated

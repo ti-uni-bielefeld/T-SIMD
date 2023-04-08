@@ -64,11 +64,11 @@ using Float      = float; ///< Single-precision floating point number (32-bit)
 // and also added SIMDFLOAT_TRUE using an immediately invoked lambda and
 // std::memcpy
 
-#define SIMDBYTE_TRUE       (~(::simd::Byte(0)))
-#define SIMDSIGNEDBYTE_TRUE (~(::simd::SignedByte(0)))
-#define SIMDWORD_TRUE       (~(::simd::Word(0)))
-#define SIMDSHORT_TRUE      (~(::simd::Short(0)))
-#define SIMDINT_TRUE        (~(::simd::Int(0)))
+#define SIMDBYTE_TRUE       (::simd::Byte(~0))
+#define SIMDSIGNEDBYTE_TRUE (::simd::SignedByte(~0))
+#define SIMDWORD_TRUE       (::simd::Word(~0))
+#define SIMDSHORT_TRUE      (::simd::Short(~0))
+#define SIMDINT_TRUE        (::simd::Int(~0))
 // use an immediately invoked lambda to be able to use memcpy
 #define SIMDFLOAT_TRUE                                                         \
   ([]() -> ::simd::Float {                                                     \

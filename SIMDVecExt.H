@@ -789,12 +789,12 @@ static SIMD_INLINE void fdivMsigmoidmul(
 {
   const int nIn   = sizeof(Tin) / sizeof(Tout);
   const int fanIn = sizeof(Float) / sizeof(Tin);
-  const auto facF = set1<Float, SIMD_WIDTH>(fac / 2.0f);
+  const auto facF = set1<Float, SIMD_WIDTH>(fac / 2.0);
   const auto oneF = set1<Float, SIMD_WIDTH>(1.0f);
   Vec<Float, SIMD_WIDTH> wF[DIM], w0F[DIM], numF[DIM][fanIn],
     denomF[DIM][fanIn], resF[nIn * fanIn];
   for (int d = 0; d < DIM; d++) {
-    wF[d]  = set1<Float, SIMD_WIDTH>(-0.433f * w[d]);
+    wF[d]  = set1<Float, SIMD_WIDTH>(-0.433 * w[d]);
     w0F[d] = set1<Float, SIMD_WIDTH>(w0[d]);
   }
   // i: index of input vector
@@ -828,12 +828,12 @@ static SIMD_INLINE void fdivMsigmoidmul(
 {
   const int nOut   = sizeof(Tout) / sizeof(Tin);
   const int fanOut = sizeof(Float) / sizeof(Tout);
-  const auto facF  = set1<Float, SIMD_WIDTH>(fac / 2.0f);
+  const auto facF  = set1<Float, SIMD_WIDTH>(fac / 2.0);
   const auto oneF  = set1<Float, SIMD_WIDTH>(1.0f);
   Vec<Float, SIMD_WIDTH> wF[DIM], w0F[DIM], numF[DIM][nOut * fanOut],
     denomF[DIM][nOut * fanOut], resF[fanOut];
   for (int d = 0; d < DIM; d++) {
-    wF[d]  = set1<Float, SIMD_WIDTH>(-0.433f * w[d]);
+    wF[d]  = set1<Float, SIMD_WIDTH>(-0.433 * w[d]);
     w0F[d] = set1<Float, SIMD_WIDTH>(w0[d]);
     extend(*vecsNum[d], numF[d]);
     extend(*vecsDenom[d], denomF[d]);
@@ -862,12 +862,12 @@ static SIMD_INLINE void fdivMsigmoidmul(
   const double w0[DIM], double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
 {
   const int fanInOut = sizeof(Float) / sizeof(Tin);
-  const auto facF    = set1<Float, SIMD_WIDTH>(fac / 2.0f);
+  const auto facF    = set1<Float, SIMD_WIDTH>(fac / 2.0);
   const auto oneF    = set1<Float, SIMD_WIDTH>(1.0f);
   Vec<Float, SIMD_WIDTH> wF[DIM], w0F[DIM], numF[DIM][fanInOut],
     denomF[DIM][fanInOut], resF[fanInOut];
   for (int d = 0; d < DIM; d++) {
-    wF[d]  = set1<Float, SIMD_WIDTH>(-0.433f * w[d]);
+    wF[d]  = set1<Float, SIMD_WIDTH>(-0.433 * w[d]);
     w0F[d] = set1<Float, SIMD_WIDTH>(w0[d]);
     extend(*vecsNum[d], numF[d]);
     extend(*vecsDenom[d], denomF[d]);
@@ -2187,7 +2187,7 @@ static SIMD_INLINE void swizzle3(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   Vec<T, SIMD_WIDTH> v2[2 * N];
   int origReps  = log2(FINALBLKSIZE) + 1;
-  int finalReps = std::floor(origReps / 2.0);
+  int finalReps = origReps / 2;
   // printf("origReps=%d finalReps=%d\n", origReps, finalReps);
 
   for (int rep = 0; rep < finalReps; rep++) {

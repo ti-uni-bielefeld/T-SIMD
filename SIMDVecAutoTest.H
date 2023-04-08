@@ -233,7 +233,7 @@ struct CmpEqual
     // if the bits are equal, the floats are equal
     if (memcmp(&expected, &actual, sizeof(float)) == 0) { return true; }
     // if the floats are both +-0, they are equal
-    return (fabs(expected) == 0.0f) && (fabs(actual) == 0.0f);
+    return (std::abs(expected) == 0.0f) && (std::abs(actual) == 0.0f);
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -278,7 +278,7 @@ struct CmpRelError
   {
     if (CmpEqual::cmpScalar(expected, actual)) { return true; }
     float maxRelErr = COEFF * pow(10, EXP_10) * pow(2, EXP_2);
-    float relErr    = fabs(expected - actual) / fabs(expected);
+    float relErr    = fabsf(expected - actual) / fabsf(expected);
     return relErr <= maxRelErr;
   }
 

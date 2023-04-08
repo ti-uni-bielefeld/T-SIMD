@@ -453,7 +453,7 @@ static SIMD_INLINE T _min(T a, T b)
 
 static SIMD_INLINE Float _min(Float a, Float b)
 {
-  return daz_neon(fmin(daz_neon(a), daz_neon(b)));
+  return daz_neon(fminf(daz_neon(a), daz_neon(b)));
 }
 
 template <typename T>
@@ -464,7 +464,7 @@ static SIMD_INLINE T _max(T a, T b)
 
 static SIMD_INLINE Float _max(Float a, Float b)
 {
-  return daz_neon(fmax(daz_neon(a), daz_neon(b)));
+  return daz_neon(fmaxf(daz_neon(a), daz_neon(b)));
 }
 
 // -------------------------------------------------------------------------
@@ -477,12 +477,14 @@ static SIMD_INLINE Float _max(Float a, Float b)
 
 static SIMD_INLINE SignedByte _abs(SignedByte a)
 {
-  return std::abs(a);
+  // std::abs() does not exist for int8_t
+  return a < 0 ? -a : a;
 }
 
 static SIMD_INLINE Short _abs(Short a)
 {
-  return std::abs(a);
+  // std::abs() does not exist for int16_t
+  return a < 0 ? -a : a;
 }
 
 static SIMD_INLINE Int _abs(Int a)
@@ -1913,7 +1915,6 @@ static SIMD_INLINE void fdivmul(
   const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  float facF            = fac;
   int outIdx            = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
     for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
@@ -1922,7 +1923,7 @@ static SIMD_INLINE void fdivmul(
       vecsOut[outVec][outElem] =
         _packs<Tout>(_mul(_div(_extend<Float>(vecsNum[inVec][inElem]),
                                _extend<Float>(vecsDenom[inVec][inElem])),
-                          facF));
+                          static_cast<Float>(fac)));
     }
 }
 
@@ -1936,14 +1937,13 @@ static SIMD_INLINE void fmul(
   const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  float facF            = fac;
   int outIdx            = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
     for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
-      int outVec  = outIdx / numOutElems;
-      int outElem = outIdx % numOutElems;
-      vecsOut[outVec][outElem] =
-        _packs<Tout>(_mul(_extend<Float>(vecsIn[inVec][inElem]), facF));
+      int outVec               = outIdx / numOutElems;
+      int outElem              = outIdx % numOutElems;
+      vecsOut[outVec][outElem] = _packs<Tout>(
+        _mul(_extend<Float>(vecsIn[inVec][inElem]), static_cast<Float>(fac)));
     }
 }
 
@@ -1957,14 +1957,14 @@ static SIMD_INLINE void faddmul(
   const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  float facF = fac, offF = off;
-  int outIdx = 0;
+  int outIdx            = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
     for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
       int outVec               = outIdx / numOutElems;
       int outElem              = outIdx % numOutElems;
-      vecsOut[outVec][outElem] = _packs<Tout>(
-        _mul(_add(_extend<Float>(vecsIn[inVec][inElem]), offF), facF));
+      vecsOut[outVec][outElem] = _packs<Tout>(_mul(
+        _add(_extend<Float>(vecsIn[inVec][inElem]), static_cast<Float>(off)),
+        static_cast<Float>(fac)));
     }
 }
 
@@ -1978,14 +1978,14 @@ static SIMD_INLINE void fmuladd(
   const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  float facF = fac, offF = off;
-  int outIdx = 0;
+  int outIdx            = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
     for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
       int outVec               = outIdx / numOutElems;
       int outElem              = outIdx % numOutElems;
-      vecsOut[outVec][outElem] = _packs<Tout>(
-        _add(_mul(_extend<Float>(vecsIn[inVec][inElem]), facF), offF));
+      vecsOut[outVec][outElem] = _packs<Tout>(_add(
+        _mul(_extend<Float>(vecsIn[inVec][inElem]), static_cast<Float>(fac)),
+        static_cast<Float>(off)));
     }
 }
 
@@ -2000,17 +2000,16 @@ static SIMD_INLINE void fwaddmul(
   const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  float wF              = w;
-  float facF            = fac;
   int outIdx            = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
     for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
-      int outVec  = outIdx / numOutElems;
-      int outElem = outIdx % numOutElems;
-      float inF1  = _extend<Float>(vecsIn1[inVec][inElem]);
-      float inF2  = _extend<Float>(vecsIn2[inVec][inElem]);
-      vecsOut[outVec][outElem] =
-        _packs<Tout>(_mul(facF, _add(inF2, _mul(wF, _sub(inF1, inF2)))));
+      int outVec               = outIdx / numOutElems;
+      int outElem              = outIdx % numOutElems;
+      float inF1               = _extend<Float>(vecsIn1[inVec][inElem]);
+      float inF2               = _extend<Float>(vecsIn2[inVec][inElem]);
+      vecsOut[outVec][outElem] = _packs<Tout>(
+        _mul(static_cast<Float>(fac),
+             _add(inF2, _mul(static_cast<Float>(w), _sub(inF1, inF2)))));
     }
 }
 template <typename T, int SIMD_WIDTH>

@@ -553,7 +553,7 @@ static SIMD_INLINE Vec<Tdst, 16> reinterpret(const Vec<Tsrc, 16> &vec,
   // 26. Nov 22 (Jonas Keller): reinterpret_cast is technically undefined
   // behavior, so just rewrapping the vector register in a new Vec instead
   // return reinterpret_cast<const Vec<Tdst,16>&>(vec);
-  return Vec<Tdst, 16>(__m128(vec));
+  return Vec<Tdst, 16>(__m128i(vec));
 }
 
 // from float to any integer type

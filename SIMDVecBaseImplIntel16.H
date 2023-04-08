@@ -678,21 +678,17 @@ static SIMD_INLINE Vec<Float, 16> set1(Float a, Integer<16>)
 template <typename T>
 static SIMD_INLINE Vec<T, 16> load(const T *const p, Integer<16>)
 {
-#ifdef SIMD_ALIGN_CHK
   // SSE load and store instructions need alignment to 16 byte
   // (lower 4 bit need to be zero)
-  assert((((uintptr_t) p) & 0xf) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 16);
   return _mm_load_si128((__m128i *) p);
 }
 
 static SIMD_INLINE Vec<Float, 16> load(const Float *const p, Integer<16>)
 {
-#ifdef SIMD_ALIGN_CHK
   // SSE load and store instructions need alignment to 16 byte
   // (lower 4 bit need to be zero)
-  assert((((uintptr_t) p) & 0xf) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 16);
   return _mm_load_ps(p);
 }
 
@@ -719,22 +715,18 @@ static SIMD_INLINE Vec<Float, 16> loadu(const Float *const p, Integer<16>)
 template <typename T>
 static SIMD_INLINE void store(T *const p, const Vec<T, 16> &a)
 {
-#ifdef SIMD_ALIGN_CHK
   // SSE load and store instructions need alignment to 16 byte
   // (lower 4 bit need to be zero)
-  assert((((uintptr_t) p) & 0xf) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 16);
   _mm_store_si128((__m128i *) p, a);
 }
 
 // float version
 static SIMD_INLINE void store(Float *const p, const Vec<Float, 16> &a)
 {
-#ifdef SIMD_ALIGN_CHK
   // SSE load and store instructions need alignment to 16 byte
   // (lower 4 bit need to be zero)
-  assert((((uintptr_t) p) & 0xf) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 16);
   _mm_store_ps(p, a);
 }
 
@@ -763,22 +755,18 @@ static SIMD_INLINE void storeu(Float *const p, const Vec<Float, 16> &a)
 template <typename T>
 static SIMD_INLINE void stream_store(T *const p, const Vec<T, 16> &a)
 {
-#ifdef SIMD_ALIGN_CHK
   // SSE load and store instructions need alignment to 16 byte
   // (lower 4 bit need to be zero)
-  assert((((uintptr_t) p) & 0xf) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 16);
   _mm_stream_si128((__m128i *) p, a);
 }
 
 // float version
 static SIMD_INLINE void stream_store(Float *const p, const Vec<Float, 16> &a)
 {
-#ifdef SIMD_ALIGN_CHK
   // SSE load and store instructions need alignment to 16 byte
   // (lower 4 bit need to be zero)
-  assert((((uintptr_t) p) & 0xf) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 16);
   _mm_stream_ps(p, a);
 }
 

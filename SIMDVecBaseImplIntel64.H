@@ -807,21 +807,17 @@ static SIMD_INLINE Vec<Float, 64> set1(Float a, Integer<64>)
 template <typename T>
 static SIMD_INLINE Vec<T, 64> load(const T *const p, Integer<64>)
 {
-#ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 64 byte
   // (lower 6 bit need to be zero)
-  assert((((uintptr_t) p) & 0x3f) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 64);
   return _mm512_load_si512((__m512i *) p);
 }
 
 static SIMD_INLINE Vec<Float, 64> load(const Float *const p, Integer<64>)
 {
-#ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 64 byte
   // (lower 6 bit need to be zero)
-  assert((((uintptr_t) p) & 0x3f) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 64);
   return _mm512_load_ps(p);
 }
 
@@ -848,22 +844,18 @@ static SIMD_INLINE Vec<Float, 64> loadu(const Float *const p, Integer<64>)
 template <typename T>
 static SIMD_INLINE void store(T *const p, const Vec<T, 64> &a)
 {
-#ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 64 byte
   // (lower 6 bit need to be zero)
-  assert((((uintptr_t) p) & 0x3f) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 64);
   _mm512_store_si512((__m512i *) p, a);
 }
 
 // float version
 static SIMD_INLINE void store(Float *const p, const Vec<Float, 64> &a)
 {
-#ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 64 byte
   // (lower 6 bit need to be zero)
-  assert((((uintptr_t) p) & 0x3f) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 64);
   _mm512_store_ps(p, a);
 }
 
@@ -892,22 +884,18 @@ static SIMD_INLINE void storeu(Float *const p, const Vec<Float, 64> &a)
 template <typename T>
 static SIMD_INLINE void stream_store(T *const p, const Vec<T, 64> &a)
 {
-#ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 64 byte
   // (lower 6 bit need to be zero)
-  assert((((uintptr_t) p) & 0x3f) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 64);
   _mm512_stream_si512((__m512i *) p, a);
 }
 
 // float version
 static SIMD_INLINE void stream_store(Float *const p, const Vec<Float, 64> &a)
 {
-#ifdef SIMD_ALIGN_CHK
   // AVX load and store instructions need alignment to 64 byte
   // (lower 6 bit need to be zero)
-  assert((((uintptr_t) p) & 0x3f) == 0);
-#endif
+  SIMD_CHECK_ALIGNMENT(p, 64);
   _mm512_stream_ps(p, a);
 }
 

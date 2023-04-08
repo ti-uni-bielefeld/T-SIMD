@@ -285,14 +285,13 @@ static SIMD_INLINE Vec<Float, 64> maskz_set1(const Mask<Float, 64> &k,
 // mask_load v
 // ---------------------------------------------------------------------------
 
-#ifdef SIMD_ALIGN_CHK
 #define GENERATE_LOAD(NAME, TYPE, SUF)                                         \
   static SIMD_INLINE Vec<TYPE, 64> mask_load(                                  \
     const Vec<TYPE, 64> &src, const Mask<TYPE, 64> &k, const TYPE *const p)    \
   {                                                                            \
     /* AVX load and store instructions need alignment to 64 byte*/             \
     /* (lower 6 bit need to be zero) */                                        \
-    assert((((uintptr_t) p) & 0x3f) == 0);                                     \
+    SIMD_CHECK_ALIGNMENT(p, 64);                                               \
     return _mm512_mask_##NAME##_##SUF(src, k, p);                              \
   }                                                                            \
   static SIMD_INLINE Vec<TYPE, 64> maskz_load(const Mask<TYPE, 64> &k,         \
@@ -300,22 +299,9 @@ static SIMD_INLINE Vec<Float, 64> maskz_set1(const Mask<Float, 64> &k,
   {                                                                            \
     /* AVX load and store instructions need alignment to 64 byte*/             \
     /* (lower 6 bit need to be zero) */                                        \
-    assert((((uintptr_t) p) & 0x3f) == 0);                                     \
+    SIMD_CHECK_ALIGNMENT(p, 64);                                               \
     return _mm512_maskz_##NAME##_##SUF(k, p);                                  \
   }
-#else
-#define GENERATE_LOAD(NAME, TYPE, SUF)                                         \
-  static SIMD_INLINE Vec<TYPE, 64> mask_load(                                  \
-    const Vec<TYPE, 64> &src, const Mask<TYPE, 64> &k, const TYPE *const p)    \
-  {                                                                            \
-    return _mm512_mask_##NAME##_##SUF(src, k, p);                              \
-  }                                                                            \
-  static SIMD_INLINE Vec<TYPE, 64> maskz_load(const Mask<TYPE, 64> &k,         \
-                                              const TYPE *const p)             \
-  {                                                                            \
-    return _mm512_maskz_##NAME##_##SUF(k, p);                                  \
-  }
-#endif
 
 #ifdef __AVX512BW__
 // there is no aligned load for 8 and 16 bit types, so we use loadu
@@ -360,24 +346,15 @@ GENERATE_LOADU(Float, ps)
 
 // There are no *_maskz_store_* intrinsics, only *_mask_store_* intrinsics
 
-#ifdef SIMD_ALIGN_CHK
 #define MASK_STORE(NAME, TYPE, SUF)                                            \
   static SIMD_INLINE void mask_store(TYPE *const p, const Mask<TYPE, 64> &k,   \
                                      const Vec<TYPE, 64> &a)                   \
   {                                                                            \
     /* AVX load and store instructions need alignment to 64 byte*/             \
     /* (lower 6 bit need to be zero) */                                        \
-    assert((((uintptr_t) p) & 0x3f) == 0);                                     \
+    SIMD_CHECK_ALIGNMENT(p, 64);                                               \
     return _mm512_mask_##NAME##_##SUF(p, k, a);                                \
   }
-#else
-#define MASK_STORE(NAME, TYPE, SUF)                                            \
-  static SIMD_INLINE void mask_store(TYPE *const p, const Mask<TYPE, 64> &k,   \
-                                     const Vec<TYPE, 64> &a)                   \
-  {                                                                            \
-    return _mm512_mask_##NAME##_##SUF(p, k, a);                                \
-  }
-#endif
 
 #ifdef __AVX512BW__
 // there is no aligned store for 8 and 16 bit types, so we use storeu

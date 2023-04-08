@@ -26,6 +26,8 @@
 #ifndef SIMD_DEFS_H_
 #define SIMD_DEFS_H_
 
+#include <iostream>
+
 // TODO: implement and test for other compilers
 // TODO: static inline on primary function templates useful?
 // TODO: (static not allowed on function template specializations)
@@ -202,5 +204,25 @@
 
 // macros to make enable_if SFINAE more convenient and readable
 #define SIMD_ENABLE_IF(EXPR) typename = typename std::enable_if<(EXPR)>::type
+
+// 08. Apr 23 (Jonas Keller): added SIMD_CHECK_ALIGNMENT macro
+
+// macro to check alignment of a pointer
+// does nothing if SIMD_ALIGN_CHK is not defined
+// does not use assert() because assert() may be disabled (e.g. in release
+// builds)
+
+#ifdef SIMD_ALIGN_CHK
+#define SIMD_CHECK_ALIGNMENT(PTR, ALIGN)                                       \
+  if (reinterpret_cast<uintptr_t>(PTR) % (ALIGN) != 0) {                       \
+    ::std::cerr << "SIMD_CHECK_ALIGNMENT: " << __FILE__ << ":" << __LINE__     \
+                << ": " << __func__ << ": " << #PTR << " = " << (PTR)          \
+                << " is not aligned to " << (ALIGN) << " bytes"                \
+                << ::std::endl;                                                \
+    ::std::abort();                                                            \
+  }
+#else
+#define SIMD_CHECK_ALIGNMENT(PTR, ALIGN) ((void) 0)
+#endif
 
 #endif

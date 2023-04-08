@@ -221,6 +221,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> int2bits(const uint64_t a)
 template <int SIMD_WIDTH_DEFAULT_NATIVE, typename T>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> load(const T *const p)
 {
+  // 08. Apr 23 (Jonas Keller):
+  // added alignment check (if SIMD_ALIGN_CHK is defined)
+  SIMD_CHECK_ALIGNMENT(p, SIMD_WIDTH);
   return internal::base::load(p, internal::Integer<SIMD_WIDTH>());
 }
 
@@ -255,6 +258,9 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> loadu(const T *const p)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> &a)
 {
+  // 08. Apr 23 (Jonas Keller):
+  // added alignment check (if SIMD_ALIGN_CHK is defined)
+  SIMD_CHECK_ALIGNMENT(p, SIMD_WIDTH);
   internal::base::store(p, a);
 }
 
@@ -292,6 +298,9 @@ static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> &a)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void stream_store(T *const p, const Vec<T, SIMD_WIDTH> &a)
 {
+  // 08. Apr 23 (Jonas Keller):
+  // added alignment check (if SIMD_ALIGN_CHK is defined)
+  SIMD_CHECK_ALIGNMENT(p, SIMD_WIDTH);
   internal::base::stream_store(p, a);
 }
 

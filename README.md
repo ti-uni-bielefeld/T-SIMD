@@ -53,7 +53,7 @@ int main() {
 
 The following preprocessor definitions can be defined to change the behavior of **T-SIMD** (**WARNING**: These definitions **must** be defined before including `tsimd.H` or any other **T-SIMD** header file):
 
-* `SIMD_ALIGN_CHK` : If this macro is defined, **T-SIMD** will check whether the alignment of the data pointers passed to the functions is correct.
+* `SIMD_ALIGN_CHK` : If this macro is defined, **T-SIMD** will check whether the alignment of the data pointers passed to the functions is correct before executing the functions. If the alignment is incorrect, the location of the error will be printed to the standard error output and the program will be aborted using `std::abort()`. This is useful for debugging purposes.
 * `MAX_SIMD_WIDTH` : This macro can be used to limit the maximum vector width that **T-SIMD** will use. Must be an integer of at least 16.
 * `SIMDVEC_SANDBOX` : If this macro is defined, **T-SIMD** functions will not execute their intended operations, but instead will print what function was called to the standard output. This is useful for debugging purposes.
 # Differences on Different Architectures {#differences-on-different-architectures}

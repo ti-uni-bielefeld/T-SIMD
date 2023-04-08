@@ -150,7 +150,7 @@ enum class SortSlope { ASCENDING = 0, DESCENDING = 1 };
 namespace internal {
 namespace types {
 template <typename T>
-class TypeInfo;
+struct TypeInfo;
 
 template <>
 struct TypeInfo<Byte>

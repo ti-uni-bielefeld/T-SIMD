@@ -3296,7 +3296,7 @@ static SIMD_INLINE __m512i align_shuffle_word_512(__m512i lo, __m512i hi,
 
 // primary template
 template <int N, typename T>
-class Swizzle_64_16;
+struct Swizzle_64_16;
 
 // N=2
 // vIn:  0 1 2 3 | 4 5 6 7

@@ -3277,7 +3277,7 @@ namespace internal {
 namespace ext {
 // compare-and-swap
 template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
-class Cas;
+struct Cas;
 
 // specialization for DESCENDING
 template <typename T, int SIMD_WIDTH>

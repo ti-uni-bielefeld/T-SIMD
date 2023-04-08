@@ -250,7 +250,7 @@ int timespec_subtract(const struct timespec &xx, const struct timespec &yy,
  */
 double timespec_usec(const struct timespec &x)
 {
-  return double(1E6 * x.tv_sec + x.tv_nsec / 1E3);
+  return 1E6 * x.tv_sec + x.tv_nsec / 1E3;
 }
 
 /**

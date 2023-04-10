@@ -4133,49 +4133,68 @@ static SIMD_INLINE Vec<Float, 64> cmpneq(const Vec<Float, 64> &a,
 // ifelse v
 // ---------------------------------------------------------------------------
 
+// 10. Apr 23 (Jonas Keller): made two versions of ifelse, one for 8 and 16 bit
+// data types, and one for 32 and larger data types, so that for the latter
+// the blendv instruction can be used even if avx512bw is not available
+
 // NOTE: only works if cond elements are all 1-bits or all 0-bits
-// TODO: is there a more efficient solution without AVX512BW?
 
+// version for 8 and 16 bit data types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) <= 2)>
+static SIMD_INLINE Vec<T, 64> ifelse(const Vec<T, 64> &cond,
+                                     const Vec<T, 64> &trueVal,
+                                     const Vec<T, 64> &falseVal)
+{
+  // TODO: _mm512_movepi8_mask is slower than _mm512_or_si512, _mm512_and_si512
+  // or _mm512_andnot_si512 according to the Intel Intrinsics Guide, maybe use
+  // the non-avx512bw workaround always?
+  // since _mm512_and_si512 and _mm512_andnot_si512 could potentially be
+  // executed in parallel, that might be faster
 #ifdef __AVX512BW__
-// all integer versions
-template <typename T>
-static SIMD_INLINE Vec<T, 64> ifelse(const Vec<T, 64> &cond,
-                                     const Vec<T, 64> &trueVal,
-                                     const Vec<T, 64> &falseVal)
-{
   // cond -> __mask64
+  const __mmask64 condReg =
+    _mm512_movepi8_mask(reinterpret(cond, OutputType<Byte>()));
   // explicitly cast to __m512i to avoid compiler error with -O0
-  return (__m512i) _mm512_mask_blend_epi8(
-    _mm512_movepi8_mask(cond), (__m512i) falseVal, (__m512i) trueVal);
-}
+  const __m512i trueReg   = (__m512i) reinterpret(trueVal, OutputType<Byte>());
+  const __m512i falseReg  = (__m512i) reinterpret(falseVal, OutputType<Byte>());
+  const Vec<Byte, 64> res = _mm512_mask_blend_epi8(condReg, falseReg, trueReg);
 #else
-// non-avx512bw workaround
-// all integer versions
-template <typename T>
+  const Vec<Byte, 64> res = _mm512_or_si512(
+    _mm512_and_si512(reinterpret(cond, OutputType<Byte>()),
+                     reinterpret(trueVal, OutputType<Byte>())),
+    _mm512_andnot_si512(reinterpret(cond, OutputType<Byte>()),
+                        reinterpret(falseVal, OutputType<Byte>())));
+#endif
+  return reinterpret(res, OutputType<T>());
+}
+
+// version for 32 bit and larger data types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) > 2), typename = void>
 static SIMD_INLINE Vec<T, 64> ifelse(const Vec<T, 64> &cond,
                                      const Vec<T, 64> &trueVal,
                                      const Vec<T, 64> &falseVal)
 {
-  return _mm512_or_si512(_mm512_and_si512(cond, trueVal),
-                         _mm512_andnot_si512(cond, falseVal));
-}
-#endif
-
-// float version
-static SIMD_INLINE Vec<Float, 64> ifelse(const Vec<Float, 64> &cond,
-                                         const Vec<Float, 64> &trueVal,
-                                         const Vec<Float, 64> &falseVal)
-{
+  // TODO: _mm512_movepi32_mask is slower than _mm512_or_si512, _mm512_and_si512
+  // or _mm512_andnot_si512 according to the Intel Intrinsics Guide, maybe use
+  // the non-avx512dq workaround always?
+  // since _mm512_and_si512 and _mm512_andnot_si512 could potentially be
+  // executed in parallel, that might be faster
 #ifdef __AVX512DQ__
-  return _mm512_mask_blend_ps(
-    _mm512_movepi32_mask(reinterpret(cond, OutputType<Int>())), falseVal,
-    trueVal);
+  // cond -> __mmask16
+  const __mmask16 condReg =
+    _mm512_movepi32_mask(reinterpret(cond, OutputType<Int>()));
+  // explicitly cast to __m512i to avoid compiler error with -O0
+  const __m512i trueReg  = (__m512i) reinterpret(trueVal, OutputType<Int>());
+  const __m512i falseReg = (__m512i) reinterpret(falseVal, OutputType<Int>());
+  const Vec<Int, 64> res = _mm512_mask_blend_epi32(condReg, falseReg, trueReg);
 #else
-  return reinterpret(ifelse(reinterpret(cond, OutputType<Int>()),
-                            reinterpret(trueVal, OutputType<Int>()),
-                            reinterpret(falseVal, OutputType<Int>())),
-                     OutputType<Float>());
+  const Vec<Int, 64> res = _mm512_or_si512(
+    _mm512_and_si512(reinterpret(cond, OutputType<Int>()),
+                     reinterpret(trueVal, OutputType<Int>())),
+    _mm512_andnot_si512(reinterpret(cond, OutputType<Int>()),
+                        reinterpret(falseVal, OutputType<Int>())));
 #endif
+  return reinterpret(res, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------

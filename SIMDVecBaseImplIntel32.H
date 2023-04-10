@@ -4163,36 +4163,43 @@ static SIMD_INLINE Vec<Float, 32> cmpneq(const Vec<Float, 32> &a,
 // ifelse
 // ---------------------------------------------------------------------------
 
-#ifdef __AVX2__
-// all integer versions
-template <typename T>
-static SIMD_INLINE Vec<T, 32> ifelse(const Vec<T, 32> &cond,
-                                     const Vec<T, 32> &trueVal,
-                                     const Vec<T, 32> &falseVal)
-{
-  return _mm256_blendv_epi8(falseVal, trueVal, cond);
-}
-#else
-// non-avx2 workaround
-// all integer versions
-template <typename T>
-static SIMD_INLINE Vec<T, 32> ifelse(const Vec<T, 32> &cond,
-                                     const Vec<T, 32> &trueVal,
-                                     const Vec<T, 32> &falseVal)
-{
-  return _mm256_castps_si256(_mm256_or_ps(
-    _mm256_and_ps(_mm256_castsi256_ps(cond), _mm256_castsi256_ps(trueVal)),
-    _mm256_andnot_ps(_mm256_castsi256_ps(cond),
-                     _mm256_castsi256_ps(falseVal))));
-}
-#endif
+// 10. Apr 23 (Jonas Keller): made two versions of ifelse, one for 8 and 16 bit
+// data types, and one for 32 and larger data types, so that for the latter
+// the blendv instruction can be used even if avx2 is not available
 
-// float version
-static SIMD_INLINE Vec<Float, 32> ifelse(const Vec<Float, 32> &cond,
-                                         const Vec<Float, 32> &trueVal,
-                                         const Vec<Float, 32> &falseVal)
+// version for 8 and 16 bit data types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) <= 2)>
+static SIMD_INLINE Vec<T, 32> ifelse(const Vec<T, 32> &cond,
+                                     const Vec<T, 32> &trueVal,
+                                     const Vec<T, 32> &falseVal)
 {
-  return _mm256_blendv_ps(falseVal, trueVal, cond);
+#ifdef __AVX2__
+  const Vec<Byte, 32> res =
+    _mm256_blendv_epi8(reinterpret(falseVal, OutputType<Byte>()),
+                       reinterpret(trueVal, OutputType<Byte>()),
+                       reinterpret(cond, OutputType<Byte>()));
+#else
+  // non-avx2 workaround
+  const Vec<Float, 32> res =
+    _mm256_or_ps(_mm256_and_ps(reinterpret(cond, OutputType<Float>()),
+                               reinterpret(trueVal, OutputType<Float>())),
+                 _mm256_andnot_ps(reinterpret(cond, OutputType<Float>()),
+                                  reinterpret(falseVal, OutputType<Float>())));
+#endif
+  return reinterpret(res, OutputType<T>());
+}
+
+// version for 32 bit or larger data types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) > 2), typename = void>
+static SIMD_INLINE Vec<T, 32> ifelse(const Vec<T, 32> &cond,
+                                     const Vec<T, 32> &trueVal,
+                                     const Vec<T, 32> &falseVal)
+{
+  const Vec<Float, 32> res =
+    _mm256_blendv_ps(reinterpret(falseVal, OutputType<Float>()),
+                     reinterpret(trueVal, OutputType<Float>()),
+                     reinterpret(cond, OutputType<Float>()));
+  return reinterpret(res, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------

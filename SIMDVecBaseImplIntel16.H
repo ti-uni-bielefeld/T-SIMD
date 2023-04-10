@@ -42,7 +42,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <emmintrin.h>
 #include <type_traits>
 
 #ifdef __SSE2__

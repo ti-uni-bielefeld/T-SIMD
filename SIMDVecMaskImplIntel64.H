@@ -458,6 +458,78 @@ GENERATE_DOP(div, Float, ps)
 // masked ceil, floor, round, truncate v
 // ---------------------------------------------------------------------------
 
+// 10. Apr 23 (Jonas Keller): added versions for integer types
+
+// versions for integer types do nothing:
+
+template <typename T>
+static SIMD_INLINE Vec<T, 64> mask_ceil(const Vec<T, 64> &src,
+                                        const Mask<T, 64> &k,
+                                        const Vec<T, 64> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return mask_ifelse(k, a, src);
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 64> maskz_ceil(const Mask<T, 64> &k,
+                                         const Vec<T, 64> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return mask_ifelsezero(k, a);
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 64> mask_floor(const Vec<T, 64> &src,
+                                         const Mask<T, 64> &k,
+                                         const Vec<T, 64> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return mask_ifelse(k, a, src);
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 64> maskz_floor(const Mask<T, 64> &k,
+                                          const Vec<T, 64> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return mask_ifelsezero(k, a);
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 64> mask_round(const Vec<T, 64> &src,
+                                         const Mask<T, 64> &k,
+                                         const Vec<T, 64> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return mask_ifelse(k, a, src);
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 64> maskz_round(const Mask<T, 64> &k,
+                                          const Vec<T, 64> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return mask_ifelsezero(k, a);
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 64> mask_truncate(const Vec<T, 64> &src,
+                                            const Mask<T, 64> &k,
+                                            const Vec<T, 64> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return mask_ifelse(k, a, src);
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 64> maskz_truncate(const Mask<T, 64> &k,
+                                             const Vec<T, 64> &a)
+{
+  static_assert(std::is_integral<T>::value, "");
+  return mask_ifelsezero(k, a);
+}
+
 static SIMD_INLINE Vec<Float, 64> mask_ceil(const Vec<Float, 64> &src,
                                             const Mask<Float, 64> &k,
                                             const Vec<Float, 64> &a)
@@ -556,8 +628,28 @@ static SIMD_INLINE Vec<Float, 64> maskz_rsqrt(const Mask<Float, 64> &k,
 GENERATE_SOP(sqrt, Float, ps)
 
 // ---------------------------------------------------------------------------
-// masked_abs (integer: signed only) v
+// masked_abs v
 // ---------------------------------------------------------------------------
+
+// 25. Mar 25 (Jonas Keller): added masked abs for unsigned integers
+
+// unsigned integers: do nothing
+template <typename T>
+static SIMD_INLINE Vec<T, 64> mask_abs(const Vec<T, 64> &src,
+                                       const Mask<T, 64> &k,
+                                       const Vec<T, 64> &a)
+{
+  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
+  return mask_ifelse(k, a, src);
+}
+
+template <typename T>
+static SIMD_INLINE Vec<T, 64> maskz_abs(const Mask<T, 64> &k,
+                                        const Vec<T, 64> &a)
+{
+  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
+  return mask_ifelsezero(k, a);
+}
 
 #ifdef __AVX512BW__
 GENERATE_SOP(abs, SignedByte, epi8)

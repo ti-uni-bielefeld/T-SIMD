@@ -1945,12 +1945,12 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Int, 16> vOut[4])
   vOut[2] = _mm_cvtepu8_epi32(_mm_srli_si128(vIn, 8));
   vOut[3] = _mm_cvtepu8_epi32(_mm_srli_si128(vIn, 12));
 #else
-  const __m128i lo8 = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
-  const __m128i hi8 = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
-  vOut[0]           = _mm_unpacklo_epi16(lo8, _mm_setzero_si128());
-  vOut[1]           = _mm_unpackhi_epi16(lo8, _mm_setzero_si128());
-  vOut[2]           = _mm_unpacklo_epi16(hi8, _mm_setzero_si128());
-  vOut[3]           = _mm_unpackhi_epi16(hi8, _mm_setzero_si128());
+  const __m128i lo8    = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
+  const __m128i hi8    = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
+  vOut[0]              = _mm_unpacklo_epi16(lo8, _mm_setzero_si128());
+  vOut[1]              = _mm_unpackhi_epi16(lo8, _mm_setzero_si128());
+  vOut[2]              = _mm_unpacklo_epi16(hi8, _mm_setzero_si128());
+  vOut[3]              = _mm_unpackhi_epi16(hi8, _mm_setzero_si128());
 #endif
 }
 
@@ -1962,8 +1962,8 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Float, 16> vOut[4])
   vOut[2] = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 8)));
   vOut[3] = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 12)));
 #else
-  const __m128i lo8 = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
-  const __m128i hi8 = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
+  const __m128i lo8    = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
+  const __m128i hi8    = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
   vOut[0] = _mm_cvtepi32_ps(_mm_unpacklo_epi16(lo8, _mm_setzero_si128()));
   vOut[1] = _mm_cvtepi32_ps(_mm_unpackhi_epi16(lo8, _mm_setzero_si128()));
   vOut[2] = _mm_cvtepi32_ps(_mm_unpacklo_epi16(hi8, _mm_setzero_si128()));
@@ -2611,11 +2611,11 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>)
     _mm_shuffle_ps(y1z1x2y2, z2x3y3z3, _MM_SHUFFLE(2, 1, 3, 2));
   const __m128 y0z0y1z1 =
     _mm_shuffle_ps(x0y0z0x1, y1z1x2y2, _MM_SHUFFLE(1, 0, 2, 1));
-  const __m128 x0x1x2x3 =
+  const Vec<Float, 16> x0x1x2x3 =
     _mm_shuffle_ps(x0y0z0x1, x2y2x3y3, _MM_SHUFFLE(2, 0, 3, 0));
-  const __m128 y0y1y2y3 =
+  const Vec<Float, 16> y0y1y2y3 =
     _mm_shuffle_ps(y0z0y1z1, x2y2x3y3, _MM_SHUFFLE(3, 1, 2, 0));
-  const __m128 z0z1z2z3 =
+  const Vec<Float, 16> z0z1z2z3 =
     _mm_shuffle_ps(y0z0y1z1, z2x3y3z3, _MM_SHUFFLE(3, 0, 3, 1));
   v[0] = reinterpret(x0x1x2x3, OutputType<T>());
   v[1] = reinterpret(y0y1y2y3, OutputType<T>());
@@ -2658,7 +2658,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> vT[4], Integer<4>)
   s[1] = _mm_shuffle_ps(v[0], v[1], _MM_SHUFFLE(3, 2, 3, 2));
   s[2] = _mm_shuffle_ps(v[2], v[3], _MM_SHUFFLE(1, 0, 1, 0));
   s[3] = _mm_shuffle_ps(v[2], v[3], _MM_SHUFFLE(3, 2, 3, 2));
-  __m128 vOut[4];
+  Vec<Float, 16> vOut[4];
   vOut[0] = _mm_shuffle_ps(s[0], s[2], _MM_SHUFFLE(2, 0, 2, 0));
   vOut[1] = _mm_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1));
   vOut[2] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));

@@ -2527,18 +2527,11 @@ static SIMD_INLINE __m128i get_swizzle_mask()
 
 // alignoff is the element-wise offset (relates to size of byte)
 template <int ALIGNOFF>
-static SIMD_INLINE __m128i align_shuffle_byte_128(__m128i lo, __m128i hi,
-                                                  __m128i mask)
+static SIMD_INLINE __m128i align_shuffle_128(__m128i lo, __m128i hi,
+                                             __m128i mask)
 {
-  return _mm_shuffle_epi8(x_mm_alignr_epi8<ALIGNOFF>(hi, lo), mask);
-}
-
-// alignoff is the element-wise offset (relates to size of word)
-template <int ALIGNOFF>
-static SIMD_INLINE __m128i align_shuffle_word_128(__m128i lo, __m128i hi,
-                                                  __m128i mask)
-{
-  return _mm_shuffle_epi8(x_mm_alignr_epi8<2 * ALIGNOFF>(hi, lo), mask);
+  static_assert(ALIGNOFF >= 0 && ALIGNOFF < 32, "");
+  return _mm_shuffle_epi8(_mm_alignr_epi8(hi, lo, ALIGNOFF), mask);
 }
 
 // ---------- swizzle (AoS to SoA) ----------
@@ -2558,9 +2551,9 @@ static SIMD_INLINE void swizzle(Vec<T, 16>[1], Integer<1>)
 
 // -------------------- n = 2 --------------------
 
-// Byte, SignedByte, Word, Short
+// 8 and 16 bit integer types
 template <typename T,
-          SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte, Word, Short>::value))>
+          SIMD_ENABLE_IF(sizeof(T) <= 2 && std::is_integral<T>::value)>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>)
 {
   __m128i s[2];
@@ -2570,103 +2563,70 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>)
   v[1] = _mm_unpackhi_epi64(s[0], s[1]);
 }
 
-// Int
-// TODO: swizzle<2,Int,...>: which version is faster?
-static SIMD_INLINE void swizzle(Vec<Int, 16> v[2], Integer<2>)
+// 32 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>)
 {
-#if 0
-    __m128i s[2];
-    s[0] = _mm_shuffle_epi32(v[0], _MM_SHUFFLE(3,1,2,0));
-    s[1] = _mm_shuffle_epi32(v[1], _MM_SHUFFLE(3,1,2,0));
-    v[0] = _mm_unpacklo_epi64(s[0], s[1]);
-    v[1] = _mm_unpackhi_epi64(s[0], s[1]);
-#else
-  __m128 v0tmp = _mm_castsi128_ps(v[0]);
-  __m128 v1tmp = _mm_castsi128_ps(v[1]);
-  v[0] =
-    _mm_castps_si128(_mm_shuffle_ps(v0tmp, v1tmp, _MM_SHUFFLE(2, 0, 2, 0)));
-  v[1] =
-    _mm_castps_si128(_mm_shuffle_ps(v0tmp, v1tmp, _MM_SHUFFLE(3, 1, 3, 1)));
-#endif
-}
-
-// Float
-// same code as for Int
-static SIMD_INLINE void swizzle(Vec<Float, 16> v[2], Integer<2>)
-{
-  __m128 v0tmp = v[0];
-  __m128 v1tmp = v[1];
-  v[0]         = _mm_shuffle_ps(v0tmp, v1tmp, _MM_SHUFFLE(2, 0, 2, 0));
-  v[1]         = _mm_shuffle_ps(v0tmp, v1tmp, _MM_SHUFFLE(3, 1, 3, 1));
+  const __m128 v0tmp = reinterpret(v[0], OutputType<Float>());
+  const __m128 v1tmp = reinterpret(v[1], OutputType<Float>());
+  const Vec<Float, 16> v0TmpOut =
+    _mm_shuffle_ps(v0tmp, v1tmp, _MM_SHUFFLE(2, 0, 2, 0));
+  const Vec<Float, 16> v1TmpOut =
+    _mm_shuffle_ps(v0tmp, v1tmp, _MM_SHUFFLE(3, 1, 3, 1));
+  v[0] = reinterpret(v0TmpOut, OutputType<T>());
+  v[1] = reinterpret(v1TmpOut, OutputType<T>());
 }
 
 // -------------------- n = 3 --------------------
 
-// Byte, SignedByte, Word, Short
+// 8 and 16 bit integer types
 template <typename T,
-          SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte, Word, Short>::value))>
+          SIMD_ENABLE_IF(sizeof(T) <= 2 && std::is_integral<T>::value)>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>)
 {
   __m128i mask = get_swizzle_mask<3, T>();
-  __m128i s0   = align_shuffle_byte_128<0>(v[0], v[1], mask);
-  __m128i s1   = align_shuffle_byte_128<12>(v[0], v[1], mask);
-  __m128i s2   = align_shuffle_byte_128<8>(v[1], v[2], mask);
-  __m128i s3   = align_shuffle_byte_128<4>(v[2], v[0], mask);
-  /* s3: v[0] is a dummy */
-  __m128i l01 = _mm_unpacklo_epi32(s0, s1);
-  __m128i h01 = _mm_unpackhi_epi32(s0, s1);
-  __m128i l23 = _mm_unpacklo_epi32(s2, s3);
-  __m128i h23 = _mm_unpackhi_epi32(s2, s3);
-  v[0]        = _mm_unpacklo_epi64(l01, l23);
-  v[1]        = _mm_unpackhi_epi64(l01, l23);
-  v[2]        = _mm_unpacklo_epi64(h01, h23);
+  __m128i s0   = align_shuffle_128<0>(v[0], v[1], mask);
+  __m128i s1   = align_shuffle_128<12>(v[0], v[1], mask);
+  __m128i s2   = align_shuffle_128<8>(v[1], v[2], mask);
+  __m128i s3   = align_shuffle_128<4>(v[2], _mm_undefined_si128(), mask);
+  __m128i l01  = _mm_unpacklo_epi32(s0, s1);
+  __m128i h01  = _mm_unpackhi_epi32(s0, s1);
+  __m128i l23  = _mm_unpacklo_epi32(s2, s3);
+  __m128i h23  = _mm_unpackhi_epi32(s2, s3);
+  v[0]         = _mm_unpacklo_epi64(l01, l23);
+  v[1]         = _mm_unpackhi_epi64(l01, l23);
+  v[2]         = _mm_unpacklo_epi64(h01, h23);
 }
 
-// Int
+// 32 bit types
 // from Stan Melax: "3D Vector Normalization..."
 // https://software.intel.com/en-us/articles/3d-vector-normalization-using-256-bit-intel-advanced-vector-extensions-intel-avx
-static SIMD_INLINE void swizzle(Vec<Int, 16> v[3], Integer<3>)
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>)
 {
-  __m128 x0y0z0x1 = _mm_castsi128_ps(v[0]);
-  __m128 y1z1x2y2 = _mm_castsi128_ps(v[1]);
-  __m128 z2x3y3z3 = _mm_castsi128_ps(v[2]);
-  __m128 x2y2x3y3 = _mm_shuffle_ps(y1z1x2y2, z2x3y3z3, _MM_SHUFFLE(2, 1, 3, 2));
-  __m128 y0z0y1z1 = _mm_shuffle_ps(x0y0z0x1, y1z1x2y2, _MM_SHUFFLE(1, 0, 2, 1));
-  // x0x1x2x3
-  v[0] = _mm_castps_si128(
-    _mm_shuffle_ps(x0y0z0x1, x2y2x3y3, _MM_SHUFFLE(2, 0, 3, 0)));
-  // y0y1y2y3
-  v[1] = _mm_castps_si128(
-    _mm_shuffle_ps(y0z0y1z1, x2y2x3y3, _MM_SHUFFLE(3, 1, 2, 0)));
-  // z0z1z2z3
-  v[2] = _mm_castps_si128(
-    _mm_shuffle_ps(y0z0y1z1, z2x3y3z3, _MM_SHUFFLE(3, 0, 3, 1)));
-}
-
-// Float
-// from Stan Melax: "3D Vector Normalization..."
-// https://software.intel.com/en-us/articles/3d-vector-normalization-using-256-bit-intel-advanced-vector-extensions-intel-avx
-// same code as for Int
-static SIMD_INLINE void swizzle(Vec<Float, 16> v[3], Integer<3>)
-{
-  // x0y0z0x1 = v[0]
-  // y1z1x2y2 = v[1]
-  // z2x3y3z3 = v[2]
-  __m128 x2y2x3y3 = _mm_shuffle_ps(v[1], v[2], _MM_SHUFFLE(2, 1, 3, 2));
-  __m128 y0z0y1z1 = _mm_shuffle_ps(v[0], v[1], _MM_SHUFFLE(1, 0, 2, 1));
-  // x0x1x2x3
-  v[0] = _mm_shuffle_ps(v[0], x2y2x3y3, _MM_SHUFFLE(2, 0, 3, 0));
-  // y0y1y2y3
-  v[1] = _mm_shuffle_ps(y0z0y1z1, x2y2x3y3, _MM_SHUFFLE(3, 1, 2, 0));
-  // z0z1z2z3
-  v[2] = _mm_shuffle_ps(y0z0y1z1, v[2], _MM_SHUFFLE(3, 0, 3, 1));
+  const __m128 x0y0z0x1 = reinterpret(v[0], OutputType<Float>());
+  const __m128 y1z1x2y2 = reinterpret(v[1], OutputType<Float>());
+  const __m128 z2x3y3z3 = reinterpret(v[2], OutputType<Float>());
+  const __m128 x2y2x3y3 =
+    _mm_shuffle_ps(y1z1x2y2, z2x3y3z3, _MM_SHUFFLE(2, 1, 3, 2));
+  const __m128 y0z0y1z1 =
+    _mm_shuffle_ps(x0y0z0x1, y1z1x2y2, _MM_SHUFFLE(1, 0, 2, 1));
+  const __m128 x0x1x2x3 =
+    _mm_shuffle_ps(x0y0z0x1, x2y2x3y3, _MM_SHUFFLE(2, 0, 3, 0));
+  const __m128 y0y1y2y3 =
+    _mm_shuffle_ps(y0z0y1z1, x2y2x3y3, _MM_SHUFFLE(3, 1, 2, 0));
+  const __m128 z0z1z2z3 =
+    _mm_shuffle_ps(y0z0y1z1, z2x3y3z3, _MM_SHUFFLE(3, 0, 3, 1));
+  v[0] = reinterpret(x0x1x2x3, OutputType<T>());
+  v[1] = reinterpret(y0y1y2y3, OutputType<T>());
+  v[2] = reinterpret(z0z1z2z3, OutputType<T>());
 }
 
 // -------------------- n = 4 --------------------
 
-// Byte, SignedByte, Short, Word
+// 8 and 16 bit integer types
 template <typename T,
-          SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte, Short, Word>::value))>
+          SIMD_ENABLE_IF(sizeof(T) <= 2 && std::is_integral<T>::value)>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
 {
   __m128i mask = get_swizzle_mask<4, T>();
@@ -2685,50 +2645,43 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
   v[3]        = _mm_unpackhi_epi64(h01, h23);
 }
 
-// Int
-static SIMD_INLINE void swizzle(Vec<Int, 16> v[4], Integer<4>)
+// 32 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 16> vT[4], Integer<4>)
 {
-  __m128i s[4];
-  s[0] = _mm_unpacklo_epi32(v[0], v[1]);
-  s[1] = _mm_unpackhi_epi32(v[0], v[1]);
-  s[2] = _mm_unpacklo_epi32(v[2], v[3]);
-  s[3] = _mm_unpackhi_epi32(v[2], v[3]);
-  v[0] = _mm_unpacklo_epi64(s[0], s[2]);
-  v[1] = _mm_unpackhi_epi64(s[0], s[2]);
-  v[2] = _mm_unpacklo_epi64(s[1], s[3]);
-  v[3] = _mm_unpackhi_epi64(s[1], s[3]);
-}
-
-// Float
-static SIMD_INLINE void swizzle(Vec<Float, 16> v[4], Integer<4>)
-{
+  __m128 v[4];
+  for (int i = 0; i < 4; ++i) {
+    v[i] = reinterpret(vT[i], OutputType<Float>());
+  }
   __m128 s[4];
   s[0] = _mm_shuffle_ps(v[0], v[1], _MM_SHUFFLE(1, 0, 1, 0));
   s[1] = _mm_shuffle_ps(v[0], v[1], _MM_SHUFFLE(3, 2, 3, 2));
   s[2] = _mm_shuffle_ps(v[2], v[3], _MM_SHUFFLE(1, 0, 1, 0));
   s[3] = _mm_shuffle_ps(v[2], v[3], _MM_SHUFFLE(3, 2, 3, 2));
-  v[0] = _mm_shuffle_ps(s[0], s[2], _MM_SHUFFLE(2, 0, 2, 0));
-  v[1] = _mm_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1));
-  v[2] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));
-  v[3] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(3, 1, 3, 1));
+  __m128 vOut[4];
+  vOut[0] = _mm_shuffle_ps(s[0], s[2], _MM_SHUFFLE(2, 0, 2, 0));
+  vOut[1] = _mm_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1));
+  vOut[2] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));
+  vOut[3] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(3, 1, 3, 1));
+  for (int i = 0; i < 4; ++i) { vT[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
 // -------------------- n = 5 --------------------
 
-// Byte, SignedByte
-template <typename T, SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte>::value))>
+// 8 bit integer types
+template <typename T,
+          SIMD_ENABLE_IF(sizeof(T) == 1 && std::is_integral<T>::value)>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>)
 {
-  __m128i mask = get_swizzle_mask<5, T>();
-  __m128i s0   = align_shuffle_byte_128<0>(v[0], v[1], mask);
-  __m128i s1   = align_shuffle_byte_128<10>(v[0], v[1], mask);
-  __m128i s2   = align_shuffle_byte_128<4>(v[1], v[2], mask);
-  __m128i s3   = align_shuffle_byte_128<14>(v[1], v[2], mask);
-  __m128i s4   = align_shuffle_byte_128<8>(v[2], v[3], mask);
-  __m128i s5   = align_shuffle_byte_128<2>(v[3], v[4], mask);
-  __m128i s6   = align_shuffle_byte_128<12>(v[3], v[4], mask);
-  __m128i s7   = align_shuffle_byte_128<6>(v[4], v[0], mask);
-  /* s7: v[0] is a dummy */
+  __m128i mask    = get_swizzle_mask<5, T>();
+  __m128i s0      = align_shuffle_128<0>(v[0], v[1], mask);
+  __m128i s1      = align_shuffle_128<10>(v[0], v[1], mask);
+  __m128i s2      = align_shuffle_128<4>(v[1], v[2], mask);
+  __m128i s3      = align_shuffle_128<14>(v[1], v[2], mask);
+  __m128i s4      = align_shuffle_128<8>(v[2], v[3], mask);
+  __m128i s5      = align_shuffle_128<2>(v[3], _mm_undefined_si128(), mask);
+  __m128i s6      = align_shuffle_128<12>(v[3], v[4], mask);
+  __m128i s7      = align_shuffle_128<6>(v[4], _mm_undefined_si128(), mask);
   __m128i l01     = _mm_unpacklo_epi16(s0, s1);
   __m128i h01     = _mm_unpackhi_epi16(s0, s1);
   __m128i l23     = _mm_unpacklo_epi16(s2, s3);
@@ -2750,37 +2703,41 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>)
   v[4]            = _mm_unpacklo_epi64(lh01h23, lh45h67);
 }
 
-// Word, Short
-template <typename T, SIMD_ENABLE_IF((IsOneOf<T, Word, Short>::value)),
+// 16 bit integer types
+template <typename T,
+          SIMD_ENABLE_IF(sizeof(T) == 2 && std::is_integral<T>::value),
           typename = void>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>)
 {
   __m128i mask = get_swizzle_mask<5, T>();
-  __m128i s0   = align_shuffle_word_128<0>(v[0], v[1], mask);
-  __m128i s1   = align_shuffle_word_128<3>(v[0], v[1], mask);
-  __m128i s2   = align_shuffle_word_128<2>(v[1], v[2], mask);
-  __m128i s3   = align_shuffle_word_128<5>(v[1], v[2], mask);
-  __m128i s4   = align_shuffle_word_128<4>(v[2], v[3], mask);
-  __m128i s5   = align_shuffle_word_128<7>(v[2], v[3], mask);
-  __m128i s6   = align_shuffle_word_128<6>(v[3], v[4], mask);
-  __m128i s7   = align_shuffle_word_128<1>(v[4], v[0], mask);
-  // s7: v[0] is a dummy
-  __m128i l02 = _mm_unpacklo_epi32(s0, s2);
-  __m128i h02 = _mm_unpackhi_epi32(s0, s2);
-  __m128i l13 = _mm_unpacklo_epi32(s1, s3);
-  __m128i l46 = _mm_unpacklo_epi32(s4, s6);
-  __m128i h46 = _mm_unpackhi_epi32(s4, s6);
-  __m128i l57 = _mm_unpacklo_epi32(s5, s7);
-  v[0]        = _mm_unpacklo_epi64(l02, l46);
-  v[1]        = _mm_unpackhi_epi64(l02, l46);
-  v[2]        = _mm_unpacklo_epi64(h02, h46);
-  v[3]        = _mm_unpacklo_epi64(l13, l57);
-  v[4]        = _mm_unpackhi_epi64(l13, l57);
+  __m128i s0   = align_shuffle_128<0>(v[0], v[1], mask);
+  __m128i s1   = align_shuffle_128<6>(v[0], v[1], mask);
+  __m128i s2   = align_shuffle_128<4>(v[1], v[2], mask);
+  __m128i s3   = align_shuffle_128<10>(v[1], v[2], mask);
+  __m128i s4   = align_shuffle_128<8>(v[2], v[3], mask);
+  __m128i s5   = align_shuffle_128<14>(v[2], v[3], mask);
+  __m128i s6   = align_shuffle_128<12>(v[3], v[4], mask);
+  __m128i s7   = align_shuffle_128<2>(v[4], _mm_undefined_si128(), mask);
+  __m128i l02  = _mm_unpacklo_epi32(s0, s2);
+  __m128i h02  = _mm_unpackhi_epi32(s0, s2);
+  __m128i l13  = _mm_unpacklo_epi32(s1, s3);
+  __m128i l46  = _mm_unpacklo_epi32(s4, s6);
+  __m128i h46  = _mm_unpackhi_epi32(s4, s6);
+  __m128i l57  = _mm_unpacklo_epi32(s5, s7);
+  v[0]         = _mm_unpacklo_epi64(l02, l46);
+  v[1]         = _mm_unpackhi_epi64(l02, l46);
+  v[2]         = _mm_unpacklo_epi64(h02, h46);
+  v[3]         = _mm_unpacklo_epi64(l13, l57);
+  v[4]         = _mm_unpackhi_epi64(l13, l57);
 }
 
-// Int
-static SIMD_INLINE void swizzle(Vec<Int, 16> v[5], Integer<5>)
+// 32 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void,
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 16> vT[5], Integer<5>)
 {
+  __m128i v[5];
+  for (int i = 0; i < 5; i++) { v[i] = reinterpret(vT[i], OutputType<Int>()); };
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   // v[0]: 0 1 2 3
   // v[1]: 4 x x x
@@ -2818,77 +2775,18 @@ static SIMD_INLINE void swizzle(Vec<Int, 16> v[5], Integer<5>)
   __m128i h46 = _mm_unpackhi_epi32(s4, s6);
   // 14 x x x / 19 x x x -> 14 19 x x
   __m128i l57 = _mm_unpacklo_epi32(s5, s7);
-  // 0 5 1 6 / 10 15 11 13 -> 0 5 10 15 / 1 6 11 16
-  v[0] = _mm_unpacklo_epi64(l02, l46);
-  v[1] = _mm_unpackhi_epi64(l02, l46);
-  // 2 7 3 8 / 12 17 13 18 -> 2 7 12 17 / 3 8 13 18
-  v[2] = _mm_unpacklo_epi64(h02, h46);
-  v[3] = _mm_unpackhi_epi64(h02, h46);
-  // 4 9 x x / 14 19 x x -> 4 9 14 19
-  v[4] = _mm_unpacklo_epi64(l13, l57);
-}
 
-// Float
-// same code as for Int, modified
-static SIMD_INLINE void swizzle(Vec<Float, 16> v[5], Integer<5>)
-{
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  // v[0]: 0 1 2 3
-  __m128i v0 = _mm_castps_si128(v[0]);
-  // v[1]: 4 5 6 7
-  __m128i v1 = _mm_castps_si128(v[1]);
-  // v[2]: 8 9 10 11
-  __m128i v2 = _mm_castps_si128(v[2]);
-  // v[3]: 12 13 14 15
-  __m128i v3 = _mm_castps_si128(v[3]);
-  // v[4]: 16 17 18 19
-  __m128i v4 = _mm_castps_si128(v[4]);
-  // s0:  0 1 2 3
-  __m128 s0 = v[0];
-  // s1:  4 x x x
-  __m128 s1 = v[1];
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                   x x x   x
-  // 5 6 7 8
-  __m128 s2 = _mm_castsi128_ps(_mm_alignr_epi8(v2, v1, 4));
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                             x  x  x    x
-  // 9 x x x
-  __m128 s3 = _mm_castsi128_ps(_mm_alignr_epi8(v3, v2, 4));
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                                x  x    x  x
-  // 10 11 12 13
-  __m128 s4 = _mm_castsi128_ps(_mm_alignr_epi8(v3, v2, 8));
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                                              x  x    x  x
-  // 14 x x x
-  __m128 s5 = _mm_castsi128_ps(_mm_alignr_epi8(v4, v3, 8));
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                                                 X    X  X  X
-  // 15 16 17 18
-  __m128 s6 = _mm_castsi128_ps(_mm_alignr_epi8(v4, v3, 12));
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                                                               X X X X
-  // 19 x x x
-  __m128 s7 = _mm_castsi128_ps(_mm_alignr_epi8(v0, v4, 12));
-  // 0 1 2 3 / 5 6 7 8 -> 0 5 1 6 / 2 7 3 8
-  __m128 l02 = _mm_unpacklo_ps(s0, s2);
-  __m128 h02 = _mm_unpackhi_ps(s0, s2);
-  // 4 x x x / 9 x x x -> 4 9 x x
-  __m128 l13 = _mm_unpacklo_ps(s1, s3);
-  // 10 11 12 13 / 15 16 17 18 -> 10 15 11 13 / 12 17 13 18
-  __m128 l46 = _mm_unpacklo_ps(s4, s6);
-  __m128 h46 = _mm_unpackhi_ps(s4, s6);
-  // 14 x x x / 19 x x x -> 14 19 x x
-  __m128 l57 = _mm_unpacklo_ps(s5, s7);
-  // 0 5 1 6 / 10 15 11 13 -> 0 5 10 15 / 1 6 11 16
-  v[0] = _mm_movelh_ps(l02, l46);
-  v[1] = _mm_movehl_ps(l46, l02);
-  // 2 7 3 8 / 12 17 13 18 -> 2 7 12 17 / 3 8 13 18
-  v[2] = _mm_movelh_ps(h02, h46);
-  v[3] = _mm_movehl_ps(h46, h02);
-  // 4 9 x x / 14 19 x x -> 4 9 14 19
-  v[4] = _mm_movelh_ps(l13, l57);
+  const Vec<Int, 16> vOut[5] = {
+    // 0 5 1 6 / 10 15 11 13 -> 0 5 10 15 / 1 6 11 16
+    _mm_unpacklo_epi64(l02, l46),
+    _mm_unpackhi_epi64(l02, l46),
+    // 2 7 3 8 / 12 17 13 18 -> 2 7 12 17 / 3 8 13 18
+    _mm_unpacklo_epi64(h02, h46),
+    _mm_unpackhi_epi64(h02, h46),
+    // 4 9 x x / 14 19 x x -> 4 9 14 19
+    _mm_unpacklo_epi64(l13, l57),
+  };
+  for (int i = 0; i < 5; ++i) { vT[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
 // ---------------------------------------------------------------------------

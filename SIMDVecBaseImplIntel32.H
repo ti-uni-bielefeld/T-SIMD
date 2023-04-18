@@ -3387,18 +3387,11 @@ static SIMD_INLINE Vec<Float, 32> alignre(const Vec<Float, 32> &h,
 
 // alignoff is the element-wise offset (relates to size of byte)
 template <int ALIGNOFF>
-static SIMD_INLINE __m256i align_shuffle_byte_256(__m256i lo, __m256i hi,
-                                                  __m256i mask)
+static SIMD_INLINE __m256i align_shuffle_256(__m256i lo, __m256i hi,
+                                             __m256i mask)
 {
-  return x_mm256_shuffle_epi8(x_mm256_alignr_epi8<ALIGNOFF>(hi, lo), mask);
-}
-
-// alignoff is the element-wise offset (relates to size of word)
-template <int ALIGNOFF>
-static SIMD_INLINE __m256i align_shuffle_word_256(__m256i lo, __m256i hi,
-                                                  __m256i mask)
-{
-  return x_mm256_shuffle_epi8(x_mm256_alignr_epi8<2 * ALIGNOFF>(hi, lo), mask);
+  static_assert(ALIGNOFF >= 0 && ALIGNOFF < 32, "");
+  return x_mm256_shuffle_epi8(_mm256_alignr_epi8(hi, lo, ALIGNOFF), mask);
 }
 
 // ---------- swizzle (AoS to SoA) ----------
@@ -3418,9 +3411,9 @@ static SIMD_INLINE void swizzle(Vec<T, 32>[1], Integer<1>)
 
 // -------------------- n = 2 --------------------
 
-// Byte, SignedByte, Word, Short
+// 8 and 16 bit integer types
 template <typename T,
-          SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte, Word, Short>::value))>
+          SIMD_ENABLE_IF(sizeof(T) <= 2 && std::is_integral<T>::value)>
 static SIMD_INLINE void swizzle(Vec<T, 32> v[2], Integer<2>)
 {
   Vec<T, 32> vs[2];
@@ -3433,115 +3426,83 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[2], Integer<2>)
   v[1] = x_mm256_unpackhi_epi64(s[0], s[1]);
 }
 
-// Int
-// TODO: swizzle<2,Int,...>: which version is faster?
-static SIMD_INLINE void swizzle(Vec<Int, 32> v[2], Integer<2>)
+// 32 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 32> v[2], Integer<2>)
 {
-  Vec<Int, 32> vs[2];
-  swizzle_32_16<2>(v, vs);
-#if 0
-  __m256i s[2];
-  s[0] = _mm256_shuffle_epi32(vs[0], _MM_SHUFFLE(3, 1, 2, 0));
-  s[1] = _mm256_shuffle_epi32(vs[1], _MM_SHUFFLE(3, 1, 2, 0));
-  v[0] = x_mm256_unpacklo_epi64(s[0], s[1]);
-  v[1] = x_mm256_unpackhi_epi64(s[0], s[1]);
-#else
-  __m256 v0tmp = _mm256_castsi256_ps(vs[0]);
-  __m256 v1tmp = _mm256_castsi256_ps(vs[1]);
-  v[0]         = _mm256_castps_si256(
-    _mm256_shuffle_ps(v0tmp, v1tmp, _MM_SHUFFLE(2, 0, 2, 0)));
-  v[1] = _mm256_castps_si256(
-    _mm256_shuffle_ps(v0tmp, v1tmp, _MM_SHUFFLE(3, 1, 3, 1)));
-#endif
-}
-
-// Float
-// same code as for Int
-static SIMD_INLINE void swizzle(Vec<Float, 32> v[2], Integer<2>)
-{
+  const Vec<Float, 32> vFloat[2] = {
+    reinterpret(v[0], OutputType<Float>()),
+    reinterpret(v[1], OutputType<Float>()),
+  };
   Vec<Float, 32> vs[2];
-  swizzle_32_16<2>(v, vs);
-  __m256 v0tmp = vs[0];
-  __m256 v1tmp = vs[1];
-  v[0]         = _mm256_shuffle_ps(v0tmp, v1tmp, _MM_SHUFFLE(2, 0, 2, 0));
-  v[1]         = _mm256_shuffle_ps(v0tmp, v1tmp, _MM_SHUFFLE(3, 1, 3, 1));
+  swizzle_32_16<2>(vFloat, vs);
+  const Vec<Float, 32> vOut[2] = {
+    _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(2, 0, 2, 0)),
+    _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(3, 1, 3, 1)),
+  };
+  v[0] = reinterpret(vOut[0], OutputType<T>());
+  v[1] = reinterpret(vOut[1], OutputType<T>());
 }
 
 // -------------------- n = 3 --------------------
 
-// Byte, SignedByte, Word, Short
+// 8 and 16 bit integer types
 template <typename T,
-          SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte, Word, Short>::value))>
+          SIMD_ENABLE_IF(sizeof(T) <= 2 && std::is_integral<T>::value)>
 static SIMD_INLINE void swizzle(Vec<T, 32> v[3], Integer<3>)
 {
   Vec<T, 32> vs[3];
   swizzle_32_16<3>(v, vs);
   __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<3, T>());
-  __m256i s0   = align_shuffle_byte_256<0>(vs[0], vs[1], mask);
-  __m256i s1   = align_shuffle_byte_256<12>(vs[0], vs[1], mask);
-  __m256i s2   = align_shuffle_byte_256<8>(vs[1], vs[2], mask);
-  __m256i s3   = align_shuffle_byte_256<4>(vs[2], vs[0], mask);
-  /* s3: v[0] is a dummy */
-  __m256i l01 = x_mm256_unpacklo_epi32(s0, s1);
-  __m256i h01 = x_mm256_unpackhi_epi32(s0, s1);
-  __m256i l23 = x_mm256_unpacklo_epi32(s2, s3);
-  __m256i h23 = x_mm256_unpackhi_epi32(s2, s3);
-  v[0]        = x_mm256_unpacklo_epi64(l01, l23);
-  v[1]        = x_mm256_unpackhi_epi64(l01, l23);
-  v[2]        = x_mm256_unpacklo_epi64(h01, h23);
+  __m256i s0   = align_shuffle_256<0>(vs[0], vs[1], mask);
+  __m256i s1   = align_shuffle_256<12>(vs[0], vs[1], mask);
+  __m256i s2   = align_shuffle_256<8>(vs[1], vs[2], mask);
+  __m256i s3   = align_shuffle_256<4>(vs[2], _mm256_undefined_si256(), mask);
+  __m256i l01  = x_mm256_unpacklo_epi32(s0, s1);
+  __m256i h01  = x_mm256_unpackhi_epi32(s0, s1);
+  __m256i l23  = x_mm256_unpacklo_epi32(s2, s3);
+  __m256i h23  = x_mm256_unpackhi_epi32(s2, s3);
+  v[0]         = x_mm256_unpacklo_epi64(l01, l23);
+  v[1]         = x_mm256_unpackhi_epi64(l01, l23);
+  v[2]         = x_mm256_unpacklo_epi64(h01, h23);
 }
 
-// Int
+// 32 bit types
 // from Stan Melax: "3D Vector Normalization..."
 // https://software.intel.com/en-us/articles/3d-vector-normalization-using-256-bit-intel-advanced-vector-extensions-intel-avx
-static SIMD_INLINE void swizzle(Vec<Int, 32> v[3], Integer<3>)
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 32> v[3], Integer<3>)
 {
-  Vec<Int, 32> vs[3];
-  swizzle_32_16<3>(v, vs);
-  __m256 x0y0z0x1 = _mm256_castsi256_ps(vs[0]);
-  __m256 y1z1x2y2 = _mm256_castsi256_ps(vs[1]);
-  __m256 z2x3y3z3 = _mm256_castsi256_ps(vs[2]);
-  __m256 x2y2x3y3 =
-    _mm256_shuffle_ps(y1z1x2y2, z2x3y3z3, _MM_SHUFFLE(2, 1, 3, 2));
-  __m256 y0z0y1z1 =
-    _mm256_shuffle_ps(x0y0z0x1, y1z1x2y2, _MM_SHUFFLE(1, 0, 2, 1));
-  // x0x1x2x3
-  v[0] = _mm256_castps_si256(
-    _mm256_shuffle_ps(x0y0z0x1, x2y2x3y3, _MM_SHUFFLE(2, 0, 3, 0)));
-  // y0y1y2y3
-  v[1] = _mm256_castps_si256(
-    _mm256_shuffle_ps(y0z0y1z1, x2y2x3y3, _MM_SHUFFLE(3, 1, 2, 0)));
-  // z0z1z2z3
-  v[2] = _mm256_castps_si256(
-    _mm256_shuffle_ps(y0z0y1z1, z2x3y3z3, _MM_SHUFFLE(3, 0, 3, 1)));
-}
-
-// Float
-// from Stan Melax: "3D Vector Normalization..."
-// https://software.intel.com/en-us/articles/3d-vector-normalization-using-256-bit-intel-advanced-vector-extensions-intel-avx
-// same code as for Int
-static SIMD_INLINE void swizzle(Vec<Float, 32> v[3], Integer<3>)
-{
+  const Vec<Float, 32> vFloat[3] = {
+    reinterpret(v[0], OutputType<Float>()),
+    reinterpret(v[1], OutputType<Float>()),
+    reinterpret(v[2], OutputType<Float>()),
+  };
   Vec<Float, 32> vs[3];
-  swizzle_32_16<3>(v, vs);
+  swizzle_32_16<3>(vFloat, vs);
   // x0y0z0x1 = v[0]
   // y1z1x2y2 = v[1]
   // z2x3y3z3 = v[2]
-  __m256 x2y2x3y3 = _mm256_shuffle_ps(vs[1], vs[2], _MM_SHUFFLE(2, 1, 3, 2));
-  __m256 y0z0y1z1 = _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(1, 0, 2, 1));
-  // x0x1x2x3
-  v[0] = _mm256_shuffle_ps(vs[0], x2y2x3y3, _MM_SHUFFLE(2, 0, 3, 0));
-  // y0y1y2y3
-  v[1] = _mm256_shuffle_ps(y0z0y1z1, x2y2x3y3, _MM_SHUFFLE(3, 1, 2, 0));
-  // z0z1z2z3
-  v[2] = _mm256_shuffle_ps(y0z0y1z1, vs[2], _MM_SHUFFLE(3, 0, 3, 1));
+  const __m256 x2y2x3y3 =
+    _mm256_shuffle_ps(vs[1], vs[2], _MM_SHUFFLE(2, 1, 3, 2));
+  const __m256 y0z0y1z1 =
+    _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(1, 0, 2, 1));
+  const __m256 x0x1x2x3 =
+    _mm256_shuffle_ps(vs[0], x2y2x3y3, _MM_SHUFFLE(2, 0, 3, 0));
+  const __m256 y0y1y2y3 =
+    _mm256_shuffle_ps(y0z0y1z1, x2y2x3y3, _MM_SHUFFLE(3, 1, 2, 0));
+  const __m256 z0z1z2z3 =
+    _mm256_shuffle_ps(y0z0y1z1, vs[2], _MM_SHUFFLE(3, 0, 3, 1));
+  v[0] = reinterpret(x0x1x2x3, OutputType<T>());
+  v[1] = reinterpret(y0y1y2y3, OutputType<T>());
+  v[2] = reinterpret(z0z1z2z3, OutputType<T>());
 }
 
 // -------------------- n = 4 --------------------
 
-// Byte, SignedByte, Word, Short
+// 8 and 16 bit integer types
 template <typename T,
-          SIMD_ENABLE_IF(((IsOneOf<T, Byte, SignedByte, Word, Short>::value)))>
+          SIMD_ENABLE_IF((sizeof(T) <= 2 && std::is_integral<T>::value))>
 static SIMD_INLINE void swizzle(Vec<T, 32> v[4], Integer<4>)
 {
   Vec<T, 32> vs[4];
@@ -3562,56 +3523,47 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[4], Integer<4>)
   v[3]        = x_mm256_unpackhi_epi64(h01, h23);
 }
 
-// Int
-static SIMD_INLINE void swizzle(Vec<Int, 32> v[4], Integer<4>)
+// 32 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 32> v[4], Integer<4>)
 {
-  Vec<Int, 32> vs[4];
-  swizzle_32_16<4>(v, vs);
-  __m256i s[4];
-  s[0] = x_mm256_unpacklo_epi32(vs[0], vs[1]);
-  s[1] = x_mm256_unpackhi_epi32(vs[0], vs[1]);
-  s[2] = x_mm256_unpacklo_epi32(vs[2], vs[3]);
-  s[3] = x_mm256_unpackhi_epi32(vs[2], vs[3]);
-  v[0] = x_mm256_unpacklo_epi64(s[0], s[2]);
-  v[1] = x_mm256_unpackhi_epi64(s[0], s[2]);
-  v[2] = x_mm256_unpacklo_epi64(s[1], s[3]);
-  v[3] = x_mm256_unpackhi_epi64(s[1], s[3]);
-}
-
-// Float
-static SIMD_INLINE void swizzle(Vec<Float, 32> v[4], Integer<4>)
-{
+  Vec<Float, 32> vInt[4];
+  for (int i = 0; i < 4; ++i) {
+    vInt[i] = reinterpret(v[i], OutputType<Float>());
+  }
   Vec<Float, 32> vs[4];
-  swizzle_32_16<4>(v, vs);
+  swizzle_32_16<4>(vInt, vs);
   __m256 s[4];
   s[0] = _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(1, 0, 1, 0));
   s[1] = _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(3, 2, 3, 2));
   s[2] = _mm256_shuffle_ps(vs[2], vs[3], _MM_SHUFFLE(1, 0, 1, 0));
   s[3] = _mm256_shuffle_ps(vs[2], vs[3], _MM_SHUFFLE(3, 2, 3, 2));
-  v[0] = _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(2, 0, 2, 0));
-  v[1] = _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1));
-  v[2] = _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));
-  v[3] = _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(3, 1, 3, 1));
+  Vec<T, 32> vOut[4];
+  vOut[0] = _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(2, 0, 2, 0));
+  vOut[1] = _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1));
+  vOut[2] = _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));
+  vOut[3] = _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(3, 1, 3, 1));
+  for (int i = 0; i < 4; ++i) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
 // -------------------- n = 5 --------------------
 
-// Byte, SignedByte
-template <typename T, SIMD_ENABLE_IF((IsOneOf<T, Byte, SignedByte>::value))>
+// 8 bit integer types
+template <typename T,
+          SIMD_ENABLE_IF(sizeof(T) == 1 && std::is_integral<T>::value)>
 static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
 {
   Vec<T, 32> vs[5];
   swizzle_32_16<5>(v, vs);
-  __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<5, T>());
-  __m256i s0   = align_shuffle_byte_256<0>(vs[0], vs[1], mask);
-  __m256i s1   = align_shuffle_byte_256<10>(vs[0], vs[1], mask);
-  __m256i s2   = align_shuffle_byte_256<4>(vs[1], vs[2], mask);
-  __m256i s3   = align_shuffle_byte_256<14>(vs[1], vs[2], mask);
-  __m256i s4   = align_shuffle_byte_256<8>(vs[2], vs[3], mask);
-  __m256i s5   = align_shuffle_byte_256<2>(vs[3], vs[4], mask);
-  __m256i s6   = align_shuffle_byte_256<12>(vs[3], vs[4], mask);
-  __m256i s7   = align_shuffle_byte_256<6>(vs[4], vs[0], mask);
-  /* s7: v[0] is a dummy */
+  __m256i mask    = x_mm256_duplicate_si128(get_swizzle_mask<5, T>());
+  __m256i s0      = align_shuffle_256<0>(vs[0], vs[1], mask);
+  __m256i s1      = align_shuffle_256<10>(vs[0], vs[1], mask);
+  __m256i s2      = align_shuffle_256<4>(vs[1], vs[2], mask);
+  __m256i s3      = align_shuffle_256<14>(vs[1], vs[2], mask);
+  __m256i s4      = align_shuffle_256<8>(vs[2], vs[3], mask);
+  __m256i s5      = align_shuffle_256<2>(vs[3], vs[4], mask);
+  __m256i s6      = align_shuffle_256<12>(vs[3], vs[4], mask);
+  __m256i s7      = align_shuffle_256<6>(vs[4], _mm256_undefined_si256(), mask);
   __m256i l01     = x_mm256_unpacklo_epi16(s0, s1);
   __m256i h01     = x_mm256_unpackhi_epi16(s0, s1);
   __m256i l23     = x_mm256_unpacklo_epi16(s2, s3);
@@ -3633,68 +3585,74 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
   v[4]            = x_mm256_unpacklo_epi64(lh01h23, lh45h67);
 }
 
-// Word, Short
-template <typename T, SIMD_ENABLE_IF((IsOneOf<T, Word, Short>::value)),
+// 16 bit integer types
+template <typename T,
+          SIMD_ENABLE_IF(sizeof(T) == 2 && std::is_integral<T>::value),
           typename = void>
 static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
 {
   Vec<T, 32> vs[5];
   swizzle_32_16<5>(v, vs);
   __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<5, T>());
-  __m256i s0   = align_shuffle_word_256<0>(vs[0], vs[1], mask);
-  __m256i s1   = align_shuffle_word_256<3>(vs[0], vs[1], mask);
-  __m256i s2   = align_shuffle_word_256<2>(vs[1], vs[2], mask);
-  __m256i s3   = align_shuffle_word_256<5>(vs[1], vs[2], mask);
-  __m256i s4   = align_shuffle_word_256<4>(vs[2], vs[3], mask);
-  __m256i s5   = align_shuffle_word_256<7>(vs[2], vs[3], mask);
-  __m256i s6   = align_shuffle_word_256<6>(vs[3], vs[4], mask);
-  __m256i s7   = align_shuffle_word_256<1>(vs[4], vs[0], mask);
-  // s7: v[0] is a dummy
-  __m256i l02 = x_mm256_unpacklo_epi32(s0, s2);
-  __m256i h02 = x_mm256_unpackhi_epi32(s0, s2);
-  __m256i l13 = x_mm256_unpacklo_epi32(s1, s3);
-  __m256i l46 = x_mm256_unpacklo_epi32(s4, s6);
-  __m256i h46 = x_mm256_unpackhi_epi32(s4, s6);
-  __m256i l57 = x_mm256_unpacklo_epi32(s5, s7);
-  v[0]        = x_mm256_unpacklo_epi64(l02, l46);
-  v[1]        = x_mm256_unpackhi_epi64(l02, l46);
-  v[2]        = x_mm256_unpacklo_epi64(h02, h46);
-  v[3]        = x_mm256_unpacklo_epi64(l13, l57);
-  v[4]        = x_mm256_unpackhi_epi64(l13, l57);
+  __m256i s0   = align_shuffle_256<0>(vs[0], vs[1], mask);
+  __m256i s1   = align_shuffle_256<6>(vs[0], vs[1], mask);
+  __m256i s2   = align_shuffle_256<4>(vs[1], vs[2], mask);
+  __m256i s3   = align_shuffle_256<10>(vs[1], vs[2], mask);
+  __m256i s4   = align_shuffle_256<8>(vs[2], vs[3], mask);
+  __m256i s5   = align_shuffle_256<14>(vs[2], vs[3], mask);
+  __m256i s6   = align_shuffle_256<12>(vs[3], vs[4], mask);
+  __m256i s7   = align_shuffle_256<2>(vs[4], _mm256_undefined_si256(), mask);
+  __m256i l02  = x_mm256_unpacklo_epi32(s0, s2);
+  __m256i h02  = x_mm256_unpackhi_epi32(s0, s2);
+  __m256i l13  = x_mm256_unpacklo_epi32(s1, s3);
+  __m256i l46  = x_mm256_unpacklo_epi32(s4, s6);
+  __m256i h46  = x_mm256_unpackhi_epi32(s4, s6);
+  __m256i l57  = x_mm256_unpacklo_epi32(s5, s7);
+  v[0]         = x_mm256_unpacklo_epi64(l02, l46);
+  v[1]         = x_mm256_unpackhi_epi64(l02, l46);
+  v[2]         = x_mm256_unpacklo_epi64(h02, h46);
+  v[3]         = x_mm256_unpacklo_epi64(l13, l57);
+  v[4]         = x_mm256_unpackhi_epi64(l13, l57);
 }
 
-// Int
-static SIMD_INLINE void swizzle(Vec<Int, 32> v[5], Integer<5>)
+// 32 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void,
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
 {
+  Vec<Int, 32> vInt[5];
+  for (int i = 0; i < 5; i++) {
+    vInt[i] = reinterpret(v[i], OutputType<Int>());
+  }
   Vec<Int, 32> vs[5];
-  swizzle_32_16<5>(v, vs);
+  swizzle_32_16<5>(vInt, vs);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   // v[0]: 0 1 2 3
   // v[1]: 4 x x x
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                   x x x   x
   // 5 6 7 8
-  __m256i s2 = x_mm256_alignr_epi8<4>(vs[2], vs[1]);
+  __m256i s2 = _mm256_alignr_epi8(vs[2], vs[1], 4);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                             x  x  x    x
   // 9 x x x
-  __m256i s3 = x_mm256_alignr_epi8<4>(vs[3], vs[2]);
+  __m256i s3 = _mm256_alignr_epi8(vs[3], vs[2], 4);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                x  x    x  x
   // 10 11 12 13
-  __m256i s4 = x_mm256_alignr_epi8<8>(vs[3], vs[2]);
+  __m256i s4 = _mm256_alignr_epi8(vs[3], vs[2], 8);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                              x  x    x  x
   // 14 x x x
-  __m256i s5 = x_mm256_alignr_epi8<8>(vs[4], vs[3]);
+  __m256i s5 = _mm256_alignr_epi8(vs[4], vs[3], 8);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                 X    X  X  X
   // 15 16 17 18
-  __m256i s6 = x_mm256_alignr_epi8<12>(vs[4], vs[3]);
+  __m256i s6 = _mm256_alignr_epi8(vs[4], vs[3], 12);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                               X X X X
   // 19 x x x
-  __m256i s7 = x_mm256_alignr_epi8<12>(vs[0], vs[4]);
+  __m256i s7 = _mm256_alignr_epi8(vs[0], vs[4], 12);
   // 0 1 2 3 / 5 6 7 8 -> 0 5 1 6 / 2 7 3 8
   __m256i l02 = x_mm256_unpacklo_epi32(vs[0], s2);
   __m256i h02 = x_mm256_unpackhi_epi32(vs[0], s2);
@@ -3704,80 +3662,18 @@ static SIMD_INLINE void swizzle(Vec<Int, 32> v[5], Integer<5>)
   __m256i l46 = x_mm256_unpacklo_epi32(s4, s6);
   __m256i h46 = x_mm256_unpackhi_epi32(s4, s6);
   // 14 x x x / 19 x x x -> 14 19 x x
-  __m256i l57 = x_mm256_unpacklo_epi32(s5, s7);
-  // 0 5 1 6 / 10 15 11 13 -> 0 5 10 15 / 1 6 11 16
-  v[0] = x_mm256_unpacklo_epi64(l02, l46);
-  v[1] = x_mm256_unpackhi_epi64(l02, l46);
-  // 2 7 3 8 / 12 17 13 18 -> 2 7 12 17 / 3 8 13 18
-  v[2] = x_mm256_unpacklo_epi64(h02, h46);
-  v[3] = x_mm256_unpackhi_epi64(h02, h46);
-  // 4 9 x x / 14 19 x x -> 4 9 14 19
-  v[4] = x_mm256_unpacklo_epi64(l13, l57);
-}
-
-// Float
-// same code as for Int, modified
-static SIMD_INLINE void swizzle(Vec<Float, 32> v[5], Integer<5>)
-{
-  Vec<Float, 32> vs[5];
-  swizzle_32_16<5>(v, vs);
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  // v[0]: 0 1 2 3
-  __m256i v0 = _mm256_castps_si256(vs[0]);
-  // v[1]: 4 5 6 7
-  __m256i v1 = _mm256_castps_si256(vs[1]);
-  // v[2]: 8 9 10 11
-  __m256i v2 = _mm256_castps_si256(vs[2]);
-  // v[3]: 12 13 14 15
-  __m256i v3 = _mm256_castps_si256(vs[3]);
-  // v[4]: 16 17 18 19
-  __m256i v4 = _mm256_castps_si256(vs[4]);
-  // s0:  0 1 2 3
-  __m256 s0 = vs[0];
-  // s1:  4 x x x
-  __m256 s1 = vs[1];
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                   x x x   x
-  // 5 6 7 8
-  __m256 s2 = _mm256_castsi256_ps(x_mm256_alignr_epi8<4>(v2, v1));
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                             x  x  x    x
-  // 9 x x x
-  __m256 s3 = _mm256_castsi256_ps(x_mm256_alignr_epi8<4>(v3, v2));
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                                x  x    x  x
-  // 10 11 12 13
-  __m256 s4 = _mm256_castsi256_ps(x_mm256_alignr_epi8<8>(v3, v2));
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                                              x  x    x  x
-  // 14 x x x
-  __m256 s5 = _mm256_castsi256_ps(x_mm256_alignr_epi8<8>(v4, v3));
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                                                 X    X  X  X
-  // 15 16 17 18
-  __m256 s6 = _mm256_castsi256_ps(x_mm256_alignr_epi8<12>(v4, v3));
-  // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
-  //                                                               X X X X
-  // 19 x x x
-  __m256 s7 = _mm256_castsi256_ps(x_mm256_alignr_epi8<12>(v0, v4));
-  // 0 1 2 3 / 5 6 7 8 -> 0 5 1 6 / 2 7 3 8
-  __m256 l02 = _mm256_unpacklo_ps(s0, s2);
-  __m256 h02 = _mm256_unpackhi_ps(s0, s2);
-  // 4 x x x / 9 x x x -> 4 9 x x
-  __m256 l13 = _mm256_unpacklo_ps(s1, s3);
-  // 10 11 12 13 / 15 16 17 18 -> 10 15 11 13 / 12 17 13 18
-  __m256 l46 = _mm256_unpacklo_ps(s4, s6);
-  __m256 h46 = _mm256_unpackhi_ps(s4, s6);
-  // 14 x x x / 19 x x x -> 14 19 x x
-  __m256 l57 = _mm256_unpacklo_ps(s5, s7);
-  // 0 5 1 6 / 10 15 11 13 -> 0 5 10 15 / 1 6 11 16
-  v[0] = x_mm256_unpacklo_2ps(l02, l46);
-  v[1] = x_mm256_unpackhi_2ps(l02, l46);
-  // 2 7 3 8 / 12 17 13 18 -> 2 7 12 17 / 3 8 13 18
-  v[2] = x_mm256_unpacklo_2ps(h02, h46);
-  v[3] = x_mm256_unpackhi_2ps(h02, h46);
-  // 4 9 x x / 14 19 x x -> 4 9 14 19
-  v[4] = x_mm256_unpacklo_2ps(l13, l57);
+  __m256i l57                = x_mm256_unpacklo_epi32(s5, s7);
+  const Vec<Int, 32> vOut[5] = {
+    // 0 5 1 6 / 10 15 11 13 -> 0 5 10 15 / 1 6 11 16
+    x_mm256_unpacklo_epi64(l02, l46),
+    x_mm256_unpackhi_epi64(l02, l46),
+    // 2 7 3 8 / 12 17 13 18 -> 2 7 12 17 / 3 8 13 18
+    x_mm256_unpacklo_epi64(h02, h46),
+    x_mm256_unpackhi_epi64(h02, h46),
+    // 4 9 x x / 14 19 x x -> 4 9 14 19
+    x_mm256_unpacklo_epi64(l13, l57),
+  };
+  for (int i = 0; i < 5; i++) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
 // ---------------------------------------------------------------------------

@@ -3483,15 +3483,15 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[3], Integer<3>)
   // x0y0z0x1 = v[0]
   // y1z1x2y2 = v[1]
   // z2x3y3z3 = v[2]
-  const __m256 x2y2x3y3 =
+  const Vec<Float, 32> x2y2x3y3 =
     _mm256_shuffle_ps(vs[1], vs[2], _MM_SHUFFLE(2, 1, 3, 2));
-  const __m256 y0z0y1z1 =
+  const Vec<Float, 32> y0z0y1z1 =
     _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(1, 0, 2, 1));
-  const __m256 x0x1x2x3 =
+  const Vec<Float, 32> x0x1x2x3 =
     _mm256_shuffle_ps(vs[0], x2y2x3y3, _MM_SHUFFLE(2, 0, 3, 0));
-  const __m256 y0y1y2y3 =
+  const Vec<Float, 32> y0y1y2y3 =
     _mm256_shuffle_ps(y0z0y1z1, x2y2x3y3, _MM_SHUFFLE(3, 1, 2, 0));
-  const __m256 z0z1z2z3 =
+  const Vec<Float, 32> z0z1z2z3 =
     _mm256_shuffle_ps(y0z0y1z1, vs[2], _MM_SHUFFLE(3, 0, 3, 1));
   v[0] = reinterpret(x0x1x2x3, OutputType<T>());
   v[1] = reinterpret(y0y1y2y3, OutputType<T>());

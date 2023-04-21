@@ -634,20 +634,20 @@ GENERATE_SOP(sqrt, Float, ps)
 // 25. Mar 25 (Jonas Keller): added masked abs for unsigned integers
 
 // unsigned integers: do nothing
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_unsigned<T>::value
+                                       &&std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> mask_abs(const Vec<T, 64> &src,
                                        const Mask<T, 64> &k,
                                        const Vec<T, 64> &a)
 {
-  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
   return mask_ifelse(k, a, src);
 }
 
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_unsigned<T>::value
+                                       &&std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> maskz_abs(const Mask<T, 64> &k,
                                         const Vec<T, 64> &a)
 {
-  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
   return mask_ifelsezero(k, a);
 }
 

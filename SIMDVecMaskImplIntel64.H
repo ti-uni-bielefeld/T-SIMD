@@ -462,71 +462,63 @@ GENERATE_DOP(div, Float, ps)
 
 // versions for integer types do nothing:
 
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> mask_ceil(const Vec<T, 64> &src,
                                         const Mask<T, 64> &k,
                                         const Vec<T, 64> &a)
 {
-  static_assert(std::is_integral<T>::value, "");
   return mask_ifelse(k, a, src);
 }
 
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> maskz_ceil(const Mask<T, 64> &k,
                                          const Vec<T, 64> &a)
 {
-  static_assert(std::is_integral<T>::value, "");
   return mask_ifelsezero(k, a);
 }
 
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> mask_floor(const Vec<T, 64> &src,
                                          const Mask<T, 64> &k,
                                          const Vec<T, 64> &a)
 {
-  static_assert(std::is_integral<T>::value, "");
   return mask_ifelse(k, a, src);
 }
 
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> maskz_floor(const Mask<T, 64> &k,
                                           const Vec<T, 64> &a)
 {
-  static_assert(std::is_integral<T>::value, "");
   return mask_ifelsezero(k, a);
 }
 
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> mask_round(const Vec<T, 64> &src,
                                          const Mask<T, 64> &k,
                                          const Vec<T, 64> &a)
 {
-  static_assert(std::is_integral<T>::value, "");
   return mask_ifelse(k, a, src);
 }
 
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> maskz_round(const Mask<T, 64> &k,
                                           const Vec<T, 64> &a)
 {
-  static_assert(std::is_integral<T>::value, "");
   return mask_ifelsezero(k, a);
 }
 
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> mask_truncate(const Vec<T, 64> &src,
                                             const Mask<T, 64> &k,
                                             const Vec<T, 64> &a)
 {
-  static_assert(std::is_integral<T>::value, "");
   return mask_ifelse(k, a, src);
 }
 
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> maskz_truncate(const Mask<T, 64> &k,
                                              const Vec<T, 64> &a)
 {
-  static_assert(std::is_integral<T>::value, "");
   return mask_ifelsezero(k, a);
 }
 

@@ -3664,7 +3664,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
     _mm512_unpacklo_epi64(l13, l57),
   };
   for (int i = 0; i < 5; i++) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
-} // namespace base
+}
 
 // ---------------------------------------------------------------------------
 // comparison functions

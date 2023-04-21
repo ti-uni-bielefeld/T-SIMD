@@ -524,25 +524,6 @@ using CompareGreaterOrEqual = Compare<false, true, true>;
 using CompareGreater        = Compare<false, false, true>;
 } // namespace internal
 
-// 01. Apr 23 (Jonas Keller): added IsOneOf
-
-// --------------------------------------------------------------------------
-// check if type is one of the given types
-// --------------------------------------------------------------------------
-
-template <typename...>
-struct IsOneOf
-{
-  static constexpr bool value = false;
-};
-
-template <typename F, typename S, typename... T>
-struct IsOneOf<F, S, T...>
-{
-  static constexpr bool value =
-    std::is_same<F, S>::value || IsOneOf<F, T...>::value;
-};
-
 } // namespace simd
 
 #endif

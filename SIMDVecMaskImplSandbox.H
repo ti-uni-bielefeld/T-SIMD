@@ -49,7 +49,7 @@ namespace simd {
 // ===========================================================================
 
 template <typename T, int SIMD_WIDTH>
-struct Mask
+class Mask
 {
   Mask() {}
   Mask(const uint64_t &) {}

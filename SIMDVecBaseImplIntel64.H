@@ -3516,7 +3516,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>)
   Vec<Int, 64> vInt[4];
   for (int i = 0; i < 4; i++) vInt[i] = reinterpret(v[i], OutputType<Int>());
   Vec<Int, 64> vs[4];
-  swizzle_64_16<4>(v, vs);
+  swizzle_64_16<4>(vInt, vs);
   const __m512i s[4] = {
     _mm512_unpacklo_epi32(vs[0], vs[1]),
     _mm512_unpackhi_epi32(vs[0], vs[1]),

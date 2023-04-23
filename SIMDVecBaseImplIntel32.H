@@ -603,38 +603,17 @@ static SIMD_INLINE int x_mm256_extract_epi32(__m256i a)
 
 #ifdef __AVX2__
 
-// positive, zero (not non-zero), and in range: return l
-// (this case was introduced for swizzle functions)
-template <int IMM>
-static SIMD_INLINE __m256i
-x_mm256_alignr_epi8(__m256i, __m256i l, IsPosNonZeroInRange<true, false, true>)
-{
-  return l;
-}
+// 21. Apr 23 (Jonas Keller): replaced IMM range handling via tag dispatch
+// with static_assert, since we don't need the range handling anymore,
+// we just assert that IMM is in range
 
-// positive, non-zero, and in range: run align
-template <int IMM>
-static SIMD_INLINE __m256i
-x_mm256_alignr_epi8(__m256i h, __m256i l, IsPosNonZeroInRange<true, true, true>)
-{
-  return _mm256_alignr_epi8(h, l, IMM);
-}
-
-// positive, non-zero, and out of range: return zero vector
-template <int IMM>
-static SIMD_INLINE __m256i
-x_mm256_alignr_epi8(__m256i, __m256i, IsPosNonZeroInRange<true, true, false>)
-{
-  return _mm256_setzero_si256();
-}
-
-// hub
 template <int IMM>
 static SIMD_INLINE __m256i x_mm256_alignr_epi8(__m256i h, __m256i l)
 {
   //  2. Jul 18 (rm) BUGFIX: 64 -> 32 (2 lanes only, lane-oriented!)
   // IMM < 32
-  return x_mm256_alignr_epi8<IMM>(h, l, IsPosNonZeroInGivenRange<32, IMM>());
+  static_assert(IMM >= 0 && IMM < 32, "");
+  return _mm256_alignr_epi8(h, l, IMM);
 }
 
 #else
@@ -642,15 +621,14 @@ static SIMD_INLINE __m256i x_mm256_alignr_epi8(__m256i h, __m256i l)
 // non-avx2 workarounds
 // (easy since AVX2 instructions operate on lanes anyhow)
 
-// IMM range handling is done at SSE level
-
 template <int IMM>
 static SIMD_INLINE __m256i x_mm256_alignr_epi8(__m256i h, __m256i l)
 {
-  return _mm256_set_m128i(x_mm_alignr_epi8<IMM>(_mm256_extractf128_si256(h, 1),
-                                                _mm256_extractf128_si256(l, 1)),
-                          x_mm_alignr_epi8<IMM>(_mm256_castsi256_si128(h),
-                                                _mm256_castsi256_si128(l)));
+  static_assert(IMM >= 0 && IMM < 32, "");
+  return _mm256_set_m128i(
+    _mm_alignr_epi8(_mm256_extractf128_si256(h, 1),
+                    _mm256_extractf128_si256(l, 1), IMM),
+    _mm_alignr_epi8(_mm256_castsi256_si128(h), _mm256_castsi256_si128(l), IMM));
 }
 
 #endif
@@ -3391,7 +3369,7 @@ static SIMD_INLINE __m256i align_shuffle_256(__m256i lo, __m256i hi,
                                              __m256i mask)
 {
   static_assert(ALIGNOFF >= 0 && ALIGNOFF < 32, "");
-  return x_mm256_shuffle_epi8(_mm256_alignr_epi8(hi, lo, ALIGNOFF), mask);
+  return x_mm256_shuffle_epi8(x_mm256_alignr_epi8<ALIGNOFF>(hi, lo), mask);
 }
 
 // ---------- swizzle (AoS to SoA) ----------
@@ -3632,27 +3610,27 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                   x x x   x
   // 5 6 7 8
-  __m256i s2 = _mm256_alignr_epi8(vs[2], vs[1], 4);
+  __m256i s2 = x_mm256_alignr_epi8<4>(vs[2], vs[1]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                             x  x  x    x
   // 9 x x x
-  __m256i s3 = _mm256_alignr_epi8(vs[3], vs[2], 4);
+  __m256i s3 = x_mm256_alignr_epi8<4>(vs[3], vs[2]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                x  x    x  x
   // 10 11 12 13
-  __m256i s4 = _mm256_alignr_epi8(vs[3], vs[2], 8);
+  __m256i s4 = x_mm256_alignr_epi8<8>(vs[3], vs[2]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                              x  x    x  x
   // 14 x x x
-  __m256i s5 = _mm256_alignr_epi8(vs[4], vs[3], 8);
+  __m256i s5 = x_mm256_alignr_epi8<8>(vs[4], vs[3]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                 X    X  X  X
   // 15 16 17 18
-  __m256i s6 = _mm256_alignr_epi8(vs[4], vs[3], 12);
+  __m256i s6 = x_mm256_alignr_epi8<12>(vs[4], vs[3]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                               X X X X
   // 19 x x x
-  __m256i s7 = _mm256_alignr_epi8(vs[0], vs[4], 12);
+  __m256i s7 = x_mm256_alignr_epi8<12>(vs[0], vs[4]);
   // 0 1 2 3 / 5 6 7 8 -> 0 5 1 6 / 2 7 3 8
   __m256i l02 = x_mm256_unpacklo_epi32(vs[0], s2);
   __m256i h02 = x_mm256_unpackhi_epi32(vs[0], s2);

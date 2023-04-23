@@ -504,39 +504,17 @@ static SIMD_INLINE int x_mm512_extract_ps(__m512 a)
 // alignr v
 // ---------------------------------------------------------------------------
 
+// 21. Apr 23 (Jonas Keller): replaced IMM range handling via tag dispatch
+// with static_assert, since we don't need the range handling anymore,
+// we just assert that IMM is in range
+
 #ifdef __AVX512BW__
 
-// positive, zero (not non-zero), and in range: return l
-// (this case was introduced for swizzle functions)
-template <int IMM>
-static SIMD_INLINE __m512i
-x_mm512_alignr_epi8(__m512i, __m512i l, IsPosNonZeroInRange<true, false, true>)
-{
-  return l;
-}
-
-// positive, non-zero, and in range: run align
-template <int IMM>
-static SIMD_INLINE __m512i
-x_mm512_alignr_epi8(__m512i h, __m512i l, IsPosNonZeroInRange<true, true, true>)
-{
-  return _mm512_alignr_epi8(h, l, IMM);
-}
-
-// positive, non-zero, and out of range: return zero vector
-template <int IMM>
-static SIMD_INLINE __m512i
-x_mm512_alignr_epi8(__m512i, __m512i, IsPosNonZeroInRange<true, true, false>)
-{
-  return _mm512_setzero_si512();
-}
-
-// hub
 template <int IMM>
 static SIMD_INLINE __m512i x_mm512_alignr_epi8(__m512i h, __m512i l)
 {
-  // IMM < 32
-  return x_mm512_alignr_epi8<IMM>(h, l, IsPosNonZeroInGivenRange<32, IMM>());
+  static_assert(IMM >= 0 && IMM < 32, "");
+  return _mm512_alignr_epi8(h, l, IMM);
 }
 
 #else
@@ -544,15 +522,14 @@ static SIMD_INLINE __m512i x_mm512_alignr_epi8(__m512i h, __m512i l)
 // non-avx512bw workarounds
 // (easy since AVX512BW instructions operate on lanes anyhow)
 
-// IMM range handling is done at SSE level
-
 template <int IMM>
 static SIMD_INLINE __m512i x_mm512_alignr_epi8(__m512i h, __m512i l)
 {
-  const __m256i lo = x_mm256_alignr_epi8<IMM>(_mm512_castsi512_si256(h),
-                                              _mm512_castsi512_si256(l));
-  const __m256i hi = x_mm256_alignr_epi8<IMM>(_mm512_extracti64x4_epi64(h, 1),
-                                              _mm512_extracti64x4_epi64(l, 1));
+  static_assert(IMM >= 0 && IMM < 32, "");
+  const __m256i lo = _mm256_alignr_epi8(_mm512_castsi512_si256(h),
+                                        _mm512_castsi512_si256(l), IMM);
+  const __m256i hi = _mm256_alignr_epi8(_mm512_extracti64x4_epi64(h, 1),
+                                        _mm512_extracti64x4_epi64(l, 1), IMM);
   return _mm512_inserti64x4(_mm512_castsi256_si512(lo), hi, 1);
 }
 
@@ -3138,9 +3115,9 @@ static SIMD_INLINE Vec<T, 64> alignre(const Vec<T, 64> &h, const Vec<T, 64> &l,
     (byteShift < 64) ? h : setzero(OutputType<T>(), Integer<64>());
   const Vec<T, 64> ll = align_64_16(L, H, Integer<(laneShift % 4)>());
   const Vec<T, 64> hh = align_64_16(L, H, Integer<(laneShift % 4 + 1)>());
-  return reinterpret(Vec<Byte, 64>(_mm512_alignr_epi8(
+  return reinterpret(Vec<Byte, 64>(x_mm512_alignr_epi8<byteShift % 16>(
                        reinterpret(hh, OutputType<Byte>()),
-                       reinterpret(ll, OutputType<Byte>()), byteShift % 16)),
+                       reinterpret(ll, OutputType<Byte>()))),
                      OutputType<T>());
 }
 
@@ -3238,7 +3215,7 @@ static SIMD_INLINE __m512i align_shuffle_512(__m512i lo, __m512i hi,
                                              __m512i mask)
 {
   static_assert(ALIGNOFF >= 0 && ALIGNOFF < 32, "");
-  return x_mm512_shuffle_epi8(_mm512_alignr_epi8(hi, lo, ALIGNOFF), mask);
+  return x_mm512_shuffle_epi8(x_mm512_alignr_epi8<ALIGNOFF>(hi, lo), mask);
 }
 
 // swizzle_64_16: swizzling of 128-bit lanes (for swizzle) v
@@ -3622,27 +3599,27 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                   x x x   x
   // 5 6 7 8
-  __m512i s2 = _mm512_alignr_epi8(vs[2], vs[1], 4);
+  __m512i s2 = x_mm512_alignr_epi8<4>(vs[2], vs[1]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                             x  x  x    x
   // 9 x x x
-  __m512i s3 = _mm512_alignr_epi8(vs[3], vs[2], 4);
+  __m512i s3 = x_mm512_alignr_epi8<4>(vs[3], vs[2]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                x  x    x  x
   // 10 11 12 13
-  __m512i s4 = _mm512_alignr_epi8(vs[3], vs[2], 8);
+  __m512i s4 = x_mm512_alignr_epi8<8>(vs[3], vs[2]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                              x  x    x  x
   // 14 x x x
-  __m512i s5 = _mm512_alignr_epi8(vs[4], vs[3], 8);
+  __m512i s5 = x_mm512_alignr_epi8<8>(vs[4], vs[3]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                 X    X  X  X
   // 15 16 17 18
-  __m512i s6 = _mm512_alignr_epi8(vs[4], vs[3], 12);
+  __m512i s6 = x_mm512_alignr_epi8<12>(vs[4], vs[3]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                               X X X X
   // 19 x x x
-  __m512i s7 = _mm512_alignr_epi8(vs[0], vs[4], 12);
+  __m512i s7 = x_mm512_alignr_epi8<12>(vs[0], vs[4]);
   // 0 1 2 3 / 5 6 7 8 -> 0 5 1 6 / 2 7 3 8
   __m512i l02 = _mm512_unpacklo_epi32(vs[0], s2);
   __m512i h02 = _mm512_unpackhi_epi32(vs[0], s2);

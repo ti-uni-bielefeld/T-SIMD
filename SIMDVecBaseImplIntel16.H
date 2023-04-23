@@ -482,43 +482,6 @@ static SIMD_INLINE int x_mm_extract_ps(__m128 a)
 }
 
 // ---------------------------------------------------------------------------
-// alignr
-// ---------------------------------------------------------------------------
-
-// positive, zero (not non-zero), and in range: return l
-// (this case was introduced for swizzle functions)
-template <int IMM>
-static SIMD_INLINE __m128i
-x_mm_alignr_epi8(__m128i, __m128i l, IsPosNonZeroInRange<true, false, true>)
-{
-  return l;
-}
-
-// positive, non-zero, and in range: run align
-template <int IMM>
-static SIMD_INLINE __m128i
-x_mm_alignr_epi8(__m128i h, __m128i l, IsPosNonZeroInRange<true, true, true>)
-{
-  return _mm_alignr_epi8(h, l, IMM);
-}
-
-// positive, non-zero and out of range: return zero vector
-template <int IMM>
-static SIMD_INLINE __m128i
-x_mm_alignr_epi8(__m128i, __m128i, IsPosNonZeroInRange<true, true, false>)
-{
-  return _mm_setzero_si128();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_alignr_epi8(__m128i h, __m128i l)
-{
-  // IMM < 2 * 16
-  return x_mm_alignr_epi8<IMM>(h, l, IsPosNonZeroInGivenRange<32, IMM>());
-}
-
-// ---------------------------------------------------------------------------
 // abs
 // ---------------------------------------------------------------------------
 
@@ -2448,19 +2411,39 @@ static SIMD_INLINE Float elem0(const Vec<Float, 16> &a)
 // ---------------------------------------------------------------------------
 
 // all integer versions
-template <int IMM, typename T>
+
+// IMM in range
+template <int IMM, typename T, SIMD_ENABLE_IF(IMM >= 0 && IMM * sizeof(T) < 32)>
 static SIMD_INLINE Vec<T, 16> alignre(const Vec<T, 16> &h, const Vec<T, 16> &l)
 {
-  return x_mm_alignr_epi8<IMM * sizeof(T)>(h, l);
+  return _mm_alignr_epi8(h, l, IMM * sizeof(T));
+}
+
+// IMM out of range
+template <int IMM, typename T, SIMD_ENABLE_IF(IMM * sizeof(T) >= 32),
+          typename = void>
+static SIMD_INLINE Vec<T, 16> alignre(const Vec<T, 16> &, const Vec<T, 16> &)
+{
+  return setzero(OutputType<T>(), Integer<16>());
 }
 
 // float version
-template <int IMM>
+
+// IMM in range
+template <int IMM, SIMD_ENABLE_IF(IMM >= 0 && IMM * sizeof(Float) < 32)>
 static SIMD_INLINE Vec<Float, 16> alignre(const Vec<Float, 16> &h,
                                           const Vec<Float, 16> &l)
 {
-  return _mm_castsi128_ps(x_mm_alignr_epi8<IMM * sizeof(Float)>(
-    _mm_castps_si128(h), _mm_castps_si128(l)));
+  return _mm_castsi128_ps(_mm_alignr_epi8(
+    _mm_castps_si128(h), _mm_castps_si128(l), IMM * sizeof(Float)));
+}
+
+// IMM out of range
+template <int IMM, SIMD_ENABLE_IF(IMM * sizeof(Float) >= 32), typename = void>
+static SIMD_INLINE Vec<Float, 16> alignre(const Vec<Float, 16> &,
+                                          const Vec<Float, 16> &)
+{
+  return setzero(OutputType<Float>(), Integer<16>());
 }
 
 // ---------------------------------------------------------------------------

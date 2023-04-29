@@ -49,8 +49,9 @@ namespace simd {
   template <>                                                                  \
   class Mask<TYPE, 64>                                                         \
   {                                                                            \
-  public:                                                                      \
     __mmask##MASK_SIZE k;                                                      \
+                                                                               \
+  public:                                                                      \
     Mask()                                                                     \
     {                                                                          \
       k = 0;                                                                   \

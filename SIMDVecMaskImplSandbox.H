@@ -51,6 +51,7 @@ namespace simd {
 template <typename T, int SIMD_WIDTH>
 class Mask
 {
+public:
   Mask() {}
   Mask(const uint64_t &) {}
   operator uint64_t() const { return 0; }

@@ -224,8 +224,8 @@ template <>
 struct TypeInfo<Float>
 {
   static constexpr SIMD_INLINE const char *name() { return "Float"; }
-  static constexpr SIMD_INLINE const char *format() { return "g"; }
-  static constexpr SIMD_INLINE const char *defaultFormat() { return "%g "; }
+  static constexpr SIMD_INLINE const char *format() { return ".9g"; }
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%.9g "; }
   static SIMD_INLINE Float trueval() { return SIMDFLOAT_TRUE; }
   using NextLargerType = Float; // no larger float type than Float
   using UnsignedType   = Float; // no unsigned float type

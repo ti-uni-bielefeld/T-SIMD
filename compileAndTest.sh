@@ -42,13 +42,7 @@ set default_compilation = 1
 
 set COMPILE_AND_TEST_JOBS = 16
 
-set opt_flag_list = (\
-  "-O0" \
-  "-O1" \
-  "-O2" \
-  "-O3" \
-  "-O3,-funroll-loops" \
-)
+set opt_flag_list = ("-O2" "-O3,-funroll-loops")
 
 if ($useGccClang) then
   # g++, clang++
@@ -112,33 +106,27 @@ if ($doitDoxygen) then
   make doc >& COMPILE_AND_TEST/doxygen.log
 endif
 
-if ($sandbox_test) then
+if ($sandbox_test && $doitCompile) then
   mkdir -p COMPILE_AND_TEST/sandbox
-  foreach sandbox_defines ("" "-DSIMDVEC_SANDBOX")
-    echo "================= sandbox_defines $sandbox_defines ================="
-    if ($doitCompile) then
-      make $syntax_only_defines clean
-      make $syntax_only_defines dep # only does something when run in PROG system
-      make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} sandbox_defines="$sandbox_defines" \
-        all_tsimd $autotest_target \
-        >& "COMPILE_AND_TEST/sandbox/compile_${sandbox_defines}.log"
-    endif
-  end
+  echo "================= sandbox_defines ================="
+  make $syntax_only_defines clean
+  make $syntax_only_defines dep # only does something when run in PROG system
+  make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} \
+    sandbox_defines="-DSIMDVEC_SANDBOX" all_tsimd $autotest_target \
+    >& "COMPILE_AND_TEST/sandbox/compile.log"
 endif
 
-if ($opt_test) then
+if ($opt_test && $doitCompile) then
   mkdir -p COMPILE_AND_TEST/opt
   foreach opt_info ($opt_flag_list)
     set opt_flags = ($opt_info:as/,/ /)
     echo "==================== optflags $opt_flags ===================="
-    if ($doitCompile) then
-      make $syntax_only_defines clean
-      make $syntax_only_defines dep # only does something when run in PROG system
-      make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} optflags="$opt_flags" \
-        all_tsimd $autotest_target \
-        >& "COMPILE_AND_TEST/opt/compile_${opt_flags}.log"
-      rehash
-    endif
+    make $syntax_only_defines clean
+    make $syntax_only_defines dep # only does something when run in PROG system
+    make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} optflags="$opt_flags" \
+      all_tsimd $autotest_target \
+      >& "COMPILE_AND_TEST/opt/compile_${opt_flags}.log"
+    rehash
   end
 endif
 
@@ -184,7 +172,7 @@ if ($opt_arch_test) then
   end
 endif
 
-if ($cppstd_test) then
+if ($cppstd_test && $doitCompile) then
   mkdir -p COMPILE_AND_TEST/cppstd
   # 23. Mar 23 (Jonas Keller):
   # test all c++ version from c++11 to c++2a instead of only c++11
@@ -202,27 +190,23 @@ if ($cppstd_test) then
         set arch = $arch_list[1]
         set arch_defines = "$arch_list[2-]"
         echo "================= flags_cppstd $cppstd_defines flags_arch $arch_defines optflags $opt_flags ================="
-        if ($doitCompile) then
-          make syntax_only=1 -j ${COMPILE_AND_TEST_JOBS} \
-            flags_cppstd="$cppstd_defines" flags_arch="$arch_defines" \
-            optflags="$opt_flags" all_tsimd $autotest_target \
-            >& "COMPILE_AND_TEST/cppstd/compile_${cppstd}_${arch}_${opt_flags}.log" &
-        endif
+        make syntax_only=1 -j ${COMPILE_AND_TEST_JOBS} \
+          flags_cppstd="$cppstd_defines" flags_arch="$arch_defines" \
+          optflags="$opt_flags" all_tsimd $autotest_target \
+          >& "COMPILE_AND_TEST/cppstd/compile_${cppstd}_${arch}_${opt_flags}.log" &
       end
       wait
     end
   end
 endif
 
-if ($default_compilation) then
+if ($default_compilation && $doitCompile) then
   mkdir -p COMPILE_AND_TEST/default
   echo "================== default compilation ================="
-  if ($doitCompile) then
-    make $syntax_only_defines clean
-    make $syntax_only_defines dep # only does something when run in PROG system
-    make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} all_tsimd $autotest_target \
-      >& COMPILE_AND_TEST/default/compile.log
-  endif
+  make $syntax_only_defines clean
+  make $syntax_only_defines dep # only does something when run in PROG system
+  make $syntax_only_defines -j ${COMPILE_AND_TEST_JOBS} all_tsimd $autotest_target \
+    >& COMPILE_AND_TEST/default/compile.log
 endif
 
 set where_there_errors = 0

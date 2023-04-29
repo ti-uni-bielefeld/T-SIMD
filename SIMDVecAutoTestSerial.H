@@ -410,6 +410,7 @@ static SIMD_INLINE Float _subs(Float a, Float b)
 
 static SIMD_INLINE Int _cvts_f2i(Float a)
 {
+  if (std::isnan(a)) return std::numeric_limits<Int>::min();
 #if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
   // special way to avoid overflow case
   Float clip = MAX_POS_FLOAT_CONVERTIBLE_TO_INT32;

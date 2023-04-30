@@ -511,7 +511,6 @@ struct AbsDiff
   }
 };
 
-// SIMDVecExt.H has a template class Unpack, so we add an underscore
 template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
 struct Unpack
 {
@@ -543,7 +542,6 @@ struct Unpack
 };
 
 // 10. Oct 22 (Jonas Keller): added Unpack16
-// SIMDVecExt.H has a template class Unpack16, so we add an underscore
 template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
 struct Unpack16
 {
@@ -600,7 +598,6 @@ struct ExtractLane
   }
 };
 
-// SIMDVecExt.H has a template class Zip, so we add an underscore
 template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
 struct Zip
 {
@@ -628,7 +625,6 @@ struct Zip
 };
 
 // 10. Oct 22 (Jonas Keller): added Zip16
-// SIMDVecExt.H has a template class Zip16, so we add an underscore
 template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
 struct Zip16
 {
@@ -1805,7 +1801,6 @@ struct HmaxSingle
   }
 };
 
-// SIMDVecExt.H has a template class Transpose, so we add an underscore
 template <typename T, int SIMD_WIDTH>
 struct Transpose
 {

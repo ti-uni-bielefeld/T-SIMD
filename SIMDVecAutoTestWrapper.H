@@ -1510,17 +1510,17 @@ struct Convert
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename Tin, int SIMD_WIDTH>
 struct Fdivmul
 {
   static SIMD_INLINE std::string name()
   {
-    return tt2s<Tout, T, SIMD_WIDTH>("fdivmul");
+    return tt2s<Tout, Tin, SIMD_WIDTH>("fdivmul");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, T>();
-  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, T>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE Float randomizeInputFloat()
@@ -1528,37 +1528,37 @@ struct Fdivmul
     return getRandomOrSpecialValueRanges<Float>();
   }
 
-  static SIMD_INLINE void randomizeInput1(SerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput1(SerialVec<Tin, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
 
-  static SIMD_INLINE void randomizeInput2(SerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput2(SerialVec<Tin, SIMD_WIDTH> &vec)
   {
     vec.randomizeRangesNonZero();
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> vecsNum[numInVecs],
-                                const VEC<T, SIMD_WIDTH> vecsDenom[numInVecs],
                                 double fac,
+  static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsNum[numInVecs],
+                                const VEC<Tin, SIMD_WIDTH> vecsDenom[numInVecs],
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fdivmul(vecsNum, vecsDenom, fac, vecsOut);
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename Tin, int SIMD_WIDTH>
 struct Fmul
 {
   static SIMD_INLINE std::string name()
   {
-    return tt2s<Tout, T, SIMD_WIDTH>("fmul");
+    return tt2s<Tout, Tin, SIMD_WIDTH>("fmul");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, T>();
-  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, T>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE Float randomizeInputFloat()
@@ -1568,32 +1568,32 @@ struct Fmul
 
   // 03. Aug 22 (Jonas Keller):
   // include zeros in the randomization of the input vectors
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<Tin, SIMD_WIDTH> &vec)
   // { vec.randomizeRangesNonZero(); }
   {
     vec.randomizeRanges();
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> vecsIn[numInVecs],
                                 double fac,
+  static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fmul(vecsIn, fac, vecsOut);
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename Tin, int SIMD_WIDTH>
 struct Faddmul
 {
   static SIMD_INLINE std::string name()
   {
-    return tt2s<Tout, T, SIMD_WIDTH>("faddmul");
+    return tt2s<Tout, Tin, SIMD_WIDTH>("faddmul");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, T>();
-  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, T>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE Float randomizeInputFloat()
@@ -1603,32 +1603,32 @@ struct Faddmul
 
   // 03. Aug 22 (Jonas Keller):
   // include zeros in the randomization of the input vectors
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<Tin, SIMD_WIDTH> &vec)
   // { vec.randomizeRangesNonZero(); }
   {
     vec.randomizeRanges();
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> vecsIn[numInVecs],
                                 double off, double fac,
+  static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     faddmul(vecsIn, off, fac, vecsOut);
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename Tin, int SIMD_WIDTH>
 struct Fmuladd
 {
   static SIMD_INLINE std::string name()
   {
-    return tt2s<Tout, T, SIMD_WIDTH>("fmuladd");
+    return tt2s<Tout, Tin, SIMD_WIDTH>("fmuladd");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, T>();
-  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, T>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE Float randomizeInputFloat()
@@ -1638,32 +1638,32 @@ struct Fmuladd
 
   // 03. Aug 22 (Jonas Keller):
   // include zeros in the randomization of the input vectors
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput(SerialVec<Tin, SIMD_WIDTH> &vec)
   // { vec.randomizeRangesNonZero(); }
   {
     vec.randomizeRanges();
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> vecsIn[numInVecs],
                                 double off, double fac,
+  static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fmuladd(vecsIn, fac, off, vecsOut);
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename Tin, int SIMD_WIDTH>
 struct Fwaddmul
 {
   static SIMD_INLINE std::string name()
   {
-    return tt2s<Tout, T, SIMD_WIDTH>("fwaddmul");
+    return tt2s<Tout, Tin, SIMD_WIDTH>("fwaddmul");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, T>();
-  static constexpr int numInElems  = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, T>();
+  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE Float randomizeInputFloat()
@@ -1671,20 +1671,20 @@ struct Fwaddmul
     return getRandomOrSpecialValueRanges<Float>();
   }
 
-  static SIMD_INLINE void randomizeInput1(SerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput1(SerialVec<Tin, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
 
-  static SIMD_INLINE void randomizeInput2(SerialVec<T, SIMD_WIDTH> &vec)
+  static SIMD_INLINE void randomizeInput2(SerialVec<Tin, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
 
   template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> vecsIn1[numInVecs],
-                                const VEC<T, SIMD_WIDTH> vecsIn2[numInVecs],
                                 double w, double fac,
+  static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn1[numInVecs],
+                                const VEC<Tin, SIMD_WIDTH> vecsIn2[numInVecs],
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fwaddmul(vecsIn1, vecsIn2, w, fac, vecsOut);

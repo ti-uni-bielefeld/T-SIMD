@@ -2630,23 +2630,23 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
 
 // 32 bit types
 template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void>
-static SIMD_INLINE void swizzle(Vec<T, 16> vT[4], Integer<4>)
+static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
 {
-  __m128 v[4];
+  __m128 vFloat[4];
   for (int i = 0; i < 4; ++i) {
-    v[i] = reinterpret(vT[i], OutputType<Float>());
+    vFloat[i] = reinterpret(v[i], OutputType<Float>());
   }
   __m128 s[4];
-  s[0] = _mm_shuffle_ps(v[0], v[1], _MM_SHUFFLE(1, 0, 1, 0));
-  s[1] = _mm_shuffle_ps(v[0], v[1], _MM_SHUFFLE(3, 2, 3, 2));
-  s[2] = _mm_shuffle_ps(v[2], v[3], _MM_SHUFFLE(1, 0, 1, 0));
-  s[3] = _mm_shuffle_ps(v[2], v[3], _MM_SHUFFLE(3, 2, 3, 2));
+  s[0] = _mm_shuffle_ps(vFloat[0], vFloat[1], _MM_SHUFFLE(1, 0, 1, 0));
+  s[1] = _mm_shuffle_ps(vFloat[0], vFloat[1], _MM_SHUFFLE(3, 2, 3, 2));
+  s[2] = _mm_shuffle_ps(vFloat[2], vFloat[3], _MM_SHUFFLE(1, 0, 1, 0));
+  s[3] = _mm_shuffle_ps(vFloat[2], vFloat[3], _MM_SHUFFLE(3, 2, 3, 2));
   Vec<Float, 16> vOut[4];
   vOut[0] = _mm_shuffle_ps(s[0], s[2], _MM_SHUFFLE(2, 0, 2, 0));
   vOut[1] = _mm_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1));
   vOut[2] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));
   vOut[3] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(3, 1, 3, 1));
-  for (int i = 0; i < 4; ++i) { vT[i] = reinterpret(vOut[i], OutputType<T>()); }
+  for (int i = 0; i < 4; ++i) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
 // -------------------- n = 5 --------------------

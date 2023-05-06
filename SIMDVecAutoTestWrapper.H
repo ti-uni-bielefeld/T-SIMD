@@ -1539,9 +1539,9 @@ struct Fdivmul
   }
 
   template <template <typename, int> class VEC>
-                                double fac,
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsNum[numInVecs],
                                 const VEC<Tin, SIMD_WIDTH> vecsDenom[numInVecs],
+                                double fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fdivmul(vecsNum, vecsDenom, fac, vecsOut);
@@ -1575,8 +1575,8 @@ struct Fmul
   }
 
   template <template <typename, int> class VEC>
-                                double fac,
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
+                                double fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fmul(vecsIn, fac, vecsOut);
@@ -1610,8 +1610,8 @@ struct Faddmul
   }
 
   template <template <typename, int> class VEC>
-                                double off, double fac,
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
+                                double off, double fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     faddmul(vecsIn, off, fac, vecsOut);
@@ -1645,8 +1645,8 @@ struct Fmuladd
   }
 
   template <template <typename, int> class VEC>
-                                double off, double fac,
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
+                                double off, double fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fmuladd(vecsIn, fac, off, vecsOut);
@@ -1682,9 +1682,9 @@ struct Fwaddmul
   }
 
   template <template <typename, int> class VEC>
-                                double w, double fac,
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn1[numInVecs],
                                 const VEC<Tin, SIMD_WIDTH> vecsIn2[numInVecs],
+                                double w, double fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fwaddmul(vecsIn1, vecsIn2, w, fac, vecsOut);

@@ -1220,7 +1220,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack(const Vec<T, SIMD_WIDTH> &a,
  * half of each 16-byte lane of two Vec's, starting with the
  * lowest block of the selected half of the first input Vec.
  *
- * This function is the lane-oriented equivalent of unpack().
+ * This function is the lane-oriented equivalent of unpack(). If the blocks
+ * of elements to be interleaved are larger than half of a 16-byte lane however,
+ * this function is no longer lane-oriented and equivalent to unpack() in that
+ * case.
  *
  * To get both halves of the input Vec's interleaved, use zip16().
  *

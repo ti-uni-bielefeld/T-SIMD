@@ -555,8 +555,10 @@ struct Unpack16
   static constexpr int maxI  = 1;
   static constexpr int nextI = 1 - PART;
   // NUM_ELEMS (J) is doubled if PART == 1
-  static constexpr int minJ  = 1;
-  static constexpr int maxJ  = 16 / sizeof(T);
+  static constexpr int minJ = 1;
+  // 30. Apr 23 (Jonas Keller):
+  // changed maxJ from 16 / size(T) to SIMD_WIDTH / sizeof(T)
+  static constexpr int maxJ  = SIMD_WIDTH / sizeof(T);
   static constexpr int nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)

@@ -1253,30 +1253,44 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> unpack(
 }
 
 // 10. Oct 22 (Jonas Keller): added unpack16
-// 128-bit-lane oriented unpack
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+// 30. Apr 23 (Jonas Keller): added overload of unpack16 for when NUM_ELEMS is
+// larger than half of one lane, which forwards to regular unpack
+
+// 128-bit-lane oriented unpack if NUM_ELEMS is at most half of one lane
+template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF((NUM_ELEMS <= SerialVec<T, 16>::elems / 2))>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> unpack16(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   constexpr int NUM_LANES = SIMD_WIDTH / 16;
+  // copy a and b into lanesA and lanesB
   SerialVec<T, 16> lanesA[NUM_LANES];
   SerialVec<T, 16> lanesB[NUM_LANES];
-  SerialVec<T, 16> lanesC[NUM_LANES];
-  // copy a and b into lanesA and lanesB
   for (int i = 0; i < NUM_LANES; i++) {
     memcpy(lanesA[i].vec, &a.vec[i * (16 / sizeof(T))], 16);
     memcpy(lanesB[i].vec, &b.vec[i * (16 / sizeof(T))], 16);
   }
   // apply normal unpack to each lane
+  SerialVec<T, 16> lanesResult[NUM_LANES];
   for (int i = 0; i < NUM_LANES; i++) {
-    lanesC[i] = unpack<PART, NUM_ELEMS>(lanesA[i], lanesB[i]);
+    lanesResult[i] = unpack<PART, NUM_ELEMS>(lanesA[i], lanesB[i]);
   }
-  // copy lanesC into c
-  SerialVec<T, SIMD_WIDTH> c;
+  // copy lanesResult into result
+  SerialVec<T, SIMD_WIDTH> result;
   for (int i = 0; i < NUM_LANES; i++) {
-    memcpy(&c.vec[i * (16 / sizeof(T))], lanesC[i].vec, 16);
+    memcpy(&result.vec[i * (16 / sizeof(T))], lanesResult[i].vec, 16);
   }
-  return c;
+  return result;
+}
+
+// regular unpack if NUM_ELEMS is more than half of one lane
+template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF((NUM_ELEMS > SerialVec<T, 16>::elems / 2)),
+          typename = void>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> unpack16(
+  const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
+{
+  return unpack<PART, NUM_ELEMS>(a, b);
 }
 
 // 10. Oct 22 (Jonas Keller): added extractLane

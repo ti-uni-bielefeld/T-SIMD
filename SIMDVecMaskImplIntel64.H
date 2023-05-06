@@ -803,23 +803,34 @@ static SIMD_INLINE Vec<Float, 64> maskz_xor(const Mask<Float, 64> &k,
 
 // There is no masked "not"-intrinsic, so use the masked xor with all ones
 
-#define GENERATE_NOT(TYPE, SUF)                                                \
-  static SIMD_INLINE Vec<TYPE, 64> mask_not(                                   \
-    const Vec<TYPE, 64> &src, const Mask<TYPE, 64> &k, const Vec<TYPE, 64> &a) \
-  {                                                                            \
-    return _mm512_mask_xor_##SUF(src, k, a, _mm512_set1_##SUF(-1));            \
-  }                                                                            \
-  static SIMD_INLINE Vec<TYPE, 64> maskz_not(const Mask<TYPE, 64> &k,          \
-                                             const Vec<TYPE, 64> &a)           \
-  {                                                                            \
-    return _mm512_maskz_xor_##SUF(k, a, _mm512_set1_##SUF(-1));                \
-  }
-
 // there are no masked xor intrinsics for epi8 and epi16
 
-GENERATE_NOT(Int, epi32)
+// Int
+static SIMD_INLINE Vec<Int, 64> mask_not(const Vec<Int, 64> &src,
+                                         const Mask<Int, 64> &k,
+                                         const Vec<Int, 64> &a)
+{
+  return _mm512_mask_xor_epi32(src, k, a, _mm512_set1_epi32(-1));
+}
+static SIMD_INLINE Vec<Int, 64> maskz_not(const Mask<Int, 64> &k,
+                                          const Vec<Int, 64> &a)
+{
+  return _mm512_maskz_xor_epi32(k, a, _mm512_set1_epi32(-1));
+}
 #ifdef __AVX512DQ__
-GENERATE_NOT(Float, ps)
+// Float
+static SIMD_INLINE Vec<Float, 64> mask_not(const Vec<Float, 64> &src,
+                                           const Mask<Float, 64> &k,
+                                           const Vec<Float, 64> &a)
+{
+  return _mm512_mask_xor_ps(src, k, a,
+                            _mm512_castsi512_ps(_mm512_set1_epi32(-1)));
+}
+static SIMD_INLINE Vec<Float, 64> maskz_not(const Mask<Float, 64> &k,
+                                            const Vec<Float, 64> &a)
+{
+  return _mm512_maskz_xor_ps(k, a, _mm512_castsi512_ps(_mm512_set1_epi32(-1)));
+}
 #else
 // Workaround with the epi32-version and casts
 static SIMD_INLINE Vec<Float, 64> mask_not(const Vec<Float, 64> &src,

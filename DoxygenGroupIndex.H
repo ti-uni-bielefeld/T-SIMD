@@ -157,13 +157,13 @@
  * @defgroup group_type_conversion Type Conversions
  * @brief Functions for converting Vec's between different types.
  *
- * @defgroup group_fops Float-based Operations
- * @brief Operations that are based on float arithmetic, but can be applied
- * to arbitrary input and output types.
+ * @defgroup group_fops Floating point based Operations
+ * @brief Operations that are based on floating point arithmetic, but can be
+ * applied to arbitrary input and output types.
  *
- * These functions take an input of arbitrary type, convert it to @ref Float,
- * perform an operation in floating point arithmetic, and convert the result
- * to an output of arbitrary type.
+ * These functions take an input of arbitrary type, convert it to a floating
+ * point type, perform an operation in floating point arithmetic, and convert
+ * the result to an output of arbitrary type.
  *
  * Similar to convert(), if the input and output types are of the same size,
  * both the inputs and outputs consist of one Vec. If the types are of

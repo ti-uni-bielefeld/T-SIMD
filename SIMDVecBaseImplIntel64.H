@@ -4306,15 +4306,11 @@ SIMD_INLINE __m512i reverse_mask<1>()
 template <>
 SIMD_INLINE __m512i reverse_mask<2>()
 {
-  return _mm512_set_epi16(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                          16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
-                          29, 30, 31);
-}
-
-template <>
-SIMD_INLINE __m512i reverse_mask<4>()
-{
-  return _mm512_set_epi32(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+  return _mm512_set_epi8(1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14,
+                         17, 16, 19, 18, 21, 20, 23, 22, 25, 24, 27, 26, 29, 28,
+                         31, 30, 33, 32, 35, 34, 37, 36, 39, 38, 41, 40, 43, 42,
+                         45, 44, 47, 46, 49, 48, 51, 50, 53, 52, 55, 54, 57, 56,
+                         59, 58, 61, 60, 63, 62);
 }
 
 template <typename T>
@@ -4331,14 +4327,18 @@ static SIMD_INLINE Vec<T, 64> reverse(const Vec<T, 64> &a)
 static SIMD_INLINE Vec<Int, 64> reverse(const Vec<Int, 64> &a)
 {
   // AVX512F
-  return _mm512_permutexvar_epi32(reverse_mask<4>(), a);
+  const auto mask =
+    _mm512_set_epi32(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+  return _mm512_permutexvar_epi32(mask, a);
 }
 
 // float version, slightly changed int version
 static SIMD_INLINE Vec<Float, 64> reverse(const Vec<Float, 64> &a)
 {
   // AVX512F
-  return _mm512_permutexvar_ps(reverse_mask<4>(), a);
+  const auto mask =
+    _mm512_set_epi32(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+  return _mm512_permutexvar_ps(mask, a);
 }
 
 // ---------------------------------------------------------------------------

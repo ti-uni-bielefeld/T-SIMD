@@ -173,12 +173,14 @@ autotest: $(addprefix $(build_dir)/,$(autotest_binaries))
 .PHONY: archspec
 archspec: $(addprefix $(build_dir)/,$(archspec_binaries))
 
+ifneq ($(build_dir),.)
 .PHONY: $(binaries)
 $(binaries): %: $(build_dir)/%
 .PHONY: $(autotest_binaries)
 $(autotest_binaries): %: $(build_dir)/%
 .PHONY: $(archspec_binaries)
 $(archspec_binaries): %: $(build_dir)/%
+endif
 
 
 #===========================================================================

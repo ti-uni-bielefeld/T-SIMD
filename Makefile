@@ -75,8 +75,8 @@ archspec_objects = $(addsuffix .o,$(archspec_binaries))
 # definitions and flags
 #===========================================================================
 
-# compiler = clang++-10
-compiler = g++
+# compiler ?= clang++-10
+compiler ?= g++
 
 # - rt library is needed for clock_gettime
 # - pthread may be needed on some systems
@@ -142,21 +142,22 @@ flags_archspec = $(userdefs_avx512) -pthread
 # os dependent definitions
 ifeq ($(OS),Windows_NT) 
 RM = del /Q /F
-RMDIR = rmdir /S /Q
+RMDIR_R = rmdir /S /Q
+RMDIR = rmdir /Q
+MKDIR = mkdir
 NULL = NUL
 else
 RM = rm -f
-RMDIR = rm -rf
+RMDIR_R = rm -rf
+RMDIR = rmdir --ignore-fail-on-non-empty
+MKDIR = mkdir -p
 NULL = /dev/null
 endif
 
-# C++ files (for dependencies)
-all_cpp_files      = $(addsuffix .C,$(all_binaries))
-archspec_cpp_files = $(addsuffix .C,$(archspec_binaries))
-default_cpp_files  = $(addsuffix .C,$(default_binaries))
+build_dir ?= .
 
 .PHONY: all
-all: $(binaries)
+all: $(addprefix $(build_dir)/,$(binaries))
 	@echo "use 'make autotest' to compile $(autotest_binaries)"
 	@echo "  requires long compilation time and may run out of memory,"
 	@echo "  compilation may take much longer on g++ than on clang++"
@@ -164,13 +165,21 @@ all: $(binaries)
 	@echo "  please select flags_archspec for your machine"
 
 .PHONY: all_tsimd
-all_tsimd: $(tsimd_binaries)
+all_tsimd: $(addprefix $(build_dir)/,$(tsimd_binaries))
 
 .PHONY: autotest
-autotest: $(autotest_binaries)
+autotest: $(addprefix $(build_dir)/,$(autotest_binaries))
 
 .PHONY: archspec
-archspec: $(archspec_binaries)
+archspec: $(addprefix $(build_dir)/,$(archspec_binaries))
+
+.PHONY: $(binaries)
+$(binaries): %: $(build_dir)/%
+.PHONY: $(autotest_binaries)
+$(autotest_binaries): %: $(build_dir)/%
+.PHONY: $(archspec_binaries)
+$(archspec_binaries): %: $(build_dir)/%
+
 
 #===========================================================================
 # compiler
@@ -178,13 +187,15 @@ archspec: $(archspec_binaries)
 
 # https://www.gnu.org/software/make/manual/make.html#Static-Pattern
 
-$(default_objects): %.o: %.C
+$(addprefix $(build_dir)/,$(default_objects)): $(build_dir)/%.o: %.C
 	@echo compiling default $@ from $<
+	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_depends) $(flags_arch) $(flags_cpp) -c $< -o $@
 
-$(archspec_objects): %.o: %.C
+$(addprefix $(build_dir)/,$(archspec_objects)): $(build_dir)/%.o: %.C
 	@echo compiling archspec $@ from $<
 	@echo please select flags_archspec for your machine
+	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_depends) $(flags_archspec) $(flags_cpp) -c $< -o $@
 
 #===========================================================================
@@ -194,36 +205,47 @@ $(archspec_objects): %.o: %.C
 # https://www.gnu.org/software/make/manual/make.html#Static-Pattern
 
 ifeq ($(syntax_only),0)
-$(binaries): %: %.o
+$(addprefix $(build_dir)/,$(binaries)): $(build_dir)/%: $(build_dir)/%.o
 	@echo linking $@ from $< $(libraries)
+	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
 
-$(autotest_binaries): %: %.o
+$(addprefix $(build_dir)/,$(autotest_binaries)): $(build_dir)/%: $(build_dir)/%.o
 	@echo linking $@ from $< $(libraries)
+	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
 
-$(archspec_binaries): %: %.o
+$(addprefix $(build_dir)/,$(archspec_binaries)): $(build_dir)/%: $(build_dir)/%.o
 	@echo linking $@ from $< $(libraries)
+	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_archspec) $(flags_cpp) -o $@ $< $(libraries)
 else
-$(binaries): %: %.o ;
-$(autotest_binaries): %: %.o ;
-$(archspec_binaries): %: %.o ;
+$(addprefix $(build_dir)/,$(binaries)): $(build_dir)/%: $(build_dir)/%.o ;
+$(addprefix $(build_dir)/,$(autotest_binaries)): $(build_dir)/%: $(build_dir)/%.o ;
+$(addprefix $(build_dir)/,$(archspec_binaries)): $(build_dir)/%: $(build_dir)/%.o ;
 endif
 
 #===========================================================================
 # other rules
 #===========================================================================
 
-.PHONY: clean
-clean:
-	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, backup files, single header file and html/ documentation directory
-	@$(RM) $(all_objects) $(all_binaries) $(depend_files) \
+all_build_files = $(all_objects) $(all_binaries) $(depend_files) \
 		$(addsuffix .exe,$(all_binaries)) \
 		$(addsuffix .ilk,$(all_binaries)) $(addsuffix .pdb,$(all_binaries)) \
-		$(tsimd_single_header_file) \
-		*~ >$(NULL) 2>&1
-	@$(RMDIR) html/ >$(NULL) 2>&1
+		$(tsimd_single_header_file)
+
+.PHONY: clean
+clean:
+ifneq ($(wildcard $(build_dir)),)
+	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, backup files, single header file and html/ documentation directory
+	@$(RM) $(addprefix $(build_dir)/,$(all_build_files)) $(build_dir)/*~ >$(NULL) 2>&1
+	@$(RMDIR_R) $(build_dir)/doc_html >$(NULL) 2>&1
+ifneq ($(build_dir),.)
+	@$(RMDIR) $(build_dir) >$(NULL) 2>&1
+endif
+else
+	@echo build directory \"$(build_dir)\" does not exist, nothing to clean
+endif
 
 .PHONY: info
 info:
@@ -246,7 +268,6 @@ info:
 	@echo "archspec_objects:  " $(archspec_objects)
 	@echo "default_objects    " $(default_objects)
 	@echo "all_objects:       " $(all_objects)
-	@echo "all_cpp_files:     " $(all_cpp_files)
 
 # for compileAndTest
 .PHONY: flags-info
@@ -274,7 +295,8 @@ format:
 .PHONY: doc docs docu documentation doxygen dox doxy
 doc docs docu documentation doxygen dox doxy:
 	@echo "generating documentation"
-	@doxygen
+	@$(MKDIR) $(build_dir)
+	@( cat Doxyfile ; echo "HTML_OUTPUT=$(build_dir)/doc_html" ) | doxygen -
 
 # 04. Mar 23 (Jonas Keller): added rule for generating single header file
 # uses quom (https://github.com/Viatorus/quom)
@@ -284,4 +306,4 @@ single-header:
 	@./generateSingleHeader.sh $(tsimd_single_header_file)
 	@echo "single header written to $(tsimd_single_header_file)"
 
--include $(depend_files)
+-include $(addprefix $(build_dir)/,$(depend_files))

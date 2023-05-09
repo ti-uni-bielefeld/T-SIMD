@@ -1,5 +1,6 @@
 .vscode/
 COMPILE_AND_TEST/
+autotest/
 build*/
 html/
 latex/

@@ -232,7 +232,7 @@ static SIMD_INLINE __m512i x_mm512_srai_epi8(__m512i a,
 {
   __m512i odd    = _mm512_srai_epi16(a, IMM);
   __m512i even   = _mm512_srai_epi16(_mm512_slli_epi16(a, 8), IMM + 8);
-  __mmask64 mask = _cvtu64_mask64(0x5555555555555555);
+  __mmask64 mask = __mmask64(0x5555555555555555);
   return _mm512_mask_blend_epi8(mask, odd, even);
 }
 
@@ -2770,7 +2770,7 @@ static SIMD_INLINE Vec<Byte, 64> sra(const Vec<Byte, 64> &a,
   __m512i odd = _mm512_sra_epi16(a, _mm_cvtsi32_si128(count));
   __m512i even =
     _mm512_sra_epi16(_mm512_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
-  __mmask64 mask = _cvtu64_mask64(0x5555555555555555);
+  __mmask64 mask = __mmask64(0x5555555555555555);
   return _mm512_mask_blend_epi8(mask, odd, even);
 }
 
@@ -2784,7 +2784,7 @@ static SIMD_INLINE Vec<SignedByte, 64> sra(const Vec<SignedByte, 64> &a,
   __m512i odd = _mm512_sra_epi16(a, _mm_cvtsi32_si128(count));
   __m512i even =
     _mm512_sra_epi16(_mm512_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
-  __mmask64 mask = _cvtu64_mask64(0x5555555555555555);
+  __mmask64 mask = __mmask64(0x5555555555555555);
   return _mm512_mask_blend_epi8(mask, odd, even);
 }
 
@@ -4350,12 +4350,12 @@ static SIMD_INLINE Vec<Float, 64> reverse(const Vec<Float, 64> &a)
 #ifdef __AVX512DQ__
 static SIMD_INLINE uint64_t msb2int(const Vec<Int, 64> &a)
 {
-  return _cvtmask16_u32(_mm512_movepi32_mask(a));
+  return _mm512_movepi32_mask(a);
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Float, 64> &a)
 {
-  return _cvtmask16_u32(_mm512_movepi32_mask(_mm512_castps_si512(a)));
+  return _mm512_movepi32_mask(_mm512_castps_si512(a));
 }
 #else  // __AVX512DQ__
 // workaround for msb2int for 32 bits if AVX512DQ is not available
@@ -4363,35 +4363,35 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Float, 64> &a)
 static SIMD_INLINE uint64_t msb2int(const Vec<Int, 64> &a)
 {
   const __m512i mask = _mm512_set1_epi32(uint32_t(0x80000000));
-  return _cvtmask16_u32(_mm512_test_epi32_mask(a, mask));
+  return _mm512_test_epi32_mask(a, mask);
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Float, 64> &a)
 {
   const __m512i mask = _mm512_set1_epi32(0x80000000);
-  return _cvtmask16_u32(_mm512_test_epi32_mask(_mm512_castps_si512(a), mask));
+  return _mm512_test_epi32_mask(_mm512_castps_si512(a), mask);
 }
 #endif // __AVX512DQ__
 
 #ifdef __AVX512BW__
 static SIMD_INLINE uint64_t msb2int(const Vec<Byte, 64> &a)
 {
-  return _cvtmask64_u64(_mm512_movepi8_mask(a));
+  return _mm512_movepi8_mask(a);
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<SignedByte, 64> &a)
 {
-  return _cvtmask64_u64(_mm512_movepi8_mask(a));
+  return _mm512_movepi8_mask(a);
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Short, 64> &a)
 {
-  return _cvtmask32_u32(_mm512_movepi16_mask(a));
+  return _mm512_movepi16_mask(a);
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Word, 64> &a)
 {
-  return _cvtmask32_u32(_mm512_movepi16_mask(a));
+  return _mm512_movepi16_mask(a);
 }
 #else  // __AVX512BW__
 // workaround for msb2int for 8 and 16 bits if AVX512BW is not available
@@ -4476,7 +4476,7 @@ static SIMD_INLINE Vec<Byte, 64> int2msb(const uint64_t a, OutputType<Byte>,
                                          Integer<64>)
 {
 #ifdef __AVX512BW__
-  return _mm512_maskz_set1_epi8(_cvtu64_mask64(a), (int8_t) 0x80);
+  return _mm512_maskz_set1_epi8(__mmask64(a), (int8_t) 0x80);
 #else
   __m256i shuffleIndeces = _mm256_set_epi64x(
     0x0303030303030303, 0x0202020202020202, 0x0101010101010101, 0);
@@ -4506,7 +4506,7 @@ static SIMD_INLINE Vec<Short, 64> int2msb(const uint64_t a, OutputType<Short>,
                                           Integer<64>)
 {
 #ifdef __AVX512BW__
-  return _mm512_maskz_set1_epi16(_cvtu32_mask32(a), (int16_t) 0x8000);
+  return _mm512_maskz_set1_epi16(__mmask32(a), (int16_t) 0x8000);
 #else
   __m256i sel = _mm256_set_epi16(
     (int16_t) 0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
@@ -4533,7 +4533,7 @@ static SIMD_INLINE Vec<Word, 64> int2msb(const uint64_t a, OutputType<Word>,
 static SIMD_INLINE Vec<Int, 64> int2msb(const uint64_t a, OutputType<Int>,
                                         Integer<64>)
 {
-  return _mm512_maskz_set1_epi32(_cvtu32_mask16(a), 0x80000000);
+  return _mm512_maskz_set1_epi32(__mmask16(a), 0x80000000);
 }
 
 static SIMD_INLINE Vec<Float, 64> int2msb(const uint64_t a, OutputType<Float>,
@@ -4553,7 +4553,7 @@ static SIMD_INLINE Vec<Byte, 64> int2bits(const uint64_t a, OutputType<Byte>,
                                           Integer<64>)
 {
 #ifdef __AVX512BW__
-  return _mm512_maskz_set1_epi8(_cvtu64_mask64(a), (int8_t) 0xff);
+  return _mm512_maskz_set1_epi8(__mmask64(a), (int8_t) 0xff);
 #else
   __m256i shuffleIndeces = _mm256_set_epi64x(
     0x0303030303030303, 0x0202020202020202, 0x0101010101010101, 0);
@@ -4581,7 +4581,7 @@ static SIMD_INLINE Vec<Short, 64> int2bits(const uint64_t a, OutputType<Short>,
                                            Integer<64>)
 {
 #ifdef __AVX512BW__
-  return _mm512_maskz_set1_epi16(_cvtu32_mask32(a), (int16_t) 0xffff);
+  return _mm512_maskz_set1_epi16(__mmask32(a), (int16_t) 0xffff);
 #else
   __m256i sel = _mm256_set_epi16(
     (int16_t) 0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
@@ -4606,7 +4606,7 @@ static SIMD_INLINE Vec<Word, 64> int2bits(const uint64_t a, OutputType<Word>,
 static SIMD_INLINE Vec<Int, 64> int2bits(const uint64_t a, OutputType<Int>,
                                          Integer<64>)
 {
-  return _mm512_maskz_set1_epi32(_cvtu32_mask16(a), 0xffffffff);
+  return _mm512_maskz_set1_epi32(__mmask16(a), 0xffffffff);
 }
 
 static SIMD_INLINE Vec<Float, 64> int2bits(const uint64_t a, OutputType<Float>,

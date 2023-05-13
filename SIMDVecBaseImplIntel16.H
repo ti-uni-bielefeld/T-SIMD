@@ -29,6 +29,7 @@
 
 // 22. Jan 23 (Jonas Keller): moved internal implementations into internal
 // namespace
+// 13. May 23 (Jonas Keller): added Double support
 
 #ifndef SIMD_VEC_BASE_IMPL_INTEL_16_H_
 #define SIMD_VEC_BASE_IMPL_INTEL_16_H_
@@ -40,8 +41,10 @@
 #include "SIMDVec.H"
 #include "ssse3_compat.H"
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 
 #ifdef __SSE2__
@@ -125,6 +128,34 @@ public:
   // 29. Nov 22 (Jonas Keller):
   // defined operators new and delete to ensure proper alignment, since
   // the default new and delete are not guaranteed to do so before C++17
+  void *operator new(size_t size) { return simd_aligned_malloc(bytes, size); }
+  void operator delete(void *p) { simd_aligned_free(p); }
+  void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
+  void operator delete[](void *p) { simd_aligned_free(p); }
+};
+
+// ===========================================================================
+// Vec double specialization for SSE
+// ===========================================================================
+
+template <>
+class Vec<Double, 16>
+{
+  __m128d xmm;
+
+public:
+  using Type                    = Double;
+  static constexpr int elements = 16 / sizeof(Double);
+  static constexpr int elems    = elements;
+  static constexpr int bytes    = 16;
+  Vec()                         = default;
+  Vec(const __m128d &x) { xmm = x; }
+  Vec &operator=(const __m128d &x)
+  {
+    xmm = x;
+    return *this;
+  }
+  operator __m128d() const { return xmm; }
   void *operator new(size_t size) { return simd_aligned_malloc(bytes, size); }
   void operator delete(void *p) { simd_aligned_free(p); }
   void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
@@ -481,15 +512,50 @@ static SIMD_INLINE int x_mm_extract_ps(__m128 a)
   return x_mm_extract_ps<IMM>(a, IsPosInGivenRange<4, IMM>());
 }
 
+// positive and in range: extract
+template <int IMM>
+static SIMD_INLINE long long x_mm_extract_pd(__m128d a,
+                                             IsPosInRange<true, true>)
+{
+#ifdef __SSE4_1__
+  return _mm_extract_epi64(_mm_castpd_si128(a), IMM);
+#else
+  // IMM << 3 = 8 * IMM
+  return _mm_cvtsi128_si64(x_mm_srli_si128<(IMM << 3)>(_mm_castpd_si128(a)));
+#endif
+}
+
+// positive and out of range: return zero
+template <int IMM>
+static SIMD_INLINE long long x_mm_extract_pd(__m128d, IsPosInRange<true, false>)
+{
+  return 0;
+}
+
+// hub: yes, really returns a long long!
+template <int IMM>
+static SIMD_INLINE long long x_mm_extract_pd(__m128d a)
+{
+  // 2 * pd
+  return x_mm_extract_pd<IMM>(a, IsPosInGivenRange<2, IMM>());
+}
+
 // ---------------------------------------------------------------------------
 // abs
 // ---------------------------------------------------------------------------
 
 static SIMD_INLINE __m128 x_mm_abs_ps(__m128 a)
 {
-  // there's no _mm_abs_ps, we have to emulated it:
-  // -0.0F is 0x8000000, 0x7fffffff by andnot, sign bit is cleared
-  return _mm_andnot_ps(_mm_set1_ps(-0.0F), a);
+  // there's no _mm_abs_ps, so we have to emulate it:
+  // clear sign bit:
+  return _mm_and_ps(a, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)));
+}
+
+static SIMD_INLINE __m128d x_mm_abs_pd(__m128d a)
+{
+  // there's no _mm_abs_pd, so we have to emulate it:
+  // clear sign bit:
+  return _mm_and_pd(a, _mm_castsi128_pd(_mm_set1_epi64x(0x7FFFFFFFFFFFFFFF)));
 }
 
 // ###########################################################################
@@ -508,7 +574,9 @@ static SIMD_INLINE __m128 x_mm_abs_ps(__m128 a)
 
 // between all integer types
 template <typename Tdst, typename Tsrc,
-          SIMD_ENABLE_IF((!std::is_same<Tdst, Tsrc>::value))>
+          SIMD_ENABLE_IF((!std::is_same<Tdst, Tsrc>::value &&
+                          std::is_integral<Tdst>::value &&
+                          std::is_integral<Tsrc>::value))>
 static SIMD_INLINE Vec<Tdst, 16> reinterpret(const Vec<Tsrc, 16> &vec,
                                              OutputType<Tdst>)
 {
@@ -519,7 +587,7 @@ static SIMD_INLINE Vec<Tdst, 16> reinterpret(const Vec<Tsrc, 16> &vec,
 }
 
 // from float to any integer type
-template <typename Tdst, SIMD_ENABLE_IF((!std::is_same<Tdst, Float>::value))>
+template <typename Tdst, SIMD_ENABLE_IF((std::is_integral<Tdst>::value))>
 static SIMD_INLINE Vec<Tdst, 16> reinterpret(const Vec<Float, 16> &vec,
                                              OutputType<Tdst>)
 {
@@ -527,11 +595,41 @@ static SIMD_INLINE Vec<Tdst, 16> reinterpret(const Vec<Float, 16> &vec,
 }
 
 // from any integer type to float
-template <typename Tsrc, SIMD_ENABLE_IF((!std::is_same<Tsrc, Float>::value))>
+template <typename Tsrc, SIMD_ENABLE_IF((std::is_integral<Tsrc>::value))>
 static SIMD_INLINE Vec<Float, 16> reinterpret(const Vec<Tsrc, 16> &vec,
                                               OutputType<Float>)
 {
   return _mm_castsi128_ps(vec);
+}
+
+// from double to any integer type
+template <typename Tdst, SIMD_ENABLE_IF((std::is_integral<Tdst>::value))>
+static SIMD_INLINE Vec<Tdst, 16> reinterpret(const Vec<Double, 16> &vec,
+                                             OutputType<Tdst>)
+{
+  return _mm_castpd_si128(vec);
+}
+
+// from any integer type to double
+template <typename Tsrc, SIMD_ENABLE_IF((std::is_integral<Tsrc>::value))>
+static SIMD_INLINE Vec<Double, 16> reinterpret(const Vec<Tsrc, 16> &vec,
+                                               OutputType<Double>)
+{
+  return _mm_castsi128_pd(vec);
+}
+
+// from float to double
+static SIMD_INLINE Vec<Double, 16> reinterpret(const Vec<Float, 16> &vec,
+                                               OutputType<Double>)
+{
+  return _mm_castps_pd(vec);
+}
+
+// from double to float
+static SIMD_INLINE Vec<Float, 16> reinterpret(const Vec<Double, 16> &vec,
+                                              OutputType<Float>)
+{
+  return _mm_castpd_ps(vec);
 }
 
 // between identical types
@@ -603,6 +701,11 @@ static SIMD_INLINE Vec<Float, 16> setzero(OutputType<Float>, Integer<16>)
   return _mm_setzero_ps();
 }
 
+static SIMD_INLINE Vec<Double, 16> setzero(OutputType<Double>, Integer<16>)
+{
+  return _mm_setzero_pd();
+}
+
 // ---------------------------------------------------------------------------
 // set1
 // ---------------------------------------------------------------------------
@@ -637,6 +740,11 @@ static SIMD_INLINE Vec<Float, 16> set1(Float a, Integer<16>)
   return _mm_set1_ps(a);
 }
 
+static SIMD_INLINE Vec<Double, 16> set1(Double a, Integer<16>)
+{
+  return _mm_set1_pd(a);
+}
+
 // ---------------------------------------------------------------------------
 // load
 // ---------------------------------------------------------------------------
@@ -658,6 +766,14 @@ static SIMD_INLINE Vec<Float, 16> load(const Float *const p, Integer<16>)
   return _mm_load_ps(p);
 }
 
+static SIMD_INLINE Vec<Double, 16> load(const Double *const p, Integer<16>)
+{
+  // SSE load and store instructions need alignment to 16 byte
+  // (lower 4 bit need to be zero)
+  SIMD_CHECK_ALIGNMENT(p, 16);
+  return _mm_load_pd(p);
+}
+
 // ---------------------------------------------------------------------------
 // loadu
 // ---------------------------------------------------------------------------
@@ -671,6 +787,11 @@ static SIMD_INLINE Vec<T, 16> loadu(const T *const p, Integer<16>)
 static SIMD_INLINE Vec<Float, 16> loadu(const Float *const p, Integer<16>)
 {
   return _mm_loadu_ps(p);
+}
+
+static SIMD_INLINE Vec<Double, 16> loadu(const Double *const p, Integer<16>)
+{
+  return _mm_loadu_pd(p);
 }
 
 // ---------------------------------------------------------------------------
@@ -696,6 +817,15 @@ static SIMD_INLINE void store(Float *const p, const Vec<Float, 16> &a)
   _mm_store_ps(p, a);
 }
 
+// double version
+static SIMD_INLINE void store(Double *const p, const Vec<Double, 16> &a)
+{
+  // SSE load and store instructions need alignment to 16 byte
+  // (lower 4 bit need to be zero)
+  SIMD_CHECK_ALIGNMENT(p, 16);
+  _mm_store_pd(p, a);
+}
+
 // ---------------------------------------------------------------------------
 // storeu
 // ---------------------------------------------------------------------------
@@ -711,6 +841,12 @@ static SIMD_INLINE void storeu(T *const p, const Vec<T, 16> &a)
 static SIMD_INLINE void storeu(Float *const p, const Vec<Float, 16> &a)
 {
   _mm_storeu_ps(p, a);
+}
+
+// double version
+static SIMD_INLINE void storeu(Double *const p, const Vec<Double, 16> &a)
+{
+  _mm_storeu_pd(p, a);
 }
 
 // ---------------------------------------------------------------------------
@@ -734,6 +870,15 @@ static SIMD_INLINE void stream_store(Float *const p, const Vec<Float, 16> &a)
   // (lower 4 bit need to be zero)
   SIMD_CHECK_ALIGNMENT(p, 16);
   _mm_stream_ps(p, a);
+}
+
+// double version
+static SIMD_INLINE void stream_store(Double *const p, const Vec<Double, 16> &a)
+{
+  // SSE load and store instructions need alignment to 16 byte
+  // (lower 4 bit need to be zero)
+  SIMD_CHECK_ALIGNMENT(p, 16);
+  _mm_stream_pd(p, a);
 }
 
 // ---------------------------------------------------------------------------
@@ -795,6 +940,15 @@ static SIMD_INLINE Float extract(const Vec<Float, 16> &a)
   SIMD_RETURN_REINTERPRET_INT(Float, x_mm_extract_ps<IMM>(a), 0)
 }
 
+template <int IMM>
+static SIMD_INLINE Double extract(const Vec<Double, 16> &a)
+{
+  Double res;
+  long long i = x_mm_extract_pd<IMM>(a);
+  memcpy(&res, &i, sizeof(Double));
+  return res;
+}
+
 // ---------------------------------------------------------------------------
 // ifelse
 // ---------------------------------------------------------------------------
@@ -823,6 +977,17 @@ static SIMD_INLINE Vec<Float, 16> ifelse(const Vec<Float, 16> &cond,
   return _mm_blendv_ps(falseVal, trueVal, cond);
 #else
   return _mm_or_ps(_mm_and_ps(cond, trueVal), _mm_andnot_ps(cond, falseVal));
+#endif
+}
+
+static SIMD_INLINE Vec<Double, 16> ifelse(const Vec<Double, 16> &cond,
+                                          const Vec<Double, 16> &trueVal,
+                                          const Vec<Double, 16> &falseVal)
+{
+#ifdef __SSE4_1__
+  return _mm_blendv_pd(falseVal, trueVal, cond);
+#else
+  return _mm_or_pd(_mm_and_pd(cond, trueVal), _mm_andnot_pd(cond, falseVal));
 #endif
 }
 
@@ -864,6 +1029,12 @@ static SIMD_INLINE Vec<Float, 16> add(const Vec<Float, 16> &a,
                                       const Vec<Float, 16> &b)
 {
   return _mm_add_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 16> add(const Vec<Double, 16> &a,
+                                       const Vec<Double, 16> &b)
+{
+  return _mm_add_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -927,6 +1098,13 @@ static SIMD_INLINE Vec<Float, 16> adds(const Vec<Float, 16> &a,
   return _mm_add_ps(a, b);
 }
 
+// Double not saturated
+static SIMD_INLINE Vec<Double, 16> adds(const Vec<Double, 16> &a,
+                                        const Vec<Double, 16> &b)
+{
+  return _mm_add_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // sub
 // ---------------------------------------------------------------------------
@@ -965,6 +1143,12 @@ static SIMD_INLINE Vec<Float, 16> sub(const Vec<Float, 16> &a,
                                       const Vec<Float, 16> &b)
 {
   return _mm_sub_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 16> sub(const Vec<Double, 16> &a,
+                                       const Vec<Double, 16> &b)
+{
+  return _mm_sub_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -1028,6 +1212,13 @@ static SIMD_INLINE Vec<Float, 16> subs(const Vec<Float, 16> &a,
   return _mm_sub_ps(a, b);
 }
 
+// Double not saturated
+static SIMD_INLINE Vec<Double, 16> subs(const Vec<Double, 16> &a,
+                                        const Vec<Double, 16> &b)
+{
+  return _mm_sub_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // neg (negate = two's complement or unary minus), only signed types
 // ---------------------------------------------------------------------------
@@ -1050,6 +1241,11 @@ static SIMD_INLINE Vec<Int, 16> neg(const Vec<Int, 16> &a)
 static SIMD_INLINE Vec<Float, 16> neg(const Vec<Float, 16> &a)
 {
   return _mm_sub_ps(_mm_setzero_ps(), a);
+}
+
+static SIMD_INLINE Vec<Double, 16> neg(const Vec<Double, 16> &a)
+{
+  return _mm_xor_pd(a, _mm_set1_pd(-0.0));
 }
 
 // ---------------------------------------------------------------------------
@@ -1119,6 +1315,12 @@ static SIMD_INLINE Vec<Float, 16> min(const Vec<Float, 16> &a,
   return _mm_min_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 16> min(const Vec<Double, 16> &a,
+                                       const Vec<Double, 16> &b)
+{
+  return _mm_min_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // max
 // ---------------------------------------------------------------------------
@@ -1186,6 +1388,12 @@ static SIMD_INLINE Vec<Float, 16> max(const Vec<Float, 16> &a,
   return _mm_max_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 16> max(const Vec<Double, 16> &a,
+                                       const Vec<Double, 16> &b)
+{
+  return _mm_max_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // mul, div
 // ---------------------------------------------------------------------------
@@ -1199,10 +1407,22 @@ static SIMD_INLINE Vec<Float, 16> mul(const Vec<Float, 16> &a,
   return _mm_mul_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 16> mul(const Vec<Double, 16> &a,
+                                       const Vec<Double, 16> &b)
+{
+  return _mm_mul_pd(a, b);
+}
+
 static SIMD_INLINE Vec<Float, 16> div(const Vec<Float, 16> &a,
                                       const Vec<Float, 16> &b)
 {
   return _mm_div_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 16> div(const Vec<Double, 16> &a,
+                                       const Vec<Double, 16> &b)
+{
+  return _mm_div_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -1287,6 +1507,25 @@ static SIMD_INLINE Vec<Float, 16> ceil(const Vec<Float, 16> &a)
 #endif
 }
 
+static SIMD_INLINE Vec<Double, 16> ceil(const Vec<Double, 16> &a)
+{
+#ifdef __SSE4_1__
+  return _mm_ceil_pd(a);
+#else
+  // There is no _mm_cvtepi64_pd in SSE*, which makes the workaround
+  // used for the float version not possible here.
+  // Another workaround would probably be complicated and slow, so we just
+  // ceil serially.
+  // TODO: is there a better, vectorized workaround?
+  Double inArr[2] SIMD_ATTR_ALIGNED(16);
+  _mm_store_pd(inArr, a);
+  Double outArr[2] SIMD_ATTR_ALIGNED(16);
+  outArr[0] = std::ceil(inArr[0]);
+  outArr[1] = std::ceil(inArr[1]);
+  return _mm_load_pd(outArr);
+#endif
+}
+
 static SIMD_INLINE Vec<Float, 16> floor(const Vec<Float, 16> &a)
 {
 #ifdef __SSE4_1__
@@ -1314,6 +1553,25 @@ static SIMD_INLINE Vec<Float, 16> floor(const Vec<Float, 16> &a)
 #endif
 }
 
+static SIMD_INLINE Vec<Double, 16> floor(const Vec<Double, 16> &a)
+{
+#ifdef __SSE4_1__
+  return _mm_floor_pd(a);
+#else
+  // There is no _mm_cvtepi64_pd in SSE*, which makes the workaround
+  // used for the float version not possible here.
+  // Another workaround would probably be complicated and slow, so we just
+  // floor serially.
+  // TODO: is there a better, vectorized workaround?
+  Double inArr[2] SIMD_ATTR_ALIGNED(16);
+  _mm_store_pd(inArr, a);
+  Double outArr[2] SIMD_ATTR_ALIGNED(16);
+  outArr[0] = std::floor(inArr[0]);
+  outArr[1] = std::floor(inArr[1]);
+  return _mm_load_pd(outArr);
+#endif
+}
+
 static SIMD_INLINE Vec<Float, 16> round(const Vec<Float, 16> &a)
 {
 #ifdef __SSE4_1__
@@ -1335,6 +1593,26 @@ static SIMD_INLINE Vec<Float, 16> round(const Vec<Float, 16> &a)
 #endif
 }
 
+static SIMD_INLINE Vec<Double, 16> round(const Vec<Double, 16> &a)
+{
+#ifdef __SSE4_1__
+  return _mm_round_pd(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+#else
+  // There is no _mm_cvtepi64_pd in SSE*, which makes the workaround
+  // used for the float version not possible here.
+  // Another workaround would probably be complicated and slow, so we just
+  // round serially.
+  // TODO: is there a better, vectorized workaround?
+  Double inArr[2] SIMD_ATTR_ALIGNED(16);
+  _mm_store_pd(inArr, a);
+  Double outArr[2] SIMD_ATTR_ALIGNED(16);
+  // std::round has different behavior
+  outArr[0] = std::rint(inArr[0]);
+  outArr[1] = std::rint(inArr[1]);
+  return _mm_load_pd(outArr);
+#endif
+}
+
 static SIMD_INLINE Vec<Float, 16> truncate(const Vec<Float, 16> &a)
 {
 #ifdef __SSE4_1__
@@ -1351,6 +1629,25 @@ static SIMD_INLINE Vec<Float, 16> truncate(const Vec<Float, 16> &a)
 #endif
 }
 
+static SIMD_INLINE Vec<Double, 16> truncate(const Vec<Double, 16> &a)
+{
+#ifdef __SSE4_1__
+  return _mm_round_pd(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+#else
+  // There is no _mm_cvtepi64_pd in SSE*, which makes the workaround
+  // used for the float version not possible here.
+  // Another workaround would probably be complicated and slow, so we just
+  // truncate serially.
+  // TODO: is there a better, vectorized workaround?
+  Double inArr[2] SIMD_ATTR_ALIGNED(16);
+  _mm_store_pd(inArr, a);
+  Double outArr[2] SIMD_ATTR_ALIGNED(16);
+  outArr[0] = std::trunc(inArr[0]);
+  outArr[1] = std::trunc(inArr[1]);
+  return _mm_load_pd(outArr);
+#endif
+}
+
 // ---------------------------------------------------------------------------
 // elementary mathematical functions
 // ---------------------------------------------------------------------------
@@ -1361,16 +1658,36 @@ static SIMD_INLINE Vec<Float, 16> rcp(const Vec<Float, 16> &a)
   return _mm_rcp_ps(a);
 }
 
+// estimate of a reciprocal
+static SIMD_INLINE Vec<Double, 16> rcp(const Vec<Double, 16> &a)
+{
+  // _mm_rcp_pd does not exist, use _mm_div_pd instead
+  return _mm_div_pd(_mm_set1_pd(1.0), a);
+}
+
 // estimate of a reverse square root
 static SIMD_INLINE Vec<Float, 16> rsqrt(const Vec<Float, 16> &a)
 {
   return _mm_rsqrt_ps(a);
 }
 
+// estimate of a reverse square root
+static SIMD_INLINE Vec<Double, 16> rsqrt(const Vec<Double, 16> &a)
+{
+  // _mm_rsqrt_pd does not exist, use _mm_div_pd and _mm_sqrt_pd instead
+  return _mm_div_pd(_mm_set1_pd(1.0), _mm_sqrt_pd(a));
+}
+
 // square root
 static SIMD_INLINE Vec<Float, 16> sqrt(const Vec<Float, 16> &a)
 {
   return _mm_sqrt_ps(a);
+}
+
+// square root
+static SIMD_INLINE Vec<Double, 16> sqrt(const Vec<Double, 16> &a)
+{
+  return _mm_sqrt_pd(a);
 }
 
 // ---------------------------------------------------------------------------
@@ -1380,10 +1697,10 @@ static SIMD_INLINE Vec<Float, 16> sqrt(const Vec<Float, 16> &a)
 // 25. Mar 25 (Jonas Keller): added abs for unsigned integers
 
 // unsigned integers
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_unsigned<T>::value
+                                       &&std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 16> abs(const Vec<T, 16> &a)
 {
-  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
   return a;
 }
 
@@ -1405,6 +1722,11 @@ static SIMD_INLINE Vec<Int, 16> abs(const Vec<Int, 16> &a)
 static SIMD_INLINE Vec<Float, 16> abs(const Vec<Float, 16> &a)
 {
   return x_mm_abs_ps(a);
+}
+
+static SIMD_INLINE Vec<Double, 16> abs(const Vec<Double, 16> &a)
+{
+  return x_mm_abs_pd(a);
 }
 
 // ---------------------------------------------------------------------------
@@ -1460,6 +1782,14 @@ static SIMD_INLINE Vec<Float, 16> unpack(const Vec<Float, 16> &a,
   return _mm_movelh_ps(a, b);
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 16> unpack(const Vec<Double, 16> &a,
+                                          const Vec<Double, 16> &b, Part<0>,
+                                          Bytes<8>)
+{
+  return _mm_unpacklo_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // unpackhi
 // ---------------------------------------------------------------------------
@@ -1512,6 +1842,14 @@ static SIMD_INLINE Vec<Float, 16> unpack(const Vec<Float, 16> &a,
   // this moves two upper floats from a and b
   // order b, a
   return _mm_movehl_ps(b, a);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 16> unpack(const Vec<Double, 16> &a,
+                                          const Vec<Double, 16> &b, Part<1>,
+                                          Bytes<8>)
+{
+  return _mm_unpackhi_pd(a, b);
 }
 
 // contributed by Adam Marschall
@@ -1660,6 +1998,25 @@ static SIMD_INLINE Vec<Short, 16> packs(const Vec<Float, 16> &a,
 {
   return packs(cvts(a, OutputType<Int>()), cvts(b, OutputType<Int>()),
                OutputType<Short>());
+}
+
+static SIMD_INLINE Vec<Float, 16> packs(const Vec<Double, 16> &a,
+                                        const Vec<Double, 16> &b,
+                                        OutputType<Float>)
+{
+  return _mm_shuffle_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b),
+                        _MM_SHUFFLE(1, 0, 1, 0));
+}
+
+// Double to Int
+
+static SIMD_INLINE Vec<Int, 16> packs(const Vec<Double, 16> &a,
+                                      const Vec<Double, 16> &b, OutputType<Int>)
+{
+  auto clip = _mm_set1_pd(std::numeric_limits<Int>::max());
+  auto bI   = _mm_castsi128_ps(_mm_cvtpd_epi32(_mm_min_pd(clip, b)));
+  auto aI   = _mm_castsi128_ps(_mm_cvtpd_epi32(_mm_min_pd(clip, a)));
+  return _mm_castps_si128(_mm_shuffle_ps(aI, bI, _MM_SHUFFLE(1, 0, 1, 0)));
 }
 
 // signed -> unsigned
@@ -1848,6 +2205,20 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Float, 16> vOut[2])
 #endif
 }
 
+static SIMD_INLINE void extend(const Vec<Int, 16> &vIn, Vec<Double, 16> vOut[2])
+{
+  vOut[0] = _mm_cvtepi32_pd(vIn);
+  vOut[1] = _mm_cvtepi32_pd(_mm_srli_si128(vIn, 8));
+}
+
+static SIMD_INLINE void extend(const Vec<Float, 16> &vIn,
+                               Vec<Double, 16> vOut[2])
+{
+  vOut[0] = _mm_cvtps_pd(vIn);
+  vOut[1] =
+    _mm_cvtps_pd(_mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(vIn), 8)));
+}
+
 // ---------------------------------------------------------------------------
 // generalized extend: two stages
 // ---------------------------------------------------------------------------
@@ -1898,6 +2269,26 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
 #endif
 }
 
+static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
+                               Vec<Double, 16> vOut[4])
+{
+#ifdef __SSE4_1__
+  vOut[0] = _mm_cvtepi32_pd(_mm_cvtepi16_epi32(vIn));
+  vOut[1] = _mm_cvtepi32_pd(_mm_cvtepi16_epi32(_mm_srli_si128(vIn, 4)));
+  vOut[2] = _mm_cvtepi32_pd(_mm_cvtepi16_epi32(_mm_srli_si128(vIn, 8)));
+  vOut[3] = _mm_cvtepi32_pd(_mm_cvtepi16_epi32(_mm_srli_si128(vIn, 12)));
+#else
+  const __m128i lo16 =
+    _mm_srai_epi32(_mm_unpacklo_epi16(_mm_undefined_si128(), vIn), 16);
+  const __m128i hi16 =
+    _mm_srai_epi32(_mm_unpackhi_epi16(_mm_undefined_si128(), vIn), 16);
+  vOut[0]           = _mm_cvtepi32_pd(lo16);
+  vOut[1]           = _mm_cvtepi32_pd(_mm_srli_si128(lo16, 8));
+  vOut[2]           = _mm_cvtepi32_pd(hi16);
+  vOut[3]           = _mm_cvtepi32_pd(_mm_srli_si128(hi16, 8));
+#endif
+}
+
 // unsigned -> signed
 
 static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Int, 16> vOut[4])
@@ -1908,12 +2299,12 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Int, 16> vOut[4])
   vOut[2] = _mm_cvtepu8_epi32(_mm_srli_si128(vIn, 8));
   vOut[3] = _mm_cvtepu8_epi32(_mm_srli_si128(vIn, 12));
 #else
-  const __m128i lo8    = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
-  const __m128i hi8    = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
-  vOut[0]              = _mm_unpacklo_epi16(lo8, _mm_setzero_si128());
-  vOut[1]              = _mm_unpackhi_epi16(lo8, _mm_setzero_si128());
-  vOut[2]              = _mm_unpacklo_epi16(hi8, _mm_setzero_si128());
-  vOut[3]              = _mm_unpackhi_epi16(hi8, _mm_setzero_si128());
+  const __m128i lo8 = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
+  const __m128i hi8 = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
+  vOut[0]           = _mm_unpacklo_epi16(lo8, _mm_setzero_si128());
+  vOut[1]           = _mm_unpackhi_epi16(lo8, _mm_setzero_si128());
+  vOut[2]           = _mm_unpacklo_epi16(hi8, _mm_setzero_si128());
+  vOut[3]           = _mm_unpackhi_epi16(hi8, _mm_setzero_si128());
 #endif
 }
 
@@ -1925,12 +2316,102 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Float, 16> vOut[4])
   vOut[2] = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 8)));
   vOut[3] = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 12)));
 #else
-  const __m128i lo8    = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
-  const __m128i hi8    = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
+  const __m128i lo8 = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
+  const __m128i hi8 = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
   vOut[0] = _mm_cvtepi32_ps(_mm_unpacklo_epi16(lo8, _mm_setzero_si128()));
   vOut[1] = _mm_cvtepi32_ps(_mm_unpackhi_epi16(lo8, _mm_setzero_si128()));
   vOut[2] = _mm_cvtepi32_ps(_mm_unpacklo_epi16(hi8, _mm_setzero_si128()));
   vOut[3] = _mm_cvtepi32_ps(_mm_unpackhi_epi16(hi8, _mm_setzero_si128()));
+#endif
+}
+
+static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
+                               Vec<Double, 16> vOut[4])
+{
+#ifdef __SSE4_1__
+  vOut[0] = _mm_cvtepi32_pd(_mm_cvtepu16_epi32(vIn));
+  vOut[1] = _mm_cvtepi32_pd(_mm_cvtepu16_epi32(_mm_srli_si128(vIn, 4)));
+  vOut[2] = _mm_cvtepi32_pd(_mm_cvtepu16_epi32(_mm_srli_si128(vIn, 8)));
+  vOut[3] = _mm_cvtepi32_pd(_mm_cvtepu16_epi32(_mm_srli_si128(vIn, 12)));
+#else
+  const __m128i lo16      = _mm_unpacklo_epi16(vIn, _mm_setzero_si128());
+  const __m128i hi16      = _mm_unpackhi_epi16(vIn, _mm_setzero_si128());
+  vOut[0]                 = _mm_cvtepi32_pd(lo16);
+  vOut[1]                 = _mm_cvtepi32_pd(_mm_srli_si128(lo16, 8));
+  vOut[2]                 = _mm_cvtepi32_pd(hi16);
+  vOut[3]                 = _mm_cvtepi32_pd(_mm_srli_si128(hi16, 8));
+#endif
+}
+
+// ---------------------------------------------------------------------------
+// generalized extend: three stages
+// ---------------------------------------------------------------------------
+
+// signed -> signed
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
+                               Vec<Double, 16> vOut[8])
+{
+#ifdef __SSE4_1__
+  vOut[0] = _mm_cvtepi32_pd(_mm_cvtepi8_epi32(vIn));
+  vOut[1] = _mm_cvtepi32_pd(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 2)));
+  vOut[2] = _mm_cvtepi32_pd(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 4)));
+  vOut[3] = _mm_cvtepi32_pd(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 6)));
+  vOut[4] = _mm_cvtepi32_pd(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 8)));
+  vOut[5] = _mm_cvtepi32_pd(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 10)));
+  vOut[6] = _mm_cvtepi32_pd(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 12)));
+  vOut[7] = _mm_cvtepi32_pd(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 14)));
+#else
+  const __m128i lo8       = _mm_unpacklo_epi8(_mm_undefined_si128(), vIn);
+  const __m128i hi8       = _mm_unpackhi_epi8(_mm_undefined_si128(), vIn);
+  const __m128i lolo16    = _mm_unpacklo_epi16(_mm_undefined_si128(), lo8);
+  const __m128i lohi16    = _mm_unpackhi_epi16(_mm_undefined_si128(), lo8);
+  const __m128i hilo16    = _mm_unpacklo_epi16(_mm_undefined_si128(), hi8);
+  const __m128i hihi16    = _mm_unpackhi_epi16(_mm_undefined_si128(), hi8);
+  const __m128i lolo16ext = _mm_srai_epi32(lolo16, 24);
+  const __m128i lohi16ext = _mm_srai_epi32(lohi16, 24);
+  const __m128i hilo16ext = _mm_srai_epi32(hilo16, 24);
+  const __m128i hihi16ext = _mm_srai_epi32(hihi16, 24);
+  vOut[0]                 = _mm_cvtepi32_pd(lolo16ext);
+  vOut[1]                 = _mm_cvtepi32_pd(_mm_srli_si128(lolo16ext, 8));
+  vOut[2]                 = _mm_cvtepi32_pd(lohi16ext);
+  vOut[3]                 = _mm_cvtepi32_pd(_mm_srli_si128(lohi16ext, 8));
+  vOut[4]                 = _mm_cvtepi32_pd(hilo16ext);
+  vOut[5]                 = _mm_cvtepi32_pd(_mm_srli_si128(hilo16ext, 8));
+  vOut[6]                 = _mm_cvtepi32_pd(hihi16ext);
+  vOut[7]                 = _mm_cvtepi32_pd(_mm_srli_si128(hihi16ext, 8));
+#endif
+}
+
+// unsigned -> signed
+
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
+                               Vec<Double, 16> vOut[8])
+{
+#ifdef __SSE4_1__
+  vOut[0] = _mm_cvtepi32_pd(_mm_cvtepu8_epi32(vIn));
+  vOut[1] = _mm_cvtepi32_pd(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 2)));
+  vOut[2] = _mm_cvtepi32_pd(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 4)));
+  vOut[3] = _mm_cvtepi32_pd(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 6)));
+  vOut[4] = _mm_cvtepi32_pd(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 8)));
+  vOut[5] = _mm_cvtepi32_pd(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 10)));
+  vOut[6] = _mm_cvtepi32_pd(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 12)));
+  vOut[7] = _mm_cvtepi32_pd(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 14)));
+#else
+  const __m128i lo8       = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
+  const __m128i hi8       = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
+  const __m128i lolo16    = _mm_unpacklo_epi16(lo8, _mm_setzero_si128());
+  const __m128i lohi16    = _mm_unpackhi_epi16(lo8, _mm_setzero_si128());
+  const __m128i hilo16    = _mm_unpacklo_epi16(hi8, _mm_setzero_si128());
+  const __m128i hihi16    = _mm_unpackhi_epi16(hi8, _mm_setzero_si128());
+  vOut[0]                 = _mm_cvtepi32_pd(lolo16);
+  vOut[1]                 = _mm_cvtepi32_pd(_mm_srli_si128(lolo16, 8));
+  vOut[2]                 = _mm_cvtepi32_pd(lohi16);
+  vOut[3]                 = _mm_cvtepi32_pd(_mm_srli_si128(lohi16, 8));
+  vOut[4]                 = _mm_cvtepi32_pd(hilo16);
+  vOut[5]                 = _mm_cvtepi32_pd(_mm_srli_si128(hilo16, 8));
+  vOut[6]                 = _mm_cvtepi32_pd(hihi16);
+  vOut[7]                 = _mm_cvtepi32_pd(_mm_srli_si128(hihi16, 8));
 #endif
 }
 
@@ -2195,19 +2676,11 @@ static SIMD_INLINE Vec<Int, 16> sll(const Vec<Int, 16> &a, const uint8_t count)
 // hadd
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 16> hadd(const Vec<Byte, 16> &a,
-                                      const Vec<Byte, 16> &b)
+template <typename T>
+static SIMD_INLINE Vec<T, 16> hadd(const Vec<T, 16> &a, const Vec<T, 16> &b)
 {
-  Vec<Byte, 16> x, y;
-  unzip(a, b, x, y, Bytes<sizeof(Byte)>());
-  return add(x, y);
-}
-
-static SIMD_INLINE Vec<SignedByte, 16> hadd(const Vec<SignedByte, 16> &a,
-                                            const Vec<SignedByte, 16> &b)
-{
-  Vec<SignedByte, 16> x, y;
-  unzip(a, b, x, y, Bytes<sizeof(SignedByte)>());
+  Vec<T, 16> x, y;
+  unzip(a, b, x, y, Bytes<sizeof(T)>());
   return add(x, y);
 }
 
@@ -2234,6 +2707,16 @@ static SIMD_INLINE Vec<Float, 16> hadd(const Vec<Float, 16> &a,
 {
   return _mm_hadd_ps(a, b);
 }
+
+// _mm_hadd_pd is only available with SSE3, if compiling without SSE3
+// use template version above
+#ifdef __SSE3__
+static SIMD_INLINE Vec<Double, 16> hadd(const Vec<Double, 16> &a,
+                                        const Vec<Double, 16> &b)
+{
+  return _mm_hadd_pd(a, b);
+}
+#endif
 
 // ---------------------------------------------------------------------------
 // hadds
@@ -2262,23 +2745,25 @@ static SIMD_INLINE Vec<Float, 16> hadds(const Vec<Float, 16> &a,
   return _mm_hadd_ps(a, b);
 }
 
+// _mm_hadd_pd is only available with SSE3, if compiling without SSE3
+// use template version above
+#ifdef __SSE3__
+static SIMD_INLINE Vec<Double, 16> hadds(const Vec<Double, 16> &a,
+                                         const Vec<Double, 16> &b)
+{
+  return _mm_hadd_pd(a, b);
+}
+#endif
+
 // ---------------------------------------------------------------------------
 // hsub
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 16> hsub(const Vec<Byte, 16> &a,
-                                      const Vec<Byte, 16> &b)
+template <typename T>
+static SIMD_INLINE Vec<T, 16> hsub(const Vec<T, 16> &a, const Vec<T, 16> &b)
 {
-  Vec<Byte, 16> x, y;
-  unzip(a, b, x, y, Bytes<sizeof(Byte)>());
-  return sub(x, y);
-}
-
-static SIMD_INLINE Vec<SignedByte, 16> hsub(const Vec<SignedByte, 16> &a,
-                                            const Vec<SignedByte, 16> &b)
-{
-  Vec<SignedByte, 16> x, y;
-  unzip(a, b, x, y, Bytes<sizeof(SignedByte)>());
+  Vec<T, 16> x, y;
+  unzip(a, b, x, y, Bytes<sizeof(T)>());
   return sub(x, y);
 }
 
@@ -2305,6 +2790,16 @@ static SIMD_INLINE Vec<Float, 16> hsub(const Vec<Float, 16> &a,
 {
   return _mm_hsub_ps(a, b);
 }
+
+// _mm_hsub_pd is only available with SSE3, if compiling without SSE3
+// use template version above
+#ifdef __SSE3__
+static SIMD_INLINE Vec<Double, 16> hsub(const Vec<Double, 16> &a,
+                                        const Vec<Double, 16> &b)
+{
+  return _mm_hsub_pd(a, b);
+}
+#endif
 
 // ---------------------------------------------------------------------------
 // hsubs
@@ -2333,6 +2828,16 @@ static SIMD_INLINE Vec<Float, 16> hsubs(const Vec<Float, 16> &a,
   return _mm_hsub_ps(a, b);
 }
 
+// _mm_hsub_pd is only available with SSE3, if compiling without SSE3
+// use template version above
+#ifdef __SSE3__
+static SIMD_INLINE Vec<Double, 16> hsubs(const Vec<Double, 16> &a,
+                                         const Vec<Double, 16> &b)
+{
+  return _mm_hsub_pd(a, b);
+}
+#endif
+
 // ---------------------------------------------------------------------------
 // element-wise shift right
 // ---------------------------------------------------------------------------
@@ -2352,6 +2857,14 @@ static SIMD_INLINE Vec<Float, 16> srle(const Vec<Float, 16> &a)
     x_mm_srli_si128<IMM * sizeof(Float)>(_mm_castps_si128(a)));
 }
 
+// double version
+template <int IMM>
+static SIMD_INLINE Vec<Double, 16> srle(const Vec<Double, 16> &a)
+{
+  return _mm_castsi128_pd(
+    x_mm_srli_si128<IMM * sizeof(Double)>(_mm_castpd_si128(a)));
+}
+
 // ---------------------------------------------------------------------------
 // element-wise shift left
 // ---------------------------------------------------------------------------
@@ -2369,6 +2882,14 @@ static SIMD_INLINE Vec<Float, 16> slle(const Vec<Float, 16> &a)
 {
   return _mm_castsi128_ps(
     x_mm_slli_si128<IMM * sizeof(Float)>(_mm_castps_si128(a)));
+}
+
+// double version
+template <int IMM>
+static SIMD_INLINE Vec<Double, 16> slle(const Vec<Double, 16> &a)
+{
+  return _mm_castsi128_pd(
+    x_mm_slli_si128<IMM * sizeof(Double)>(_mm_castpd_si128(a)));
 }
 
 // ---------------------------------------------------------------------------
@@ -2404,6 +2925,14 @@ static SIMD_INLINE Int elem0(const Vec<Int, 16> &a)
 static SIMD_INLINE Float elem0(const Vec<Float, 16> &a)
 {
   SIMD_RETURN_REINTERPRET_INT(Float, _mm_cvtsi128_si32(_mm_castps_si128(a)), 0);
+}
+
+static SIMD_INLINE Double elem0(const Vec<Double, 16> &a)
+{
+  Double res;
+  long long i = _mm_cvtsi128_si64(_mm_castpd_si128(a));
+  memcpy(&res, &i, sizeof(Double));
+  return res;
 }
 
 // ---------------------------------------------------------------------------
@@ -2444,6 +2973,15 @@ static SIMD_INLINE Vec<Float, 16> alignre(const Vec<Float, 16> &,
                                           const Vec<Float, 16> &)
 {
   return setzero(OutputType<Float>(), Integer<16>());
+}
+
+// double version
+template <int IMM>
+static SIMD_INLINE Vec<Double, 16> alignre(const Vec<Double, 16> &h,
+                                           const Vec<Double, 16> &l)
+{
+  return _mm_castsi128_pd(_mm_alignr_epi8(
+    _mm_castpd_si128(h), _mm_castpd_si128(l), IMM * sizeof(Double)));
 }
 
 // ---------------------------------------------------------------------------
@@ -2560,6 +3098,21 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>)
   v[1] = reinterpret(v1TmpOut, OutputType<T>());
 }
 
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>)
+{
+  const __m128d v0tmp = reinterpret(v[0], OutputType<Double>());
+  const __m128d v1tmp = reinterpret(v[1], OutputType<Double>());
+  const Vec<Double, 16> v0TmpOut =
+    _mm_shuffle_pd(v0tmp, v1tmp, _MM_SHUFFLE2(0, 0));
+  const Vec<Double, 16> v1TmpOut =
+    _mm_shuffle_pd(v0tmp, v1tmp, _MM_SHUFFLE2(1, 1));
+  v[0] = reinterpret(v0TmpOut, OutputType<T>());
+  v[1] = reinterpret(v1TmpOut, OutputType<T>());
+}
+
 // -------------------- n = 3 --------------------
 
 // 8 and 16 bit integer types
@@ -2605,6 +3158,22 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>)
   v[2] = reinterpret(z0z1z2z3, OutputType<T>());
 }
 
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void, typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>)
+{
+  const __m128d x0y0         = reinterpret(v[0], OutputType<Double>());
+  const __m128d z0x1         = reinterpret(v[1], OutputType<Double>());
+  const __m128d y1z1         = reinterpret(v[2], OutputType<Double>());
+  const Vec<Double, 16> x0x1 = _mm_shuffle_pd(x0y0, z0x1, _MM_SHUFFLE2(1, 0));
+  const Vec<Double, 16> y0y1 = _mm_shuffle_pd(x0y0, y1z1, _MM_SHUFFLE2(0, 1));
+  const Vec<Double, 16> z0z1 = _mm_shuffle_pd(z0x1, y1z1, _MM_SHUFFLE2(1, 0));
+  v[0]                       = reinterpret(x0x1, OutputType<T>());
+  v[1]                       = reinterpret(y0y1, OutputType<T>());
+  v[2]                       = reinterpret(z0z1, OutputType<T>());
+}
+
 // -------------------- n = 4 --------------------
 
 // 8 and 16 bit integer types
@@ -2647,6 +3216,25 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
   vOut[2] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));
   vOut[3] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(3, 1, 3, 1));
   for (int i = 0; i < 4; ++i) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
+}
+
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
+{
+  const __m128d x0y0         = reinterpret(v[0], OutputType<Double>());
+  const __m128d z0w0         = reinterpret(v[1], OutputType<Double>());
+  const __m128d x1y1         = reinterpret(v[2], OutputType<Double>());
+  const __m128d z1w1         = reinterpret(v[3], OutputType<Double>());
+  const Vec<Double, 16> x0x1 = _mm_unpacklo_pd(x0y0, x1y1);
+  const Vec<Double, 16> y0y1 = _mm_unpackhi_pd(x0y0, x1y1);
+  const Vec<Double, 16> z0z1 = _mm_unpacklo_pd(z0w0, z1w1);
+  const Vec<Double, 16> w0w1 = _mm_unpackhi_pd(z0w0, z1w1);
+  v[0]                       = reinterpret(x0x1, OutputType<T>());
+  v[1]                       = reinterpret(y0y1, OutputType<T>());
+  v[2]                       = reinterpret(z0z1, OutputType<T>());
+  v[3]                       = reinterpret(w0w1, OutputType<T>());
 }
 
 // -------------------- n = 5 --------------------
@@ -2772,6 +3360,28 @@ static SIMD_INLINE void swizzle(Vec<T, 16> vT[5], Integer<5>)
   for (int i = 0; i < 5; ++i) { vT[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void, typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>)
+{
+  const __m128d a0b0         = reinterpret(v[0], OutputType<Double>());
+  const __m128d c0d0         = reinterpret(v[1], OutputType<Double>());
+  const __m128d e0a1         = reinterpret(v[2], OutputType<Double>());
+  const __m128d b1c1         = reinterpret(v[3], OutputType<Double>());
+  const __m128d d1e1         = reinterpret(v[4], OutputType<Double>());
+  const Vec<Double, 16> a0a1 = _mm_shuffle_pd(a0b0, e0a1, _MM_SHUFFLE2(1, 0));
+  const Vec<Double, 16> b0b1 = _mm_shuffle_pd(a0b0, b1c1, _MM_SHUFFLE2(0, 1));
+  const Vec<Double, 16> c0c1 = _mm_shuffle_pd(c0d0, b1c1, _MM_SHUFFLE2(1, 0));
+  const Vec<Double, 16> d0d1 = _mm_shuffle_pd(c0d0, d1e1, _MM_SHUFFLE2(0, 1));
+  const Vec<Double, 16> e0e1 = _mm_shuffle_pd(e0a1, d1e1, _MM_SHUFFLE2(1, 0));
+  v[0]                       = reinterpret(a0a1, OutputType<T>());
+  v[1]                       = reinterpret(b0b1, OutputType<T>());
+  v[2]                       = reinterpret(c0c1, OutputType<T>());
+  v[3]                       = reinterpret(d0d1, OutputType<T>());
+  v[4]                       = reinterpret(e0e1, OutputType<T>());
+}
+
 // ---------------------------------------------------------------------------
 // compare <
 // ---------------------------------------------------------------------------
@@ -2817,6 +3427,12 @@ static SIMD_INLINE Vec<Float, 16> cmplt(const Vec<Float, 16> &a,
                                         const Vec<Float, 16> &b)
 {
   return _mm_cmplt_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 16> cmplt(const Vec<Double, 16> &a,
+                                         const Vec<Double, 16> &b)
+{
+  return _mm_cmplt_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -2866,6 +3482,12 @@ static SIMD_INLINE Vec<Float, 16> cmple(const Vec<Float, 16> &a,
   return _mm_cmple_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 16> cmple(const Vec<Double, 16> &a,
+                                         const Vec<Double, 16> &b)
+{
+  return _mm_cmple_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // compare ==
 // ---------------------------------------------------------------------------
@@ -2904,6 +3526,12 @@ static SIMD_INLINE Vec<Float, 16> cmpeq(const Vec<Float, 16> &a,
                                         const Vec<Float, 16> &b)
 {
   return _mm_cmpeq_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 16> cmpeq(const Vec<Double, 16> &a,
+                                         const Vec<Double, 16> &b)
+{
+  return _mm_cmpeq_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -2953,6 +3581,12 @@ static SIMD_INLINE Vec<Float, 16> cmpgt(const Vec<Float, 16> &a,
   return _mm_cmpgt_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 16> cmpgt(const Vec<Double, 16> &a,
+                                         const Vec<Double, 16> &b)
+{
+  return _mm_cmpgt_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // compare >=
 // ---------------------------------------------------------------------------
@@ -3000,6 +3634,12 @@ static SIMD_INLINE Vec<Float, 16> cmpge(const Vec<Float, 16> &a,
   return _mm_cmpge_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 16> cmpge(const Vec<Double, 16> &a,
+                                         const Vec<Double, 16> &b)
+{
+  return _mm_cmpge_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // compare !=
 // ---------------------------------------------------------------------------
@@ -3043,6 +3683,12 @@ static SIMD_INLINE Vec<Float, 16> cmpneq(const Vec<Float, 16> &a,
   return _mm_cmpneq_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 16> cmpneq(const Vec<Double, 16> &a,
+                                          const Vec<Double, 16> &b)
+{
+  return _mm_cmpneq_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // and
 // ---------------------------------------------------------------------------
@@ -3059,6 +3705,13 @@ static SIMD_INLINE Vec<Float, 16> and_(const Vec<Float, 16> &a,
                                        const Vec<Float, 16> &b)
 {
   return _mm_and_ps(a, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 16> and_(const Vec<Double, 16> &a,
+                                        const Vec<Double, 16> &b)
+{
+  return _mm_and_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -3079,6 +3732,13 @@ static SIMD_INLINE Vec<Float, 16> or_(const Vec<Float, 16> &a,
   return _mm_or_ps(a, b);
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 16> or_(const Vec<Double, 16> &a,
+                                       const Vec<Double, 16> &b)
+{
+  return _mm_or_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // andnot
 // ---------------------------------------------------------------------------
@@ -3095,6 +3755,13 @@ static SIMD_INLINE Vec<Float, 16> andnot(const Vec<Float, 16> &a,
                                          const Vec<Float, 16> &b)
 {
   return _mm_andnot_ps(a, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 16> andnot(const Vec<Double, 16> &a,
+                                          const Vec<Double, 16> &b)
+{
+  return _mm_andnot_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -3115,6 +3782,13 @@ static SIMD_INLINE Vec<Float, 16> xor_(const Vec<Float, 16> &a,
   return _mm_xor_ps(a, b);
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 16> xor_(const Vec<Double, 16> &a,
+                                        const Vec<Double, 16> &b)
+{
+  return _mm_xor_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // not
 // ---------------------------------------------------------------------------
@@ -3132,6 +3806,13 @@ static SIMD_INLINE Vec<Float, 16> not_(const Vec<Float, 16> &a)
 {
   // there is no _mm_not_ps, so xor with all 1's
   return _mm_xor_ps(a, _mm_castsi128_ps(_mm_set1_epi32(-1)));
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 16> not_(const Vec<Double, 16> &a)
+{
+  // there is no _mm_not_pd, so xor with all 1's
+  return _mm_xor_pd(a, _mm_castsi128_pd(_mm_set1_epi32(-1)));
 }
 
 // ---------------------------------------------------------------------------
@@ -3194,6 +3875,14 @@ static SIMD_INLINE Vec<Float, 16> avg(const Vec<Float, 16> &a,
 {
   __m128 half = _mm_set1_ps(0.5f);
   return _mm_mul_ps(_mm_add_ps(a, b), half);
+}
+
+// NOTE: Double version doesn't round!
+static SIMD_INLINE Vec<Double, 16> avg(const Vec<Double, 16> &a,
+                                       const Vec<Double, 16> &b)
+{
+  __m128d half = _mm_set1_pd(0.5);
+  return _mm_mul_pd(_mm_add_pd(a, b), half);
 }
 
 // ---------------------------------------------------------------------------
@@ -3286,6 +3975,11 @@ static SIMD_INLINE Vec<Float, 16> reverse(const Vec<Float, 16> &a)
   return _mm_shuffle_ps(a, a, _MM_SHUFFLE(0, 1, 2, 3));
 }
 
+static SIMD_INLINE Vec<Double, 16> reverse(const Vec<Double, 16> &a)
+{
+  return _mm_shuffle_pd(a, a, _MM_SHUFFLE2(0, 1));
+}
+
 // ---------------------------------------------------------------------------
 // msb2int
 // ---------------------------------------------------------------------------
@@ -3332,6 +4026,11 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Int, 16> &a)
 static SIMD_INLINE uint64_t msb2int(const Vec<Float, 16> &a)
 {
   return _mm_movemask_ps(a);
+}
+
+static SIMD_INLINE uint64_t msb2int(const Vec<Double, 16> &a)
+{
+  return _mm_movemask_pd(a);
 }
 
 // ---------------------------------------------------------------------------
@@ -3402,6 +4101,12 @@ static SIMD_INLINE Vec<Float, 16> int2msb(const uint64_t a, OutputType<Float>,
                      OutputType<Float>());
 }
 
+static SIMD_INLINE Vec<Double, 16> int2msb(const uint64_t a, OutputType<Double>,
+                                           Integer<16>)
+{
+  return _mm_set_pd((a & 2) ? -0.0 : 0.0, (a & 1) ? -0.0 : 0.0);
+}
+
 // ---------------------------------------------------------------------------
 // int2bits
 // ---------------------------------------------------------------------------
@@ -3467,6 +4172,13 @@ static SIMD_INLINE Vec<Float, 16> int2bits(const uint64_t a, OutputType<Float>,
                      OutputType<Float>());
 }
 
+static SIMD_INLINE Vec<Double, 16> int2bits(const uint64_t a,
+                                            OutputType<Double>, Integer<16>)
+{
+  const auto trueVal = TypeInfo<Double>::trueval();
+  return _mm_set_pd((a & 2) ? trueVal : 0.0, (a & 1) ? trueVal : 0.0);
+}
+
 // ---------------------------------------------------------------------------
 // iota
 // ---------------------------------------------------------------------------
@@ -3501,6 +4213,11 @@ static SIMD_INLINE Vec<Int, 16> iota(OutputType<Int>, Integer<16>)
 static SIMD_INLINE Vec<Float, 16> iota(OutputType<Float>, Integer<16>)
 {
   return _mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
+}
+
+static SIMD_INLINE Vec<Double, 16> iota(OutputType<Double>, Integer<16>)
+{
+  return _mm_set_pd(1.0, 0.0);
 }
 
 } // namespace base

@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <vector>
 
 // 16. Nov 22 (Jonas Keller): moved functions for generating random numbers
@@ -16,6 +17,8 @@
 
 // 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
 // namespace
+
+// 13. May 23 (Jonas Keller): added Double versions of random functions
 
 namespace simd {
 namespace auto_test {
@@ -74,14 +77,13 @@ SIMD_INLINE Int getRandom<Int>()
 template <>
 SIMD_INLINE Float getRandom<Float>()
 {
-  Int i;
-  Float f;
-  int exponent;
   // restricted selection means: only accept restricted exponent range
   bool restricted = (rand() & 0x01);
+  int exponent;
+  Float f;
   do {
     // get random Int
-    i = getRandom<Int>();
+    Int i = getRandom<Int>();
     // map to float
     memcpy(&f, &i, 4);
     // determine exponent
@@ -92,6 +94,26 @@ SIMD_INLINE Float getRandom<Float>()
              // base2-exponent < 23 means: number has fractional digits
              (!restricted || (exponent < 23))));
   return f;
+}
+
+template <>
+SIMD_INLINE Double getRandom<Double>()
+{
+  // restricted selection means: only accept restricted exponent range
+  bool restricted = (rand() & 0x01);
+  int exponent;
+  Double d;
+  do {
+    // get 2 random Ints
+    Int i[2] = {getRandom<Int>(), getRandom<Int>()};
+    // map to double
+    memcpy(&d, &i, 8);
+    // determine exponent
+    frexp(d, &exponent);
+  } while (!(std::isfinite(d) &&
+             // base2-exponent < 52 means: number has fractional digits
+             (!restricted || (exponent < 52))));
+  return d;
 }
 
 // 09. Oct 22 (Jonas Keller): added getRandom for uint64_t
@@ -224,6 +246,28 @@ std::vector<Float> specialValues<Float>()
           MAX_POS_FLOAT_CONVERTIBLE_TO_INT32,
           MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 + 1};
 }
+
+template <>
+std::vector<Double> specialValues<Double>()
+{
+  return {SIMDDOUBLE_MIN,
+          SIMDDOUBLE_MIN / 2,
+          SIMDDOUBLE_MAX / 2,
+          SIMDDOUBLE_MAX,
+          -1.0,
+          -0.5,
+          -0.0,
+          0.0,
+          0.5,
+          1.0};
+}
+
+template <>
+std::vector<uint64_t> specialValues<uint64_t>()
+{
+  constexpr auto max = std::numeric_limits<uint64_t>::max();
+  return {0, 1, max / 2, max - 1, max};
+}
 } // namespace internal
 
 template <typename T>
@@ -295,6 +339,21 @@ SIMD_INLINE Float getRandomOrSpecialValueRanges<Float>()
   if (rand() & 0x01) return ldexpf(f12, rand() & 0x1f);
   // or just return completely random float
   return getRandomOrSpecialValue<Float>();
+}
+
+template <>
+SIMD_INLINE Double getRandomOrSpecialValueRanges<Double>()
+{
+  // generate 52 bit mantissa and sign bit (with zero exponent, c = 1023)
+  const auto i = (getRandomOrSpecialValue<uint64_t>() & 0x800fffffffffffffLL) |
+                 0x3ff0000000000000LL;
+  // f12 is a double from [1,2)
+  Double f12;
+  memcpy(&f12, &i, 8);
+  // generate random exponent from [0,1023]
+  if (rand() & 0x01) return ldexp(f12, rand() & 0x3ff);
+  // or just return completely random double
+  return getRandomOrSpecialValue<Double>();
 }
 } // namespace auto_test
 } // namespace simd

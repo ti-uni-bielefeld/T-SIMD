@@ -29,6 +29,7 @@
 
 // 22. Jan 23 (Jonas Keller): moved internal implementations into internal
 // namespace
+// 13. May 23 (Jonas Keller): added Double support
 
 #ifndef SIMD_VEC_BASE_IMPL_INTEL_32_H_
 #define SIMD_VEC_BASE_IMPL_INTEL_32_H_
@@ -42,6 +43,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 
 #ifdef __AVX__
@@ -154,6 +156,45 @@ public:
   void operator delete[](void *p) { simd_aligned_free(p); }
 };
 
+// ===========================================================================
+// Vec double specialization for AVX
+// ===========================================================================
+
+template <>
+class Vec<Double, 32>
+{
+  __m256d ymm;
+
+public:
+  using Type                    = Double;
+  static constexpr int elements = 32 / sizeof(Double);
+  static constexpr int elems    = elements;
+  static constexpr int bytes    = 32;
+
+  Vec() = default;
+  Vec(const __m256d &x) { ymm = x; }
+  Vec &operator=(const __m256d &x)
+  {
+    ymm = x;
+    return *this;
+  }
+  operator __m256d() const { return ymm; }
+  // for avx2 emulation
+  Vec(const Vec<Double, 16> &lo, const Vec<Double, 16> &hi)
+  {
+    ymm = _mm256_set_m128d(hi, lo);
+  }
+  SIMD_INLINE Vec<Double, 16> lo() const { return _mm256_castpd256_pd128(ymm); }
+  SIMD_INLINE Vec<Double, 16> hi() const
+  {
+    return _mm256_extractf128_pd(ymm, 1);
+  }
+  void *operator new(size_t size) { return simd_aligned_malloc(bytes, size); }
+  void operator delete(void *p) { simd_aligned_free(p); }
+  void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
+  void operator delete[](void *p) { simd_aligned_free(p); }
+};
+
 namespace internal {
 namespace base {
 // ===========================================================================
@@ -232,6 +273,16 @@ struct Swizzle_32_16
   {
     vOut[I] =
       _mm256_permute2f128_ps(vIn[I / 2], vIn[(I + N) / 2],
+                             _MM_SHUFFLE(0, (2 + (I + N) % 2), 0, (I % 2)));
+    Swizzle_32_16<N, I + 1>::_swizzle_32_16(vIn, vOut);
+  }
+
+  // Double version
+  static SIMD_INLINE void _swizzle_32_16(const Vec<Double, 32> vIn[N],
+                                         Vec<Double, 32> vOut[N])
+  {
+    vOut[I] =
+      _mm256_permute2f128_pd(vIn[I / 2], vIn[(I + N) / 2],
                              _MM_SHUFFLE(0, (2 + (I + N) % 2), 0, (I % 2)));
     Swizzle_32_16<N, I + 1>::_swizzle_32_16(vIn, vOut);
   }
@@ -593,6 +644,30 @@ static SIMD_INLINE int x_mm256_extract_epi32(__m256i a)
 {
   // 8 * epi32
   return x_mm256_extract_epi32<IMM>(a, IsPosInGivenRange<8, IMM>());
+}
+
+// positive and in range: extract
+template <int IMM>
+static SIMD_INLINE long long x_mm256_extract_epi64(__m256i a,
+                                                   IsPosInRange<true, true>)
+{
+  return _mm256_extract_epi64(a, IMM);
+}
+
+// positive and out of range: return zero
+template <int IMM>
+static SIMD_INLINE long long x_mm256_extract_epi64(__m256i,
+                                                   IsPosInRange<true, false>)
+{
+  return 0;
+}
+
+// hub
+template <int IMM>
+static SIMD_INLINE long long x_mm256_extract_epi64(__m256i a)
+{
+  // 4 * epi64
+  return x_mm256_extract_epi64<IMM>(a, IsPosInGivenRange<4, IMM>());
 }
 
 // _mm256_extract_ps doesn't exist, workaround in extract template function
@@ -1043,6 +1118,12 @@ static SIMD_INLINE __m256 x_mm256_transpose4x64_ps(__m256 a)
     x_mm256_transpose4x64_epi64(_mm256_castps_si256(a)));
 }
 
+static SIMD_INLINE __m256d x_mm256_transpose4x64_pd(__m256d a)
+{
+  return _mm256_castsi256_pd(
+    x_mm256_transpose4x64_epi64(_mm256_castpd_si256(a)));
+}
+
 // ---------------------------------------------------------------------------
 // unpack of 2 ps
 // ---------------------------------------------------------------------------
@@ -1164,7 +1245,9 @@ SIMDVEC_INTEL_X_INT_UNFCT_IMM_PSPD_32(shuffle, epi32, ps)
 
 // between all integer types
 template <typename Tdst, typename Tsrc,
-          SIMD_ENABLE_IF((!std::is_same<Tdst, Tsrc>::value))>
+          SIMD_ENABLE_IF((!std::is_same<Tdst, Tsrc>::value &&
+                          std::is_integral<Tdst>::value &&
+                          std::is_integral<Tsrc>::value))>
 static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Tsrc, 32> &vec,
                                              OutputType<Tdst>)
 {
@@ -1175,7 +1258,7 @@ static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Tsrc, 32> &vec,
 }
 
 // from float to any integer type
-template <typename Tdst, SIMD_ENABLE_IF((!std::is_same<Tdst, Float>::value))>
+template <typename Tdst, SIMD_ENABLE_IF((std::is_integral<Tdst>::value))>
 static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Float, 32> &vec,
                                              OutputType<Tdst>)
 {
@@ -1183,11 +1266,41 @@ static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Float, 32> &vec,
 }
 
 // from any integer type to float
-template <typename Tsrc, SIMD_ENABLE_IF((!std::is_same<Tsrc, Float>::value))>
+template <typename Tsrc, SIMD_ENABLE_IF((std::is_integral<Tsrc>::value))>
 static SIMD_INLINE Vec<Float, 32> reinterpret(const Vec<Tsrc, 32> &vec,
                                               OutputType<Float>)
 {
   return _mm256_castsi256_ps(vec);
+}
+
+// from double to any integer type
+template <typename Tdst, SIMD_ENABLE_IF((std::is_integral<Tdst>::value))>
+static SIMD_INLINE Vec<Tdst, 32> reinterpret(const Vec<Double, 32> &vec,
+                                             OutputType<Tdst>)
+{
+  return _mm256_castpd_si256(vec);
+}
+
+// from any integer type to double
+template <typename Tsrc, SIMD_ENABLE_IF((std::is_integral<Tsrc>::value))>
+static SIMD_INLINE Vec<Double, 32> reinterpret(const Vec<Tsrc, 32> &vec,
+                                               OutputType<Double>)
+{
+  return _mm256_castsi256_pd(vec);
+}
+
+// from float to double
+static SIMD_INLINE Vec<Double, 32> reinterpret(const Vec<Float, 32> &vec,
+                                               OutputType<Double>)
+{
+  return _mm256_castps_pd(vec);
+}
+
+// from double to float
+static SIMD_INLINE Vec<Float, 32> reinterpret(const Vec<Double, 32> &vec,
+                                              OutputType<Float>)
+{
+  return _mm256_castpd_ps(vec);
 }
 
 // between identical types
@@ -1258,6 +1371,11 @@ static SIMD_INLINE Vec<Float, 32> setzero(OutputType<Float>, Integer<32>)
   return _mm256_setzero_ps();
 }
 
+static SIMD_INLINE Vec<Double, 32> setzero(OutputType<Double>, Integer<32>)
+{
+  return _mm256_setzero_pd();
+}
+
 // ---------------------------------------------------------------------------
 // set1
 // ---------------------------------------------------------------------------
@@ -1292,6 +1410,11 @@ static SIMD_INLINE Vec<Float, 32> set1(Float a, Integer<32>)
   return _mm256_set1_ps(a);
 }
 
+static SIMD_INLINE Vec<Double, 32> set1(Double a, Integer<32>)
+{
+  return _mm256_set1_pd(a);
+}
+
 // ---------------------------------------------------------------------------
 // load
 // ---------------------------------------------------------------------------
@@ -1313,6 +1436,14 @@ static SIMD_INLINE Vec<Float, 32> load(const Float *const p, Integer<32>)
   return _mm256_load_ps(p);
 }
 
+static SIMD_INLINE Vec<Double, 32> load(const Double *const p, Integer<32>)
+{
+  // AVX load and store instructions need alignment to 32 byte
+  // (lower 5 bit need to be zero)
+  SIMD_CHECK_ALIGNMENT(p, 32);
+  return _mm256_load_pd(p);
+}
+
 // ---------------------------------------------------------------------------
 // loadu
 // ---------------------------------------------------------------------------
@@ -1326,6 +1457,11 @@ static SIMD_INLINE Vec<T, 32> loadu(const T *const p, Integer<32>)
 static SIMD_INLINE Vec<Float, 32> loadu(const Float *const p, Integer<32>)
 {
   return _mm256_loadu_ps(p);
+}
+
+static SIMD_INLINE Vec<Double, 32> loadu(const Double *const p, Integer<32>)
+{
+  return _mm256_loadu_pd(p);
 }
 
 // ---------------------------------------------------------------------------
@@ -1351,6 +1487,15 @@ static SIMD_INLINE void store(Float *const p, const Vec<Float, 32> &a)
   _mm256_store_ps(p, a);
 }
 
+// double version
+static SIMD_INLINE void store(Double *const p, const Vec<Double, 32> &a)
+{
+  // AVX load and store instructions need alignment to 32 byte
+  // (lower 5 bit need to be zero)
+  SIMD_CHECK_ALIGNMENT(p, 32);
+  _mm256_store_pd(p, a);
+}
+
 // ---------------------------------------------------------------------------
 // storeu
 // ---------------------------------------------------------------------------
@@ -1366,6 +1511,12 @@ static SIMD_INLINE void storeu(T *const p, const Vec<T, 32> &a)
 static SIMD_INLINE void storeu(Float *const p, const Vec<Float, 32> &a)
 {
   _mm256_storeu_ps(p, a);
+}
+
+// double version
+static SIMD_INLINE void storeu(Double *const p, const Vec<Double, 32> &a)
+{
+  _mm256_storeu_pd(p, a);
 }
 
 // ---------------------------------------------------------------------------
@@ -1389,6 +1540,15 @@ static SIMD_INLINE void stream_store(Float *const p, const Vec<Float, 32> &a)
   // (lower 5 bit need to be zero)
   SIMD_CHECK_ALIGNMENT(p, 32);
   _mm256_stream_ps(p, a);
+}
+
+// double version
+static SIMD_INLINE void stream_store(Double *const p, const Vec<Double, 32> &a)
+{
+  // AVX load and store instructions need alignment to 32 byte
+  // (lower 5 bit need to be zero)
+  SIMD_CHECK_ALIGNMENT(p, 32);
+  _mm256_stream_pd(p, a);
 }
 
 // ---------------------------------------------------------------------------
@@ -1431,6 +1591,15 @@ static SIMD_INLINE Float extract(const Vec<Float, 32> &a)
 {
   SIMD_RETURN_REINTERPRET_INT(
     Float, extract<IMM>(reinterpret(a, OutputType<Int>())), 0);
+}
+
+template <int IMM>
+static SIMD_INLINE Double extract(const Vec<Double, 32> &a)
+{
+  const uint64_t resInt = x_mm256_extract_epi64<IMM>(_mm256_castpd_si256(a));
+  Double res;
+  memcpy(&res, &resInt, sizeof(res));
+  return res;
 }
 
 // ---------------------------------------------------------------------------
@@ -1484,6 +1653,12 @@ static SIMD_INLINE Vec<Float, 32> add(const Vec<Float, 32> &a,
                                       const Vec<Float, 32> &b)
 {
   return _mm256_add_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 32> add(const Vec<Double, 32> &a,
+                                       const Vec<Double, 32> &b)
+{
+  return _mm256_add_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -1560,6 +1735,13 @@ static SIMD_INLINE Vec<Float, 32> adds(const Vec<Float, 32> &a,
   return _mm256_add_ps(a, b);
 }
 
+// Double not saturated
+static SIMD_INLINE Vec<Double, 32> adds(const Vec<Double, 32> &a,
+                                        const Vec<Double, 32> &b)
+{
+  return _mm256_add_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // sub
 // ---------------------------------------------------------------------------
@@ -1611,6 +1793,12 @@ static SIMD_INLINE Vec<Float, 32> sub(const Vec<Float, 32> &a,
                                       const Vec<Float, 32> &b)
 {
   return _mm256_sub_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 32> sub(const Vec<Double, 32> &a,
+                                       const Vec<Double, 32> &b)
+{
+  return _mm256_sub_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -1687,6 +1875,13 @@ static SIMD_INLINE Vec<Float, 32> subs(const Vec<Float, 32> &a,
   return _mm256_sub_ps(a, b);
 }
 
+// Double not saturated
+static SIMD_INLINE Vec<Double, 32> subs(const Vec<Double, 32> &a,
+                                        const Vec<Double, 32> &b)
+{
+  return _mm256_sub_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // neg (negate = two's complement or unary minus), only signed types
 // ---------------------------------------------------------------------------
@@ -1722,6 +1917,11 @@ static SIMD_INLINE Vec<T, 32> neg(const Vec<T, 32> &a)
 static SIMD_INLINE Vec<Float, 32> neg(const Vec<Float, 32> &a)
 {
   return _mm256_sub_ps(_mm256_setzero_ps(), a);
+}
+
+static SIMD_INLINE Vec<Double, 32> neg(const Vec<Double, 32> &a)
+{
+  return _mm256_sub_pd(_mm256_setzero_pd(), a);
 }
 
 // ---------------------------------------------------------------------------
@@ -1780,6 +1980,12 @@ static SIMD_INLINE Vec<Float, 32> min(const Vec<Float, 32> &a,
   return _mm256_min_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 32> min(const Vec<Double, 32> &a,
+                                       const Vec<Double, 32> &b)
+{
+  return _mm256_min_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // max
 // ---------------------------------------------------------------------------
@@ -1836,6 +2042,12 @@ static SIMD_INLINE Vec<Float, 32> max(const Vec<Float, 32> &a,
   return _mm256_max_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 32> max(const Vec<Double, 32> &a,
+                                       const Vec<Double, 32> &b)
+{
+  return _mm256_max_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // mul, div
 // ---------------------------------------------------------------------------
@@ -1849,10 +2061,22 @@ static SIMD_INLINE Vec<Float, 32> mul(const Vec<Float, 32> &a,
   return _mm256_mul_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 32> mul(const Vec<Double, 32> &a,
+                                       const Vec<Double, 32> &b)
+{
+  return _mm256_mul_pd(a, b);
+}
+
 static SIMD_INLINE Vec<Float, 32> div(const Vec<Float, 32> &a,
                                       const Vec<Float, 32> &b)
 {
   return _mm256_div_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 32> div(const Vec<Double, 32> &a,
+                                       const Vec<Double, 32> &b)
+{
+  return _mm256_div_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -1896,9 +2120,19 @@ static SIMD_INLINE Vec<Float, 32> ceil(const Vec<Float, 32> &a)
   return _mm256_ceil_ps(a);
 }
 
+static SIMD_INLINE Vec<Double, 32> ceil(const Vec<Double, 32> &a)
+{
+  return _mm256_ceil_pd(a);
+}
+
 static SIMD_INLINE Vec<Float, 32> floor(const Vec<Float, 32> &a)
 {
   return _mm256_floor_ps(a);
+}
+
+static SIMD_INLINE Vec<Double, 32> floor(const Vec<Double, 32> &a)
+{
+  return _mm256_floor_pd(a);
 }
 
 static SIMD_INLINE Vec<Float, 32> round(const Vec<Float, 32> &a)
@@ -1909,9 +2143,19 @@ static SIMD_INLINE Vec<Float, 32> round(const Vec<Float, 32> &a)
   return _mm256_round_ps(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
 }
 
+static SIMD_INLINE Vec<Double, 32> round(const Vec<Double, 32> &a)
+{
+  return _mm256_round_pd(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+}
+
 static SIMD_INLINE Vec<Float, 32> truncate(const Vec<Float, 32> &a)
 {
   return _mm256_round_ps(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+}
+
+static SIMD_INLINE Vec<Double, 32> truncate(const Vec<Double, 32> &a)
+{
+  return _mm256_round_pd(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
 }
 
 // ---------------------------------------------------------------------------
@@ -1924,16 +2168,33 @@ static SIMD_INLINE Vec<Float, 32> rcp(const Vec<Float, 32> &a)
   return _mm256_rcp_ps(a);
 }
 
+static SIMD_INLINE Vec<Double, 32> rcp(const Vec<Double, 32> &a)
+{
+  // _mm256_rcp_pd does not exist
+  return Vec<Double, 32>(rcp(a.lo()), rcp(a.hi()));
+}
+
 // estimate of reverse square root
 static SIMD_INLINE Vec<Float, 32> rsqrt(const Vec<Float, 32> &a)
 {
   return _mm256_rsqrt_ps(a);
 }
 
+static SIMD_INLINE Vec<Double, 32> rsqrt(const Vec<Double, 32> &a)
+{
+  // _mm256_rsqrt_pd does not exist
+  return Vec<Double, 32>(rsqrt(a.lo()), rsqrt(a.hi()));
+}
+
 // square root
 static SIMD_INLINE Vec<Float, 32> sqrt(const Vec<Float, 32> &a)
 {
   return _mm256_sqrt_ps(a);
+}
+
+static SIMD_INLINE Vec<Double, 32> sqrt(const Vec<Double, 32> &a)
+{
+  return _mm256_sqrt_pd(a);
 }
 
 // ---------------------------------------------------------------------------
@@ -1943,10 +2204,10 @@ static SIMD_INLINE Vec<Float, 32> sqrt(const Vec<Float, 32> &a)
 // 25. Mar 25 (Jonas Keller): added abs for unsigned integers
 
 // unsigned integers
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_unsigned<T>::value
+                                       &&std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 32> abs(const Vec<T, 32> &a)
 {
-  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
   return a;
 }
 
@@ -1985,6 +2246,14 @@ static SIMD_INLINE Vec<Float, 32> abs(const Vec<Float, 32> &a)
   // there's no _mm256_abs_ps, we have to emulated it:
   // -0.0F is 0x8000000, 0x7fffffff by andnot, sign bit is cleared
   return _mm256_andnot_ps(_mm256_set1_ps(-0.0F), a);
+}
+
+static SIMD_INLINE Vec<Double, 32> abs(const Vec<Double, 32> &a)
+{
+  // there's no _mm256_abs_pd, we have to emulated it:
+  // -0.0 is 0x8000000000000000, 0x7fffffffffffffff by andnot, sign bit is
+  // cleared
+  return _mm256_andnot_pd(_mm256_set1_pd(-0.0), a);
 }
 
 // ---------------------------------------------------------------------------
@@ -2061,6 +2330,23 @@ static SIMD_INLINE Vec<Float, 32> unpack(const Vec<Float, 32> &a,
   return _mm256_permute2f128_ps(a, b, _MM_SHUFFLE(0, 2, 0, 0));
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 32> unpack(const Vec<Double, 32> &a,
+                                          const Vec<Double, 32> &b, Part<0>,
+                                          Bytes<8>)
+{
+  return _mm256_unpacklo_pd(x_mm256_transpose4x64_pd(a),
+                            x_mm256_transpose4x64_pd(b));
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 32> unpack(const Vec<Double, 32> &a,
+                                          const Vec<Double, 32> &b, Part<0>,
+                                          Bytes<16>)
+{
+  return _mm256_permute2f128_pd(a, b, _MM_SHUFFLE(0, 2, 0, 0));
+}
+
 // ---------------------------------------------------------------------------
 // unpackhi
 // ---------------------------------------------------------------------------
@@ -2133,6 +2419,23 @@ static SIMD_INLINE Vec<Float, 32> unpack(const Vec<Float, 32> &a,
                                          Bytes<16>)
 {
   return _mm256_permute2f128_ps(a, b, _MM_SHUFFLE(0, 3, 0, 1));
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 32> unpack(const Vec<Double, 32> &a,
+                                          const Vec<Double, 32> &b, Part<1>,
+                                          Bytes<8>)
+{
+  return _mm256_unpackhi_pd(x_mm256_transpose4x64_pd(a),
+                            x_mm256_transpose4x64_pd(b));
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 32> unpack(const Vec<Double, 32> &a,
+                                          const Vec<Double, 32> &b, Part<1>,
+                                          Bytes<16>)
+{
+  return _mm256_permute2f128_pd(a, b, _MM_SHUFFLE(0, 3, 0, 1));
 }
 
 // ---------------------------------------------------------------------------
@@ -2219,6 +2522,22 @@ static SIMD_INLINE Vec<Float, 32> unpack16(const Vec<Float, 32> &a,
   return _mm256_permute2f128_ps(a, b, _MM_SHUFFLE(0, 2, 0, 0));
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 32> unpack16(const Vec<Double, 32> &a,
+                                            const Vec<Double, 32> &b, Part<0>,
+                                            Bytes<8>)
+{
+  return _mm256_unpacklo_pd(a, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 32> unpack16(const Vec<Double, 32> &a,
+                                            const Vec<Double, 32> &b, Part<0>,
+                                            Bytes<16>)
+{
+  return _mm256_permute2f128_pd(a, b, _MM_SHUFFLE(0, 2, 0, 0));
+}
+
 // ---------------------------------------------------------------------------
 // 128-bit-lane oriented unpackhi
 // ---------------------------------------------------------------------------
@@ -2287,6 +2606,22 @@ static SIMD_INLINE Vec<Float, 32> unpack16(const Vec<Float, 32> &a,
   return _mm256_permute2f128_ps(a, b, _MM_SHUFFLE(0, 3, 0, 1));
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 32> unpack16(const Vec<Double, 32> &a,
+                                            const Vec<Double, 32> &b, Part<1>,
+                                            Bytes<8>)
+{
+  return _mm256_unpackhi_pd(a, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 32> unpack16(const Vec<Double, 32> &a,
+                                            const Vec<Double, 32> &b, Part<1>,
+                                            Bytes<16>)
+{
+  return _mm256_permute2f128_pd(a, b, _MM_SHUFFLE(0, 3, 0, 1));
+}
+
 // ---------------------------------------------------------------------------
 // 128-bit-lane oriented unpack hub
 // ---------------------------------------------------------------------------
@@ -2307,39 +2642,34 @@ static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b)
 
 // contributed by Adam Marschall
 
+// generalized extract of 128-bit-lanes
+// IMM=0: first lane of input vector,
+// IMM=1: second lane of input vector
 // all integer versions
-template <typename T>
-static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 32> &a, Part<0>)
+template <int IMM, typename T>
+static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 32> &a)
 {
-  return _mm256_castsi256_si128(a);
-}
-
-// all integer versions
-template <typename T>
-static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 32> &a, Part<1>)
-{
-  return _mm256_extractf128_si256(a, 1);
-}
-
-// float version
-static SIMD_INLINE Vec<Float, 16> extractLane(const Vec<Float, 32> &a, Part<0>)
-{
-  return _mm256_castps256_ps128(a);
-}
-
-// float version
-static SIMD_INLINE Vec<Float, 16> extractLane(const Vec<Float, 32> &a, Part<1>)
-{
-  return _mm256_extractf128_ps(a, 1);
+  return _mm256_extractf128_si256(a, IMM);
 }
 
 // generalized extract of 128-bit-lanes
 // IMM=0: first lane of input vector,
 // IMM=1: second lane of input vector
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 32> &a)
+// float version
+template <int IMM>
+static SIMD_INLINE Vec<Float, 16> extractLane(const Vec<Float, 32> &a)
 {
-  return extractLane(a, Part<IMM>());
+  return _mm256_extractf128_ps(a, IMM);
+}
+
+// generalized extract of 128-bit-lanes
+// IMM=0: first lane of input vector,
+// IMM=1: second lane of input vector
+// double version
+template <int IMM>
+static SIMD_INLINE Vec<Double, 16> extractLane(const Vec<Double, 32> &a)
+{
+  return _mm256_extractf128_pd(a, IMM);
 }
 
 // ---------------------------------------------------------------------------
@@ -2432,6 +2762,27 @@ static SIMD_INLINE void zip(const Vec<Float, 32> a, const Vec<Float, 32> b,
 {
   l = _mm256_permute2f128_ps(a, b, _MM_SHUFFLE(0, 2, 0, 0));
   h = _mm256_permute2f128_ps(a, b, _MM_SHUFFLE(0, 3, 0, 1));
+}
+
+// double version
+static SIMD_INLINE void zip(const Vec<Double, 32> a, const Vec<Double, 32> b,
+                            Vec<Double, 32> &l, Vec<Double, 32> &h, Bytes<8>)
+{
+  __m256d at = x_mm256_transpose4x64_pd(a);
+  __m256d bt = x_mm256_transpose4x64_pd(b);
+  l          = _mm256_unpacklo_pd(at, bt);
+  h          = _mm256_unpackhi_pd(at, bt);
+}
+
+// double version
+static SIMD_INLINE void zip(const Vec<Double, 32> a, const Vec<Double, 32> b,
+                            Vec<Double, 32> &l, Vec<Double, 32> &h, Bytes<16>)
+{
+  // TODO: implement this
+  (void) a;
+  (void) b;
+  (void) l;
+  (void) h;
 }
 
 // ---------------------------------------------------------------------------
@@ -2556,6 +2907,16 @@ static SIMD_INLINE void unzip(const Vec<Float, 32> a, const Vec<Float, 32> b,
   h           = _mm256_permute2f128_ps(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
 }
 
+// double version
+static SIMD_INLINE void unzip(const Vec<Double, 32> a, const Vec<Double, 32> b,
+                              Vec<Double, 32> &l, Vec<Double, 32> &h, Bytes<8>)
+{
+  __m256d atmp = x_mm256_transpose4x64_pd(a);
+  __m256d btmp = x_mm256_transpose4x64_pd(b);
+  l            = _mm256_permute2f128_pd(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
+  h            = _mm256_permute2f128_pd(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
+}
+
 // ---------------------------------------------------------------------------
 // unzip hub
 // ---------------------------------------------------------------------------
@@ -2594,6 +2955,21 @@ static SIMD_INLINE Vec<Short, 32> packs(const Vec<Float, 32> &a,
 {
   return packs(cvts(a, OutputType<Int>()), cvts(b, OutputType<Int>()),
                OutputType<Short>());
+}
+
+static SIMD_INLINE Vec<Float, 32> packs(const Vec<Double, 32> &a,
+                                        const Vec<Double, 32> &b,
+                                        OutputType<Float>)
+{
+  return _mm256_set_m128(_mm256_cvtpd_ps(b), _mm256_cvtpd_ps(a));
+}
+
+static SIMD_INLINE Vec<Int, 32> packs(const Vec<Double, 32> &a,
+                                      const Vec<Double, 32> &b, OutputType<Int>)
+{
+  const __m256d clip = _mm256_set1_pd(std::numeric_limits<Int>::max());
+  return _mm256_set_m128i(_mm256_cvtpd_epi32(_mm256_min_pd(clip, b)),
+                          _mm256_cvtpd_epi32(_mm256_min_pd(clip, a)));
 }
 
 // ========== signed -> unsigned ==========
@@ -2681,6 +3057,19 @@ static SIMD_INLINE void extend(const Vec<Short, 32> &vIn,
     _mm256_cvtepi32_ps(_mm256_cvtepi16_epi32(_mm256_extractf128_si256(vIn, 1)));
 }
 
+static SIMD_INLINE void extend(const Vec<Int, 32> &vIn, Vec<Double, 32> vOut[2])
+{
+  vOut[0] = _mm256_cvtepi32_pd(_mm256_castsi256_si128(vIn));
+  vOut[1] = _mm256_cvtepi32_pd(_mm256_extractf128_si256(vIn, 1));
+}
+
+static SIMD_INLINE void extend(const Vec<Float, 32> &vIn,
+                               Vec<Double, 32> vOut[2])
+{
+  vOut[0] = _mm256_cvtps_pd(_mm256_castps256_ps128(vIn));
+  vOut[1] = _mm256_cvtps_pd(_mm256_extractf128_ps(vIn, 1));
+}
+
 // unsigned -> unsigned
 
 static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn, Vec<Word, 32> vOut[2])
@@ -2740,6 +3129,15 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
   for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
+static SIMD_INLINE void extend(const Vec<Short, 32> &vIn,
+                               Vec<Double, 32> vOut[4])
+{
+  Vec<Int, 32> vTmp[2];
+  extend(vIn, vTmp);
+  extend(vTmp[0], vOut);
+  extend(vTmp[1], vOut + 2);
+}
+
 // unsigned -> signed
 
 static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn, Vec<Int, 32> vOut[4])
@@ -2759,27 +3157,51 @@ static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn, Vec<Float, 32> vOut[4])
   for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
-#endif // __AVX2__
-
-// ---------------------------------------------------------------------------
-// generalized extend: special case int <-> float
-// ---------------------------------------------------------------------------
-
-static SIMD_INLINE void extend(const Vec<Int, 32> &vIn, Vec<Float, 32> vOut[1])
+static SIMD_INLINE void extend(const Vec<Word, 32> &vIn,
+                               Vec<Double, 32> vOut[4])
 {
-  vOut[0] = cvts(vIn, OutputType<Float>());
+  Vec<Int, 32> vTmp[2];
+  extend(vIn, vTmp);
+  extend(vTmp[0], vOut);
+  extend(vTmp[1], vOut + 2);
 }
 
-static SIMD_INLINE void extend(const Vec<Float, 32> &vIn, Vec<Int, 32> vOut[1])
+// ---------------------------------------------------------------------------
+// generalized extend: three stages
+// ---------------------------------------------------------------------------
+
+// signed -> signed
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
+                               Vec<Double, 32> vOut[8])
 {
-  vOut[0] = cvts(vIn, OutputType<Int>());
+  Vec<Int, 32> vTmp[4];
+  extend(vIn, vTmp);
+  extend(vTmp[0], vOut);
+  extend(vTmp[1], vOut + 2);
+  extend(vTmp[2], vOut + 4);
+  extend(vTmp[3], vOut + 6);
 }
+
+// unsigned -> signed
+
+static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn,
+                               Vec<Double, 32> vOut[8])
+{
+  Vec<Int, 32> vTmp[4];
+  extend(vIn, vTmp);
+  extend(vTmp[0], vOut);
+  extend(vTmp[1], vOut + 2);
+  extend(vTmp[2], vOut + 4);
+  extend(vTmp[3], vOut + 6);
+}
+
+#else // __AVX2__
 
 // ---------------------------------------------------------------------------
 // generalized extend: non-avx2 workaround
 // ---------------------------------------------------------------------------
 
-#ifndef __AVX2__
 // non-avx2 workaround
 template <typename Tout, typename Tin>
 static SIMD_INLINE void extend(const Vec<Tin, 32> &vIn,
@@ -2794,7 +3216,22 @@ static SIMD_INLINE void extend(const Vec<Tin, 32> &vIn,
     vOut[i + nOutHalf] = Vec<Tout, 32>(vOutHi16[2 * i], vOutHi16[2 * i + 1]);
   }
 }
+
 #endif
+
+// ---------------------------------------------------------------------------
+// generalized extend: special case int <-> float
+// ---------------------------------------------------------------------------
+
+static SIMD_INLINE void extend(const Vec<Int, 32> &vIn, Vec<Float, 32> vOut[1])
+{
+  vOut[0] = cvts(vIn, OutputType<Float>());
+}
+
+static SIMD_INLINE void extend(const Vec<Float, 32> &vIn, Vec<Int, 32> vOut[1])
+{
+  vOut[0] = cvts(vIn, OutputType<Int>());
+}
 
 // ---------------------------------------------------------------------------
 // srai
@@ -3160,6 +3597,12 @@ static SIMD_INLINE Vec<Float, 32> hadd(const Vec<Float, 32> &a,
   return x_mm256_transpose4x64_ps(_mm256_hadd_ps(a, b));
 }
 
+static SIMD_INLINE Vec<Double, 32> hadd(const Vec<Double, 32> &a,
+                                        const Vec<Double, 32> &b)
+{
+  return x_mm256_transpose4x64_pd(_mm256_hadd_pd(a, b));
+}
+
 // ---------------------------------------------------------------------------
 // hadds
 // ---------------------------------------------------------------------------
@@ -3185,6 +3628,13 @@ static SIMD_INLINE Vec<Float, 32> hadds(const Vec<Float, 32> &a,
                                         const Vec<Float, 32> &b)
 {
   return x_mm256_transpose4x64_ps(_mm256_hadd_ps(a, b));
+}
+
+// Double not saturated
+static SIMD_INLINE Vec<Double, 32> hadds(const Vec<Double, 32> &a,
+                                         const Vec<Double, 32> &b)
+{
+  return x_mm256_transpose4x64_pd(_mm256_hadd_pd(a, b));
 }
 
 // ---------------------------------------------------------------------------
@@ -3231,6 +3681,12 @@ static SIMD_INLINE Vec<Float, 32> hsub(const Vec<Float, 32> &a,
   return x_mm256_transpose4x64_ps(_mm256_hsub_ps(a, b));
 }
 
+static SIMD_INLINE Vec<Double, 32> hsub(const Vec<Double, 32> &a,
+                                        const Vec<Double, 32> &b)
+{
+  return x_mm256_transpose4x64_pd(_mm256_hsub_pd(a, b));
+}
+
 // ---------------------------------------------------------------------------
 // hsubs
 // ---------------------------------------------------------------------------
@@ -3258,42 +3714,35 @@ static SIMD_INLINE Vec<Float, 32> hsubs(const Vec<Float, 32> &a,
   return x_mm256_transpose4x64_ps(_mm256_hsub_ps(a, b));
 }
 
+// Double not saturated
+static SIMD_INLINE Vec<Double, 32> hsubs(const Vec<Double, 32> &a,
+                                         const Vec<Double, 32> &b)
+{
+  return x_mm256_transpose4x64_pd(_mm256_hsub_pd(a, b));
+}
+
 // ---------------------------------------------------------------------------
 // element-wise shift right
 // ---------------------------------------------------------------------------
 
-// all integer versions
 template <int IMM, typename T>
 static SIMD_INLINE Vec<T, 32> srle(const Vec<T, 32> &a)
 {
-  return x_mm256_srli256_si256<IMM * sizeof(T)>(a);
-}
-
-// float version
-template <int IMM>
-static SIMD_INLINE Vec<Float, 32> srle(const Vec<Float, 32> &a)
-{
-  return _mm256_castsi256_ps(
-    x_mm256_srli256_si256<IMM * sizeof(Float)>(_mm256_castps_si256(a)));
+  const __m256i aInt          = reinterpret(a, OutputType<Int>());
+  const Vec<Int, 32> aShifted = x_mm256_srli256_si256<IMM * sizeof(T)>(aInt);
+  return reinterpret(aShifted, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
 // element-wise shift left
 // ---------------------------------------------------------------------------
 
-// all integer versions
 template <int IMM, typename T>
 static SIMD_INLINE Vec<T, 32> slle(const Vec<T, 32> &a)
 {
-  return x_mm256_slli256_si256<IMM * sizeof(T)>(a);
-}
-
-// float version
-template <int IMM>
-static SIMD_INLINE Vec<Float, 32> slle(const Vec<Float, 32> &a)
-{
-  return _mm256_castsi256_ps(
-    x_mm256_slli256_si256<IMM * sizeof(Float)>(_mm256_castps_si256(a)));
+  const __m256i aInt          = reinterpret(a, OutputType<Int>());
+  const Vec<Int, 32> aShifted = x_mm256_slli256_si256<IMM * sizeof(T)>(aInt);
+  return reinterpret(aShifted, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
@@ -3337,6 +3786,15 @@ static SIMD_INLINE Float elem0(const Vec<Float, 32> &a)
     0);
 }
 
+static SIMD_INLINE Double elem0(const Vec<Double, 32> &a)
+{
+  const uint64_t intRes =
+    _mm_cvtsi128_si64(_mm256_castsi256_si128(_mm256_castpd_si256(a)));
+  Double res;
+  memcpy(&res, &intRes, sizeof(res));
+  return res;
+}
+
 // ---------------------------------------------------------------------------
 // alignre
 // ---------------------------------------------------------------------------
@@ -3355,6 +3813,15 @@ static SIMD_INLINE Vec<Float, 32> alignre(const Vec<Float, 32> &h,
 {
   return _mm256_castsi256_ps(x_mm256_alignr256_epi8<IMM * sizeof(Float)>(
     _mm256_castps_si256(h), _mm256_castps_si256(l)));
+}
+
+// double version
+template <int IMM>
+static SIMD_INLINE Vec<Double, 32> alignre(const Vec<Double, 32> &h,
+                                           const Vec<Double, 32> &l)
+{
+  return _mm256_castsi256_pd(x_mm256_alignr256_epi8<IMM * sizeof(Double)>(
+    _mm256_castpd_si256(h), _mm256_castpd_si256(l)));
 }
 
 // ---------------------------------------------------------------------------
@@ -3422,6 +3889,25 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[2], Integer<2>)
   v[1] = reinterpret(vOut[1], OutputType<T>());
 }
 
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 32> v[2], Integer<2>)
+{
+  const Vec<Double, 32> vDouble[2] = {
+    reinterpret(v[0], OutputType<Double>()),
+    reinterpret(v[1], OutputType<Double>()),
+  };
+  Vec<Double, 32> vs[2];
+  swizzle_32_16<2>(vDouble, vs);
+  const Vec<Double, 32> vOut[2] = {
+    _mm256_shuffle_pd(vs[0], vs[1], 0),
+    _mm256_shuffle_pd(vs[0], vs[1], 0xf),
+  };
+  v[0] = reinterpret(vOut[0], OutputType<T>());
+  v[1] = reinterpret(vOut[1], OutputType<T>());
+}
+
 // -------------------- n = 3 --------------------
 
 // 8 and 16 bit integer types
@@ -3476,6 +3962,28 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[3], Integer<3>)
   v[2] = reinterpret(z0z1z2z3, OutputType<T>());
 }
 
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 32> v[3], Integer<3>)
+{
+  const Vec<Double, 32> vDouble[3] = {
+    reinterpret(v[0], OutputType<Double>()),
+    reinterpret(v[1], OutputType<Double>()),
+    reinterpret(v[2], OutputType<Double>()),
+  };
+  Vec<Double, 32> vs[3];
+  swizzle_32_16<3>(vDouble, vs);
+  const Vec<Double, 32> vOut[3] = {
+    _mm256_shuffle_pd(vs[0], vs[1], _MM_SHUFFLE2(1, 0)),
+    _mm256_shuffle_pd(vs[0], vs[1], _MM_SHUFFLE2(0, 1)),
+    _mm256_shuffle_pd(vs[1], vs[2], _MM_SHUFFLE2(1, 0)),
+  };
+  v[0] = reinterpret(vOut[0], OutputType<T>());
+  v[1] = reinterpret(vOut[1], OutputType<T>());
+  v[2] = reinterpret(vOut[2], OutputType<T>());
+}
+
 // -------------------- n = 4 --------------------
 
 // 8 and 16 bit integer types
@@ -3521,6 +4029,30 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[4], Integer<4>)
   vOut[1] = _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1));
   vOut[2] = _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));
   vOut[3] = _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(3, 1, 3, 1));
+  for (int i = 0; i < 4; ++i) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
+}
+
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 32> v[4], Integer<4>)
+{
+  Vec<Double, 32> vInt[4];
+  for (int i = 0; i < 4; ++i) {
+    vInt[i] = reinterpret(v[i], OutputType<Double>());
+  }
+  Vec<Double, 32> vs[4];
+  swizzle_32_16<4>(vInt, vs);
+  __m256d s[4];
+  s[0] = _mm256_shuffle_pd(vs[0], vs[1], _MM_SHUFFLE2(1, 0));
+  s[1] = _mm256_shuffle_pd(vs[0], vs[1], _MM_SHUFFLE2(0, 1));
+  s[2] = _mm256_shuffle_pd(vs[2], vs[3], _MM_SHUFFLE2(1, 0));
+  s[3] = _mm256_shuffle_pd(vs[2], vs[3], _MM_SHUFFLE2(0, 1));
+  Vec<T, 32> vOut[4];
+  vOut[0] = _mm256_shuffle_pd(s[0], s[2], _MM_SHUFFLE2(1, 0));
+  vOut[1] = _mm256_shuffle_pd(s[0], s[2], _MM_SHUFFLE2(0, 1));
+  vOut[2] = _mm256_shuffle_pd(s[1], s[3], _MM_SHUFFLE2(1, 0));
+  vOut[3] = _mm256_shuffle_pd(s[1], s[3], _MM_SHUFFLE2(0, 1));
   for (int i = 0; i < 4; ++i) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
@@ -3654,6 +4186,21 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
   for (int i = 0; i < 5; i++) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void, typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
+{
+  Vec<Double, 32> vDouble[5];
+  for (int i = 0; i < 5; i++) {
+    vDouble[i] = reinterpret(v[i], OutputType<Double>());
+  }
+  Vec<Double, 32> vs[5];
+  swizzle_32_16<5>(vDouble, vs);
+  // ...
+  // TODO
+}
+
 // ---------------------------------------------------------------------------
 // comparison functions
 // ---------------------------------------------------------------------------
@@ -3726,6 +4273,12 @@ static SIMD_INLINE Vec<Float, 32> cmplt(const Vec<Float, 32> &a,
   return _mm256_cmp_ps(a, b, _CMP_LT_OS);
 }
 
+static SIMD_INLINE Vec<Double, 32> cmplt(const Vec<Double, 32> &a,
+                                         const Vec<Double, 32> &b)
+{
+  return _mm256_cmp_pd(a, b, _CMP_LT_OS);
+}
+
 // ---------------------------------------------------------------------------
 // compare <=
 // ---------------------------------------------------------------------------
@@ -3791,6 +4344,12 @@ static SIMD_INLINE Vec<Float, 32> cmple(const Vec<Float, 32> &a,
   return _mm256_cmp_ps(a, b, _CMP_LE_OS);
 }
 
+static SIMD_INLINE Vec<Double, 32> cmple(const Vec<Double, 32> &a,
+                                         const Vec<Double, 32> &b)
+{
+  return _mm256_cmp_pd(a, b, _CMP_LE_OS);
+}
+
 // ---------------------------------------------------------------------------
 // compare ==
 // ---------------------------------------------------------------------------
@@ -3844,6 +4403,12 @@ static SIMD_INLINE Vec<Float, 32> cmpeq(const Vec<Float, 32> &a,
   // same constant as in implementation of _mm_cmpeq_ps (see cmpps instruction
   // in Intel manual)
   return _mm256_cmp_ps(a, b, _CMP_EQ_OQ);
+}
+
+static SIMD_INLINE Vec<Double, 32> cmpeq(const Vec<Double, 32> &a,
+                                         const Vec<Double, 32> &b)
+{
+  return _mm256_cmp_pd(a, b, _CMP_EQ_OQ);
 }
 
 // ---------------------------------------------------------------------------
@@ -3908,6 +4473,12 @@ static SIMD_INLINE Vec<Float, 32> cmpgt(const Vec<Float, 32> &a,
   // same constant as in implementation of _mm_cmplt_ps (see cmpps instruction
   // in Intel manual)
   return _mm256_cmp_ps(b, a, _CMP_LT_OS);
+}
+
+static SIMD_INLINE Vec<Double, 32> cmpgt(const Vec<Double, 32> &a,
+                                         const Vec<Double, 32> &b)
+{
+  return _mm256_cmp_pd(b, a, _CMP_LT_OS);
 }
 
 // ---------------------------------------------------------------------------
@@ -3975,6 +4546,12 @@ static SIMD_INLINE Vec<Float, 32> cmpge(const Vec<Float, 32> &a,
   return _mm256_cmp_ps(b, a, _CMP_LE_OS);
 }
 
+static SIMD_INLINE Vec<Double, 32> cmpge(const Vec<Double, 32> &a,
+                                         const Vec<Double, 32> &b)
+{
+  return _mm256_cmp_pd(b, a, _CMP_LE_OS);
+}
+
 // ---------------------------------------------------------------------------
 // compare !=
 // ---------------------------------------------------------------------------
@@ -4031,6 +4608,12 @@ static SIMD_INLINE Vec<Float, 32> cmpneq(const Vec<Float, 32> &a,
   // same constant as in implementation of _mm_cmpneq_ps (see cmpps instruction
   // in Intel manual)
   return _mm256_cmp_ps(a, b, _CMP_NEQ_UQ);
+}
+
+static SIMD_INLINE Vec<Double, 32> cmpneq(const Vec<Double, 32> &a,
+                                          const Vec<Double, 32> &b)
+{
+  return _mm256_cmp_pd(a, b, _CMP_NEQ_UQ);
 }
 
 // ---------------------------------------------------------------------------
@@ -4100,6 +4683,13 @@ static SIMD_INLINE Vec<Float, 32> and_(const Vec<Float, 32> &a,
   return _mm256_and_ps(a, b);
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 32> and_(const Vec<Double, 32> &a,
+                                        const Vec<Double, 32> &b)
+{
+  return _mm256_and_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // or
 // ---------------------------------------------------------------------------
@@ -4122,6 +4712,13 @@ static SIMD_INLINE Vec<Float, 32> or_(const Vec<Float, 32> &a,
                                       const Vec<Float, 32> &b)
 {
   return _mm256_or_ps(a, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 32> or_(const Vec<Double, 32> &a,
+                                       const Vec<Double, 32> &b)
+{
+  return _mm256_or_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -4148,6 +4745,13 @@ static SIMD_INLINE Vec<Float, 32> andnot(const Vec<Float, 32> &a,
   return _mm256_andnot_ps(a, b);
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 32> andnot(const Vec<Double, 32> &a,
+                                          const Vec<Double, 32> &b)
+{
+  return _mm256_andnot_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // xor
 // ---------------------------------------------------------------------------
@@ -4172,6 +4776,13 @@ static SIMD_INLINE Vec<Float, 32> xor_(const Vec<Float, 32> &a,
   return _mm256_xor_ps(a, b);
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 32> xor_(const Vec<Double, 32> &a,
+                                        const Vec<Double, 32> &b)
+{
+  return _mm256_xor_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // not
 // ---------------------------------------------------------------------------
@@ -4193,6 +4804,12 @@ static SIMD_INLINE Vec<T, 32> not_(const Vec<T, 32> &a)
 static SIMD_INLINE Vec<Float, 32> not_(const Vec<Float, 32> &a)
 {
   return _mm256_xor_ps(a, _mm256_castsi256_ps(_mm256_set1_epi32(-1)));
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 32> not_(const Vec<Double, 32> &a)
+{
+  return _mm256_xor_pd(a, _mm256_castsi256_pd(_mm256_set1_epi32(-1)));
 }
 
 // ---------------------------------------------------------------------------
@@ -4270,6 +4887,14 @@ static SIMD_INLINE Vec<Float, 32> avg(const Vec<Float, 32> &a,
   return _mm256_mul_ps(_mm256_add_ps(a, b), half);
 }
 
+// NOTE: Double version doesn't round!
+static SIMD_INLINE Vec<Double, 32> avg(const Vec<Double, 32> &a,
+                                       const Vec<Double, 32> &b)
+{
+  __m256d half = _mm256_set1_pd(0.5);
+  return _mm256_mul_pd(_mm256_add_pd(a, b), half);
+}
+
 // ---------------------------------------------------------------------------
 // test_all_zeros
 // ---------------------------------------------------------------------------
@@ -4302,6 +4927,12 @@ static SIMD_INLINE int test_all_zeros(const Vec<Float, 32> &a)
   return _mm256_testz_si256(_mm256_castps_si256(a), _mm256_castps_si256(a));
 }
 
+// double version
+static SIMD_INLINE int test_all_zeros(const Vec<Double, 32> &a)
+{
+  return _mm256_testz_si256(_mm256_castpd_si256(a), _mm256_castpd_si256(a));
+}
+
 // ---------------------------------------------------------------------------
 // test_all_ones
 // ---------------------------------------------------------------------------
@@ -4330,6 +4961,15 @@ static SIMD_INLINE int test_all_ones(const Vec<Float, 32> &a)
   return _mm256_testc_si256(
     _mm256_castps_si256(a),
     _mm256_castps_si256(_mm256_cmp_ps(a, a, _CMP_EQ_UQ)));
+}
+
+// double version
+static SIMD_INLINE int test_all_ones(const Vec<Double, 32> &a)
+{
+  // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
+  return _mm256_testc_si256(
+    _mm256_castpd_si256(a),
+    _mm256_castpd_si256(_mm256_cmp_pd(a, a, _CMP_EQ_UQ)));
 }
 
 // ---------------------------------------------------------------------------
@@ -4449,80 +5089,55 @@ static SIMD_INLINE Vec<Float, 32> reverse(const Vec<Float, 32> &a)
 #endif
 }
 
+static SIMD_INLINE Vec<Double, 32> reverse(const Vec<Double, 32> &a)
+{
+#ifdef __AVX2__
+  const __m256i mask = _mm256_set_epi32(1, 0, 3, 2, 5, 4, 7, 6);
+  return _mm256_castps_pd(_mm256_permutevar8x32_ps(_mm256_castpd_ps(a), mask));
+#else // AVX fallback
+  const Vec<Double, 16> h = _mm256_extractf128_pd(a, 0);
+  const Vec<Double, 16> l = _mm256_extractf128_pd(a, 1);
+  return _mm256_set_m128d(reverse(h), reverse(l));
+#endif
+}
+
 // ---------------------------------------------------------------------------
 // msb2int
 // ---------------------------------------------------------------------------
 
 // 26. Aug 22 (Jonas Keller): added msb2int functions
 
-static SIMD_INLINE uint64_t msb2int(const Vec<Byte, 32> &a)
+template <typename T,
+          SIMD_ENABLE_IF(std::is_integral<T>::value && sizeof(T) == 1)>
+static SIMD_INLINE uint64_t msb2int(const Vec<T, 32> &a)
 {
+  // first convert to uint32_t to avoid sign extension
 #ifdef __AVX2__
-  return uint64_t(_mm256_movemask_epi8(a));
+  const uint32_t res = _mm256_movemask_epi8(a);
 #else
-  return uint64_t(_mm_movemask_epi8(a.lo()) |
-                  (_mm_movemask_epi8(a.hi()) << 16));
+  const uint32_t res =
+    _mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16);
 #endif
+  return uint64_t(res);
 }
 
-static SIMD_INLINE uint64_t msb2int(const Vec<SignedByte, 32> &a)
-{
-#ifdef __AVX2__
-  return uint64_t(_mm256_movemask_epi8(a));
-#else
-  return uint64_t(_mm_movemask_epi8(a.lo()) |
-                  (_mm_movemask_epi8(a.hi()) << 16));
-#endif
-}
-
-static SIMD_INLINE uint64_t msb2int(const Vec<Short, 32> &a)
+template <typename T,
+          SIMD_ENABLE_IF(std::is_integral<T>::value && sizeof(T) == 2),
+          typename = void>
+static SIMD_INLINE uint64_t msb2int(const Vec<T, 32> &a)
 {
   // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
   // and discard the even bits
   // discarding the even bytes in a with a shuffle does not work,
   // since shuffle shuffles within 128 bit lanes
   // TODO: better way to do this?
+
+  // first convert to uint32_t to avoid sign extension
 #ifdef __AVX2__
-  uint64_t x = uint64_t(_mm256_movemask_epi8(a));
+  uint64_t x = uint64_t(uint32_t(_mm256_movemask_epi8(a)));
 #else
-  uint64_t x =
-    uint64_t(_mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16));
-#endif
-  // idea from: https://stackoverflow.com/a/45695465/8461272
-  // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.
-  // where a,b,c,d,... are the bits we care about and . represents
-  // the bits we don't care about
-
-  x >>= 1;
-  // x = 0b .a.b .c.d .e.f .g.h .i.j .k.l .m.n .o.p
-
-  x = ((x & 0x44444444) >> 1) | (x & 0x11111111);
-  // x = 0b ..ab ..cd ..ef ..gh ..ij ..kl ..mn ..op
-
-  x = ((x & 0x30303030) >> 2) | (x & 0x03030303);
-  // x = 0b .... abcd .... efgh .... ijkl .... mnop
-
-  x = ((x & 0x0F000F00) >> 4) | (x & 0x000F000F);
-  // x = 0b .... .... abcd efgh .... .... ijkl mnop
-
-  x = ((x & 0x00FF0000) >> 8) | (x & 0x000000FF);
-  // x = 0b .... .... .... .... abcd efgh ijkl mnop
-
-  return x;
-}
-
-static SIMD_INLINE uint64_t msb2int(const Vec<Word, 32> &a)
-{
-  // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
-  // and discard the even bits
-  // discarding the even bytes in a with a shuffle does not work,
-  // since shuffle shuffles within 128 bit lanes
-  // TODO: better way to do this?
-#ifdef __AVX2__
-  uint64_t x = uint64_t(_mm256_movemask_epi8(a));
-#else
-  uint64_t x =
-    uint64_t(_mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16));
+  uint64_t x = uint64_t(
+    uint32_t(_mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16)));
 #endif
   // idea from: https://stackoverflow.com/a/45695465/8461272
   // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.
@@ -4555,6 +5170,11 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Int, 32> &a)
 static SIMD_INLINE uint64_t msb2int(const Vec<Float, 32> &a)
 {
   return _mm256_movemask_ps(a);
+}
+
+static SIMD_INLINE uint64_t msb2int(const Vec<Double, 32> &a)
+{
+  return _mm256_movemask_pd(a);
 }
 
 // ---------------------------------------------------------------------------
@@ -4664,6 +5284,30 @@ static SIMD_INLINE Vec<Float, 32> int2msb(const uint64_t a, OutputType<Float>,
                      OutputType<Float>());
 }
 
+static SIMD_INLINE Vec<Double, 32> int2msb(const uint64_t a, OutputType<Double>,
+                                           Integer<32>)
+{
+#ifdef __AVX2__
+  const __m256i aVec     = _mm256_set1_epi64x(a);
+  const __m256i sel      = _mm256_set_epi64x(8, 4, 2, 1);
+  const __m256i selected = _mm256_and_si256(aVec, sel);
+  const __m256i result   = _mm256_cmpeq_epi64(selected, sel);
+  return _mm256_castsi256_pd(
+    _mm256_and_si256(result, _mm256_set1_epi64x(0x8000000000000000)));
+#else
+  const __m128i aVec       = _mm_set1_epi64x(a);
+  const __m128i selLo      = _mm_set_epi64x(2, 1);
+  const __m128i selHi      = _mm_set_epi64x(8, 4);
+  const __m128i selectedLo = _mm_and_si128(aVec, selLo);
+  const __m128i selectedHi = _mm_and_si128(aVec, selHi);
+  const __m256i result = _mm256_set_m128i(_mm_cmpeq_epi64(selectedHi, selHi),
+                                          _mm_cmpeq_epi64(selectedLo, selLo));
+  return _mm256_and_pd(
+    _mm256_castsi256_pd(result),
+    _mm256_castsi256_pd(_mm256_set1_epi64x(0x8000000000000000)));
+#endif
+}
+
 // ---------------------------------------------------------------------------
 // int2bits
 // ---------------------------------------------------------------------------
@@ -4739,6 +5383,27 @@ static SIMD_INLINE Vec<Float, 32> int2bits(const uint64_t a, OutputType<Float>,
                      OutputType<Float>());
 }
 
+static SIMD_INLINE Vec<Double, 32> int2bits(const uint64_t a,
+                                            OutputType<Double>, Integer<32>)
+{
+#ifdef __AVX2__
+  const __m256i aVec     = _mm256_set1_epi64x(a);
+  const __m256i sel      = _mm256_set_epi64x(8, 4, 2, 1);
+  const __m256i selected = _mm256_and_si256(aVec, sel);
+  const __m256i result   = _mm256_cmpeq_epi64(selected, sel);
+  return _mm256_castsi256_pd(result);
+#else
+  const __m128i aVec       = _mm_set1_epi64x(a);
+  const __m128i selLo      = _mm_set_epi64x(2, 1);
+  const __m128i selHi      = _mm_set_epi64x(8, 4);
+  const __m128i selectedLo = _mm_and_si128(aVec, selLo);
+  const __m128i selectedHi = _mm_and_si128(aVec, selHi);
+  const __m256i result = _mm256_set_m128i(_mm_cmpeq_epi64(selectedHi, selHi),
+                                          _mm_cmpeq_epi64(selectedLo, selLo));
+  return _mm256_castsi256_pd(result);
+#endif
+}
+
 // ---------------------------------------------------------------------------
 // iota
 // ---------------------------------------------------------------------------
@@ -4778,6 +5443,12 @@ static SIMD_INLINE Vec<Float, 32> iota(OutputType<Float>, Integer<32>)
 {
   return _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
 }
+
+static SIMD_INLINE Vec<Double, 32> iota(OutputType<Double>, Integer<32>)
+{
+  return _mm256_set_pd(3.0, 2.0, 1.0, 0.0);
+}
+
 } // namespace base
 } // namespace internal
 } // namespace simd

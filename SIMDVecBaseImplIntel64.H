@@ -32,6 +32,7 @@
 
 // 22. Jan 23 (Jonas Keller): moved internal implementations into internal
 // namespace
+// 13. May 23 (Jonas Keller): added Double support
 
 #ifndef SIMD_VEC_BASE_IMPL_INTEL_64_H_
 #define SIMD_VEC_BASE_IMPL_INTEL_64_H_
@@ -46,6 +47,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 
 #ifdef __AVX512F__
@@ -145,6 +147,45 @@ public:
   // 29. Nov 22 (Jonas Keller):
   // defined operators new and delete to ensure proper alignment, since
   // the default new and delete are not guaranteed to do so before C++17
+  void *operator new(size_t size) { return simd_aligned_malloc(bytes, size); }
+  void operator delete(void *p) { simd_aligned_free(p); }
+  void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
+  void operator delete[](void *p) { simd_aligned_free(p); }
+};
+
+// ===========================================================================
+// Vec double specialization for AVX512 v
+// ===========================================================================
+
+template <>
+class Vec<Double, 64>
+{
+  __m512d zmm;
+
+public:
+  using Type                    = Double;
+  static constexpr int elements = 64 / sizeof(Double);
+  static constexpr int elems    = elements;
+  static constexpr int bytes    = 64;
+
+  Vec() = default;
+  Vec(const __m512d &x) { zmm = x; }
+  Vec &operator=(const __m512d &x)
+  {
+    zmm = x;
+    return *this;
+  }
+  operator __m512d() const { return zmm; }
+  // for avx512bw emulation
+  Vec(const Vec<Double, 32> &lo, const Vec<Double, 32> &hi)
+  {
+    zmm = _mm512_insertf64x4(_mm512_castpd256_pd512(lo), hi, 1);
+  }
+  SIMD_INLINE Vec<Double, 32> lo() const { return _mm512_castpd512_pd256(zmm); }
+  SIMD_INLINE Vec<Double, 32> hi() const
+  {
+    return _mm512_extractf64x4_pd(zmm, 1);
+  }
   void *operator new(size_t size) { return simd_aligned_malloc(bytes, size); }
   void operator delete(void *p) { simd_aligned_free(p); }
   void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
@@ -351,22 +392,6 @@ static SIMD_INLINE __m512i x_mm512_srai_epi32(__m512i a)
 }
 
 // ---------------------------------------------------------------------------
-// extract 16 byte portions (IMM = 0..3), used for x_mm512_extract_epi/_ps v
-// ---------------------------------------------------------------------------
-
-template <int IMM>
-static SIMD_INLINE __m128 x_mm512_extractf32x4_ps(__m512 a)
-{
-  return _mm512_extractf32x4_ps(a, IMM);
-}
-
-template <int IMM>
-static SIMD_INLINE __m128i x_mm512_extracti32x4_epi32(__m512i a)
-{
-  return _mm512_extracti32x4_epi32(a, IMM);
-}
-
-// ---------------------------------------------------------------------------
 // extract 128-bit-lane as Vec<T, 16>
 // ---------------------------------------------------------------------------
 
@@ -386,6 +411,18 @@ template <int IMM>
 static SIMD_INLINE Vec<Float, 16> extractLane(const Vec<Float, 64> &a)
 {
   return _mm512_extractf32x4_ps(a, IMM);
+}
+
+// generalized extract of 128-bit-lanes (IMM = 0..3)
+// double versions
+template <int IMM>
+static SIMD_INLINE Vec<Double, 16> extractLane(const Vec<Double, 64> &a)
+{
+#ifdef __AVX512DQ__
+  return _mm512_extractf64x2_pd(a, IMM);
+#else
+  return _mm_castps_pd(_mm512_extractf32x4_ps(_mm512_castpd_ps(a), IMM));
+#endif
 }
 
 // ---------------------------------------------------------------------------
@@ -498,6 +535,30 @@ static SIMD_INLINE int x_mm512_extract_ps(__m512 a)
 {
   // 16 * epi32
   return x_mm512_extract_ps<IMM>(a, IsPosInGivenRange<16, IMM>());
+}
+
+// positive and in range: extract
+template <int IMM>
+static SIMD_INLINE long long x_mm512_extract_epi64(__m512i a,
+                                                   IsPosInRange<true, true>)
+{
+  return _mm_extract_epi64(_mm512_extracti32x4_epi32(a, (IMM >> 1)), IMM % 2);
+}
+
+// positive and out of range: return zero
+template <int IMM>
+static SIMD_INLINE long long x_mm512_extract_epi64(__m512i,
+                                                   IsPosInRange<true, false>)
+{
+  return 0;
+}
+
+// hub
+template <int IMM>
+static SIMD_INLINE long long x_mm512_extract_epi64(__m512i a)
+{
+  // 8 * epi64
+  return x_mm512_extract_epi64<IMM>(a, IsPosInGivenRange<8, IMM>());
 }
 
 // ---------------------------------------------------------------------------
@@ -628,12 +689,20 @@ static SIMD_INLINE __m512i x_mm512_movm_epi32(__mmask16 k)
 #ifdef __AVX512DQ__
   return _mm512_movm_epi32(k);
 #else
-#ifdef __AVX512BW__
   return _mm512_maskz_mov_epi32(k, _mm512_set1_epi32(-1));
-#else
-  return _mm512_castps_si512(
-    _mm512_maskz_mov_ps(k, _mm512_castsi512_ps(_mm512_set1_epi32(-1))));
 #endif
+}
+
+// ---------------------------------------------------------------------------
+// x_mm512_movm_epi64 v
+// ---------------------------------------------------------------------------
+
+static SIMD_INLINE __m512i x_mm512_movm_epi64(__mmask8 k)
+{
+#ifdef __AVX512DQ__
+  return _mm512_movm_epi64(k);
+#else
+  return _mm512_maskz_mov_epi64(k, _mm512_set1_epi64(-1));
 #endif
 }
 
@@ -710,7 +779,9 @@ static SIMD_INLINE __m512i x_mm512_set_epi16(
 
 // between all integer types
 template <typename Tdst, typename Tsrc,
-          SIMD_ENABLE_IF((!std::is_same<Tdst, Tsrc>::value))>
+          SIMD_ENABLE_IF((!std::is_same<Tdst, Tsrc>::value &&
+                          std::is_integral<Tdst>::value &&
+                          std::is_integral<Tsrc>::value))>
 static SIMD_INLINE Vec<Tdst, 64> reinterpret(const Vec<Tsrc, 64> &vec,
                                              OutputType<Tdst>)
 {
@@ -721,7 +792,7 @@ static SIMD_INLINE Vec<Tdst, 64> reinterpret(const Vec<Tsrc, 64> &vec,
 }
 
 // from float to any integer type
-template <typename Tdst, SIMD_ENABLE_IF((!std::is_same<Tdst, Float>::value))>
+template <typename Tdst, SIMD_ENABLE_IF((std::is_integral<Tdst>::value))>
 static SIMD_INLINE Vec<Tdst, 64> reinterpret(const Vec<Float, 64> &vec,
                                              OutputType<Tdst>)
 {
@@ -729,11 +800,41 @@ static SIMD_INLINE Vec<Tdst, 64> reinterpret(const Vec<Float, 64> &vec,
 }
 
 // from any integer type to float
-template <typename Tsrc, SIMD_ENABLE_IF((!std::is_same<Tsrc, Float>::value))>
+template <typename Tsrc, SIMD_ENABLE_IF((std::is_integral<Tsrc>::value))>
 static SIMD_INLINE Vec<Float, 64> reinterpret(const Vec<Tsrc, 64> &vec,
                                               OutputType<Float>)
 {
   return _mm512_castsi512_ps(vec);
+}
+
+// from double to any integer type
+template <typename Tdst, SIMD_ENABLE_IF((std::is_integral<Tdst>::value))>
+static SIMD_INLINE Vec<Tdst, 64> reinterpret(const Vec<Double, 64> &vec,
+                                             OutputType<Tdst>)
+{
+  return _mm512_castpd_si512(vec);
+}
+
+// from any integer type to double
+template <typename Tsrc, SIMD_ENABLE_IF((std::is_integral<Tsrc>::value))>
+static SIMD_INLINE Vec<Double, 64> reinterpret(const Vec<Tsrc, 64> &vec,
+                                               OutputType<Double>)
+{
+  return _mm512_castsi512_pd(vec);
+}
+
+// from float to double
+static SIMD_INLINE Vec<Double, 64> reinterpret(const Vec<Float, 64> &vec,
+                                               OutputType<Double>)
+{
+  return _mm512_castps_pd(vec);
+}
+
+// from double to float
+static SIMD_INLINE Vec<Float, 64> reinterpret(const Vec<Double, 64> &vec,
+                                              OutputType<Float>)
+{
+  return _mm512_castpd_ps(vec);
 }
 
 // between identical types
@@ -804,6 +905,11 @@ static SIMD_INLINE Vec<Float, 64> setzero(OutputType<Float>, Integer<64>)
   return _mm512_setzero_ps();
 }
 
+static SIMD_INLINE Vec<Double, 64> setzero(OutputType<Double>, Integer<64>)
+{
+  return _mm512_setzero_pd();
+}
+
 // ---------------------------------------------------------------------------
 // set1 v
 // ---------------------------------------------------------------------------
@@ -838,6 +944,11 @@ static SIMD_INLINE Vec<Float, 64> set1(Float a, Integer<64>)
   return _mm512_set1_ps(a);
 }
 
+static SIMD_INLINE Vec<Double, 64> set1(Double a, Integer<64>)
+{
+  return _mm512_set1_pd(a);
+}
+
 // ---------------------------------------------------------------------------
 // load v
 // ---------------------------------------------------------------------------
@@ -859,6 +970,14 @@ static SIMD_INLINE Vec<Float, 64> load(const Float *const p, Integer<64>)
   return _mm512_load_ps(p);
 }
 
+static SIMD_INLINE Vec<Double, 64> load(const Double *const p, Integer<64>)
+{
+  // AVX load and store instructions need alignment to 64 byte
+  // (lower 6 bit need to be zero)
+  SIMD_CHECK_ALIGNMENT(p, 64);
+  return _mm512_load_pd(p);
+}
+
 // ---------------------------------------------------------------------------
 // loadu v
 // ---------------------------------------------------------------------------
@@ -872,6 +991,11 @@ static SIMD_INLINE Vec<T, 64> loadu(const T *const p, Integer<64>)
 static SIMD_INLINE Vec<Float, 64> loadu(const Float *const p, Integer<64>)
 {
   return _mm512_loadu_ps(p);
+}
+
+static SIMD_INLINE Vec<Double, 64> loadu(const Double *const p, Integer<64>)
+{
+  return _mm512_loadu_pd(p);
 }
 
 // ---------------------------------------------------------------------------
@@ -897,6 +1021,15 @@ static SIMD_INLINE void store(Float *const p, const Vec<Float, 64> &a)
   _mm512_store_ps(p, a);
 }
 
+// double version
+static SIMD_INLINE void store(Double *const p, const Vec<Double, 64> &a)
+{
+  // AVX load and store instructions need alignment to 64 byte
+  // (lower 6 bit need to be zero)
+  SIMD_CHECK_ALIGNMENT(p, 64);
+  _mm512_store_pd(p, a);
+}
+
 // ---------------------------------------------------------------------------
 // storeu v
 // ---------------------------------------------------------------------------
@@ -912,6 +1045,12 @@ static SIMD_INLINE void storeu(T *const p, const Vec<T, 64> &a)
 static SIMD_INLINE void storeu(Float *const p, const Vec<Float, 64> &a)
 {
   _mm512_storeu_ps(p, a);
+}
+
+// double version
+static SIMD_INLINE void storeu(Double *const p, const Vec<Double, 64> &a)
+{
+  _mm512_storeu_pd(p, a);
 }
 
 // ---------------------------------------------------------------------------
@@ -935,6 +1074,15 @@ static SIMD_INLINE void stream_store(Float *const p, const Vec<Float, 64> &a)
   // (lower 6 bit need to be zero)
   SIMD_CHECK_ALIGNMENT(p, 64);
   _mm512_stream_ps(p, a);
+}
+
+// double version
+static SIMD_INLINE void stream_store(Double *const p, const Vec<Double, 64> &a)
+{
+  // AVX load and store instructions need alignment to 64 byte
+  // (lower 6 bit need to be zero)
+  SIMD_CHECK_ALIGNMENT(p, 64);
+  _mm512_stream_pd(p, a);
 }
 
 // ---------------------------------------------------------------------------
@@ -976,6 +1124,15 @@ template <int IMM>
 static SIMD_INLINE Float extract(const Vec<Float, 64> &a)
 {
   SIMD_RETURN_REINTERPRET_INT(Float, x_mm512_extract_ps<IMM>(a), 0);
+}
+
+template <int IMM>
+static SIMD_INLINE Double extract(const Vec<Double, 64> &a)
+{
+  const uint64_t resInt = x_mm512_extract_epi64<IMM>(_mm512_castpd_si512(a));
+  Double res;
+  memcpy(&res, &resInt, sizeof(res));
+  return res;
 }
 
 // ---------------------------------------------------------------------------
@@ -1029,6 +1186,12 @@ static SIMD_INLINE Vec<Float, 64> add(const Vec<Float, 64> &a,
                                       const Vec<Float, 64> &b)
 {
   return _mm512_add_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 64> add(const Vec<Double, 64> &a,
+                                       const Vec<Double, 64> &b)
+{
+  return _mm512_add_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -1105,6 +1268,13 @@ static SIMD_INLINE Vec<Float, 64> adds(const Vec<Float, 64> &a,
   return _mm512_add_ps(a, b);
 }
 
+// Double not saturated
+static SIMD_INLINE Vec<Double, 64> adds(const Vec<Double, 64> &a,
+                                        const Vec<Double, 64> &b)
+{
+  return _mm512_add_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // sub v
 // ---------------------------------------------------------------------------
@@ -1156,6 +1326,12 @@ static SIMD_INLINE Vec<Float, 64> sub(const Vec<Float, 64> &a,
                                       const Vec<Float, 64> &b)
 {
   return _mm512_sub_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 64> sub(const Vec<Double, 64> &a,
+                                       const Vec<Double, 64> &b)
+{
+  return _mm512_sub_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -1232,6 +1408,13 @@ static SIMD_INLINE Vec<Float, 64> subs(const Vec<Float, 64> &a,
   return _mm512_sub_ps(a, b);
 }
 
+// Double not saturated
+static SIMD_INLINE Vec<Double, 64> subs(const Vec<Double, 64> &a,
+                                        const Vec<Double, 64> &b)
+{
+  return _mm512_sub_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // neg (negate = two's complement or unary minus), only signed types v
 // ---------------------------------------------------------------------------
@@ -1267,6 +1450,11 @@ static SIMD_INLINE Vec<Int, 64> neg(const Vec<Int, 64> &a)
 static SIMD_INLINE Vec<Float, 64> neg(const Vec<Float, 64> &a)
 {
   return _mm512_sub_ps(_mm512_setzero_ps(), a);
+}
+
+static SIMD_INLINE Vec<Double, 64> neg(const Vec<Double, 64> &a)
+{
+  return _mm512_sub_pd(_mm512_setzero_pd(), a);
 }
 
 // ---------------------------------------------------------------------------
@@ -1325,6 +1513,12 @@ static SIMD_INLINE Vec<Float, 64> min(const Vec<Float, 64> &a,
   return _mm512_min_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 64> min(const Vec<Double, 64> &a,
+                                       const Vec<Double, 64> &b)
+{
+  return _mm512_min_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // max v
 // ---------------------------------------------------------------------------
@@ -1381,6 +1575,12 @@ static SIMD_INLINE Vec<Float, 64> max(const Vec<Float, 64> &a,
   return _mm512_max_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 64> max(const Vec<Double, 64> &a,
+                                       const Vec<Double, 64> &b)
+{
+  return _mm512_max_pd(a, b);
+}
+
 // ---------------------------------------------------------------------------
 // mul, div v
 // ---------------------------------------------------------------------------
@@ -1394,10 +1594,22 @@ static SIMD_INLINE Vec<Float, 64> mul(const Vec<Float, 64> &a,
   return _mm512_mul_ps(a, b);
 }
 
+static SIMD_INLINE Vec<Double, 64> mul(const Vec<Double, 64> &a,
+                                       const Vec<Double, 64> &b)
+{
+  return _mm512_mul_pd(a, b);
+}
+
 static SIMD_INLINE Vec<Float, 64> div(const Vec<Float, 64> &a,
                                       const Vec<Float, 64> &b)
 {
   return _mm512_div_ps(a, b);
+}
+
+static SIMD_INLINE Vec<Double, 64> div(const Vec<Double, 64> &a,
+                                       const Vec<Double, 64> &b)
+{
+  return _mm512_div_pd(a, b);
 }
 
 // ---------------------------------------------------------------------------
@@ -1445,9 +1657,19 @@ static SIMD_INLINE Vec<Float, 64> ceil(const Vec<Float, 64> &a)
   return _mm512_roundscale_ps(a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
 }
 
+static SIMD_INLINE Vec<Double, 64> ceil(const Vec<Double, 64> &a)
+{
+  return _mm512_roundscale_pd(a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+}
+
 static SIMD_INLINE Vec<Float, 64> floor(const Vec<Float, 64> &a)
 {
   return _mm512_roundscale_ps(a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+}
+
+static SIMD_INLINE Vec<Double, 64> floor(const Vec<Double, 64> &a)
+{
+  return _mm512_roundscale_pd(a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
 }
 
 static SIMD_INLINE Vec<Float, 64> round(const Vec<Float, 64> &a)
@@ -1455,9 +1677,19 @@ static SIMD_INLINE Vec<Float, 64> round(const Vec<Float, 64> &a)
   return _mm512_roundscale_ps(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
 }
 
+static SIMD_INLINE Vec<Double, 64> round(const Vec<Double, 64> &a)
+{
+  return _mm512_roundscale_pd(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+}
+
 static SIMD_INLINE Vec<Float, 64> truncate(const Vec<Float, 64> &a)
 {
   return _mm512_roundscale_ps(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+}
+
+static SIMD_INLINE Vec<Double, 64> truncate(const Vec<Double, 64> &a)
+{
+  return _mm512_roundscale_pd(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
 }
 
 // ---------------------------------------------------------------------------
@@ -1466,6 +1698,8 @@ static SIMD_INLINE Vec<Float, 64> truncate(const Vec<Float, 64> &a)
 
 // estimate of a reciprocal
 // NOTE: this has better precision than SSE and AVX versions!
+
+// float version
 static SIMD_INLINE Vec<Float, 64> rcp(const Vec<Float, 64> &a)
 {
   // 20. Mar 23 (Jonas Keller):
@@ -1479,8 +1713,23 @@ static SIMD_INLINE Vec<Float, 64> rcp(const Vec<Float, 64> &a)
 #endif
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 64> rcp(const Vec<Double, 64> &a)
+{
+  // use _mm512_rcp28_pd if available, which has even better precision
+  // and does not seem to be any slower (at least according to this:
+  // https://github.com/tanakamura/instruction-bench/blob/master/knl.log)
+#ifdef __AVX512ER__
+  return _mm512_rcp28_pd(a);
+#else
+  return _mm512_rcp14_pd(a);
+#endif
+}
+
 // estimate of reverse square root
 // NOTE: this has better precision than SSE and AVX versions!
+
+// float version
 static SIMD_INLINE Vec<Float, 64> rsqrt(const Vec<Float, 64> &a)
 {
   // 20. Mar 23 (Jonas Keller):
@@ -1493,10 +1742,30 @@ static SIMD_INLINE Vec<Float, 64> rsqrt(const Vec<Float, 64> &a)
 #endif
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 64> rsqrt(const Vec<Double, 64> &a)
+{
+  // use _mm512_rsqrt28_pd if available, which has even better precision
+  // and does not seem to be any slower (probably)
+#ifdef __AVX512ER__
+  return _mm512_rsqrt28_pd(a);
+#else
+  return _mm512_rsqrt14_pd(a);
+#endif
+}
+
 // square root
+
+// float version
 static SIMD_INLINE Vec<Float, 64> sqrt(const Vec<Float, 64> &a)
 {
   return _mm512_sqrt_ps(a);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 64> sqrt(const Vec<Double, 64> &a)
+{
+  return _mm512_sqrt_pd(a);
 }
 
 // ---------------------------------------------------------------------------
@@ -1506,10 +1775,10 @@ static SIMD_INLINE Vec<Float, 64> sqrt(const Vec<Float, 64> &a)
 // 25. Mar 25 (Jonas Keller): added abs for unsigned integers
 
 // unsigned integers
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_unsigned<T>::value
+                                       &&std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 64> abs(const Vec<T, 64> &a)
 {
-  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
   return a;
 }
 
@@ -1541,6 +1810,11 @@ static SIMD_INLINE Vec<Int, 64> abs(const Vec<Int, 64> &a)
 static SIMD_INLINE Vec<Float, 64> abs(const Vec<Float, 64> &a)
 {
   return _mm512_abs_ps(a);
+}
+
+static SIMD_INLINE Vec<Double, 64> abs(const Vec<Double, 64> &a)
+{
+  return _mm512_abs_pd(a);
 }
 
 // ---------------------------------------------------------------------------
@@ -1692,6 +1966,33 @@ static SIMD_INLINE Vec<Float, 64> unpack(const Vec<Float, 64> &a,
     _mm512_permutex2var_pd(_mm512_castps_pd(a), idx, _mm512_castps_pd(b)));
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack(const Vec<Double, 64> &a,
+                                          const Vec<Double, 64> &b, Part<0>,
+                                          Bytes<8>)
+{
+  __m512i idx = _mm512_set_epi64(11, 3, 10, 2, 9, 1, 8, 0);
+  return _mm512_permutex2var_pd(a, idx, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack(const Vec<Double, 64> &a,
+                                          const Vec<Double, 64> &b, Part<0>,
+                                          Bytes<16>)
+{
+  __m512i idx = _mm512_set_epi64(11, 10, 3, 2, 9, 8, 1, 0);
+  return _mm512_permutex2var_pd(a, idx, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack(const Vec<Double, 64> &a,
+                                          const Vec<Double, 64> &b, Part<0>,
+                                          Bytes<32>)
+{
+  __m512i idx = _mm512_set_epi64(11, 10, 9, 8, 3, 2, 1, 0);
+  return _mm512_permutex2var_pd(a, idx, b);
+}
+
 // ---------------------------------------------------------------------------
 // unpackhi v (with permutex2var)
 // ---------------------------------------------------------------------------
@@ -1841,6 +2142,33 @@ static SIMD_INLINE Vec<Float, 64> unpack(const Vec<Float, 64> &a,
     _mm512_permutex2var_pd(_mm512_castps_pd(a), idx, _mm512_castps_pd(b)));
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack(const Vec<Double, 64> &a,
+                                          const Vec<Double, 64> &b, Part<1>,
+                                          Bytes<8>)
+{
+  __m512i idx = _mm512_set_epi64(15, 7, 14, 6, 13, 5, 12, 4);
+  return _mm512_permutex2var_pd(a, idx, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack(const Vec<Double, 64> &a,
+                                          const Vec<Double, 64> &b, Part<1>,
+                                          Bytes<16>)
+{
+  __m512i idx = _mm512_set_epi64(15, 14, 7, 6, 13, 12, 5, 4);
+  return _mm512_permutex2var_pd(a, idx, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack(const Vec<Double, 64> &a,
+                                          const Vec<Double, 64> &b, Part<1>,
+                                          Bytes<32>)
+{
+  __m512i idx = _mm512_set_epi64(15, 14, 13, 12, 7, 6, 5, 4);
+  return _mm512_permutex2var_pd(a, idx, b);
+}
+
 // ---------------------------------------------------------------------------
 // unpack hub v
 // ---------------------------------------------------------------------------
@@ -1945,6 +2273,31 @@ static SIMD_INLINE Vec<Float, 64> unpack16(const Vec<Float, 64> &a,
   return _mm512_shuffle_f32x4(a, b, _MM_SHUFFLE(1, 0, 1, 0));
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack16(const Vec<Double, 64> &a,
+                                            const Vec<Double, 64> &b, Part<0>,
+                                            Bytes<8>)
+{
+  return _mm512_unpacklo_pd(a, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack16(const Vec<Double, 64> &a,
+                                            const Vec<Double, 64> &b, Part<0>,
+                                            Bytes<16>)
+{
+  __m512i idx = _mm512_set_epi64(13, 12, 5, 4, 9, 8, 1, 0);
+  return _mm512_permutex2var_pd(a, idx, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack16(const Vec<Double, 64> &a,
+                                            const Vec<Double, 64> &b, Part<0>,
+                                            Bytes<32>)
+{
+  return _mm512_shuffle_f64x2(a, b, _MM_SHUFFLE(1, 0, 1, 0));
+}
+
 // ---------------------------------------------------------------------------
 // 128-bit-lane oriented unpackhi v
 // ---------------------------------------------------------------------------
@@ -2031,6 +2384,31 @@ static SIMD_INLINE Vec<Float, 64> unpack16(const Vec<Float, 64> &a,
                                            Bytes<32>)
 {
   return _mm512_shuffle_f32x4(a, b, _MM_SHUFFLE(3, 2, 3, 2));
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack16(const Vec<Double, 64> &a,
+                                            const Vec<Double, 64> &b, Part<1>,
+                                            Bytes<8>)
+{
+  return _mm512_unpackhi_pd(a, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack16(const Vec<Double, 64> &a,
+                                            const Vec<Double, 64> &b, Part<1>,
+                                            Bytes<16>)
+{
+  __m512i idx = _mm512_set_epi64(15, 14, 7, 6, 11, 10, 3, 2);
+  return _mm512_permutex2var_pd(a, idx, b);
+}
+
+// double version
+static SIMD_INLINE Vec<Double, 64> unpack16(const Vec<Double, 64> &a,
+                                            const Vec<Double, 64> &b, Part<1>,
+                                            Bytes<32>)
+{
+  return _mm512_shuffle_f64x2(a, b, _MM_SHUFFLE(3, 2, 3, 2));
 }
 
 // ---------------------------------------------------------------------------
@@ -2249,8 +2627,8 @@ static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
     6, 4, 2, 0, 15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0);
   __m512i atmp = x_mm512_shuffle_epi8(a, mask);
   __m512i btmp = x_mm512_shuffle_epi8(b, mask);
-  l            = _mm512_permutex2var_epi64(atmp, x_mm512_even64_mask(), btmp);
-  h            = _mm512_permutex2var_epi64(atmp, x_mm512_odd64_mask(), btmp);
+  l = _mm512_permutex2var_epi64(atmp, x_mm512_even64_mask(), btmp);
+  h = _mm512_permutex2var_epi64(atmp, x_mm512_odd64_mask(), btmp);
 }
 
 #endif
@@ -2298,8 +2676,8 @@ static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
     4, 1, 0, 15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0);
   __m512i atmp = x_mm512_shuffle_epi8(a, mask);
   __m512i btmp = x_mm512_shuffle_epi8(b, mask);
-  l            = _mm512_permutex2var_epi64(atmp, x_mm512_even64_mask(), btmp);
-  h            = _mm512_permutex2var_epi64(atmp, x_mm512_odd64_mask(), btmp);
+  l = _mm512_permutex2var_epi64(atmp, x_mm512_even64_mask(), btmp);
+  h = _mm512_permutex2var_epi64(atmp, x_mm512_odd64_mask(), btmp);
 }
 
 #endif
@@ -2396,6 +2774,26 @@ static SIMD_INLINE void unzip(const Vec<Float, 64> a, const Vec<Float, 64> b,
   h = unpack(a, b, Part<1>(), Bytes<32>());
 }
 
+// double version
+static SIMD_INLINE void unzip(const Vec<Double, 64> a, const Vec<Double, 64> b,
+                              Vec<Double, 64> &l, Vec<Double, 64> &h, Bytes<8>)
+{
+  const __m512i idxL = _mm512_set_epi64(14, 12, 10, 8, 6, 4, 2, 0);
+  const __m512i idxH = _mm512_set_epi64(15, 13, 11, 9, 7, 5, 3, 1);
+  l                  = _mm512_permutex2var_pd(a, idxL, b);
+  h                  = _mm512_permutex2var_pd(a, idxH, b);
+}
+
+// double version
+static SIMD_INLINE void unzip(const Vec<Double, 64> a, const Vec<Double, 64> b,
+                              Vec<Double, 64> &l, Vec<Double, 64> &h, Bytes<16>)
+{
+  const __m512i idxL = _mm512_set_epi64(13, 12, 9, 8, 5, 4, 1, 0);
+  const __m512i idxH = _mm512_set_epi64(15, 14, 11, 10, 7, 6, 3, 2);
+  l                  = _mm512_permutex2var_pd(a, idxL, b);
+  h                  = _mm512_permutex2var_pd(a, idxH, b);
+}
+
 // ---------------------------------------------------------------------------
 // unzip hub v
 // ---------------------------------------------------------------------------
@@ -2434,6 +2832,24 @@ static SIMD_INLINE Vec<Short, 64> packs(const Vec<Float, 64> &a,
 {
   return packs(cvts(a, OutputType<Int>()), cvts(b, OutputType<Int>()),
                OutputType<Short>());
+}
+
+static SIMD_INLINE Vec<Float, 64> packs(const Vec<Double, 64> &a,
+                                        const Vec<Double, 64> &b,
+                                        OutputType<Float>)
+{
+  const __m256 low  = _mm512_cvtpd_ps(a);
+  const __m256 high = _mm512_cvtpd_ps(b);
+  return _mm512_insertf32x8(_mm512_castps256_ps512(low), high, 1);
+}
+
+static SIMD_INLINE Vec<Int, 64> packs(const Vec<Double, 64> &a,
+                                      const Vec<Double, 64> &b, OutputType<Int>)
+{
+  const __m512d clip = _mm512_set1_pd(std::numeric_limits<Int>::max());
+  const __m256i low  = _mm512_cvtpd_epi32(_mm512_min_pd(clip, a));
+  const __m256i high = _mm512_cvtpd_epi32(_mm512_min_pd(clip, b));
+  return _mm512_inserti64x4(_mm512_castsi256_si512(low), high, 1);
 }
 
 // ========== signed -> unsigned ==========
@@ -2528,6 +2944,20 @@ static SIMD_INLINE void extend(const Vec<Short, 64> &vIn,
   vOut[1] = _mm512_cvtepi32_ps(_mm512_cvtepi16_epi32(vIn.hi()));
 }
 
+static SIMD_INLINE void extend(const Vec<Int, 64> &vIn,
+                               Vec<Double, 64> vecOut[2])
+{
+  vecOut[0] = _mm512_cvtepi32_pd(vIn.lo());
+  vecOut[1] = _mm512_cvtepi32_pd(vIn.hi());
+}
+
+static SIMD_INLINE void extend(const Vec<Float, 64> &vIn,
+                               Vec<Double, 64> vecOut[2])
+{
+  vecOut[0] = _mm512_cvtps_pd(vIn.lo());
+  vecOut[1] = _mm512_cvtps_pd(vIn.hi());
+}
+
 // unsigned -> unsigned
 
 static SIMD_INLINE void extend(const Vec<Byte, 64> &vIn, Vec<Word, 64> vOut[2])
@@ -2600,6 +3030,19 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 64> &vIn,
   for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
+static SIMD_INLINE void extend(const Vec<Short, 64> &vIn,
+                               Vec<Double, 64> vOut[4])
+{
+  vOut[0] = _mm512_cvtepi32_pd(
+    _mm256_cvtepi16_epi32(_mm512_extracti32x4_epi32(vIn, 0)));
+  vOut[1] = _mm512_cvtepi32_pd(
+    _mm256_cvtepi16_epi32(_mm512_extracti32x4_epi32(vIn, 1)));
+  vOut[2] = _mm512_cvtepi32_pd(
+    _mm256_cvtepi16_epi32(_mm512_extracti32x4_epi32(vIn, 2)));
+  vOut[3] = _mm512_cvtepi32_pd(
+    _mm256_cvtepi16_epi32(_mm512_extracti32x4_epi32(vIn, 3)));
+}
+
 // unsigned -> signed
 
 static SIMD_INLINE void extend(const Vec<Byte, 64> &vIn, Vec<Int, 64> vOut[4])
@@ -2617,6 +3060,61 @@ static SIMD_INLINE void extend(const Vec<Byte, 64> &vIn, Vec<Float, 64> vOut[4])
   Vec<Int, 64> vTmp[4];
   extend(vIn, vTmp);
   for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
+}
+
+static SIMD_INLINE void extend(const Vec<Word, 64> &vIn,
+                               Vec<Double, 64> vOut[4])
+{
+  vOut[0] = _mm512_cvtepi32_pd(
+    _mm256_cvtepu16_epi32(_mm512_extracti32x4_epi32(vIn, 0)));
+  vOut[1] = _mm512_cvtepi32_pd(
+    _mm256_cvtepu16_epi32(_mm512_extracti32x4_epi32(vIn, 1)));
+  vOut[2] = _mm512_cvtepi32_pd(
+    _mm256_cvtepu16_epi32(_mm512_extracti32x4_epi32(vIn, 2)));
+  vOut[3] = _mm512_cvtepi32_pd(
+    _mm256_cvtepu16_epi32(_mm512_extracti32x4_epi32(vIn, 3)));
+}
+
+// ---------------------------------------------------------------------------
+// generalized extend: three stages
+// ---------------------------------------------------------------------------
+
+// signed -> signed
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 64> &vIn,
+                               Vec<Double, 64> vOut[8])
+{
+  const __m128i vIn128[4] = {
+    _mm512_extracti32x4_epi32(vIn, 0),
+    _mm512_extracti32x4_epi32(vIn, 1),
+    _mm512_extracti32x4_epi32(vIn, 2),
+    _mm512_extracti32x4_epi32(vIn, 3),
+  };
+
+  for (int i = 0; i < 4; i++) {
+    vOut[i * 2 + 0] = _mm512_cvtepi32_pd(_mm256_cvtepi8_epi32(vIn128[i]));
+    vOut[i * 2 + 1] =
+      _mm512_cvtepi32_pd(_mm256_cvtepi8_epi32(_mm_srli_si128(vIn128[i], 8)));
+  }
+}
+
+// unsigned -> signed
+
+static SIMD_INLINE void extend(const Vec<Byte, 64> &vIn,
+                               Vec<Double, 64> vOut[8])
+{
+  const __m128i vIn128[4] = {
+    _mm512_extracti32x4_epi32(vIn, 0),
+    _mm512_extracti32x4_epi32(vIn, 1),
+    _mm512_extracti32x4_epi32(vIn, 2),
+    _mm512_extracti32x4_epi32(vIn, 3),
+  };
+
+  for (int i = 0; i < 4; i++) {
+    vOut[i * 2 + 0] = _mm512_cvtepi32_pd(_mm256_cvtepu8_epi32(vIn128[i]));
+    vOut[i * 2 + 1] =
+      _mm512_cvtepi32_pd(_mm256_cvtepu8_epi32(_mm_srli_si128(vIn128[i], 8)));
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -3047,6 +3545,15 @@ static SIMD_INLINE Float elem0(const Vec<Float, 64> &a)
     0);
 }
 
+static SIMD_INLINE Double elem0(const Vec<Double, 64> &a)
+{
+  const uint64_t intRes =
+    _mm_cvtsi128_si64(_mm512_castsi512_si128(_mm512_castpd_si512(a)));
+  Double res;
+  memcpy(&res, &intRes, sizeof(res));
+  return res;
+}
+
 // ---------------------------------------------------------------------------
 // permute_64_16: permutation of 128-bit lanes, two sources v
 // ---------------------------------------------------------------------------
@@ -3446,6 +3953,27 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[2], Integer<2>)
   v[1] = reinterpret(vOut1, OutputType<T>());
 }
 
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 64> v[2], Integer<2>)
+{
+  const Vec<Double, 64> vDouble[2] = {
+    reinterpret(v[0], OutputType<Double>()),
+    reinterpret(v[1], OutputType<Double>()),
+  };
+  Vec<Double, 64> vs[2];
+  swizzle_64_16<2>(vDouble, vs);
+  const __m512d v0tmp = vs[0];
+  const __m512d v1tmp = vs[1];
+  const Vec<Double, 64> vOut0 =
+    _mm512_shuffle_pd(v0tmp, v1tmp, _MM_SHUFFLE2(0, 0));
+  const Vec<Double, 64> vOut1 =
+    _mm512_shuffle_pd(v0tmp, v1tmp, _MM_SHUFFLE2(1, 1));
+  v[0] = reinterpret(vOut0, OutputType<T>());
+  v[1] = reinterpret(vOut1, OutputType<T>());
+}
+
 // -------------------- n = 3 --------------------
 
 // 8 and 16 bit integer types
@@ -3501,6 +4029,32 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[3], Integer<3>)
   v[2] = reinterpret(vOut2, OutputType<T>());
 }
 
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 64> v[3], Integer<3>)
+{
+  const Vec<Double, 64> vDouble[3] = {
+    reinterpret(v[0], OutputType<Double>()),
+    reinterpret(v[1], OutputType<Double>()),
+    reinterpret(v[2], OutputType<Double>()),
+  };
+  Vec<Double, 64> vs[3];
+  swizzle_64_16<3>(vDouble, vs);
+  const __m512d v0tmp = vs[0];
+  const __m512d v1tmp = vs[1];
+  const __m512d v2tmp = vs[2];
+  const Vec<Double, 64> vOut0 =
+    _mm512_shuffle_pd(v0tmp, v1tmp, _MM_SHUFFLE2(0, 0));
+  const Vec<Double, 64> vOut1 =
+    _mm512_shuffle_pd(v0tmp, v1tmp, _MM_SHUFFLE2(1, 1));
+  const Vec<Double, 64> vOut2 =
+    _mm512_shuffle_pd(v1tmp, v2tmp, _MM_SHUFFLE2(0, 0));
+  v[0] = reinterpret(vOut0, OutputType<T>());
+  v[1] = reinterpret(vOut1, OutputType<T>());
+  v[2] = reinterpret(vOut2, OutputType<T>());
+}
+
 // -------------------- n = 4 --------------------
 
 // 8 and 16 bit integer types
@@ -3542,6 +4096,31 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>)
     _mm512_unpackhi_epi64(s[0], s[2]),
     _mm512_unpacklo_epi64(s[1], s[3]),
     _mm512_unpackhi_epi64(s[1], s[3]),
+  };
+  for (int i = 0; i < 4; i++) v[i] = reinterpret(vOut[i], OutputType<T>());
+}
+
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>)
+{
+  Vec<Double, 64> vDouble[4];
+  for (int i = 0; i < 4; i++)
+    vDouble[i] = reinterpret(v[i], OutputType<Double>());
+  Vec<Double, 64> vs[4];
+  swizzle_64_16<4>(vDouble, vs);
+  const __m512d s[4] = {
+    _mm512_unpacklo_pd(vs[0], vs[1]),
+    _mm512_unpackhi_pd(vs[0], vs[1]),
+    _mm512_unpacklo_pd(vs[2], vs[3]),
+    _mm512_unpackhi_pd(vs[2], vs[3]),
+  };
+  const Vec<Double, 64> vOut[4] = {
+    _mm512_unpacklo_pd(s[0], s[2]),
+    _mm512_unpackhi_pd(s[0], s[2]),
+    _mm512_unpacklo_pd(s[1], s[3]),
+    _mm512_unpackhi_pd(s[1], s[3]),
   };
   for (int i = 0; i < 4; i++) v[i] = reinterpret(vOut[i], OutputType<T>());
 }
@@ -3680,6 +4259,18 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
   for (int i = 0; i < 5; i++) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
+// 64 bit types
+template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
+          typename = void, typename = void>
+static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
+{
+  Vec<Double, 64> vDouble[5];
+  for (int i = 0; i < 5; i++) {
+    vDouble[i] = reinterpret(v[i], OutputType<Double>());
+  }
+  // TODO
+}
+
 // ---------------------------------------------------------------------------
 // comparison functions
 // ---------------------------------------------------------------------------
@@ -3747,6 +4338,15 @@ static SIMD_INLINE Vec<Float, 64> cmplt(const Vec<Float, 64> &a,
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_LT_OS)));
 }
 
+static SIMD_INLINE Vec<Double, 64> cmplt(const Vec<Double, 64> &a,
+                                         const Vec<Double, 64> &b)
+{
+  // same constant as in implementation of _mm_cmplt_pd (see cmppd instruction
+  // in Intel manual)
+  return _mm512_castsi512_pd(
+    x_mm512_movm_epi64(_mm512_cmp_pd_mask(a, b, _CMP_LT_OS)));
+}
+
 // ---------------------------------------------------------------------------
 // compare <= v
 // ---------------------------------------------------------------------------
@@ -3804,6 +4404,15 @@ static SIMD_INLINE Vec<Float, 64> cmple(const Vec<Float, 64> &a,
   // in Intel manual)
   return _mm512_castsi512_ps(
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_LE_OS)));
+}
+
+static SIMD_INLINE Vec<Double, 64> cmple(const Vec<Double, 64> &a,
+                                         const Vec<Double, 64> &b)
+{
+  // same constant as in implementation of _mm_cmple_pd (see cmppd instruction
+  // in Intel manual)
+  return _mm512_castsi512_pd(
+    x_mm512_movm_epi64(_mm512_cmp_pd_mask(a, b, _CMP_LE_OS)));
 }
 
 // ---------------------------------------------------------------------------
@@ -3865,6 +4474,15 @@ static SIMD_INLINE Vec<Float, 64> cmpeq(const Vec<Float, 64> &a,
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_EQ_OQ)));
 }
 
+static SIMD_INLINE Vec<Double, 64> cmpeq(const Vec<Double, 64> &a,
+                                         const Vec<Double, 64> &b)
+{
+  // same constant as in implementation of _mm_cmpeq_pd (see cmppd instruction
+  // in Intel manual)
+  return _mm512_castsi512_pd(
+    x_mm512_movm_epi64(_mm512_cmp_pd_mask(a, b, _CMP_EQ_OQ)));
+}
+
 // ---------------------------------------------------------------------------
 // compare > v
 // ---------------------------------------------------------------------------
@@ -3922,6 +4540,15 @@ static SIMD_INLINE Vec<Float, 64> cmpgt(const Vec<Float, 64> &a,
   // in Intel manual), except this is > instead of <
   return _mm512_castsi512_ps(
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_GT_OS)));
+}
+
+static SIMD_INLINE Vec<Double, 64> cmpgt(const Vec<Double, 64> &a,
+                                         const Vec<Double, 64> &b)
+{
+  // same constant as in implementation of _mm_cmplt_pd (see cmppd instruction
+  // in Intel manual), except this is > instead of <
+  return _mm512_castsi512_pd(
+    x_mm512_movm_epi64(_mm512_cmp_pd_mask(a, b, _CMP_GT_OS)));
 }
 
 // ---------------------------------------------------------------------------
@@ -3983,6 +4610,15 @@ static SIMD_INLINE Vec<Float, 64> cmpge(const Vec<Float, 64> &a,
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_GE_OS)));
 }
 
+static SIMD_INLINE Vec<Double, 64> cmpge(const Vec<Double, 64> &a,
+                                         const Vec<Double, 64> &b)
+{
+  // same constant as in implementation of _mm_cmple_pd (see cmppd instruction
+  // in Intel manual), except this is >= instead of <=
+  return _mm512_castsi512_pd(
+    x_mm512_movm_epi64(_mm512_cmp_pd_mask(a, b, _CMP_GE_OS)));
+}
+
 // ---------------------------------------------------------------------------
 // compare != v
 // ---------------------------------------------------------------------------
@@ -4040,6 +4676,15 @@ static SIMD_INLINE Vec<Float, 64> cmpneq(const Vec<Float, 64> &a,
   // in Intel manual)
   return _mm512_castsi512_ps(
     x_mm512_movm_epi32(_mm512_cmp_ps_mask(a, b, _CMP_NEQ_OQ)));
+}
+
+static SIMD_INLINE Vec<Double, 64> cmpneq(const Vec<Double, 64> &a,
+                                          const Vec<Double, 64> &b)
+{
+  // same constant as in implementation of _mm_cmpneq_pd (see cmppd instruction
+  // in Intel manual)
+  return _mm512_castsi512_pd(
+    x_mm512_movm_epi64(_mm512_cmp_pd_mask(a, b, _CMP_NEQ_OQ)));
 }
 
 // ---------------------------------------------------------------------------
@@ -4114,76 +4759,52 @@ static SIMD_INLINE Vec<T, 64> ifelse(const Vec<T, 64> &cond,
 // and v
 // ---------------------------------------------------------------------------
 
-// all integer versions
 template <typename T>
 static SIMD_INLINE Vec<T, 64> and_(const Vec<T, 64> &a, const Vec<T, 64> &b)
 {
-  return _mm512_and_si512(a, b);
-}
-
-// float version
-static SIMD_INLINE Vec<Float, 64> and_(const Vec<Float, 64> &a,
-                                       const Vec<Float, 64> &b)
-{
-  return _mm512_castsi512_ps(
-    _mm512_and_si512(_mm512_castps_si512(a), _mm512_castps_si512(b)));
+  // reinterpret as byte for float and double versions
+  const Vec<Byte, 64> res = _mm512_and_si512(
+    reinterpret(a, OutputType<Byte>()), reinterpret(b, OutputType<Byte>()));
+  return reinterpret(res, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
 // or v
 // ---------------------------------------------------------------------------
 
-// all integer versions
 template <typename T>
 static SIMD_INLINE Vec<T, 64> or_(const Vec<T, 64> &a, const Vec<T, 64> &b)
 {
-  return _mm512_or_si512(a, b);
-}
-
-// float version
-static SIMD_INLINE Vec<Float, 64> or_(const Vec<Float, 64> &a,
-                                      const Vec<Float, 64> &b)
-{
-  return _mm512_castsi512_ps(
-    _mm512_or_si512(_mm512_castps_si512(a), _mm512_castps_si512(b)));
+  // reinterpret as byte for float and double versions
+  const Vec<Byte, 64> res = _mm512_or_si512(reinterpret(a, OutputType<Byte>()),
+                                            reinterpret(b, OutputType<Byte>()));
+  return reinterpret(res, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
 // andnot v
 // ---------------------------------------------------------------------------
 
-// all integer versions
 template <typename T>
 static SIMD_INLINE Vec<T, 64> andnot(const Vec<T, 64> &a, const Vec<T, 64> &b)
 {
-  return _mm512_andnot_si512(a, b);
-}
-
-// float version
-static SIMD_INLINE Vec<Float, 64> andnot(const Vec<Float, 64> &a,
-                                         const Vec<Float, 64> &b)
-{
-  return _mm512_castsi512_ps(
-    _mm512_andnot_si512(_mm512_castps_si512(a), _mm512_castps_si512(b)));
+  // reinterpret as byte for float and double versions
+  const Vec<Byte, 64> res = _mm512_andnot_si512(
+    reinterpret(a, OutputType<Byte>()), reinterpret(b, OutputType<Byte>()));
+  return reinterpret(res, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
 // xor v
 // ---------------------------------------------------------------------------
 
-// all integer versions
 template <typename T>
 static SIMD_INLINE Vec<T, 64> xor_(const Vec<T, 64> &a, const Vec<T, 64> &b)
 {
-  return _mm512_xor_si512(a, b);
-}
-
-// float version
-static SIMD_INLINE Vec<Float, 64> xor_(const Vec<Float, 64> &a,
-                                       const Vec<Float, 64> &b)
-{
-  return _mm512_castsi512_ps(
-    _mm512_xor_si512(_mm512_castps_si512(a), _mm512_castps_si512(b)));
+  // reinterpret as byte for float and double versions
+  const Vec<Byte, 64> res = _mm512_xor_si512(
+    reinterpret(a, OutputType<Byte>()), reinterpret(b, OutputType<Byte>()));
+  return reinterpret(res, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
@@ -4194,15 +4815,11 @@ static SIMD_INLINE Vec<Float, 64> xor_(const Vec<Float, 64> &a,
 template <typename T>
 static SIMD_INLINE Vec<T, 64> not_(const Vec<T, 64> &a)
 {
+  // reinterpret as byte for float and double versions
   // from Agner Fog's VCL vectori256.h operator ~
-  return _mm512_xor_si512(a, _mm512_set1_epi32(-1));
-}
-
-// float version
-static SIMD_INLINE Vec<Float, 64> not_(const Vec<Float, 64> &a)
-{
-  return _mm512_castsi512_ps(
-    _mm512_xor_si512(_mm512_castps_si512(a), _mm512_set1_epi32(-1)));
+  const Vec<Byte, 64> res =
+    _mm512_xor_si512(reinterpret(a, OutputType<Byte>()), _mm512_set1_epi32(-1));
+  return reinterpret(res, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
@@ -4280,6 +4897,14 @@ static SIMD_INLINE Vec<Float, 64> avg(const Vec<Float, 64> &a,
   return _mm512_mul_ps(_mm512_add_ps(a, b), half);
 }
 
+// NOTE: Double version doesn't round!
+static SIMD_INLINE Vec<Double, 64> avg(const Vec<Double, 64> &a,
+                                       const Vec<Double, 64> &b)
+{
+  __m512d half = _mm512_set1_pd(0.5);
+  return _mm512_mul_pd(_mm512_add_pd(a, b), half);
+}
+
 // ---------------------------------------------------------------------------
 // test_all_zeros v
 // ---------------------------------------------------------------------------
@@ -4304,6 +4929,13 @@ static SIMD_INLINE int test_all_zeros(const Vec<T, 64> &a)
 // float version
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
 static SIMD_INLINE int test_all_zeros(const Vec<Float, 64> &a)
+{
+  return test_all_zeros(reinterpret(a, OutputType<Int>()));
+}
+
+// double version
+// note: contrary to IEEE 754, this function considers -0.0f to be negative
+static SIMD_INLINE int test_all_zeros(const Vec<Double, 64> &a)
 {
   return test_all_zeros(reinterpret(a, OutputType<Int>()));
 }
@@ -4378,6 +5010,13 @@ static SIMD_INLINE Vec<Float, 64> reverse(const Vec<Float, 64> &a)
   return _mm512_permutexvar_ps(mask, a);
 }
 
+// double version
+static SIMD_INLINE Vec<Double, 64> reverse(const Vec<Double, 64> &a)
+{
+  // AVX512F
+  return _mm512_permutexvar_pd(_mm512_set_epi64(0, 1, 2, 3, 4, 5, 6, 7), a);
+}
+
 // ---------------------------------------------------------------------------
 // msb2int
 // ---------------------------------------------------------------------------
@@ -4394,6 +5033,12 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Float, 64> &a)
 {
   return _mm512_movepi32_mask(_mm512_castps_si512(a));
 }
+
+static SIMD_INLINE uint64_t msb2int(const Vec<Double, 64> &a)
+{
+  return _cvtmask8_u32(_mm512_movepi64_mask(_mm512_castpd_si512(a)));
+}
+
 #else  // __AVX512DQ__
 // workaround for msb2int for 32 bits if AVX512DQ is not available
 
@@ -4407,6 +5052,13 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Float, 64> &a)
 {
   const __m512i mask = _mm512_set1_epi32(0x80000000);
   return _mm512_test_epi32_mask(_mm512_castps_si512(a), mask);
+}
+
+static SIMD_INLINE uint64_t msb2int(const Vec<Double, 64> &a)
+{
+  const __m512i mask = _mm512_set1_epi64(0x8000000000000000);
+  // _cvtmask8_u32 requires AVX512DQ, so just convert using implicit conversion
+  return _mm512_test_epi64_mask(_mm512_castpd_si512(a), mask);
 }
 #endif // __AVX512DQ__
 
@@ -4438,11 +5090,11 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Word, 64> &a)
 static SIMD_INLINE uint64_t interleave_uint32_with_zeros(uint32_t input)
 {
   uint64_t word = input;
-  word          = (word ^ (word << 16)) & 0x0000ffff0000ffff;
-  word          = (word ^ (word << 8)) & 0x00ff00ff00ff00ff;
-  word          = (word ^ (word << 4)) & 0x0f0f0f0f0f0f0f0f;
-  word          = (word ^ (word << 2)) & 0x3333333333333333;
-  word          = (word ^ (word << 1)) & 0x5555555555555555;
+  word = (word ^ (word << 16)) & 0x0000ffff0000ffff;
+  word = (word ^ (word << 8)) & 0x00ff00ff00ff00ff;
+  word = (word ^ (word << 4)) & 0x0f0f0f0f0f0f0f0f;
+  word = (word ^ (word << 2)) & 0x3333333333333333;
+  word = (word ^ (word << 1)) & 0x5555555555555555;
   return word;
 }
 
@@ -4488,7 +5140,7 @@ static SIMD_INLINE uint64_t msb2int(const Vec<SignedByte, 64> &a)
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Short, 64> &a)
 {
-  const uint64_t odd  = msb2int(reinterpret(a, OutputType<Int>()));
+  const uint64_t odd = msb2int(reinterpret(a, OutputType<Int>()));
   const uint64_t even = msb2int(reinterpret(slle<1>(a), OutputType<Int>()));
   return interleave_uint32_with_zeros(even) |
          (interleave_uint32_with_zeros(odd) << 1);
@@ -4496,7 +5148,7 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Short, 64> &a)
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Word, 64> &a)
 {
-  const uint64_t odd  = msb2int(reinterpret(a, OutputType<Int>()));
+  const uint64_t odd = msb2int(reinterpret(a, OutputType<Int>()));
   const uint64_t even = msb2int(reinterpret(slle<1>(a), OutputType<Int>()));
   return interleave_uint32_with_zeros(even) |
          (interleave_uint32_with_zeros(odd) << 1);
@@ -4520,11 +5172,11 @@ static SIMD_INLINE Vec<Byte, 64> int2msb(const uint64_t a, OutputType<Byte>,
   __m256i aVecLo = _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
   __m256i aVecHi =
     _mm256_shuffle_epi8(_mm256_set1_epi32(a >> 32), shuffleIndeces);
-  __m256i sel        = _mm256_set1_epi64x(0x8040201008040201);
+  __m256i sel = _mm256_set1_epi64x(0x8040201008040201);
   __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
   __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
-  __m256i resultLo   = _mm256_cmpeq_epi8(selectedLo, sel);
-  __m256i resultHi   = _mm256_cmpeq_epi8(selectedHi, sel);
+  __m256i resultLo = _mm256_cmpeq_epi8(selectedLo, sel);
+  __m256i resultHi = _mm256_cmpeq_epi8(selectedHi, sel);
   __m512i result =
     _mm512_inserti64x4(_mm512_castsi256_si512(resultLo), resultHi, 1);
   return _mm512_and_si512(result, _mm512_set1_epi32(0x80808080));
@@ -4548,12 +5200,12 @@ static SIMD_INLINE Vec<Short, 64> int2msb(const uint64_t a, OutputType<Short>,
   __m256i sel = _mm256_set_epi16(
     (int16_t) 0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
     0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
-  __m256i aVecLo     = _mm256_set1_epi16(a);
-  __m256i aVecHi     = _mm256_set1_epi16(a >> 16);
+  __m256i aVecLo = _mm256_set1_epi16(a);
+  __m256i aVecHi = _mm256_set1_epi16(a >> 16);
   __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
   __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
-  __m256i resultLo   = _mm256_cmpeq_epi16(selectedLo, sel);
-  __m256i resultHi   = _mm256_cmpeq_epi16(selectedHi, sel);
+  __m256i resultLo = _mm256_cmpeq_epi16(selectedLo, sel);
+  __m256i resultHi = _mm256_cmpeq_epi16(selectedHi, sel);
   __m512i result =
     _mm512_inserti64x4(_mm512_castsi256_si512(resultLo), resultHi, 1);
   return _mm512_and_si512(result, _mm512_set1_epi32(0x80008000));
@@ -4580,6 +5232,13 @@ static SIMD_INLINE Vec<Float, 64> int2msb(const uint64_t a, OutputType<Float>,
                      OutputType<Float>());
 }
 
+static SIMD_INLINE Vec<Double, 64> int2msb(const uint64_t a, OutputType<Double>,
+                                           Integer<64>)
+{
+  return _mm512_castsi512_pd(
+    _mm512_maskz_set1_epi64(__mmask8(_cvtu32_mask16(a)), 0x8000000000000000));
+}
+
 // ---------------------------------------------------------------------------
 // int2bits
 // ---------------------------------------------------------------------------
@@ -4597,11 +5256,11 @@ static SIMD_INLINE Vec<Byte, 64> int2bits(const uint64_t a, OutputType<Byte>,
   __m256i aVecLo = _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
   __m256i aVecHi =
     _mm256_shuffle_epi8(_mm256_set1_epi32(a >> 32), shuffleIndeces);
-  __m256i sel        = _mm256_set1_epi64x(0x8040201008040201);
+  __m256i sel = _mm256_set1_epi64x(0x8040201008040201);
   __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
   __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
-  __m256i resultLo   = _mm256_cmpeq_epi8(selectedLo, sel);
-  __m256i resultHi   = _mm256_cmpeq_epi8(selectedHi, sel);
+  __m256i resultLo = _mm256_cmpeq_epi8(selectedLo, sel);
+  __m256i resultHi = _mm256_cmpeq_epi8(selectedHi, sel);
   return _mm512_inserti64x4(_mm512_castsi256_si512(resultLo), resultHi, 1);
 #endif
 }
@@ -4623,12 +5282,12 @@ static SIMD_INLINE Vec<Short, 64> int2bits(const uint64_t a, OutputType<Short>,
   __m256i sel = _mm256_set_epi16(
     (int16_t) 0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
     0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
-  __m256i aVecLo     = _mm256_set1_epi16(a);
-  __m256i aVecHi     = _mm256_set1_epi16(a >> 16);
+  __m256i aVecLo = _mm256_set1_epi16(a);
+  __m256i aVecHi = _mm256_set1_epi16(a >> 16);
   __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
   __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
-  __m256i resultLo   = _mm256_cmpeq_epi16(selectedLo, sel);
-  __m256i resultHi   = _mm256_cmpeq_epi16(selectedHi, sel);
+  __m256i resultLo = _mm256_cmpeq_epi16(selectedLo, sel);
+  __m256i resultHi = _mm256_cmpeq_epi16(selectedHi, sel);
   return _mm512_inserti64x4(_mm512_castsi256_si512(resultLo), resultHi, 1);
 #endif
 }
@@ -4651,6 +5310,13 @@ static SIMD_INLINE Vec<Float, 64> int2bits(const uint64_t a, OutputType<Float>,
 {
   return reinterpret(int2bits(a, OutputType<Int>(), Integer<64>()),
                      OutputType<Float>());
+}
+
+static SIMD_INLINE Vec<Double, 64> int2bits(const uint64_t a,
+                                            OutputType<Double>, Integer<64>)
+{
+  return _mm512_castsi512_pd(
+    _mm512_maskz_set1_epi64(__mmask8(_cvtu32_mask16(a)), 0xffffffffffffffff));
 }
 
 // ---------------------------------------------------------------------------
@@ -4701,6 +5367,12 @@ static SIMD_INLINE Vec<Float, 64> iota(OutputType<Float>, Integer<64>)
   return _mm512_set_ps(15.0f, 14.0f, 13.0f, 12.0f, 11.0f, 10.0f, 9.0f, 8.0f,
                        7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
 }
+
+static SIMD_INLINE Vec<Double, 64> iota(OutputType<Double>, Integer<64>)
+{
+  return _mm512_set_pd(7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0);
+}
+
 } // namespace base
 } // namespace internal
 } // namespace simd

@@ -48,6 +48,8 @@
 // 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
 // namespace
 
+// 13. May 23 (Jonas Keller): added Double support
+
 #ifndef SIMD_VEC_AUTO_TEST_H_
 #define SIMD_VEC_AUTO_TEST_H_
 
@@ -224,6 +226,7 @@ struct CmpEqual
   template <typename T>
   static bool cmpScalar(T expected, T actual)
   {
+    static_assert(std::is_integral<T>::value, "");
     return memcmp(&expected, &actual, sizeof(T)) == 0;
   }
 
@@ -234,6 +237,14 @@ struct CmpEqual
     if (memcmp(&expected, &actual, sizeof(float)) == 0) { return true; }
     // if the floats are both +-0, they are equal
     return (std::abs(expected) == 0.0f) && (std::abs(actual) == 0.0f);
+  }
+
+  static bool cmpScalar(double expected, double actual)
+  {
+    // if the bits are equal, the doubles are equal
+    if (memcmp(&expected, &actual, sizeof(double)) == 0) { return true; }
+    // if the doubles are both +-0, they are equal
+    return (std::abs(expected) == 0.0) && (std::abs(actual) == 0.0);
   }
 
   template <typename T, int SIMD_WIDTH>
@@ -267,18 +278,21 @@ template <int64_t COEFF, int64_t EXP_10, int64_t EXP_2>
 struct CmpRelError
 {
   // for integers, just use the equal comparator
-  template <typename T>
+  template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
   static bool cmpScalar(T expected, T actual)
   {
+    static_assert(std::is_integral<T>::value, "");
     return CmpEqual::cmpScalar(expected, actual);
   }
 
   // for floats, compare the relative error, if the floats are not the same
-  static bool cmpScalar(float expected, float actual)
+  template <typename T, SIMD_ENABLE_IF(std::is_floating_point<T>::value),
+            typename = void>
+  static bool cmpScalar(T expected, T actual)
   {
     if (CmpEqual::cmpScalar(expected, actual)) { return true; }
-    float maxRelErr = COEFF * pow(10, EXP_10) * pow(2, EXP_2);
-    float relErr    = fabsf(expected - actual) / fabsf(expected);
+    double maxRelErr = COEFF * std::pow(10, EXP_10) * std::pow(2, EXP_2);
+    double relErr    = std::fabs(expected - actual) / std::fabs(expected);
     return relErr <= maxRelErr;
   }
 
@@ -343,6 +357,7 @@ struct TestFloat
   static void test(int repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -422,6 +437,7 @@ struct TestFloatTI
   static void test(int repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -507,6 +523,7 @@ struct TestFloatTII
   static void test(int repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -573,6 +590,7 @@ struct TestAllTT
     testAllSeconds<Short>(repeats, pattern);
     testAllSeconds<Int>(repeats, pattern);
     testAllSeconds<Float>(repeats, pattern);
+    testAllSeconds<Double>(repeats, pattern);
   }
 
 private:
@@ -585,6 +603,7 @@ private:
     Tester<T1, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<T1, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<T1, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<T1, Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -616,6 +635,7 @@ struct TestAllTTSameSize
     Tester<Int, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Float, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Float, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
@@ -793,7 +813,8 @@ struct ScalarUInt64
     SerialVec<T, SIMD_WIDTH> cs, cp;
 #if !ONLY_TIME_MEASUREMENT
     uint64_t a;
-    const char *fmt = TypeInfo<T>::defaultFormat();
+    const char *fmt  = TypeInfo<T>::defaultFormat();
+    const char *fmtA = "%" PRIu64;
 #endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) != std::string::npos) {
@@ -808,7 +829,7 @@ struct ScalarUInt64
           errors++;
           if (errors <= PRINT_ERRORS) {
             printError(name, args);
-            PRINTVAL(fmt, a);
+            PRINTVAL(fmtA, a);
             PRINT(fmt, cs);
             PRINT(fmt, cp);
           }
@@ -1775,7 +1796,7 @@ struct ArrayDoubleArrayVoidTemplateType
       std::vector<Vec<Tout, SIMD_WIDTH>> _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
-        double d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
+        const auto d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         for (int j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput(as[j]);
           _ap[j] = as[j].getVec();
@@ -1855,8 +1876,8 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
       std::vector<Vec<Tout, SIMD_WIDTH>> _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
-        double d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
-        double d2 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
+        const auto d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
+        const auto d2 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         for (int j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput(as[j]);
           _ap[j] = as[j].getVec();
@@ -1937,7 +1958,7 @@ struct ArrayArrayDoubleArrayVoidTemplateType
       std::vector<Vec<Tout, SIMD_WIDTH>> _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
-        double d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
+        const auto d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         for (int j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput1(as[j]);
           _ap[j] = as[j].getVec();
@@ -2023,8 +2044,8 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
       std::vector<Vec<Tout, SIMD_WIDTH>> _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
-        double d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
-        double d2 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
+        const auto d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
+        const auto d2 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         for (int j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput1(as[j]);
           _ap[j] = as[j].getVec();

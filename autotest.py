@@ -20,7 +20,7 @@ for compiler in [
     "g++",
 ]:
     for opt_flags in [
-        "-O0",
+        # "-O0", compiling with -O0 takes an unreasonable amount ram (like up to 70 GB (wtf?))
         "-O1",
         "-O2",
         "-O3",

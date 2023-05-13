@@ -2,8 +2,16 @@ import multiprocessing
 import os
 import random
 import time
+import sys
 
-test_sets = []
+SDE_PATH = ""
+
+SDE_OPTIONS = "-align_checker_action ignore -gnr"
+
+LOG_DIR = f"autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
+TMP_BUILD_DIR = f"/tmp/T-SIMD_autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
+
+test_configs = []
 
 for compiler in [
     "clang++",
@@ -35,63 +43,74 @@ for compiler in [
             "-mavx512dq -mavx512er",
             "-mavx512bw -mavx512dq -mavx512er",
             "-mavx512dq -mavx512er -mavx512vbmi",
+            # TODO: maybe add more combinations?
         ]:
-            test_sets.append({
+            test_configs.append({
                 "compiler": compiler,
                 "opt_flags": opt_flags,
                 "arch_flags": arch_flags,
             })
 
 
-def run_test(test_set):
-    print("Running test set: {}".format(test_set))
-    name = "{}_{}_{}".format(
-        test_set["compiler"],
-        test_set["opt_flags"],
-        test_set["arch_flags"],
-    ).replace(" ", "")
+def run_test(test_config):
+    print(f"Running test: {test_config}")
+    name = f"{test_config['compiler']}_{test_config['opt_flags']}_{test_config['arch_flags']}"
+    name = name.replace(" ", "")
 
-    build_dir = "/tmp/T-SIMD_autotest/{}".format(name)
+    build_dir = f"{TMP_BUILD_DIR}/{name}"
 
     # make directory if it doesn't exist
     if not os.path.exists(build_dir):
         os.makedirs(build_dir)
 
-    build_command = "make build_dir=\"{}\" compiler=\"{}\" optflags=\"{}\" flags_arch=\"{}\" all_tsimd autotest".format(
-        build_dir,
-        test_set["compiler"],
-        test_set["opt_flags"],
-        test_set["arch_flags"],
-    )
+    build_command = f"make build_dir=\"{build_dir}\" compiler=\"{test_config['compiler']}\" optflags=\"{test_config['opt_flags']}\" flags_arch=\"{test_config['arch_flags']}\" all_tsimd autotest"
 
-    log_file_compile = "autotest/{}_compile.log".format(name)
-    os.system("make build_dir=\"{}\" clean > {} 2>&1".format(
-        build_dir,
-        log_file_compile,
-    ))
+    log_file_compile = f"{LOG_DIR}/{name}_compile.log"
+    os.system(
+        f"make build_dir=\"{build_dir}\" clean > {log_file_compile} 2>&1")
 
-    os.system("{} >> {} 2>&1".format(build_command, log_file_compile))
+    os.system(f"{build_command} >> {log_file_compile} 2>&1")
 
-    log_file_test0 = "autotest/{}_test0.log".format(name)
-    os.system("{}/simdvecautotest0 > {} 2>&1 || echo \"ERROR: simdvecautotest0 failed\" >> {}".format(
-        build_dir, log_file_test0, log_file_test0, log_file_test0,
-    ))
-    log_file_test1 = "autotest/{}_test1.log".format(name)
-    os.system("{}/simdvecautotest1 > {} 2>&1 || echo \"ERROR: simdvecautotest1 failed\" >> {}".format(
-        build_dir, log_file_test1, log_file_test1, log_file_test1,
-    ))
-    log_file_testM = "autotest/{}_testM.log".format(name)
-    os.system("{}/simdvecautotestM > {} 2>&1 || echo \"ERROR: simdvecautotestM failed\" >> {}".format(
-        build_dir, log_file_testM, log_file_testM, log_file_testM,
-    ))
+    log_file_test0 = f"{LOG_DIR}/{name}_test0.log"
+    os.system(f"{SDE_PATH} {SDE_OPTIONS} -- {build_dir}/simdvecautotest0 \"\" 10000 > {log_file_test0} 2>&1 || echo \"ERROR: simdvecautotest0 failed\" >> {log_file_test0}")
+    log_file_test1 = f"{LOG_DIR}/{name}_test1.log"
+    os.system(f"{SDE_PATH} {SDE_OPTIONS} -- {build_dir}/simdvecautotest1 \"\" 10000 > {log_file_test1} 2>&1 || echo \"ERROR: simdvecautotest1 failed\" >> {log_file_test1}")
+    log_file_testM = f"{LOG_DIR}/{name}_testM.log"
+    os.system(f"{SDE_PATH} {SDE_OPTIONS} -- {build_dir}/simdvecautotestM \"\" 10000 > {log_file_testM} 2>&1 || echo \"ERROR: simdvecautotestM failed\" >> {log_file_testM}")
 
-    os.system("rm -r {}".format(build_dir))
+    os.system(f"rm -r {build_dir}")
 
-    print("Finished test set: {}".format(test_set))
+    print(f"Finished executing test: {test_config}")
 
 
 if __name__ == "__main__":
-    os.nice(19)
+    is_sde_path_in_env = False
+    if "SDE_PATH" in os.environ:
+        SDE_PATH = os.environ["SDE_PATH"]
+        is_sde_path_in_env = True
+
+    is_sde_path_in_args = False
+    for i in range(len(sys.argv)):
+        if sys.argv[i] == "--sde-path":
+            SDE_PATH = sys.argv[i + 1]
+            is_sde_path_in_args = True
+        elif sys.argv[i].startswith("SDE_PATH="):
+            SDE_PATH = sys.argv[i].split("=")[1]
+            is_sde_path_in_args = True
+
+    if not os.path.exists(SDE_PATH):
+        if is_sde_path_in_args:
+            print(
+                f"ERROR: SDE_PATH from command line arguments is invalid: \"{SDE_PATH}\"")
+        elif is_sde_path_in_env:
+            print(
+                f"ERROR: SDE_PATH from environment variables is invalid: \"{SDE_PATH}\"")
+        else:
+            print(f"ERROR: SDE_PATH from constant is invalid: \"{SDE_PATH}\"")
+        print("       Please specify a valid SDE_PATH pointing to the sde or sde64 executable with --sde-path, SDE_PATH=..., in the environment variables, or with the constant SDE_PATH in this script.")
+        sys.exit(1)
+
+    os.nice(19)  # be as nice as possible
     num_procs_cores = multiprocessing.cpu_count()
     num_procs_ram = 0
     with open("/proc/meminfo", "r") as f:
@@ -104,34 +123,35 @@ if __name__ == "__main__":
 
     num_procs = min(num_procs_cores, num_procs_ram)
 
-    # make autotest directory if it doesn't exist
-    if not os.path.exists("autotest"):
-        os.makedirs("autotest")
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
+
+    if not os.path.exists(TMP_BUILD_DIR):
+        os.makedirs(TMP_BUILD_DIR)
 
     pool = multiprocessing.Pool(processes=num_procs)
 
-    random.shuffle(test_sets)
+    random.shuffle(test_configs)
 
-    print("Executing {} test sets...".format(len(test_sets)))
+    print(f"Executing {len(test_configs)} tests...")
 
     start_time = time.time()
 
-    for test_set in test_sets:
-        pool.apply_async(run_test, args=(test_set,))
+    for test in test_configs:
+        pool.apply_async(run_test, args=(test,))
 
     pool.close()
     pool.join()
 
     os.system(
-        "grep -nri --exclude=errors.log --exclude=warnings.log \"error\" autotest > autotest/errors.log")
+        f"grep -nri --exclude=errors.log --exclude=warnings.log \"error\" {LOG_DIR} > {LOG_DIR}/errors.log")
     os.system(
-        "grep -nri --exclude=errors.log --exclude=warnings.log \"warning\" autotest > autotest/warnings.log")
+        f"grep -nri --exclude=errors.log --exclude=warnings.log \"warning\" {LOG_DIR} > {LOG_DIR}/warnings.log")
 
     os.system(
-        "echo \"Number of errors (see file autotest/errors.log):\" && cat autotest/errors.log | wc -l")
-    os.system("echo \"Number of warnings (see file autotest/warnings.log): \" && cat autotest/warnings.log | wc -l")
+        f"echo \"Number of errors (see file {LOG_DIR}/errors.log):\" && cat {LOG_DIR}/errors.log | wc -l")
+    os.system(
+        f"echo \"Number of warnings (see file {LOG_DIR}/warnings.log): \" && cat {LOG_DIR}/warnings.log | wc -l")
 
-    print("Done. Executed {} test sets in {} seconds".format(
-        len(test_sets),
-        time.time() - start_time,
-    ))
+    print(
+        f"Done. Executed {len(test_configs)} tests in {time.time() - start_time} seconds")

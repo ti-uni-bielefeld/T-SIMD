@@ -13,45 +13,75 @@ SDE_OPTIONS = "-align_checker_action ignore -gnr"
 LOG_DIR = f"autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
 TMP_BUILD_DIR = f"/tmp/T-SIMD_autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
 
-test_configs = []
 
-for compiler in [
-    "clang++",
-    "g++",
-]:
-    for opt_flags in [
-        # "-O0", compiling with -O0 takes an unreasonable amount ram (like up to 70 GB (wtf?))
-        "-O1",
-        "-O2",
-        "-O3",
-        "-O3 -funroll-loops",
+def get_required_emulator(arch_flags):
+    SDE_EMULATOR = "{SDE_PATH} {SDE_OPTIONS} -- "
+
+    supported_cpu_features = []
+    with open("/proc/cpuinfo", "r") as f:
+        for line in f:
+            if line.startswith("flags"):
+                supported_cpu_features = line.split(": ")[1].split(" ")
+                break
+
+    required_cpu_features = []
+    for arch_flag in arch_flags.split(" "):
+        if arch_flag.startswith("-m"):
+            required_cpu_features.append(arch_flag[2:])
+
+    if set(required_cpu_features).issubset(set(supported_cpu_features)):
+        # all required cpu features are supported
+        # so we don't need to use the emulator
+        return ""
+    else:
+        # there is at least one required cpu feature that is not supported
+        # so we need to use the emulator
+        return SDE_EMULATOR
+
+
+def generate_test_configs():
+    test_configs = []
+
+    for compiler in [
+        "clang++",
+        "g++",
     ]:
-        for arch_flags in [
-            "-msse2",
-            "-msse3",
-            "-mssse3",
-            "-msse4",
-            "-msse4.1",
-            "-msse4.2",
-            "-mavx",
-            "-mavx2",
-            "-mavx512f",
-            "-mavx512bw",
-            "-mavx512dq",
-            "-mavx512er",
-            "-mavx512vbmi",
-            "-mavx512bw -mavx512dq",
-            "-mavx512bw -mavx512er",
-            "-mavx512dq -mavx512er",
-            "-mavx512bw -mavx512dq -mavx512er",
-            "-mavx512dq -mavx512er -mavx512vbmi",
-            # TODO: maybe add more combinations?
+        for opt_flags in [
+            # "-O0", compiling with -O0 takes an unreasonable amount ram (like up to 70 GB (wtf?))
+            "-O1",
+            "-O2",
+            "-O3",
+            "-O3 -funroll-loops",
         ]:
-            test_configs.append({
-                "compiler": compiler,
-                "opt_flags": opt_flags,
-                "arch_flags": arch_flags,
-            })
+            for arch_flags in [
+                "-msse2",
+                "-msse3",
+                "-mssse3",
+                "-msse4",
+                "-msse4.1",
+                "-msse4.2",
+                "-mavx",
+                "-mavx2",
+                "-mavx512f",
+                "-mavx512bw",
+                "-mavx512dq",
+                "-mavx512er",
+                "-mavx512vbmi",
+                "-mavx512bw -mavx512dq",
+                "-mavx512bw -mavx512er",
+                "-mavx512dq -mavx512er",
+                "-mavx512bw -mavx512dq -mavx512er",
+                "-mavx512dq -mavx512er -mavx512vbmi",
+                # TODO: maybe add more combinations?
+            ]:
+                test_configs.append({
+                    "compiler": compiler,
+                    "opt_flags": opt_flags,
+                    "arch_flags": arch_flags,
+                    "emulator": get_required_emulator(arch_flags),
+                })
+
+    return test_configs
 
 
 def run_test(test_config):
@@ -74,11 +104,14 @@ def run_test(test_config):
     os.system(f"{build_command} >> {log_file_compile} 2>&1")
 
     log_file_test0 = f"{LOG_DIR}/{name}_test0.log"
-    os.system(f"{SDE_PATH} {SDE_OPTIONS} -- {build_dir}/simdvecautotest0 \"\" 10000 > {log_file_test0} 2>&1 || echo \"ERROR: simdvecautotest0 failed\" >> {log_file_test0}")
+    os.system(
+        f"{test_config['emulator']} {build_dir}/simdvecautotest0 \"\" 10000 > {log_file_test0} 2>&1 || echo \"ERROR: simdvecautotest0 failed\" >> {log_file_test0}")
     log_file_test1 = f"{LOG_DIR}/{name}_test1.log"
-    os.system(f"{SDE_PATH} {SDE_OPTIONS} -- {build_dir}/simdvecautotest1 \"\" 10000 > {log_file_test1} 2>&1 || echo \"ERROR: simdvecautotest1 failed\" >> {log_file_test1}")
+    os.system(
+        f"{test_config['emulator']} {build_dir}/simdvecautotest1 \"\" 10000 > {log_file_test1} 2>&1 || echo \"ERROR: simdvecautotest1 failed\" >> {log_file_test1}")
     log_file_testM = f"{LOG_DIR}/{name}_testM.log"
-    os.system(f"{SDE_PATH} {SDE_OPTIONS} -- {build_dir}/simdvecautotestM \"\" 10000 > {log_file_testM} 2>&1 || echo \"ERROR: simdvecautotestM failed\" >> {log_file_testM}")
+    os.system(
+        f"{test_config['emulator']} {build_dir}/simdvecautotestM \"\" 10000 > {log_file_testM} 2>&1 || echo \"ERROR: simdvecautotestM failed\" >> {log_file_testM}")
 
     os.system(f"rm -r {build_dir}")
 
@@ -141,6 +174,8 @@ if __name__ == "__main__":
         os.makedirs(TMP_BUILD_DIR)
 
     pool = multiprocessing.Pool(processes=num_procs)
+
+    test_configs = generate_test_configs()
 
     random.shuffle(test_configs)
 

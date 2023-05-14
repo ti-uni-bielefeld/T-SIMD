@@ -2778,11 +2778,8 @@ static SIMD_INLINE void zip(const Vec<Double, 32> a, const Vec<Double, 32> b,
 static SIMD_INLINE void zip(const Vec<Double, 32> a, const Vec<Double, 32> b,
                             Vec<Double, 32> &l, Vec<Double, 32> &h, Bytes<16>)
 {
-  // TODO: implement this
-  (void) a;
-  (void) b;
-  (void) l;
-  (void) h;
+  l = _mm256_permute2f128_pd(a, b, _MM_SHUFFLE(0, 2, 0, 0));
+  h = _mm256_permute2f128_pd(a, b, _MM_SHUFFLE(0, 3, 0, 1));
 }
 
 // ---------------------------------------------------------------------------

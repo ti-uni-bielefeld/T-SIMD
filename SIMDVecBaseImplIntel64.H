@@ -5036,7 +5036,7 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Float, 64> &a)
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Double, 64> &a)
 {
-  return _cvtmask8_u32(_mm512_movepi64_mask(_mm512_castpd_si512(a)));
+  return uint64_t(_mm512_movepi64_mask(_mm512_castpd_si512(a)));
 }
 
 #else  // __AVX512DQ__
@@ -5236,7 +5236,7 @@ static SIMD_INLINE Vec<Double, 64> int2msb(const uint64_t a, OutputType<Double>,
                                            Integer<64>)
 {
   return _mm512_castsi512_pd(
-    _mm512_maskz_set1_epi64(__mmask8(_cvtu32_mask16(a)), 0x8000000000000000));
+    _mm512_maskz_set1_epi64(__mmask8(a), 0x8000000000000000));
 }
 
 // ---------------------------------------------------------------------------
@@ -5316,7 +5316,7 @@ static SIMD_INLINE Vec<Double, 64> int2bits(const uint64_t a,
                                             OutputType<Double>, Integer<64>)
 {
   return _mm512_castsi512_pd(
-    _mm512_maskz_set1_epi64(__mmask8(_cvtu32_mask16(a)), 0xffffffffffffffff));
+    _mm512_maskz_set1_epi64(__mmask8(a), 0xffffffffffffffff));
 }
 
 // ---------------------------------------------------------------------------

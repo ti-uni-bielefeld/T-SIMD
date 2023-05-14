@@ -637,6 +637,63 @@ static SIMD_INLINE __m512i x_mm512_movm_epi32(__mmask16 k)
 #endif
 }
 
+// ---------------------------------------------------------------------------
+// x_mm512_set_epi8, x_mm512_set_epi16 v
+// ---------------------------------------------------------------------------
+
+// 14. May 23 (Jonas Keller): added x_mm512_set_epi8 and x_mm512_set_epi16
+
+// _mm512_set_epi8 and _mm512_set_epi16 are not available in some gcc versions
+// so we use _mm512_set_epi32 to emulate them
+
+static SIMD_INLINE __m512i x_mm512_set_epi8(
+  char b63, char b62, char b61, char b60, char b59, char b58, char b57,
+  char b56, char b55, char b54, char b53, char b52, char b51, char b50,
+  char b49, char b48, char b47, char b46, char b45, char b44, char b43,
+  char b42, char b41, char b40, char b39, char b38, char b37, char b36,
+  char b35, char b34, char b33, char b32, char b31, char b30, char b29,
+  char b28, char b27, char b26, char b25, char b24, char b23, char b22,
+  char b21, char b20, char b19, char b18, char b17, char b16, char b15,
+  char b14, char b13, char b12, char b11, char b10, char b9, char b8, char b7,
+  char b6, char b5, char b4, char b3, char b2, char b1, char b0)
+{
+  return _mm512_set_epi32(
+    (int) b63 << 24 | (int) b62 << 16 | (int) b61 << 8 | (int) b60,
+    (int) b59 << 24 | (int) b58 << 16 | (int) b57 << 8 | (int) b56,
+    (int) b55 << 24 | (int) b54 << 16 | (int) b53 << 8 | (int) b52,
+    (int) b51 << 24 | (int) b50 << 16 | (int) b49 << 8 | (int) b48,
+    (int) b47 << 24 | (int) b46 << 16 | (int) b45 << 8 | (int) b44,
+    (int) b43 << 24 | (int) b42 << 16 | (int) b41 << 8 | (int) b40,
+    (int) b39 << 24 | (int) b38 << 16 | (int) b37 << 8 | (int) b36,
+    (int) b35 << 24 | (int) b34 << 16 | (int) b33 << 8 | (int) b32,
+    (int) b31 << 24 | (int) b30 << 16 | (int) b29 << 8 | (int) b28,
+    (int) b27 << 24 | (int) b26 << 16 | (int) b25 << 8 | (int) b24,
+    (int) b23 << 24 | (int) b22 << 16 | (int) b21 << 8 | (int) b20,
+    (int) b19 << 24 | (int) b18 << 16 | (int) b17 << 8 | (int) b16,
+    (int) b15 << 24 | (int) b14 << 16 | (int) b13 << 8 | (int) b12,
+    (int) b11 << 24 | (int) b10 << 16 | (int) b9 << 8 | (int) b8,
+    (int) b7 << 24 | (int) b6 << 16 | (int) b5 << 8 | (int) b4,
+    (int) b3 << 24 | (int) b2 << 16 | (int) b1 << 8 | (int) b0);
+}
+
+static SIMD_INLINE __m512i x_mm512_set_epi16(
+  short w31, short w30, short w29, short w28, short w27, short w26, short w25,
+  short w24, short w23, short w22, short w21, short w20, short w19, short w18,
+  short w17, short w16, short w15, short w14, short w13, short w12, short w11,
+  short w10, short w9, short w8, short w7, short w6, short w5, short w4,
+  short w3, short w2, short w1, short w0)
+{
+  return _mm512_set_epi32(
+    (int) w31 << 16 | (int) w30, (int) w29 << 16 | (int) w28,
+    (int) w27 << 16 | (int) w26, (int) w25 << 16 | (int) w24,
+    (int) w23 << 16 | (int) w22, (int) w21 << 16 | (int) w20,
+    (int) w19 << 16 | (int) w18, (int) w17 << 16 | (int) w16,
+    (int) w15 << 16 | (int) w14, (int) w13 << 16 | (int) w12,
+    (int) w11 << 16 | (int) w10, (int) w9 << 16 | (int) w8,
+    (int) w7 << 16 | (int) w6, (int) w5 << 16 | (int) w4,
+    (int) w3 << 16 | (int) w2, (int) w1 << 16 | (int) w0);
+}
+
 // ###########################################################################
 // ###########################################################################
 // ###########################################################################
@@ -2186,20 +2243,10 @@ static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
                               Vec<T, 64> &l, Vec<T, 64> &h, Bytes<1>)
 {
   // mask is hopefully only set once if unzip is used multiple times
-  /*
-  __m512i mask = _mm512_set_epi8 (15,13,11,9,7,5,3,1,
-                                  14,12,10,8,6,4,2,0,
-                                  15,13,11,9,7,5,3,1,
-                                  14,12,10,8,6,4,2,0,
-                                  15,13,11,9,7,5,3,1,
-                                  14,12,10,8,6,4,2,0,
-                                  15,13,11,9,7,5,3,1,
-                                  14,12,10,8,6,4,2,0);
-  */
-  __m512i mask = _mm512_set_epi32(
-    0x0f0d0b09, 0x07050301, 0x0e0c0a08, 0x06040200, 0x0f0d0b09, 0x07050301,
-    0x0e0c0a08, 0x06040200, 0x0f0d0b09, 0x07050301, 0x0e0c0a08, 0x06040200,
-    0x0f0d0b09, 0x07050301, 0x0e0c0a08, 0x06040200);
+  __m512i mask = x_mm512_set_epi8(
+    15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0, 15, 13, 11, 9, 7, 5,
+    3, 1, 14, 12, 10, 8, 6, 4, 2, 0, 15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8,
+    6, 4, 2, 0, 15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0);
   __m512i atmp = x_mm512_shuffle_epi8(a, mask);
   __m512i btmp = x_mm512_shuffle_epi8(b, mask);
   l            = _mm512_permutex2var_epi64(atmp, x_mm512_even64_mask(), btmp);
@@ -2245,20 +2292,10 @@ static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
                               Vec<T, 64> &l, Vec<T, 64> &h, Bytes<2>)
 {
   // mask is hopefully only set once if unzip is used multiple times
-  /*
-  __m512i mask = _mm512_set_epi8(15,14,11,10,7,6,3,2,
-                                 13,12,9,8,5,4,1,0,
-                                 15,14,11,10,7,6,3,2,
-                                 13,12,9,8,5,4,1,0,
-                                 15,14,11,10,7,6,3,2,
-                                 13,12,9,8,5,4,1,0,
-                                 15,14,11,10,7,6,3,2,
-                                 13,12,9,8,5,4,1,0);
-  */
-  __m512i mask = _mm512_set_epi32(
-    0x0f0e0b0a, 0x07060302, 0x0d0c0908, 0x05040100, 0x0f0e0b0a, 0x07060302,
-    0x0d0c0908, 0x05040100, 0x0f0e0b0a, 0x07060302, 0x0d0c0908, 0x05040100,
-    0x0f0e0b0a, 0x07060302, 0x0d0c0908, 0x05040100);
+  __m512i mask = x_mm512_set_epi8(
+    15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0, 15, 14, 11, 10, 7, 6,
+    3, 2, 13, 12, 9, 8, 5, 4, 1, 0, 15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5,
+    4, 1, 0, 15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0);
   __m512i atmp = x_mm512_shuffle_epi8(a, mask);
   __m512i btmp = x_mm512_shuffle_epi8(b, mask);
   l            = _mm512_permutex2var_epi64(atmp, x_mm512_even64_mask(), btmp);
@@ -4296,21 +4333,21 @@ static SIMD_INLINE __m512i reverse_mask();
 template <>
 SIMD_INLINE __m512i reverse_mask<1>()
 {
-  return _mm512_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                         16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-                         30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
-                         44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
-                         58, 59, 60, 61, 62, 63);
+  return x_mm512_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                          16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+                          29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
+                          42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
+                          55, 56, 57, 58, 59, 60, 61, 62, 63);
 }
 
 template <>
 SIMD_INLINE __m512i reverse_mask<2>()
 {
-  return _mm512_set_epi8(1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14,
-                         17, 16, 19, 18, 21, 20, 23, 22, 25, 24, 27, 26, 29, 28,
-                         31, 30, 33, 32, 35, 34, 37, 36, 39, 38, 41, 40, 43, 42,
-                         45, 44, 47, 46, 49, 48, 51, 50, 53, 52, 55, 54, 57, 56,
-                         59, 58, 61, 60, 63, 62);
+  return x_mm512_set_epi8(1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14,
+                          17, 16, 19, 18, 21, 20, 23, 22, 25, 24, 27, 26, 29,
+                          28, 31, 30, 33, 32, 35, 34, 37, 36, 39, 38, 41, 40,
+                          43, 42, 45, 44, 47, 46, 49, 48, 51, 50, 53, 52, 55,
+                          54, 57, 56, 59, 58, 61, 60, 63, 62);
 }
 
 template <typename T>
@@ -4624,34 +4661,34 @@ static SIMD_INLINE Vec<Float, 64> int2bits(const uint64_t a, OutputType<Float>,
 
 static SIMD_INLINE Vec<Byte, 64> iota(OutputType<Byte>, Integer<64>)
 {
-  return _mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50,
-                         49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36,
-                         35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22,
-                         21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8,
-                         7, 6, 5, 4, 3, 2, 1, 0);
+  return x_mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51,
+                          50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38,
+                          37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25,
+                          24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,
+                          11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 }
 
 static SIMD_INLINE Vec<SignedByte, 64> iota(OutputType<SignedByte>, Integer<64>)
 {
-  return _mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50,
-                         49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36,
-                         35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22,
-                         21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8,
-                         7, 6, 5, 4, 3, 2, 1, 0);
+  return x_mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51,
+                          50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38,
+                          37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25,
+                          24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,
+                          11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 }
 
 static SIMD_INLINE Vec<Short, 64> iota(OutputType<Short>, Integer<64>)
 {
-  return _mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
-                          18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-                          3, 2, 1, 0);
+  return x_mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
+                           18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
+                           3, 2, 1, 0);
 }
 
 static SIMD_INLINE Vec<Word, 64> iota(OutputType<Word>, Integer<64>)
 {
-  return _mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
-                          18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-                          3, 2, 1, 0);
+  return x_mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
+                           18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
+                           3, 2, 1, 0);
 }
 
 static SIMD_INLINE Vec<Int, 64> iota(OutputType<Int>, Integer<64>)

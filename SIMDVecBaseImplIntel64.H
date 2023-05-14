@@ -2838,9 +2838,10 @@ static SIMD_INLINE Vec<Float, 64> packs(const Vec<Double, 64> &a,
                                         const Vec<Double, 64> &b,
                                         OutputType<Float>)
 {
-  const __m256 low  = _mm512_cvtpd_ps(a);
-  const __m256 high = _mm512_cvtpd_ps(b);
-  return _mm512_insertf32x8(_mm512_castps256_ps512(low), high, 1);
+  const __m256d low  = _mm256_castps_pd(_mm512_cvtpd_ps(a));
+  const __m256d high = _mm256_castps_pd(_mm512_cvtpd_ps(b));
+  return _mm512_castpd_ps(
+    _mm512_insertf64x4(_mm512_castpd256_pd512(low), high, 1));
 }
 
 static SIMD_INLINE Vec<Int, 64> packs(const Vec<Double, 64> &a,

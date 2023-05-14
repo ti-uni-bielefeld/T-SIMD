@@ -77,6 +77,64 @@ extern __inline __m512i
 
 #endif
 
+// ---------------------------------------------------------------------------
+// _mm256_set_m128 and friends are missing in gcc below version 8
+// ---------------------------------------------------------------------------
+
+// 14. May 23 (Jonas Keller):
+// added this fix for missing _mm256_set_m128 and friends in gcc < 8
+
+// implementation from
+// https://github.com/gcc-mirror/gcc/blob/master/gcc/config/i386/avxintrin.h
+
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER) &&  \
+  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) < 80000 &&   \
+  defined(__AVX__)
+
+extern __inline __m256
+  __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+  _mm256_set_m128(__m128 __H, __m128 __L)
+{
+  return _mm256_insertf128_ps(_mm256_castps128_ps256(__L), __H, 1);
+}
+
+extern __inline __m256d
+  __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+  _mm256_set_m128d(__m128d __H, __m128d __L)
+{
+  return _mm256_insertf128_pd(_mm256_castpd128_pd256(__L), __H, 1);
+}
+
+extern __inline __m256i
+  __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+  _mm256_set_m128i(__m128i __H, __m128i __L)
+{
+  return _mm256_insertf128_si256(_mm256_castsi128_si256(__L), __H, 1);
+}
+
+extern __inline __m256
+  __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+  _mm256_setr_m128(__m128 __L, __m128 __H)
+{
+  return _mm256_set_m128(__H, __L);
+}
+
+extern __inline __m256d
+  __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+  _mm256_setr_m128d(__m128d __L, __m128d __H)
+{
+  return _mm256_set_m128d(__H, __L);
+}
+
+extern __inline __m256i
+  __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+  _mm256_setr_m128i(__m128i __L, __m128i __H)
+{
+  return _mm256_set_m128i(__H, __L);
+}
+
+#endif
+
 #endif // SIMDVEC_INTEL_ENABLE
 
 #endif // SIMD_INTRINS_INTEL_H_

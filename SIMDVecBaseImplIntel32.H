@@ -3516,7 +3516,7 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[4], Integer<4>)
   s[1] = _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(3, 2, 3, 2));
   s[2] = _mm256_shuffle_ps(vs[2], vs[3], _MM_SHUFFLE(1, 0, 1, 0));
   s[3] = _mm256_shuffle_ps(vs[2], vs[3], _MM_SHUFFLE(3, 2, 3, 2));
-  Vec<T, 32> vOut[4];
+  Vec<Float, 32> vOut[4];
   vOut[0] = _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(2, 0, 2, 0));
   vOut[1] = _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1));
   vOut[2] = _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));

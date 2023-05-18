@@ -15,7 +15,7 @@ TMP_BUILD_DIR = f"/tmp/T-SIMD_autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
 
 
 def get_required_emulator(arch_flags):
-    SDE_EMULATOR = "{SDE_PATH} {SDE_OPTIONS} -- "
+    SDE_EMULATOR = f"{SDE_PATH} {SDE_OPTIONS} -- "
 
     supported_cpu_features = []
     with open("/proc/cpuinfo", "r") as f:

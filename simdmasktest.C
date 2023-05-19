@@ -862,7 +862,7 @@ void test_mask_functions()
            a, (uinttest_t) a_mask, b, (uinttest_t) b_mask, ones,
            SIMD_WIDTH / (int) sizeof(T), __PRETTY_FUNCTION__);
   }
-  for (i = 0; i < 64; i++) {
+  for (i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     if ((a_mask[i]) != (((a >> i) & 1) == 1)) {
       printf("ERROR: operator[], %s\n", __PRETTY_FUNCTION__);
     }

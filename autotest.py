@@ -14,6 +14,18 @@ LOG_DIR = f"autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
 TMP_BUILD_DIR = f"/tmp/T-SIMD_autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
 
 
+def is_feature_supported(supported_cpu_features, feature):
+    for supported_cpu_feature in supported_cpu_features:
+        if supported_cpu_feature == feature:
+            return True
+        if supported_cpu_feature.startswith(feature):
+            return True
+        if supported_cpu_feature.endswith(feature):
+            return True
+
+    return False
+
+
 def get_required_emulator(arch_flags):
     SDE_EMULATOR = f"{SDE_PATH} {SDE_OPTIONS} -- "
 
@@ -24,12 +36,12 @@ def get_required_emulator(arch_flags):
                 supported_cpu_features = line.split(": ")[1].split(" ")
                 break
 
-    required_cpu_features = []
+    req_cpu_features = []
     for arch_flag in arch_flags.split(" "):
         if arch_flag.startswith("-m"):
-            required_cpu_features.append(arch_flag[2:])
+            req_cpu_features.append(arch_flag[2:])
 
-    if set(required_cpu_features).issubset(set(supported_cpu_features)):
+    if all([is_feature_supported(supported_cpu_features, req_cpu_feature) for req_cpu_feature in req_cpu_features]):
         # all required cpu features are supported
         # so we don't need to use the emulator
         return ""

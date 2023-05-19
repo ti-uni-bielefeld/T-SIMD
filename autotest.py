@@ -15,6 +15,7 @@ TMP_BUILD_DIR = f"/tmp/T-SIMD_autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
 
 
 def is_feature_supported(supported_cpu_features, feature):
+    feature = feature.strip().lower().replace("_", "").replace("-", "").replace(".", "")
     for supported_cpu_feature in supported_cpu_features:
         if supported_cpu_feature == feature:
             return True
@@ -25,16 +26,23 @@ def is_feature_supported(supported_cpu_features, feature):
 
     return False
 
-
-def get_required_emulator(arch_flags):
-    SDE_EMULATOR = f"{SDE_PATH} {SDE_OPTIONS} -- "
-
+def get_supported_cpu_features():
     supported_cpu_features = []
     with open("/proc/cpuinfo", "r") as f:
         for line in f:
             if line.startswith("flags"):
                 supported_cpu_features = line.split(": ")[1].split(" ")
                 break
+
+    for i in range(len(supported_cpu_features)):
+        supported_cpu_features[i] = supported_cpu_features[i].strip().lower().replace("_", "").replace("-", "").replace(".", "")
+
+    return supported_cpu_features
+
+def get_required_emulator(arch_flags):
+    SDE_EMULATOR = f"{SDE_PATH} {SDE_OPTIONS} -- "
+
+    supported_cpu_features = get_supported_cpu_features()
 
     req_cpu_features = []
     for arch_flag in arch_flags.split(" "):

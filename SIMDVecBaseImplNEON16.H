@@ -165,7 +165,7 @@ template <typename T>
 class Vec<T, 16>
 {
   using RegType = typename internal::base::SIMDVecNeon<T>::Type;
-  RegType reg;
+  RegType reg   = {};
 
 public:
   using Type                    = T;

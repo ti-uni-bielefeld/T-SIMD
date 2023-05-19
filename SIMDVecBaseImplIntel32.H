@@ -80,7 +80,7 @@ namespace simd {
 template <typename T>
 class Vec<T, 32>
 {
-  __m256i ymm;
+  __m256i ymm = _mm256_setzero_si256();
 
 public:
   using Type                    = T;
@@ -119,7 +119,7 @@ public:
 template <>
 class Vec<Float, 32>
 {
-  __m256 ymm;
+  __m256 ymm = _mm256_setzero_ps();
 
 public:
   using Type                    = Float;

@@ -91,7 +91,12 @@
 
 // 31. Mar 22 (rm): gcc on ARM doesn't define __arm__
 // #if defined(__arm__) && (defined(__ARM_NEON__) || defined(__ARM_NEON))
-#if defined(__ARM_NEON__) || defined(__ARM_NEON)
+// 20. May 23 (Jonas Keller): apparently, some gcc versions in ARM *only* define
+// __arm__, so added checks for more possible defines to cover as many compilers
+// as possible
+// #if defined(__ARM_NEON__) || defined(__ARM_NEON)
+#if defined(__arm__) || defined(__aarch64__) || defined(__ARM_NEON__) ||       \
+  defined(__ARM_NEON) || defined(_M_ARM) || defined(_M_ARM64)
 #define SIMDVEC_NEON_ENABLE 1
 
 #define _SIMD_VEC_16_AVAIL_
@@ -99,7 +104,13 @@
 // determine NATIVE_SIMD_WIDTH
 #define NATIVE_SIMD_WIDTH 16
 
-#endif // defined(__ARM_NEON__) || defined(__ARM_NEON)
+#endif // arm defines
+
+// 20. May 23 (Jonas Keller):
+// added error message if no SIMD support was detected
+#ifndef _SIMD_VEC_16_AVAIL_
+#error "no SIMD support detected"
+#endif
 
 // set NATIVE_SIMD_WIDTH to be at most MAX_SIMD_WIDTH
 #ifdef MAX_SIMD_WIDTH

@@ -174,18 +174,12 @@ if __name__ == "__main__":
                 ram_size_kb = int(line.split()[1])
                 break
 
-    # 10 GB per process
-    num_procs_ram = ram_size_kb // (10 * 1024 * 1024)
+    # reserve 15 GB per process to be sure
+    num_procs_ram = ram_size_kb // (15 * 1024 * 1024)
 
-    if num_procs_ram < num_procs_cores:
-        # ask user if they want to continue
-        print(
-            f"WARNING: This script will run one test per core in parallel, ({num_procs_cores}), but your system only has ({ram_size_kb // (1024 * 1024)}) GB of RAM. This means that each process will have less than 10 GB of RAM available, which might cause the RAM to fill up and the system to freeze. Do you want to continue? (y/n)")
-        answer = input()
-        if answer != "y":
-            sys.exit(1)
+    num_procs = min(num_procs_cores, num_procs_ram)
 
-    num_procs = num_procs_cores
+    print(f"Using {num_procs} processes")
 
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)

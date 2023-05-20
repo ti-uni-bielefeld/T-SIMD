@@ -3965,16 +3965,22 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
 static SIMD_INLINE void swizzle(Vec<T, 32> v[3], Integer<3>)
 {
   const Vec<Double, 32> vDouble[3] = {
-    reinterpret(v[0], OutputType<Double>()),
-    reinterpret(v[1], OutputType<Double>()),
-    reinterpret(v[2], OutputType<Double>()),
+    reinterpret(v[0], OutputType<Double>()), // x0y0z0x1
+    reinterpret(v[1], OutputType<Double>()), // y1z1x2y2
+    reinterpret(v[2], OutputType<Double>()), // z2x3y3z3
   };
   Vec<Double, 32> vs[3];
   swizzle_32_16<3>(vDouble, vs);
+  // vs[0] = x0y0x2y2
+  // vs[1] = z0x1z2x3
+  // vs[2] = y1z1y3z3
   const Vec<Double, 32> vOut[3] = {
-    _mm256_shuffle_pd(vs[0], vs[1], _MM_SHUFFLE2(1, 0)),
-    _mm256_shuffle_pd(vs[0], vs[1], _MM_SHUFFLE2(0, 1)),
-    _mm256_shuffle_pd(vs[1], vs[2], _MM_SHUFFLE2(1, 0)),
+    // x0x1x2x3
+    _mm256_shuffle_pd(vs[0], vs[1], 0xa), // 0b1010
+    // y0y1y2y3
+    _mm256_shuffle_pd(vs[0], vs[2], 0x5), // 0b0101
+    // z0z1z2z3
+    _mm256_shuffle_pd(vs[1], vs[2], 0xa), // 0b1010
   };
   v[0] = reinterpret(vOut[0], OutputType<T>());
   v[1] = reinterpret(vOut[1], OutputType<T>());
@@ -4034,22 +4040,28 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
           typename = void>
 static SIMD_INLINE void swizzle(Vec<T, 32> v[4], Integer<4>)
 {
-  Vec<Double, 32> vInt[4];
-  for (int i = 0; i < 4; ++i) {
-    vInt[i] = reinterpret(v[i], OutputType<Double>());
-  }
+  const Vec<Double, 32> vInt[4] = {
+    reinterpret(v[0], OutputType<Double>()), // x0y0z0w0
+    reinterpret(v[1], OutputType<Double>()), // x1y1z1w1
+    reinterpret(v[2], OutputType<Double>()), // x2y2z2w2
+    reinterpret(v[3], OutputType<Double>()), // x3y3z3w3
+  };
   Vec<Double, 32> vs[4];
   swizzle_32_16<4>(vInt, vs);
-  __m256d s[4];
-  s[0] = _mm256_shuffle_pd(vs[0], vs[1], _MM_SHUFFLE2(1, 0));
-  s[1] = _mm256_shuffle_pd(vs[0], vs[1], _MM_SHUFFLE2(0, 1));
-  s[2] = _mm256_shuffle_pd(vs[2], vs[3], _MM_SHUFFLE2(1, 0));
-  s[3] = _mm256_shuffle_pd(vs[2], vs[3], _MM_SHUFFLE2(0, 1));
-  Vec<T, 32> vOut[4];
-  vOut[0] = _mm256_shuffle_pd(s[0], s[2], _MM_SHUFFLE2(1, 0));
-  vOut[1] = _mm256_shuffle_pd(s[0], s[2], _MM_SHUFFLE2(0, 1));
-  vOut[2] = _mm256_shuffle_pd(s[1], s[3], _MM_SHUFFLE2(1, 0));
-  vOut[3] = _mm256_shuffle_pd(s[1], s[3], _MM_SHUFFLE2(0, 1));
+  // vs[0] = x0y0x2y2
+  // vs[1] = z0w0z2w2
+  // vs[2] = x1y1x3y3
+  // vs[3] = z1w1z3w3
+  const Vec<Double, 32> vOut[4] = {
+    // x0x1x2x3
+    _mm256_shuffle_pd(vs[0], vs[2], 0x0), // 0b0000
+    // y0y1y2y3
+    _mm256_shuffle_pd(vs[0], vs[2], 0xF), // 0b1111
+    // z0z1z2z3
+    _mm256_shuffle_pd(vs[1], vs[3], 0x0), // 0b0000
+    // w0w1w2w3
+    _mm256_shuffle_pd(vs[1], vs[3], 0xF), // 0b1111
+  };
   for (int i = 0; i < 4; ++i) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
@@ -4188,14 +4200,33 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
           typename = void, typename = void>
 static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
 {
-  Vec<Double, 32> vDouble[5];
-  for (int i = 0; i < 5; i++) {
-    vDouble[i] = reinterpret(v[i], OutputType<Double>());
-  }
+  const Vec<Double, 32> vDouble[5] = {
+    reinterpret(v[0], OutputType<Double>()), // x0y0z0w0
+    reinterpret(v[1], OutputType<Double>()), // v0x1y1z1
+    reinterpret(v[2], OutputType<Double>()), // w1v1x2y2
+    reinterpret(v[3], OutputType<Double>()), // z2w2v2x3
+    reinterpret(v[4], OutputType<Double>()), // y3z3w3v3
+  };
   Vec<Double, 32> vs[5];
   swizzle_32_16<5>(vDouble, vs);
-  // ...
-  // TODO
+  // vs[0] = x0y0x2y2
+  // vs[1] = z0w0z2w2
+  // vs[2] = v0x1v2x3
+  // vs[3] = y1z1y3z3
+  // vs[4] = w1v1w3v3
+  const Vec<Double, 32> vOut[5] = {
+    // x0x1x2x3
+    _mm256_shuffle_pd(vs[0], vs[2], 0xa), // 0b1010
+    // y0y1y2y3
+    _mm256_shuffle_pd(vs[0], vs[3], 0x5), // 0b0101
+    // z0z1z2z3
+    _mm256_shuffle_pd(vs[1], vs[3], 0xa), // 0b1010
+    // w0w1w2w3
+    _mm256_shuffle_pd(vs[1], vs[4], 0x5), // 0b0101
+    // v0v1v2v3
+    _mm256_shuffle_pd(vs[2], vs[4], 0xa), // 0b1010
+  };
+  for (int i = 0; i < 5; i++) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
 }
 
 // ---------------------------------------------------------------------------

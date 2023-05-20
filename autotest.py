@@ -66,6 +66,10 @@ def generate_test_configs():
         "clang++",
         "g++",
     ]:
+        if os.system(f"which {compiler} > /dev/null 2>&1") != 0:
+            print(f"WARNING: compiler \"{compiler}\" not found, skipping")
+            continue
+
         for opt_flags in [
             # "-O0", compiling with -O0 takes an unreasonable amount ram (like up to 70 GB (wtf?))
             "-O1",

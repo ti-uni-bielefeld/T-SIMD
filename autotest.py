@@ -10,7 +10,7 @@ SDE_PATH = ""
 
 SDE_OPTIONS = "-align_checker_action ignore -gnr"
 
-LOG_DIR = f"autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
+LOG_DIR = f"autotest_{os.popen('hostname').read().strip()}_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
 TMP_BUILD_DIR = f"/tmp/T-SIMD_autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
 
 

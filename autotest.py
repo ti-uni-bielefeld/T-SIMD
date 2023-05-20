@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
     num_procs = min(num_procs_cores, num_procs_ram)
 
-    print(f"Using {num_procs} processes")
+    print(f"Using {num_procs} processes ({num_procs_cores} based on number of cores, {num_procs_ram} based on RAM size)")
 
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)

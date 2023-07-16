@@ -1624,7 +1624,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ifelse(
   SerialVec<T, SIMD_WIDTH> res;
   // avoids comparison with TypeInfo::trueval, which fails for
   // Float (NaN)
-  SerialVec<Tcond, SIMD_WIDTH> negCond = not_(cond);
+  SerialVec<Tcond, SIMD_WIDTH> negCond = bit_not(cond);
   for (int i = 0; i < res.elements; i++)
     if (negCond[i] == Tcond(0))
       res[i] = trueVal[i];
@@ -1698,7 +1698,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> cmpneq(
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<T, SIMD_WIDTH> and_(
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_and(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
@@ -1707,15 +1707,15 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> and_(
 }
 
 template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> and_(
+static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_and(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
   SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
-  return SerialVec<Float, SIMD_WIDTH>(and_(ai, bi));
+  return SerialVec<Float, SIMD_WIDTH>(bit_and(ai, bi));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<T, SIMD_WIDTH> or_(
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_or(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
@@ -1724,15 +1724,15 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> or_(
 }
 
 template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> or_(
+static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_or(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
   SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
-  return SerialVec<Float, SIMD_WIDTH>(or_(ai, bi));
+  return SerialVec<Float, SIMD_WIDTH>(bit_or(ai, bi));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<T, SIMD_WIDTH> andnot(
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_andnot(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
@@ -1741,15 +1741,15 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> andnot(
 }
 
 template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> andnot(
+static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_andnot(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
   SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
-  return SerialVec<Float, SIMD_WIDTH>(andnot(ai, bi));
+  return SerialVec<Float, SIMD_WIDTH>(bit_andnot(ai, bi));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<T, SIMD_WIDTH> xor_(
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_xor(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
@@ -1758,15 +1758,15 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> xor_(
 }
 
 template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> xor_(
+static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_xor(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
   SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
-  return SerialVec<Float, SIMD_WIDTH>(xor_(ai, bi));
+  return SerialVec<Float, SIMD_WIDTH>(bit_xor(ai, bi));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<T, SIMD_WIDTH> not_(
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_not(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
@@ -1775,11 +1775,11 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> not_(
 }
 
 template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> not_(
+static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_not(
   const SerialVec<Float, SIMD_WIDTH> &a)
 {
   SerialVec<Int, SIMD_WIDTH> ai(a);
-  return SerialVec<Float, SIMD_WIDTH>(not_(ai));
+  return SerialVec<Float, SIMD_WIDTH>(bit_not(ai));
 }
 
 // int types except Int
@@ -1839,7 +1839,7 @@ static SIMD_INLINE int test_all_ones(const SerialVec<T, SIMD_WIDTH> &a)
 {
   // avoids comparison with TypeInfo::trueval, which fails for
   // Float (NaN)
-  SerialVec<T, SIMD_WIDTH> aNot = not_(a);
+  SerialVec<T, SIMD_WIDTH> aNot = bit_not(a);
   for (int i = 0; i < a.elements; i++)
     if (aNot[i] != T(0)) return 0;
   return 1;

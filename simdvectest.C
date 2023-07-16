@@ -1353,17 +1353,17 @@ int main()
 
   Vec<Float, SW> _zero = setzero<Float, SW>();
   Vec<Float, SW> _ones = setones<Float, SW>();
-  printf("xor_(zero, zero) = ");
-  print("%g ", xor_(_zero, _zero));
+  printf("bit_xor(zero, zero) = ");
+  print("%g ", bit_xor(_zero, _zero));
   puts("");
-  printf("xor_(zero, ones) = ");
-  print("%g ", xor_(_zero, _ones));
+  printf("bit_xor(zero, ones) = ");
+  print("%g ", bit_xor(_zero, _ones));
   puts("");
-  printf("xor_(ones, zero) = ");
-  print("%g ", xor_(_ones, _zero));
+  printf("bit_xor(ones, zero) = ");
+  print("%g ", bit_xor(_ones, _zero));
   puts("");
-  printf("xor_(ones, ones) = ");
-  print("%g ", xor_(_ones, _ones));
+  printf("bit_xor(ones, ones) = ");
+  print("%g ", bit_xor(_ones, _ones));
   puts("");
 
   puts("\n*********** test of cvts ************\n");

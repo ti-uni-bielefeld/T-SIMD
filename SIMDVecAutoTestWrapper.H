@@ -1325,7 +1325,7 @@ struct And
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
-    return and_(a, b);
+    return bit_and(a, b);
   }
 };
 
@@ -1343,14 +1343,17 @@ struct Or
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
-    return or_(a, b);
+    return bit_or(a, b);
   }
 };
 
 template <typename T, int SIMD_WIDTH>
 struct Andnot
 {
-  static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("andnot"); }
+  static SIMD_INLINE std::string name()
+  {
+    return t2s<T, SIMD_WIDTH>("bit_andnot");
+  }
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
@@ -1361,7 +1364,7 @@ struct Andnot
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
-    return andnot(a, b);
+    return bit_andnot(a, b);
   }
 };
 
@@ -1379,7 +1382,7 @@ struct Xor
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
-    return xor_(a, b);
+    return bit_xor(a, b);
   }
 };
 
@@ -1396,7 +1399,7 @@ struct Not
   template <template <typename, int> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
-    return not_(a);
+    return bit_not(a);
   }
 };
 

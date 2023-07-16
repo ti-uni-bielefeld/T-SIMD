@@ -90,6 +90,38 @@ using SIMDDecimal = Decimal<T>;
 template <typename Tout, typename Tin>
 using NumSIMDVecs = NumVecs<Tout, Tin>;
 
+/// Alias for bit_and(). @deprecated Use bit_and() instead.
+template <typename T, int SIMD_WIDTH>
+static constexpr SIMD_INLINE Vec<T, SIMD_WIDTH> and_(
+  const Vec<T, SIMD_WIDTH> &a, const Vec<T, SIMD_WIDTH> &b)
+{
+  return bit_and(a, b);
+}
+
+/// Alias for bit_or(). @deprecated Use bit_or() instead.
+template <typename T, int SIMD_WIDTH>
+static constexpr SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &a,
+                                                    const Vec<T, SIMD_WIDTH> &b)
+{
+  return bit_or(a, b);
+}
+
+/// Alias for bit_xor(). @deprecated Use bit_xor() instead.
+template <typename T, int SIMD_WIDTH>
+static constexpr SIMD_INLINE Vec<T, SIMD_WIDTH> xor_(
+  const Vec<T, SIMD_WIDTH> &a, const Vec<T, SIMD_WIDTH> &b)
+{
+  return bit_xor(a, b);
+}
+
+/// Alias for bit_not(). @deprecated Use bit_not() instead.
+template <typename T, int SIMD_WIDTH>
+static constexpr SIMD_INLINE Vec<T, SIMD_WIDTH> not_(
+  const Vec<T, SIMD_WIDTH> &a)
+{
+  return bit_not(a);
+}
+
 /// Alias for Vec<T, SIMD_WIDTH>::elems. @deprecated Use Vec::elems instead.
 template <typename T, int SIMD_WIDTH>
 static constexpr SIMD_INLINE int numSIMDVecElements()

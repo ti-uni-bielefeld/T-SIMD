@@ -1062,7 +1062,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_truncate(
 
 /**
  * @brief Masked version of
- * and_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
+ * bit_and(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_and(const Vec<T, SIMD_WIDTH> &src,
@@ -1075,7 +1075,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_and(const Vec<T, SIMD_WIDTH> &src,
 
 /**
  * @brief Zero-masked version of
- * and_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
+ * bit_and(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_and(const Mask<T, SIMD_WIDTH> &k,
@@ -1087,7 +1087,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_and(const Mask<T, SIMD_WIDTH> &k,
 
 /**
  * @brief Masked version of
- * or_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
+ * bit_or(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_or(const Vec<T, SIMD_WIDTH> &src,
@@ -1100,7 +1100,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_or(const Vec<T, SIMD_WIDTH> &src,
 
 /**
  * @brief Zero-masked version of
- * or_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
+ * bit_or(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_or(const Mask<T, SIMD_WIDTH> &k,
@@ -1112,7 +1112,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_or(const Mask<T, SIMD_WIDTH> &k,
 
 /**
  * @brief Masked version of
- * andnot(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
+ * bit_andnot(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_andnot(const Vec<T, SIMD_WIDTH> &src,
@@ -1125,7 +1125,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_andnot(const Vec<T, SIMD_WIDTH> &src,
 
 /**
  * @brief Zero-masked version of
- * andnot(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
+ * bit_andnot(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_andnot(const Mask<T, SIMD_WIDTH> &k,
@@ -1137,7 +1137,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_andnot(const Mask<T, SIMD_WIDTH> &k,
 
 /**
  * @brief Masked version of
- * xor_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
+ * bit_xor(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_xor(const Vec<T, SIMD_WIDTH> &src,
@@ -1150,7 +1150,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_xor(const Vec<T, SIMD_WIDTH> &src,
 
 /**
  * @brief Zero-masked version of
- * xor_(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
+ * bit_xor(const Vec<T, SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_xor(const Mask<T, SIMD_WIDTH> &k,
@@ -1162,7 +1162,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_xor(const Mask<T, SIMD_WIDTH> &k,
 
 /**
  * @brief Masked version of
- * not_(const Vec<T, SIMD_WIDTH> &).
+ * bit_not(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_not(const Vec<T, SIMD_WIDTH> &src,
@@ -1174,7 +1174,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_not(const Vec<T, SIMD_WIDTH> &src,
 
 /**
  * @brief Zero-masked version of
- * not_(const Vec<T, SIMD_WIDTH> &).
+ * bit_not(const Vec<T, SIMD_WIDTH> &).
  */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_not(const Mask<T, SIMD_WIDTH> &k,

@@ -1357,7 +1357,7 @@ static SIMD_INLINE Vec<Int, 64> mask_avg(const Vec<Int, 64> &src,
                                          const Vec<Int, 64> &b)
 {
   Vec<Int, 64> one = ::simd::set1<Int, 64>(1), as, bs, lsb;
-  lsb              = and_(or_(a, b), one);
+  lsb              = bit_and(bit_or(a, b), one);
   as               = srai<1>(a);
   bs               = srai<1>(b);
   return mask_add(src, k, lsb, add(as, bs));
@@ -1368,7 +1368,7 @@ static SIMD_INLINE Vec<Int, 64> maskz_avg(const Mask<Int, 64> &k,
                                           const Vec<Int, 64> &b)
 {
   Vec<Int, 64> one = ::simd::set1<Int, 64>(1), as, bs, lsb;
-  lsb              = and_(or_(a, b), one);
+  lsb              = bit_and(bit_or(a, b), one);
   as               = srai<1>(a);
   bs               = srai<1>(b);
   return maskz_add(k, lsb, add(as, bs));

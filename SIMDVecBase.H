@@ -737,35 +737,29 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> truncate(const Vec<T, SIMD_WIDTH> &a)
 /**
  * @brief Computes the bitwise AND of two Vec's.
  *
- * @note This function is called @c "and_" instead of @c "and" because the
- * latter is a reserved word in C++.
- *
  * @param a first Vec
  * @param b second Vec
  * @return Vec containing the bitwise AND of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> and_(const Vec<T, SIMD_WIDTH> &a,
-                                           const Vec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_and(const Vec<T, SIMD_WIDTH> &a,
+                                              const Vec<T, SIMD_WIDTH> &b)
 {
-  return internal::base::and_(a, b);
+  return internal::base::bit_and(a, b);
 }
 
 /**
  * @brief Computes the bitwise OR of two Vec's.
- *
- * @note This function is called @c "or_" instead of @c "or" because the
- * latter is a reserved word in C++.
  *
  * @param a first Vec
  * @param b second Vec
  * @return Vec containing the bitwise OR of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &a,
-                                          const Vec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_or(const Vec<T, SIMD_WIDTH> &a,
+                                             const Vec<T, SIMD_WIDTH> &b)
 {
-  return internal::base::or_(a, b);
+  return internal::base::bit_or(a, b);
 }
 
 /**
@@ -778,42 +772,36 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &a,
  * @return Vec containing the bitwise ANDNOT of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> andnot(const Vec<T, SIMD_WIDTH> &a,
-                                             const Vec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_andnot(const Vec<T, SIMD_WIDTH> &a,
+                                                 const Vec<T, SIMD_WIDTH> &b)
 {
-  return internal::base::andnot(a, b);
+  return internal::base::bit_andnot(a, b);
 }
 
 /**
  * @brief Computes the bitwise XOR of two Vec's.
- *
- * @note This function is called @c "xor_" instead of @c "xor" because the
- * latter is a reserved word in C++.
  *
  * @param a first Vec
  * @param b second Vec
  * @return Vec containing the bitwise XOR of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> xor_(const Vec<T, SIMD_WIDTH> &a,
-                                           const Vec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_xor(const Vec<T, SIMD_WIDTH> &a,
+                                              const Vec<T, SIMD_WIDTH> &b)
 {
-  return internal::base::xor_(a, b);
+  return internal::base::bit_xor(a, b);
 }
 
 /**
  * @brief Computes the bitwise NOT of a Vec.
  *
- * @note This function is called @c "not_" instead of @c "not" because the
- * latter is a reserved word in C++.
- *
  * @param a Vec
  * @return Vec containing the bitwise NOT of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> not_(const Vec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_not(const Vec<T, SIMD_WIDTH> &a)
 {
-  return internal::base::not_(a);
+  return internal::base::bit_not(a);
 }
 
 /** @} */

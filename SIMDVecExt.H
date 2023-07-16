@@ -1314,7 +1314,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
   Vec<T, SIMD_WIDTH> one = set1<T, SIMD_WIDTH>(1), as, bs, lsb;
-  lsb                    = and_(and_(a, b), one);
+  lsb                    = bit_and(bit_and(a, b), one);
   as                     = div2rd(a);
   bs                     = div2rd(b);
   return add(lsb, add(as, bs));
@@ -1502,7 +1502,7 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> sign(const Vec<Float, SIMD_WIDTH> &a,
                                                const Vec<Float, SIMD_WIDTH> &b)
 {
   // -0.0F aka. 0x80000000 aka. 1000...b
-  return xor_(a, and_(set1<Float, SIMD_WIDTH>(-0.0F), b));
+  return bit_xor(a, bit_and(set1<Float, SIMD_WIDTH>(-0.0F), b));
 }
 
 // ===========================================================================
@@ -1524,7 +1524,7 @@ static SIMD_INLINE Vec<Byte, SIMD_WIDTH> absDiff(
   const Vec<Byte, SIMD_WIDTH> &v1, const Vec<Byte, SIMD_WIDTH> &v2)
 {
   // Trick working around non-existing abs() for unsigned Type
-  return or_(subs(v1, v2), subs(v2, v1));
+  return bit_or(subs(v1, v2), subs(v2, v1));
 }
 
 template <int SIMD_WIDTH>
@@ -1532,7 +1532,7 @@ static SIMD_INLINE Vec<Word, SIMD_WIDTH> absDiff(
   const Vec<Word, SIMD_WIDTH> &v1, const Vec<Word, SIMD_WIDTH> &v2)
 {
   // Trick working around non-existing abs() for unsigned Type
-  return or_(subs(v1, v2), subs(v2, v1));
+  return bit_or(subs(v1, v2), subs(v2, v1));
 }
 
 // Use these overloads of the function template if Type is signed
@@ -3541,12 +3541,12 @@ SIMDVEC_BINOP(operator-, subs)
 SIMDVEC_BINOP(operator*, mul)
 /// @brief Division operator. Maps to div(). @sa div()
 SIMDVEC_BINOP(operator/, div)
-/// @brief Bitwise AND operator. Maps to and_(). @sa and_()
-SIMDVEC_BINOP(operator&, and_)
-/// @brief Bitwise OR operator. Maps to or_(). @sa or_()
-SIMDVEC_BINOP(operator|, or_)
-/// @brief Bitwise XOR operator. Maps to xor_(). @sa xor_()
-SIMDVEC_BINOP(operator^, xor_)
+/// @brief Bitwise AND operator. Maps to bit_and(). @sa bit_and()
+SIMDVEC_BINOP(operator&, bit_and)
+/// @brief Bitwise OR operator. Maps to bit_or(). @sa bit_or()
+SIMDVEC_BINOP(operator|, bit_or)
+/// @brief Bitwise XOR operator. Maps to bit_xor(). @sa bit_xor()
+SIMDVEC_BINOP(operator^, bit_xor)
 
 /// @brief Addition assignment operator. Maps to adds(). @sa adds()
 SIMDVEC_BINOPEQ(operator+=, adds)
@@ -3556,12 +3556,12 @@ SIMDVEC_BINOPEQ(operator-=, subs)
 SIMDVEC_BINOPEQ(operator*=, mul)
 /// @brief Division assignment operator. Maps to div(). @sa div()
 SIMDVEC_BINOPEQ(operator/=, div)
-/// @brief Bitwise AND assignment operator. Maps to and_(). @sa and_()
-SIMDVEC_BINOPEQ(operator&=, and_)
-/// @brief Bitwise OR assignment operator. Maps to or_(). @sa or_()
-SIMDVEC_BINOPEQ(operator|=, or_)
-/// @brief Bitwise XOR assignment operator. Maps to xor_(). @sa xor_()
-SIMDVEC_BINOPEQ(operator^=, xor_)
+/// @brief Bitwise AND assignment operator. Maps to bit_and(). @sa bit_and()
+SIMDVEC_BINOPEQ(operator&=, bit_and)
+/// @brief Bitwise OR assignment operator. Maps to bit_or(). @sa bit_or()
+SIMDVEC_BINOPEQ(operator|=, bit_or)
+/// @brief Bitwise XOR assignment operator. Maps to bit_xor(). @sa bit_xor()
+SIMDVEC_BINOPEQ(operator^=, bit_xor)
 
 /// @brief Greater than operator. Maps to cmpgt(). @sa cmpgt()
 SIMDVEC_BINOP(operator>, cmpgt)
@@ -3578,8 +3578,8 @@ SIMDVEC_BINOP(operator<, cmplt)
 
 /// @brief Negation operator. Maps to neg(). @sa neg()
 SIMDVEC_UNOP(operator-, neg)
-/// @brief Bitwise NOT operator. Maps to not_(). @sa not_()
-SIMDVEC_UNOP(operator~, not_)
+/// @brief Bitwise NOT operator. Maps to bit_not(). @sa bit_not()
+SIMDVEC_UNOP(operator~, bit_not)
 
 /** @} */
 } // namespace simd

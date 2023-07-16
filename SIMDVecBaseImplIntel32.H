@@ -4077,12 +4077,12 @@ static SIMD_INLINE Vec<T, 32> ifelse(const Vec<T, 32> &cond,
 }
 
 // ---------------------------------------------------------------------------
-// and
+// bit_and
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 32> and_(const Vec<T, 32> &a, const Vec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> bit_and(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
 #ifdef __AVX2__
   return _mm256_and_si256(a, b);
@@ -4094,19 +4094,19 @@ static SIMD_INLINE Vec<T, 32> and_(const Vec<T, 32> &a, const Vec<T, 32> &b)
 }
 
 // float version
-static SIMD_INLINE Vec<Float, 32> and_(const Vec<Float, 32> &a,
-                                       const Vec<Float, 32> &b)
+static SIMD_INLINE Vec<Float, 32> bit_and(const Vec<Float, 32> &a,
+                                          const Vec<Float, 32> &b)
 {
   return _mm256_and_ps(a, b);
 }
 
 // ---------------------------------------------------------------------------
-// or
+// bit_or
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 32> or_(const Vec<T, 32> &a, const Vec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> bit_or(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
 #ifdef __AVX2__
   return _mm256_or_si256(a, b);
@@ -4118,19 +4118,20 @@ static SIMD_INLINE Vec<T, 32> or_(const Vec<T, 32> &a, const Vec<T, 32> &b)
 }
 
 // float version
-static SIMD_INLINE Vec<Float, 32> or_(const Vec<Float, 32> &a,
-                                      const Vec<Float, 32> &b)
+static SIMD_INLINE Vec<Float, 32> bit_or(const Vec<Float, 32> &a,
+                                         const Vec<Float, 32> &b)
 {
   return _mm256_or_ps(a, b);
 }
 
 // ---------------------------------------------------------------------------
-// andnot
+// bit_andnot
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 32> andnot(const Vec<T, 32> &a, const Vec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> bit_andnot(const Vec<T, 32> &a,
+                                         const Vec<T, 32> &b)
 {
 #ifdef __AVX2__
   return _mm256_andnot_si256(a, b);
@@ -4142,19 +4143,19 @@ static SIMD_INLINE Vec<T, 32> andnot(const Vec<T, 32> &a, const Vec<T, 32> &b)
 }
 
 // float version
-static SIMD_INLINE Vec<Float, 32> andnot(const Vec<Float, 32> &a,
-                                         const Vec<Float, 32> &b)
+static SIMD_INLINE Vec<Float, 32> bit_andnot(const Vec<Float, 32> &a,
+                                             const Vec<Float, 32> &b)
 {
   return _mm256_andnot_ps(a, b);
 }
 
 // ---------------------------------------------------------------------------
-// xor
+// bit_xor
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 32> xor_(const Vec<T, 32> &a, const Vec<T, 32> &b)
+static SIMD_INLINE Vec<T, 32> bit_xor(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
 #ifdef __AVX2__
   return _mm256_xor_si256(a, b);
@@ -4166,19 +4167,19 @@ static SIMD_INLINE Vec<T, 32> xor_(const Vec<T, 32> &a, const Vec<T, 32> &b)
 }
 
 // float version
-static SIMD_INLINE Vec<Float, 32> xor_(const Vec<Float, 32> &a,
-                                       const Vec<Float, 32> &b)
+static SIMD_INLINE Vec<Float, 32> bit_xor(const Vec<Float, 32> &a,
+                                          const Vec<Float, 32> &b)
 {
   return _mm256_xor_ps(a, b);
 }
 
 // ---------------------------------------------------------------------------
-// not
+// bit_not
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 32> not_(const Vec<T, 32> &a)
+static SIMD_INLINE Vec<T, 32> bit_not(const Vec<T, 32> &a)
 {
 #ifdef __AVX2__
   return _mm256_xor_si256(a, _mm256_set1_epi32(-1));
@@ -4190,7 +4191,7 @@ static SIMD_INLINE Vec<T, 32> not_(const Vec<T, 32> &a)
 }
 
 // float version
-static SIMD_INLINE Vec<Float, 32> not_(const Vec<Float, 32> &a)
+static SIMD_INLINE Vec<Float, 32> bit_not(const Vec<Float, 32> &a)
 {
   return _mm256_xor_ps(a, _mm256_castsi256_ps(_mm256_set1_epi32(-1)));
 }
@@ -4256,7 +4257,7 @@ static SIMD_INLINE Vec<Int, 32> avg(const Vec<Int, 32> &a,
                                     const Vec<Int, 32> &b)
 {
   Vec<Int, 32> one = set1(Int(1), Integer<32>()), as, bs, lsb;
-  lsb              = and_(or_(a, b), one);
+  lsb              = bit_and(bit_or(a, b), one);
   as               = srai<1>(a);
   bs               = srai<1>(b);
   return add(lsb, add(as, bs));

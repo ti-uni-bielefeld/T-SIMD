@@ -3044,91 +3044,92 @@ static SIMD_INLINE Vec<Float, 16> cmpneq(const Vec<Float, 16> &a,
 }
 
 // ---------------------------------------------------------------------------
-// and
+// bit_and
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 16> and_(const Vec<T, 16> &a, const Vec<T, 16> &b)
+static SIMD_INLINE Vec<T, 16> bit_and(const Vec<T, 16> &a, const Vec<T, 16> &b)
 {
   return _mm_and_si128(a, b);
 }
 
 // float version
-static SIMD_INLINE Vec<Float, 16> and_(const Vec<Float, 16> &a,
-                                       const Vec<Float, 16> &b)
+static SIMD_INLINE Vec<Float, 16> bit_and(const Vec<Float, 16> &a,
+                                          const Vec<Float, 16> &b)
 {
   return _mm_and_ps(a, b);
 }
 
 // ---------------------------------------------------------------------------
-// or
+// bit_or
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 16> or_(const Vec<T, 16> &a, const Vec<T, 16> &b)
+static SIMD_INLINE Vec<T, 16> bit_or(const Vec<T, 16> &a, const Vec<T, 16> &b)
 {
   return _mm_or_si128(a, b);
 }
 
 // float version
-static SIMD_INLINE Vec<Float, 16> or_(const Vec<Float, 16> &a,
-                                      const Vec<Float, 16> &b)
+static SIMD_INLINE Vec<Float, 16> bit_or(const Vec<Float, 16> &a,
+                                         const Vec<Float, 16> &b)
 {
   return _mm_or_ps(a, b);
 }
 
 // ---------------------------------------------------------------------------
-// andnot
+// bit_andnot
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 16> andnot(const Vec<T, 16> &a, const Vec<T, 16> &b)
+static SIMD_INLINE Vec<T, 16> bit_andnot(const Vec<T, 16> &a,
+                                         const Vec<T, 16> &b)
 {
   return _mm_andnot_si128(a, b);
 }
 
 // float version
-static SIMD_INLINE Vec<Float, 16> andnot(const Vec<Float, 16> &a,
-                                         const Vec<Float, 16> &b)
+static SIMD_INLINE Vec<Float, 16> bit_andnot(const Vec<Float, 16> &a,
+                                             const Vec<Float, 16> &b)
 {
   return _mm_andnot_ps(a, b);
 }
 
 // ---------------------------------------------------------------------------
-// xor
+// bit_xor
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 16> xor_(const Vec<T, 16> &a, const Vec<T, 16> &b)
+static SIMD_INLINE Vec<T, 16> bit_xor(const Vec<T, 16> &a, const Vec<T, 16> &b)
 {
   return _mm_xor_si128(a, b);
 }
 
 // float version
-static SIMD_INLINE Vec<Float, 16> xor_(const Vec<Float, 16> &a,
-                                       const Vec<Float, 16> &b)
+static SIMD_INLINE Vec<Float, 16> bit_xor(const Vec<Float, 16> &a,
+                                          const Vec<Float, 16> &b)
 {
   return _mm_xor_ps(a, b);
 }
 
 // ---------------------------------------------------------------------------
-// not
+// bit_not
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 16> not_(const Vec<T, 16> &a)
+static SIMD_INLINE Vec<T, 16> bit_not(const Vec<T, 16> &a)
 {
   // there is no _mm_not_si128, so xor with all 1's
   return _mm_xor_si128(a, _mm_set1_epi32(-1));
 }
 
 // float version
-static SIMD_INLINE Vec<Float, 16> not_(const Vec<Float, 16> &a)
+static SIMD_INLINE Vec<Float, 16> bit_not(const Vec<Float, 16> &a)
 {
   // there is no _mm_not_ps, so xor with all 1's
   return _mm_xor_ps(a, _mm_castsi128_ps(_mm_set1_epi32(-1)));
@@ -3182,7 +3183,7 @@ static SIMD_INLINE Vec<Int, 16> avg(const Vec<Int, 16> &a,
                                     const Vec<Int, 16> &b)
 {
   Vec<Int, 16> one = set1(Int(1), Integer<16>()), as, bs, lsb;
-  lsb              = and_(or_(a, b), one);
+  lsb              = bit_and(bit_or(a, b), one);
   as               = srai<1>(a);
   bs               = srai<1>(b);
   return add(lsb, add(as, bs));

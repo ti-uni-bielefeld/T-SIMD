@@ -1,6 +1,6 @@
 // ===========================================================================
 //
-// ssse3_compat.H --
+// SIMDSSSE3Compat.H --
 // compatibility code for CPUs without SSE3 or SSSE3
 //
 // This source code file is part of the following software:

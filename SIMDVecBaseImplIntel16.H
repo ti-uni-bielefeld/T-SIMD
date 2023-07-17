@@ -36,9 +36,9 @@
 #include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDIntrinsIntel.H"
+#include "SIMDSSSE3Compat.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
-#include "ssse3_compat.H"
 
 #include <cstddef>
 #include <cstdint>

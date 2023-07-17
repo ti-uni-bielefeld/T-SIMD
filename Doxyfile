@@ -980,6 +980,7 @@ INPUT                  = DoxygenGroupIndex.H \
                          SIMDExperimental.H \
                          SIMDIntrinsIntel.H \
                          SIMDIntrinsNEON.H \
+                         SIMDSSSE3Compat.H \
                          SIMDTypes.H \
                          SIMDVec.H \
                          SIMDVecAll.H \
@@ -1002,7 +1003,6 @@ INPUT                  = DoxygenGroupIndex.H \
                          SIMDVecMaskImplIntel64.H \
                          SIMDVecMaskImplSandbox.H \
                          SIMDVecs.H \
-                         ssse3_compat.H \
                          TimeMeasurement.H \
                          tsimd.H
 

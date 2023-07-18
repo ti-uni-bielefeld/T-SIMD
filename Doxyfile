@@ -972,6 +972,7 @@ WARN_LOGFILE           =
 # correct order.
 INPUT                  = DoxygenGroupIndex.H \
                          LICENSE \
+                         LICENSE.md \
                          LICENSE.doc \
                          README.md \
                          SIMDAlloc.H \

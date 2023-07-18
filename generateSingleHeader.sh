@@ -38,7 +38,7 @@ sh_name=$1
 
 # check if quom is installed
 if ! which quom 2> /dev/null > /dev/null; then
-    echo "ERROR: quom is not installed, install from https://github.com/Viatorus/quom"
+    echo "ERROR: quom is not installed, install with \"pip3 install --user quom\" (see https://github.com/Viatorus/quom)"
     exit 1
 fi
 

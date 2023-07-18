@@ -59,15 +59,15 @@
  * etc.
  * @sa @ref group_mask_arithmetic
  *
- * @defgroup group_math_functions Elementary Math Functions
- * @brief Elementary mathematical functions on Vec's, such as sqrt, rcp,
+ * @defgroup group_math_operations Mathematical Operations
+ * @brief Mathematical operations on Vec's, such as min, max, rounding,
+ * etc.
+ * @sa @ref group_mask_math_operations
+ *
+ * @defgroup group_math_functions Mathematical Functions
+ * @brief Mathematical functions on Vec's, such as sqrt, rcp,
  * etc.
  * @sa @ref group_mask_math_functions
- *
- * @defgroup group_special_math Special Math Functions
- * @brief Special math functions on Vec's, such as min, max, rounding,
- * etc.
- * @sa @ref group_mask_special_math
  *
  * @defgroup group_horizontal Horizontal Functions
  * @brief Horizontal Functions
@@ -113,15 +113,15 @@
  * multiplication, etc.
  * @sa @ref group_arithmetic
  *
- * @defgroup group_mask_math_functions Masked Elementary Math Functions
- * @brief Masked elementary mathematical functions on Vec's, such as sqrt,
+ * @defgroup group_mask_math_operations Masked Mathematical Operations
+ * @brief Masked mathematical operations on Vec's, such as min, max,
+ * rounding, etc.
+ * @sa @ref group_math_operations
+ *
+ * @defgroup group_mask_math_functions Masked Mathematical Functions
+ * @brief Masked mathematical functions on Vec's, such as sqrt,
  * rcp, etc.
  * @sa @ref group_math_functions
- *
- * @defgroup group_mask_special_math Masked Special Math Functions
- * @brief Masked special math functions on Vec's, such as min, max,
- * rounding, etc.
- * @sa @ref group_special_math
  *
  * @defgroup group_mask_horizontal Masked Horizontal Functions
  * @brief Masked horizontal functions on Vec's.
@@ -139,6 +139,9 @@
  * @brief Functions for masked comparing elements of Vec's.
  * @sa @ref group_cmp
  *
+ * @defgroup group_other_mask Other Masked Functions
+ * @brief Other masked functions.
+ *
  * @}
  *
  * @defgroup group_reordering Reordering
@@ -151,6 +154,15 @@
  *
  * @defgroup group_transpose Transpose
  * @brief Functions for transposing a matrix held in an array of Vec's.
+ *
+ * @defgroup group_elementwise_shift Elementwise Shifting
+ * @brief Functions for shifting a Vec elementwise.
+ *
+ * @defgroup group_extract Extraction
+ * @brief Functions for extracting elements or lanes from Vec's.
+ *
+ * @defgroup group_zip_unpack Zip and Unpack
+ * @brief Zip, unzip and unpack functions.
  *
  * @}
  *

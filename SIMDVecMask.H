@@ -60,6 +60,11 @@ namespace simd {
  */
 
 /**
+ * @addtogroup group_other_mask
+ * @{
+ */
+
+/**
  * @brief Masked version of set1(const T).
  */
 template <typename T, int SIMD_WIDTH>
@@ -100,6 +105,8 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> maskz_cvts(
 {
   return internal::mask::maskz_cvts(k, a);
 }
+
+/** @} */
 
 /** @} */
 
@@ -861,7 +868,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_sqrt(const Mask<T, SIMD_WIDTH> &k,
 /** @} */
 
 /**
- * @addtogroup group_mask_special_math
+ * @addtogroup group_mask_math_operations
  * @{
  */
 

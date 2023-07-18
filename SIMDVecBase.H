@@ -604,7 +604,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sqrt(const Vec<T, SIMD_WIDTH> &a)
 /** @} */
 
 /**
- * @addtogroup group_special_math
+ * @addtogroup group_math_operations
  * @{
  */
 
@@ -1072,11 +1072,7 @@ static SIMD_INLINE int test_all_ones(const Vec<T, SIMD_WIDTH> &a)
 /** @} */
 
 /**
- * @addtogroup group_reordering
- * @{
- */
-
-/**
+ * @ingroup group_extract
  * @brief Extracts a single value from a Vec.
  *
  * @tparam INDEX index of the value to extract
@@ -1090,6 +1086,7 @@ static SIMD_INLINE T extract(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_extract
  * @brief Extracts the lowest element of a Vec.
  *
  * Semantically equivalent to @c extract<0>(a) , but may be more efficient.
@@ -1106,6 +1103,7 @@ static SIMD_INLINE T elem0(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_extract
  * @brief Extracts a 16-byte lane from a Vec as a Vec < T, 16 >.
  *
  * @tparam LANE_INDEX lane to extract Must be in the range [0, @p SIMD_WIDTH /
@@ -1120,6 +1118,7 @@ static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_reordering
  * @brief Reverses the order of the elements of a Vec.
  *
  * @param a Vec to reverse
@@ -1173,6 +1172,7 @@ static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> v[N])
 }
 
 /**
+ * @ingroup group_zip_unpack
  * @brief Interleaves blocks of elements from the high or low half of two
  * Vec's.
  *
@@ -1201,6 +1201,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /**
+ * @ingroup group_zip_unpack
  * @brief Interleaves blocks of elements from the high or low half of each
  * 16-byte lane of two Vec's.
  *
@@ -1234,6 +1235,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack16(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /**
+ * @ingroup group_zip_unpack
  * @brief Interleaves blocks of elements of two Vec's.
  *
  * This function interleaves blocks of elements from two
@@ -1266,6 +1268,7 @@ static SIMD_INLINE void zip(const Vec<T, SIMD_WIDTH> a,
 }
 
 /**
+ * @ingroup group_zip_unpack
  * @brief Interleaves blocks of elements of each 16-byte lane of two
  * Vec's.
  *
@@ -1300,6 +1303,7 @@ static SIMD_INLINE void zip16(const Vec<T, SIMD_WIDTH> a,
 }
 
 /**
+ * @ingroup group_zip_unpack
  * @brief Deinterleaves blocks of elements two Vec's.
  *
  * This function deinterleaves blocks of elements from two
@@ -1326,6 +1330,7 @@ static SIMD_INLINE void unzip(const Vec<T, SIMD_WIDTH> a,
 }
 
 /**
+ * @ingroup group_elementwise_shift
  * @brief Shifts a Vec right by a constant number of elements,
  * shifting in zero elements.
  *
@@ -1340,6 +1345,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srle(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_elementwise_shift
  * @brief Shifts a Vec left by a constant number of elements,
  * shifting in zero elements.
  *
@@ -1354,6 +1360,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> slle(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_elementwise_shift
  * @brief Concatenates two Vec's, shifts the result right by a
  * constant number of elements, and returns the low half of the
  * result.
@@ -1369,8 +1376,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &h,
 {
   return internal::base::alignre<COUNT>(h, l);
 }
-
-/** @} */
 
 /**
  * @addtogroup group_type_conversion

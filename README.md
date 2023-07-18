@@ -1,7 +1,5 @@
 # T-SIMD
 
-\tableofcontents
-
 # Introduction
 
 **T-SIMD** is a low-level C++ template SIMD library which wraps built-in vector data types and built-in vector intrincics in template classes and template functions or overloaded functions, respectively.
@@ -18,11 +16,12 @@ Templates parameters are the element data type of the vectors and the vector wid
 
 First, download the latest release from
 
-<https://www.ti.uni-bielefeld.de/html/people/moeller/tsimd_warpingsimd.html> 
+<https://www.ti.uni-bielefeld.de/html/people/moeller/tsimd_warpingsimd.html>
 
 (section "Software Download").
 
 Either
+
 - download the single header library version `tsimd_sh.H` and include it in your project or
 - download the full archive, unpack it and copy the contents of the folder starting with "CODE" into your project.
 
@@ -55,16 +54,17 @@ int main() {
 
 The following preprocessor definitions can be defined to change the behavior of **T-SIMD** (**WARNING**: These definitions **must** be defined before including `tsimd.H` or any other **T-SIMD** header file):
 
-* `SIMD_ALIGN_CHK` : If this macro is defined, **T-SIMD** will check whether the alignment of the data pointers passed to the functions is correct before executing the functions. If the alignment is incorrect, the location of the error will be printed to the standard error output and the program will be aborted using `std::abort()`. This is useful for debugging purposes.
-* `MAX_SIMD_WIDTH` : This macro can be used to limit the maximum vector width that **T-SIMD** will use. Must be an integer of at least 16.
-* `SIMDVEC_SANDBOX` : If this macro is defined, **T-SIMD** functions will not execute their intended operations, but instead will print what function was called to the standard output. This is useful for debugging purposes.
+- `SIMD_ALIGN_CHK` : If this macro is defined, **T-SIMD** will check whether the alignment of the data pointers passed to the functions is correct before executing the functions. If the alignment is incorrect, the location of the error will be printed to the standard error output and the program will be aborted using `std::abort()`. This is useful for debugging purposes.
+- `MAX_SIMD_WIDTH` : This macro can be used to limit the maximum vector width that **T-SIMD** will use. Must be an integer of at least 16.
+- `SIMDVEC_SANDBOX` : If this macro is defined, **T-SIMD** functions will not execute their intended operations, but instead will print what function was called to the standard output. This is useful for debugging purposes.
+
 # Differences on Different Architectures {#differences-on-different-architectures}
 
 **T-SIMD** tries to behave as similar as possible on different architectures. However, there are some differences that are due to the different instruction sets and the different implementations of the intrinsics. The following list gives an overview of the differences:
 
-* Denormalized floating-point numbers are flushed to zero on ARMv7. This is not the case on all other supported architectures.
-* The `simd::div` and `simd::sqrt` functions are approximations on ARM in contrast to the exact results on all other supported architectures.
-* Converting from floating-point to integer values results in slightly different results on ARM.
+- Denormalized floating-point numbers are flushed to zero on ARMv7. This is not the case on all other supported architectures.
+- The `simd::div` and `simd::sqrt` functions are approximations on ARM in contrast to the exact results on all other supported architectures.
+- Converting from floating-point to integer values results in slightly different results on ARM.
 
 There may be other slight differences that are not listed here.
 

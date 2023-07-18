@@ -72,9 +72,11 @@ There may be other slight differences that are not listed here.
 
 **T-SIMD** was originally written by [Ralf Möller](http://www.ti.uni-bielefeld.de/html/people/moeller/) (moeller@ti.uni-bielefeld.de).
 
-Other contributors are: Jonas Keller, Markus Vieth, Adam Marschall, Jan-Lukas Wolf, Lukas Schiermeier, and Moritz Breipohl.
+Jonas Keller substantially improved and extended the **T-SIMD** library and added the documentation.
 
-Their specific contributions are noted in the source code.
+Other contributors are: Markus Vieth, Adam Marschall, Jan-Lukas Wolf, Lukas Schiermeier and Moritz Breipohl.
+
+Their specific contributions are mentioned in the source files. Thanks a lot to all contributors!
 
 # Contact and Bug Reports
 

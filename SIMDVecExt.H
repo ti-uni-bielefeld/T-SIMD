@@ -3040,16 +3040,15 @@ static SIMD_INLINE void transpose6_t(
   // 20. Sep 22 (Jonas Keller):
   // use simd_aligned_malloc for inArray and outArray
   // and free them at the end of the function
-  const int n = Vec<T, SIMD_WIDTH>::elements;
-  T *inArray  = (T *) simd_aligned_malloc(SIMD_WIDTH, n * n * sizeof(T));
-  T *outArray = (T *) simd_aligned_malloc(SIMD_WIDTH, n * n * sizeof(T));
-  assert(inArray != NULL);
-  assert(outArray != NULL);
-  store(inArray, inRows, n);
+  // 30. Jul 23 (Jonas Keller):
+  // put inArray and outArray on the stack instead of heap to avoid allocation
+  // and possibly allow for better compiler optimisation
+  const int N = Vec<T, SIMD_WIDTH>::elements;
+  T inArray[N * N] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  T outArray[N * N] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  store(inArray, inRows, N);
   transpose6<T, SIMD_WIDTH>(inArray, outArray);
-  load(outArray, outRows, n);
-  simd_aligned_free(inArray);
-  simd_aligned_free(outArray);
+  load(outArray, outRows, N);
 }
 
 // ===========================================================================

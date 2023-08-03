@@ -975,6 +975,7 @@ INPUT                  = DoxygenGroupIndex.H \
                          LICENSE.md \
                          LICENSE.doc \
                          README.md \
+                         README_DEVELOPERS.md \
                          SIMDAlloc.H \
                          SIMDBackwardCompat.H \
                          SIMDDefs.H \

@@ -1070,16 +1070,17 @@ struct Swizzle
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Swizzle2 to Swizzle2_a
 template <int I, typename T, int SIMD_WIDTH>
-struct Swizzle2
+struct Swizzle2_a
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<I, T, SIMD_WIDTH>("swizzle2");
+    return ti2s<I, T, SIMD_WIDTH>("swizzle2_a");
   }
 
   static constexpr int minI = 1;
-  // TODO: is there an upper limit for maxI in swizzle2?
+  // TODO: is there an upper limit for maxI in swizzle2_a?
   static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = 2 * I;
@@ -1092,20 +1093,22 @@ struct Swizzle2
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[I])
   {
-    swizzle2<I>(v);
+    using ::simd::internal::ext::swizzle2_a;
+    swizzle2_a<I>(v);
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Unswizzle2 to Unswizzle_a
 template <int I, typename T, int SIMD_WIDTH>
-struct Unswizzle2
+struct Unswizzle_a
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<I, T, SIMD_WIDTH>("unswizzle2");
+    return ti2s<I, T, SIMD_WIDTH>("unswizzle_a");
   }
 
   static constexpr int minI = 1;
-  // TODO: is there an upper limit for maxI in unswizzle2?
+  // TODO: is there an upper limit for maxI in unswizzle_a?
   static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = 2 * I;
@@ -1118,21 +1121,23 @@ struct Unswizzle2
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
-    unswizzle2<I>(v);
+    using ::simd::internal::ext::unswizzle_a;
+    unswizzle_a<I>(v);
   }
 };
 
 // 07. Feb 23 (Jonas Keller): added Swizzle3
+// 02. Aug 23 (Jonas Keller): renamed Swizzle3 to Swizzle2_b
 template <int I, typename T, int SIMD_WIDTH>
-struct Swizzle3
+struct Swizzle2_b
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<I, T, SIMD_WIDTH>("swizzle3");
+    return ti2s<I, T, SIMD_WIDTH>("swizzle2_b");
   }
 
   static constexpr int minI = 1;
-  // TODO: is there an upper limit for maxI in swizzle3?
+  // TODO: is there an upper limit for maxI in swizzle2_b?
   static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = 2 * I;
@@ -1145,21 +1150,23 @@ struct Swizzle3
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
-    swizzle3<I>(v);
+    using ::simd::internal::ext::swizzle2_b;
+    swizzle2_b<I>(v);
   }
 };
 
 // 15. Oct 22 (Jonas Keller): added _Swizzle4
+// 02. Aug 23 (Jonas Keller): renamed Swizzle4 to Swizzle2_c
 template <int I, typename T, int SIMD_WIDTH>
-struct Swizzle4
+struct Swizzle2_c
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<I, T, SIMD_WIDTH>("swizzle4");
+    return ti2s<I, T, SIMD_WIDTH>("swizzle2_c");
   }
 
   static constexpr int minI = 1;
-  // TODO: is there an upper limit for maxI in swizzle4?
+  // TODO: is there an upper limit for maxI in swizzle2_c?
   static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = 2 * I;
@@ -1172,21 +1179,23 @@ struct Swizzle4
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
-    swizzle4<I>(v);
+    using ::simd::internal::ext::swizzle2_c;
+    swizzle2_c<I>(v);
   }
 };
 
 // 15. Oct 22 (Jonas Keller): added _Unswizzle4
+// 02. Aug 23 (Jonas Keller): renamed Unswizzle4 to Unswizzle_b
 template <int I, typename T, int SIMD_WIDTH>
-struct Unswizzle4
+struct Unswizzle_b
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<I, T, SIMD_WIDTH>("unswizzle4");
+    return ti2s<I, T, SIMD_WIDTH>("unswizzle_b");
   }
 
   static constexpr int minI = 1;
-  // TODO: is there an upper limit for maxI in unswizzle4?
+  // TODO: is there an upper limit for maxI in unswizzle_b?
   static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
   static constexpr int nextI   = I + 1;
   static constexpr int numVecs = 2 * I;
@@ -1199,7 +1208,8 @@ struct Unswizzle4
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
-    unswizzle4<I>(v);
+    using ::simd::internal::ext::unswizzle_b;
+    unswizzle_b<I>(v);
   }
 };
 
@@ -1804,12 +1814,13 @@ struct HmaxSingle
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Transpose to Transpose_a
 template <typename T, int SIMD_WIDTH>
-struct Transpose
+struct Transpose_a
 {
   static SIMD_INLINE std::string name()
   {
-    return t2s<T, SIMD_WIDTH>("transpose");
+    return t2s<T, SIMD_WIDTH>("transpose_a");
   }
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
@@ -1822,16 +1833,18 @@ struct Transpose
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
-    transpose(inRows, outRows);
+    using ::simd::internal::ext::transpose_a;
+    transpose_a(inRows, outRows);
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Transpose2 to Transpose_e
 template <typename T, int SIMD_WIDTH>
-struct Transpose2
+struct Transpose_e
 {
   static SIMD_INLINE std::string name()
   {
-    return t2s<T, SIMD_WIDTH>("transpose2");
+    return t2s<T, SIMD_WIDTH>("transpose_e");
   }
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
@@ -1844,7 +1857,8 @@ struct Transpose2
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
-    transpose2(inRows, outRows);
+    using ::simd::internal::ext::transpose_e;
+    transpose_e(inRows, outRows);
   }
 };
 
@@ -1948,12 +1962,13 @@ struct BitonicSortSortedPairs2
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Transpose0 to Transpose_b
 template <typename T, int SIMD_WIDTH>
-struct Transpose0
+struct Transpose_b
 {
   static SIMD_INLINE std::string name()
   {
-    return t2s<T, SIMD_WIDTH>("transpose0");
+    return t2s<T, SIMD_WIDTH>("transpose_b");
   }
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
@@ -1966,16 +1981,18 @@ struct Transpose0
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
-    transpose0(inRows, outRows);
+    using ::simd::internal::ext::transpose_b;
+    transpose_b(inRows, outRows);
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Transpose16 to Transpose_d
 template <typename T, int SIMD_WIDTH>
-struct Transpose16
+struct Transpose_d
 {
   static SIMD_INLINE std::string name()
   {
-    return t2s<T, SIMD_WIDTH>("transpose16");
+    return t2s<T, SIMD_WIDTH>("transpose_d");
   }
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
@@ -1988,16 +2005,18 @@ struct Transpose16
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
-    transpose16(inRows, outRows);
+    using ::simd::internal::ext::transpose_d;
+    transpose_d(inRows, outRows);
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Transpose3 to Transpose_f
 template <typename T, int SIMD_WIDTH>
-struct Transpose3
+struct Transpose_f
 {
   static SIMD_INLINE std::string name()
   {
-    return t2s<T, SIMD_WIDTH>("transpose3");
+    return t2s<T, SIMD_WIDTH>("transpose_f");
   }
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
@@ -2010,16 +2029,18 @@ struct Transpose3
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
-    transpose3(inRows, outRows);
+    using ::simd::internal::ext::transpose_f;
+    transpose_f(inRows, outRows);
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Transpose4 to Transpose_g
 template <typename T, int SIMD_WIDTH>
-struct Transpose4
+struct Transpose_g
 {
   static SIMD_INLINE std::string name()
   {
-    return t2s<T, SIMD_WIDTH>("transpose4");
+    return t2s<T, SIMD_WIDTH>("transpose_g");
   }
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
@@ -2032,16 +2053,18 @@ struct Transpose4
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
-    transpose4(inRows, outRows);
+    using ::simd::internal::ext::transpose_g;
+    transpose_g(inRows, outRows);
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Transpose5 to Transpose_h
 template <typename T, int SIMD_WIDTH>
-struct Transpose5
+struct Transpose_h
 {
   static SIMD_INLINE std::string name()
   {
-    return t2s<T, SIMD_WIDTH>("transpose5");
+    return t2s<T, SIMD_WIDTH>("transpose_h");
   }
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
@@ -2054,16 +2077,18 @@ struct Transpose5
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
-    transpose5(inRows, outRows);
+    using ::simd::internal::ext::transpose_h;
+    transpose_h(inRows, outRows);
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Transpose1_16 to Transpose_c
 template <typename T, int SIMD_WIDTH>
-struct Transpose1_16
+struct Transpose_c
 {
   static SIMD_INLINE std::string name()
   {
-    return t2s<T, SIMD_WIDTH>("transpose1_16");
+    return t2s<T, SIMD_WIDTH>("transpose_c");
   }
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
@@ -2076,16 +2101,18 @@ struct Transpose1_16
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
-    transpose1_16_t(inRows, outRows);
+    using ::simd::internal::ext::transpose_c;
+    transpose_c(inRows, outRows);
   }
 };
 
+// 02. Aug 23 (Jonas Keller): renamed Transpose6 to Transpose_i
 template <typename T, int SIMD_WIDTH>
-struct Transpose6
+struct Transpose_i
 {
   static SIMD_INLINE std::string name()
   {
-    return t2s<T, SIMD_WIDTH>("transpose6");
+    return t2s<T, SIMD_WIDTH>("transpose_i");
   }
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
@@ -2098,7 +2125,8 @@ struct Transpose6
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
-    transpose6_t(inRows, outRows);
+    using ::simd::internal::ext::transpose_i;
+    transpose_i(inRows, outRows);
   }
 };
 

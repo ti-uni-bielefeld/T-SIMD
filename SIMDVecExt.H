@@ -31,6 +31,11 @@
 
 // 09. Mar 23 (Jonas Keller): added doxygen documentation
 
+// 03. Aug 23 (Jonas Keller): renamed all swizzle2, unswizzle and transpose
+// versions to sequential names <base_name>_a, <base_name>_b, <base_name>_c,
+// etc. and moved them into the internal namespace and added a hub function
+// <base_name> that wraps the fastest version
+
 #ifndef SIMD_VEC_EXT_H_
 #define SIMD_VEC_EXT_H_
 
@@ -393,21 +398,9 @@ struct Store16<Store, T, SIMD_WIDTH, NUMROWS, STORE_STOP, STORE_STOP, 16,
     T *const, const Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems])
   {}
 };
-} // namespace ext
-} // namespace internal
 
 // -------------------- store16 functions ------------------------------------
 
-/**
- * @ingroup group_transpose
- * @brief Stores the rows of a matrix that was transposed with
- * transpose1_16() to aligned memory in the correct order.
- *
- * The memory location must be aligned to the SIMD_WIDTH.
- *
- * @param[out] p pointer to the aligned memory location to store to
- * @param[in] outVecs array of Vecs to store
- */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void store16(
   T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
@@ -418,17 +411,6 @@ static SIMD_INLINE void store16(
                          storeStop, SIMD_WIDTH, 0, 0>::_store16(p, outVecs);
 }
 
-/**
- * @ingroup group_transpose
- * @brief Stores the rows of a matrix that was transposed with
- * transpose1_16() to unaligned memory in the correct order.
- *
- * In contrast to store16() the memory location does not need to be aligned
- * any boundary.
- *
- * @param[out] p pointer to the memory location to store to
- * @param[in] outVecs array of Vecs to store
- */
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void storeu16(
   T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
@@ -438,6 +420,9 @@ static SIMD_INLINE void storeu16(
   internal::ext::Store16<internal::ext::StoreU, T, SIMD_WIDTH, numRows, 0,
                          storeStop, SIMD_WIDTH, 0, 0>::_store16(p, outVecs);
 }
+
+} // namespace ext
+} // namespace internal
 
 // ===========================================================================
 // copy (load and store)
@@ -1584,12 +1569,13 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> absDiff(const Vec<T, SIMD_WIDTH> &v1,
 
 /** @} */
 
+namespace internal {
+namespace ext {
+
 // ===========================================================================
 // transpose
 // ===========================================================================
 
-namespace internal {
-namespace ext {
 // -------------------- different unpack functions ---------------------------
 
 template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
@@ -1699,71 +1685,28 @@ struct Transpose<Unpack, T, SIMD_WIDTH, NUMROWS, NUM_TRANSPOSE_ROWS,
     Vec<T, SIMD_WIDTH>[NUM_TRANSPOSE_ROWS])
   {}
 };
-} // namespace ext
-} // namespace internal
 
 // function template: partial transpose
-
-/**
- * @ingroup group_transpose
- * @brief Computes the first few rows of the transposed matrix held in an array
- * of Vec's.
- *
- * The matrix must be given as an array of Vec's which are the rows of
- * the matrix. The number of rows must be equal to the number of elements
- * in a Vec (<tt>SIMD_WIDTH/sizeof(T)</tt>), i.e. the matrix must be square.
- *
- * @tparam NUM_TRANSPOSE_ROWS number of rows to compute of the transposed
- * matrix
- * @param[in] inRows array of Vec's holding the matrix to be transposed
- * @param[out] outRows array of Vec's where the first few rows of the transposed
- * matrix are stored
- */
 template <int NUM_TRANSPOSE_ROWS, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose(
+static SIMD_INLINE void transpose_a_partial(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[NUM_TRANSPOSE_ROWS])
 {
-  internal::ext::Transpose<internal::ext::Unpack, T, SIMD_WIDTH,
-                           // NUMROWS, NUM_TRANSPOSE_ROWS, ROW
-                           SIMD_WIDTH / sizeof(T), NUM_TRANSPOSE_ROWS,
-                           0>::_transpose(inRows, outRows);
+  Transpose<Unpack, T, SIMD_WIDTH,
+            // NUMROWS, NUM_TRANSPOSE_ROWS, ROW
+            SIMD_WIDTH / sizeof(T), NUM_TRANSPOSE_ROWS, 0>::_transpose(inRows,
+                                                                       outRows);
 }
 
 // function template: full transpose
-
-/**
- * @ingroup group_transpose
- * @brief Transposes a matrix held in an array of Vec's.
- *
- * The matrix must be given as an array of Vec's which are the rows of
- * the matrix. The number of rows must be equal to the number of elements
- * in a Vec (<tt>SIMD_WIDTH/sizeof(T)</tt>), i.e. the matrix must be
- * square.
- *
- * @param[in] inRows array of Vec's holding the matrix to be transposed
- * @param[out] outRows array of Vec's where the transposed matrix is stored
- *
- * @sa transpose(const
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],Vec<T,SIMD_WIDTH>[NUM_TRANSPOSE_ROWS]):
- * function to only compute the first few rows of the transposed matrix
- * @sa transpose(const
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems]),
- * transpose0(), transpose2(), transpose3(), transpose4(), transpose5(),
- * transpose6_t(), transpose16(), transpose1_16(), transpose1_16_t(): different
- * implementations of the %transpose function that have different performance
- * characteristics
- */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose(
+static SIMD_INLINE void transpose_a(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
-  transpose<SIMD_WIDTH / sizeof(T)>(inRows, outRows);
+  transpose_a_partial<SIMD_WIDTH / sizeof(T)>(inRows, outRows);
 }
 
-namespace internal {
-namespace ext {
 // ===========================================================================
 // copy matrix
 // ===========================================================================
@@ -1884,93 +1827,44 @@ struct TransposePostprocess<Unpack16, T, SIMD_WIDTH>
                            0>::_transpose(inRows, outRows);
   }
 };
-} // namespace ext
-} // namespace internal
 
 // ===========================================================================
-// transpose0: Transpose<Unpack16> + post-process
+// transpose_b: Transpose<Unpack16> + post-process
 // ===========================================================================
 
 // function template: full transpose
-
-/**
- * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- * @ingroup group_transpose
- */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose0(
+static SIMD_INLINE void transpose_b(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
   Vec<T, SIMD_WIDTH> tempRows[Vec<T, SIMD_WIDTH>::elements];
-  internal::ext::Transpose<internal::ext::Unpack16, T, SIMD_WIDTH,
-                           SIMD_WIDTH / sizeof(T), SIMD_WIDTH / sizeof(T),
-                           0>::_transpose(inRows, tempRows);
-  internal::ext::TransposePostprocess<internal::ext::Unpack16, T,
-                                      SIMD_WIDTH>::_transpose(tempRows,
-                                                              outRows);
+  Transpose<Unpack16, T, SIMD_WIDTH, SIMD_WIDTH / sizeof(T),
+            SIMD_WIDTH / sizeof(T), 0>::_transpose(inRows, tempRows);
+  TransposePostprocess<Unpack16, T, SIMD_WIDTH>::_transpose(tempRows, outRows);
 }
 
 // ===========================================================================
-// transpose1_16: Transpose<Unpack16> - needs store16
+// transpose_c: Transpose<Unpack16> - needs store16
 // ===========================================================================
 
-// function template: full transpose
-
-/**
- * @copybrief transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- *
- * @warning This function does not output the rows of the transposed matrix in
- * the correct order. Call store16() (or storeu16()) on the output rows to
- * store the matrix in the correct order.
- *
- * @copydetails transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- * @ingroup group_transpose
- */
+// function template: full transpose (includes store16)
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose1_16(
+static SIMD_INLINE void transpose_c(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
-  internal::ext::Transpose<internal::ext::Unpack16, T, SIMD_WIDTH,
-                           SIMD_WIDTH / sizeof(T), SIMD_WIDTH / sizeof(T),
-                           0>::_transpose(inRows, outRows);
-}
+  Vec<T, SIMD_WIDTH> tempOutRows[Vec<T, SIMD_WIDTH>::elems];
 
-// function template: full transpose (for tests, includes store16)
-
-/**
- * @copybrief transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- *
- * @note This function is the same as transpose1_16() but includes the store16
- * (or storeu16) step to output the rows of the transposed matrix in the correct
- * order. This function is mainly used for testing, but can also be used
- * normally.
- *
- * @copydetails transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- * @ingroup group_transpose
- */
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose1_16_t(
-  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
-  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
-{
-  internal::ext::Transpose<internal::ext::Unpack16, T, SIMD_WIDTH,
-                           SIMD_WIDTH / sizeof(T), SIMD_WIDTH / sizeof(T),
-                           0>::_transpose(inRows, outRows);
+  Transpose<Unpack16, T, SIMD_WIDTH, SIMD_WIDTH / sizeof(T),
+            SIMD_WIDTH / sizeof(T), 0>::_transpose(inRows, tempOutRows);
 
   // post-process with store16 ...
-  const int n = SIMD_WIDTH / sizeof(T);
-  T outArray[n * n];
-  storeu16(outArray, outRows);
-
-  // ... and reload to outRows
-  loadu(outArray, outRows, n);
+  const int N = SIMD_WIDTH / sizeof(T);
+  T outArray[N * N];
+  storeu16(outArray, tempOutRows);
+  // ... and load to outRows
+  loadu(outArray, outRows, N);
 }
 
 // ===========================================================================
@@ -1979,8 +1873,6 @@ static SIMD_INLINE void transpose1_16_t(
 // Uses Transpose1 to transpose single rows.
 // ===========================================================================
 
-namespace internal {
-namespace ext {
 // ----------------------- transpose multiple rows --------------------------
 
 // primary template
@@ -2020,7 +1912,7 @@ struct Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16, SRC_OFF,
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
     Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
   {
-    // printf("\n_transpose0(SRC=%d,DST=%d)", SRC_ROW, DST_ROW);
+    // printf("\n_transpose_b(SRC=%d,DST=%d)", SRC_ROW, DST_ROW);
     // printf("\n   ROW=%d,OFF=%d,STEP=%d", ROW, TRANSPOSE_OFFSET, STEP);
     // transpose single row with index SRC_ROW
     outRows[DST_ROW] = Transpose1<Unpack, T, SIMD_WIDTH,
@@ -2044,28 +1936,21 @@ struct Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW_STOP, ROW_STOP, 16,
     Vec<T, SIMD_WIDTH>[Vec<T, SIMD_WIDTH>::elems])
   {}
 };
-} // namespace ext
-} // namespace internal
 
-/**
- * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- * @ingroup group_transpose
- */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose16(
+static SIMD_INLINE void transpose_d(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
-  internal::ext::Transpose16<internal::ext::Unpack16, T, SIMD_WIDTH,
-                             // NUMROWS, ROW, ROW_STOP
-                             SIMD_WIDTH / sizeof(T), 0, 16 / sizeof(T),
-                             // TRANSPOSE_WIDTH, SRC_OFF, DST_OFF
-                             SIMD_WIDTH, 0, 0>::_transpose(inRows, outRows);
+  Transpose16<Unpack16, T, SIMD_WIDTH,
+              // NUMROWS, ROW, ROW_STOP
+              SIMD_WIDTH / sizeof(T), 0, 16 / sizeof(T),
+              // TRANSPOSE_WIDTH, SRC_OFF, DST_OFF
+              SIMD_WIDTH, 0, 0>::_transpose(inRows, outRows);
 }
 
 // ===========================================================================
-// swizzle2 (deinterleave)
+// swizzle2_a (deinterleave)
 // ===========================================================================
 
 // generalized from Marat Dukhan's solution referred to at
@@ -2076,12 +1961,10 @@ static SIMD_INLINE void transpose16(
 // TODO: could be possible by starting loop at sizeof(T) and
 // TODO: using zip<NUM_ELEMS>
 
-namespace internal {
-namespace ext {
 // FINALBLKSIZE template argument is required since function is also
-// used for transpose2
+// used for transpose_e
 template <int N, int FINALBLKSIZE, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
+static SIMD_INLINE void swizzle2_a(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   Vec<T, SIMD_WIDTH> v2[2 * N];
   for (int blkSize = 1; blkSize <= FINALBLKSIZE; blkSize *= 2) {
@@ -2089,87 +1972,33 @@ static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
     for (int src = 0, dst = 0; src < N; src++, dst += 2)
       zip<1>(v[src], v[src + N], v2[dst], v2[dst + 1]);
     // copy result back to v
-    // TODO: swizzle2: check code produced by compiler for copying
+    // TODO: swizzle2_a: check code produced by compiler for copying
     for (int i = 0; i < 2 * N; i++) v[i] = v2[i];
   }
 }
-} // namespace ext
-} // namespace internal
 
-/**
- * @ingroup group_swizzle
- * @brief Swizzle/de-interleave/convert from AoS to SoA multiple Vec's in-place.
- *
- * This function swizzles/de-interleaves/converts from AoS (Array of Structs) to
- * SoA (Struct of Arrays) multiple Vec's in-place.
- *
- * In contrast to swizzle(), this function takes double the number of Vec's as
- * input and might be faster.
- *
- * <h4>Example:</h4>
- * Example for a swizzle distance of 3 with 6 Vec's of 8 elements each:
- *
- * input stream (structures indicated by curly brackets):
- * @code
- * {0 1 2} {3 4 5} {6 7 8} {9 10 11} ... {45 46 47}
- * @endcode
- * input vectors:
- * @code
- * v[0] =  0  1  2  3  4  5  6  7
- * v[1] =  8  9 10 11 12 13 14 15
- * v[2] = 16 17 18 19 20 21 22 23
- * v[3] = 24 25 26 27 28 29 30 31
- * v[4] = 32 33 34 35 36 37 38 39
- * v[5] = 40 41 42 43 44 45 46 47
- * @endcode
- * output vectors:
- * @code
- * v[0] =  0  6 12 18 24 30 36 42
- * v[1] =  1  7 13 19 25 31 37 43
- * v[2] =  2  8 14 20 26 32 38 44
- * v[3] =  3  9 15 21 27 33 39 45
- * v[4] =  4 10 16 22 28 34 40 46
- * v[5] =  5 11 17 23 29 35 41 47
- * @endcode
- *
- * @tparam N swizzle distance, must be between 1 and 5
- * @param[in,out] v array of Vec's to swizzle
- *
- * @sa swizzle(): swizzles half the number of Vec's as this function
- * @sa swizzle2(), swizzle3(), swizzle4(): different implementations of this
- * function that might have different performance characteristics
- * @sa unswizzle2(), unswizzle4(): %unswizzle functions
- */
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
+static SIMD_INLINE void swizzle2_a(Vec<T, SIMD_WIDTH> v[2 * N])
 {
-  internal::ext::swizzle2<N, Vec<T, SIMD_WIDTH>::elements>(v);
+  swizzle2_a<N, Vec<T, SIMD_WIDTH>::elements>(v);
 }
 
 // ===========================================================================
-// transpose2
+// transpose_e
 // ===========================================================================
 
-// is called transpose2 as it is based on swizzle2, but expects same
-// number of vectors as transpose (not twice the number)
-
-/**
- * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- * @ingroup group_transpose
- */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose2(
+static SIMD_INLINE void transpose_e(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
   constexpr int n = Vec<T, SIMD_WIDTH>::elements, N = n / 2;
   for (int i = 0; i < n; i++) outRows[i] = inRows[i];
-  internal::ext::swizzle2<N, N>(outRows);
+  swizzle2_a<N, N>(outRows);
 }
 
 // ===========================================================================
-// swizzle3 (deinterleave)
+// swizzle2_b (deinterleave)
 // ===========================================================================
 
 // contributed by Adam Marschall
@@ -2178,12 +2007,10 @@ static SIMD_INLINE void transpose2(
 // https://stackoverflow.com/a/15377386/3852630
 // takes 2*N input elements
 
-namespace internal {
-namespace ext {
 // FINALBLKSIZE template argument is required since function is also
-// used for transpose3
+// used for transpose_f
 template <int N, int FINALBLKSIZE, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle3(Vec<T, SIMD_WIDTH> v[2 * N])
+static SIMD_INLINE void swizzle2_b(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   Vec<T, SIMD_WIDTH> v2[2 * N];
   int origReps  = log2(FINALBLKSIZE) + 1;
@@ -2210,53 +2037,35 @@ static SIMD_INLINE void swizzle3(Vec<T, SIMD_WIDTH> v[2 * N])
   // ...and copy back again
   for (int i = 0; i < 2 * N; i++) v[i] = v2[i];
 }
-} // namespace ext
-} // namespace internal
 
-/**
- * @copydoc swizzle2()
- * @ingroup group_swizzle
- */
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle3(Vec<T, SIMD_WIDTH> v[2 * N])
+static SIMD_INLINE void swizzle2_b(Vec<T, SIMD_WIDTH> v[2 * N])
 {
-  internal::ext::swizzle3<N, Vec<T, SIMD_WIDTH>::elements>(v);
+  swizzle2_b<N, Vec<T, SIMD_WIDTH>::elements>(v);
 }
 
 // ===========================================================================
-// transpose3
+// transpose_f
 // ===========================================================================
 
 // contributed by Adam Marschall
 
-// called transpose3 as it is based on swizzle2, but expects same
-// number of vectors as transpose (not twice the number)
-
-/**
- * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- * @ingroup group_transpose
- */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose3(
+static SIMD_INLINE void transpose_f(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
   const int n = Vec<T, SIMD_WIDTH>::elements, N = n / 2;
   for (int i = 0; i < n; i++) outRows[i] = inRows[i];
-  internal::ext::swizzle3<N, N>(outRows);
+  swizzle2_b<N, N>(outRows);
 }
 
 // ===========================================================================
-// Swizzle4 meta template
+// Swizzle2 meta template
 // ===========================================================================
-
-// 12. Oct 22 (Jonas Keller): renamed Swizzle3* classes to Swizzle4*
 
 // contributed by Adam Marschall
 
-namespace internal {
-namespace ext {
 // -------------------- different zip functions ------------------------------
 
 template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
@@ -2284,7 +2093,7 @@ struct Zip16
 // primary template
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int SRC, int DST>
-struct Swizzle4Once
+struct Swizzle2Once
 {
   static constexpr int SRC2 = SRC + N;
   static constexpr int DST2 = DST + 1;
@@ -2295,14 +2104,14 @@ struct Swizzle4Once
     // printf("%s\n", "SwizzleOnce");
     // printf("  SRC=%d, SRC2=%d, DST=%d, DS2T=%d\n", SRC, SRC2, DST, DST2);
     Zip<1, T, SIMD_WIDTH>::_zip(v[SRC], v[SRC2], v2[DST], v2[DST2]);
-    Swizzle4Once<Zip, T, SIMD_WIDTH, N, SRC + 1, DST + 2>::_swizzle(v, v2);
+    Swizzle2Once<Zip, T, SIMD_WIDTH, N, SRC + 1, DST + 2>::_swizzle(v, v2);
   }
 };
 
 // partial specialization to end the iteration
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int DST>
-struct Swizzle4Once<Zip, T, SIMD_WIDTH, N, N, DST>
+struct Swizzle2Once<Zip, T, SIMD_WIDTH, N, N, DST>
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N] /*v*/,
                                    Vec<T, SIMD_WIDTH>[2 * N] /*v2*/)
@@ -2319,16 +2128,16 @@ struct Swizzle4Once<Zip, T, SIMD_WIDTH, N, N, DST>
 // primary template
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int REP, int FINAL_REPS, int ODD>
-struct Swizzle4Multiple
+struct Swizzle2Multiple
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
   {
     // printf("%s\n", "SwizzleMultiple");
     // printf("  REP=%d, FINAL_REPS=%d\n", REP, FINAL_REPS);
-    Swizzle4Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v, v2);
-    Swizzle4Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v2, v);
-    Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, REP + 1, FINAL_REPS, ODD>::_swizzle(
+    Swizzle2Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v, v2);
+    Swizzle2Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v2, v);
+    Swizzle2Multiple<Zip, T, SIMD_WIDTH, N, REP + 1, FINAL_REPS, ODD>::_swizzle(
       v, v2);
   }
 };
@@ -2336,7 +2145,7 @@ struct Swizzle4Multiple
 // partial specialization to end the iteration without swizzle post-amble
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int FINAL_REPS, int ODD>
-struct Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
+struct Swizzle2Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N],
                                    Vec<T, SIMD_WIDTH>[2 * N])
@@ -2346,7 +2155,7 @@ struct Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
 // partial specialization to end the iteration with swizzle post-amble
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int FINAL_REPS>
-struct Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
+struct Swizzle2Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 {
   static constexpr int ROW_STOP = 2 * N;
 
@@ -2354,7 +2163,7 @@ struct Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
   {
     // printf("%s\n", "SwizzlePostamble");
-    Swizzle4Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v, v2);
+    Swizzle2Once<Zip, T, SIMD_WIDTH, N, 0, 0>::_swizzle(v, v2);
     CopyMatrix<T, SIMD_WIDTH, 0, ROW_STOP>::_copy(v2, v);
   }
 };
@@ -2367,7 +2176,7 @@ struct Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 // primary template
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N, int FINALBLKSIZE>
-struct Swizzle4
+struct Swizzle2
 {
   static constexpr int ORIG_REPS  = (int) floorlog2(FINALBLKSIZE) + 1;
   static constexpr int FINAL_REPS = ORIG_REPS / 2;
@@ -2380,59 +2189,50 @@ struct Swizzle4
     // printf("  N=%d, FINALBLKSIZE=%d\n", N, FINALBLKSIZE);
     // printf("  ORIG_REPS=%d, FINAL_REPS=%d, ODD=%d\n", ORIG_REPS, FINAL_REPS,
     // ODD);
-    Swizzle4Multiple<Zip, T, SIMD_WIDTH, N, 0, FINAL_REPS, ODD>::_swizzle(v,
+    Swizzle2Multiple<Zip, T, SIMD_WIDTH, N, 0, FINAL_REPS, ODD>::_swizzle(v,
                                                                           v2);
   }
 };
-} // namespace ext
-} // namespace internal
 
 // ===========================================================================
-// swizzle4 wrapper function
+// swizzle2_c wrapper function
 // ===========================================================================
 
-// 15. Oct 22 (Jonas Keller): added swizzle4 wrapper function
+// 15. Oct 22 (Jonas Keller): added swizzle2_c wrapper function
 
-/**
- * @copydoc swizzle2()
- * @ingroup group_swizzle
- */
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void swizzle4(Vec<T, SIMD_WIDTH> v[2 * N])
+static SIMD_INLINE void swizzle2_c(Vec<T, SIMD_WIDTH> v[2 * N])
 {
-  internal::ext::Swizzle4<internal::ext::Zip, T, SIMD_WIDTH, N,
-                          Vec<T, SIMD_WIDTH>::elements>::_swizzle(v);
+  Swizzle2<Zip, T, SIMD_WIDTH, N, Vec<T, SIMD_WIDTH>::elements>::_swizzle(v);
 }
 
 // ===========================================================================
-// Unswizzle4
+// Unswizzle
 // ===========================================================================
 
-// 15. Oct 22 (Jonas Keller): added Unswizzle4 classes
+// 15. Oct 22 (Jonas Keller): added Unswizzle classes
 
-namespace internal {
-namespace ext {
-// Note: Unlike the Swizzle4 classes, the Unswizzle4 classes do not have a
+// Note: Unlike the Swizzle2 classes, the Unswizzle classes do not have a
 // template-template parameter for the Zip class.
-// In the Swizzle4 classes, the Zip template parameter is used to choose
-// between the zip and zip16 functions, which is needed by the Transpose4
-// classes. The Unswizzle4 classes are not used by Transpose4, so the Zip
+// In the Swizzle2 classes, the Zip template parameter is used to choose
+// between the zip and zip16 functions, which is needed by the Transpose_g
+// classes. The Unswizzle classes are not used by Transpose_g, so the Zip
 // template parameter is not needed.
 
 template <typename T, int SIMD_WIDTH, int N, int SRC, int DST>
-struct Unswizzle4Once
+struct UnswizzleOnce
 {
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                      Vec<T, SIMD_WIDTH> v2[2 * N])
   {
     unzip<1, T>(v[SRC], v[SRC + 1], v2[DST], v2[DST + N]);
-    Unswizzle4Once<T, SIMD_WIDTH, N, SRC + 2, DST + 1>::_unswizzle(v, v2);
+    UnswizzleOnce<T, SIMD_WIDTH, N, SRC + 2, DST + 1>::_unswizzle(v, v2);
   }
 };
 
 // partial specialization to end the iteration
 template <typename T, int SIMD_WIDTH, int N, int SRC>
-struct Unswizzle4Once<T, SIMD_WIDTH, N, SRC, N>
+struct UnswizzleOnce<T, SIMD_WIDTH, N, SRC, N>
 {
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH>[2 * N],
                                      Vec<T, SIMD_WIDTH>[2 * N])
@@ -2440,21 +2240,21 @@ struct Unswizzle4Once<T, SIMD_WIDTH, N, SRC, N>
 };
 
 template <typename T, int SIMD_WIDTH, int N, int REP, int FINAL_REPS, int ODD>
-struct Unswizzle4Multiple
+struct UnswizzleMultiple
 {
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                      Vec<T, SIMD_WIDTH> v2[2 * N])
   {
-    Unswizzle4Once<T, SIMD_WIDTH, N, 0, 0>::_unswizzle(v, v2);
-    Unswizzle4Once<T, SIMD_WIDTH, N, 0, 0>::_unswizzle(v2, v);
-    Unswizzle4Multiple<T, SIMD_WIDTH, N, REP + 1, FINAL_REPS, ODD>::_unswizzle(
+    UnswizzleOnce<T, SIMD_WIDTH, N, 0, 0>::_unswizzle(v, v2);
+    UnswizzleOnce<T, SIMD_WIDTH, N, 0, 0>::_unswizzle(v2, v);
+    UnswizzleMultiple<T, SIMD_WIDTH, N, REP + 1, FINAL_REPS, ODD>::_unswizzle(
       v, v2);
   }
 };
 
 // partial specialization to end the iteration without unswizzle post-amble
 template <typename T, int SIMD_WIDTH, int N, int FINAL_REPS, int ODD>
-struct Unswizzle4Multiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
+struct UnswizzleMultiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
 {
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH>[2 * N],
                                      Vec<T, SIMD_WIDTH>[2 * N])
@@ -2463,12 +2263,12 @@ struct Unswizzle4Multiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
 
 // partial specialization to end the iteration with unswizzle post-amble
 template <typename T, int SIMD_WIDTH, int N, int FINAL_REPS>
-struct Unswizzle4Multiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
+struct UnswizzleMultiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 {
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                      Vec<T, SIMD_WIDTH> v2[2 * N])
   {
-    Unswizzle4Once<T, SIMD_WIDTH, N, 0, 0>::_unswizzle(v, v2);
+    UnswizzleOnce<T, SIMD_WIDTH, N, 0, 0>::_unswizzle(v, v2);
     CopyMatrix<T, SIMD_WIDTH, 0, 2 * N>::_copy(v2, v);
   }
 };
@@ -2476,7 +2276,7 @@ struct Unswizzle4Multiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 // ------------------------ unswizzle main meta template ---------------------
 
 template <typename T, int SIMD_WIDTH, int N>
-struct Unswizzle4
+struct Unswizzle
 {
   static constexpr int FINALBLKSIZE = Vec<T, SIMD_WIDTH>::elements;
   static constexpr int ORIG_REPS    = (int) floorlog2(FINALBLKSIZE) + 1;
@@ -2486,66 +2286,49 @@ struct Unswizzle4
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N])
   {
     Vec<T, SIMD_WIDTH> v2[2 * N];
-    Unswizzle4Multiple<T, SIMD_WIDTH, N, 0, FINAL_REPS, ODD>::_unswizzle(v, v2);
+    UnswizzleMultiple<T, SIMD_WIDTH, N, 0, FINAL_REPS, ODD>::_unswizzle(v, v2);
   }
 };
-} // namespace ext
-} // namespace internal
 
 // ===========================================================================
-// unswizzle4 wrapper function
+// unswizzle_b wrapper function
 // ===========================================================================
 
-// 15. Oct 22 (Jonas Keller): added unswizzle4 wrapper function
+// 15. Oct 22 (Jonas Keller): added unswizzle_b wrapper function
 
-/**
- * @copydoc unswizzle2()
- * @ingroup group_swizzle
- */
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void unswizzle4(Vec<T, SIMD_WIDTH> v[2 * N])
+static SIMD_INLINE void unswizzle_b(Vec<T, SIMD_WIDTH> v[2 * N])
 {
-  internal::ext::Unswizzle4<T, SIMD_WIDTH, N>::_unswizzle(v);
+  Unswizzle<T, SIMD_WIDTH, N>::_unswizzle(v);
 }
 
 // ===========================================================================
-// transpose4 Swizzle4<Zip>
+// transpose_g Swizzle2<Zip>
 // ===========================================================================
 
 // contributed by Adam Marschall
 
-// called transpose4 as it is based on swizzle3, but expects same
-// number of vectors as transpose (not twice the number)
-
-/**
- * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- * @ingroup group_transpose
- */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose4(
+static SIMD_INLINE void transpose_g(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
   const int n = Vec<T, SIMD_WIDTH>::elements, N = n / 2;
   for (int i = 0; i < n; i++) outRows[i] = inRows[i];
-  internal::ext::Swizzle4<internal::ext::Zip, T, SIMD_WIDTH, N, N>::_swizzle(
-    outRows);
+  Swizzle2<Zip, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
 }
 
 // ===========================================================================
-// transpose5: Swizzle4<Zip16> + Swizzle post-process
+// transpose_h: Swizzle2<Zip16> + Swizzle post-process
 // ===========================================================================
 
 // contributed by Adam Marschall
 
-namespace internal {
-namespace ext {
 // ------------------------ swizzle post-process 16 once ---------------------
 
 // primary template
 template <typename T, int SIMD_WIDTH, int N, int SRC, int DST, int LANE_ELEMS>
-struct Swizzle4Postprocess16Once
+struct Swizzle2Postprocess16Once
 {
   static constexpr int SRC2 = SRC + 1;
   static constexpr int DST2 = DST + N;
@@ -2556,14 +2339,14 @@ struct Swizzle4Postprocess16Once
     // printf("%s\n", "SwizzlePostprocess16Once");
     // printf("  SRC=%d, SRC2=%d, DST=%d, DS2T=%d\n", SRC, SRC2, DST, DST2);
     Zip16<LANE_ELEMS, T, SIMD_WIDTH>::_zip(v[SRC], v[SRC2], v2[DST], v2[DST2]);
-    Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, SRC + 2, DST + 1,
+    Swizzle2Postprocess16Once<T, SIMD_WIDTH, N, SRC + 2, DST + 1,
                               LANE_ELEMS>::_swizzle(v, v2);
   }
 };
 
 // partial specialization to end the iteration
 template <typename T, int SIMD_WIDTH, int N, int SRC, int LANE_ELEMS>
-struct Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, SRC, N, LANE_ELEMS>
+struct Swizzle2Postprocess16Once<T, SIMD_WIDTH, N, SRC, N, LANE_ELEMS>
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N] /*v*/,
                                    Vec<T, SIMD_WIDTH>[2 * N] /*v2*/)
@@ -2580,7 +2363,7 @@ struct Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, SRC, N, LANE_ELEMS>
 // primary template
 template <typename T, int SIMD_WIDTH, int N, int LANE_ELEMS, int REP,
           int FINAL_REPS, int ODD>
-struct Swizzle4Postprocess16
+struct Swizzle2Postprocess16
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
@@ -2588,11 +2371,11 @@ struct Swizzle4Postprocess16
     // printf("%s\n", "SwizzlePostprocess16");
     // printf("  REP=%d, FINAL_REPS=%d, LANE_ELEMS=%d\n", REP, FINAL_REPS,
     // LANE_ELEMS);
-    Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS>::_swizzle(v,
+    Swizzle2Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS>::_swizzle(v,
                                                                             v2);
-    Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS * 2>::_swizzle(
+    Swizzle2Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS * 2>::_swizzle(
       v2, v);
-    Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS * 4, REP + 1, FINAL_REPS,
+    Swizzle2Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS * 4, REP + 1, FINAL_REPS,
                           ODD>::_swizzle(v, v2);
   }
 };
@@ -2600,7 +2383,7 @@ struct Swizzle4Postprocess16
 // partial specialization to end the iteration without post-process post-amble
 template <typename T, int SIMD_WIDTH, int N, int LANE_ELEMS, int FINAL_REPS,
           int ODD>
-struct Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
+struct Swizzle2Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
                              FINAL_REPS, ODD>
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N],
@@ -2610,7 +2393,7 @@ struct Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
 
 // partial specialization to end the iteration with post-process post-amble
 template <typename T, int SIMD_WIDTH, int N, int LANE_ELEMS, int FINAL_REPS>
-struct Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
+struct Swizzle2Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
                              FINAL_REPS, 1>
 {
   static constexpr int ROW_STOP = 2 * N;
@@ -2618,7 +2401,7 @@ struct Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
   {
-    Swizzle4Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS>::_swizzle(v,
+    Swizzle2Postprocess16Once<T, SIMD_WIDTH, N, 0, 0, LANE_ELEMS>::_swizzle(v,
                                                                             v2);
     CopyMatrix<T, SIMD_WIDTH, 0, ROW_STOP>::_copy(v2, v);
   }
@@ -2629,14 +2412,14 @@ struct Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
 // primary template
 template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
           int N>
-struct Swizzle4Postprocess
+struct Swizzle2Postprocess
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N]) {}
 };
 
 // partial specialization to post-process Swizzle<Zip16>
 template <typename T, int SIMD_WIDTH, int N>
-struct Swizzle4Postprocess<Zip16, T, SIMD_WIDTH, N>
+struct Swizzle2Postprocess<Zip16, T, SIMD_WIDTH, N>
 {
   static constexpr int ORIG_REPS  = (int) floorlog2(SIMD_WIDTH) - 4;
   static constexpr int FINAL_REPS = ORIG_REPS / 2;
@@ -2646,44 +2429,30 @@ struct Swizzle4Postprocess<Zip16, T, SIMD_WIDTH, N>
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N])
   {
     Vec<T, SIMD_WIDTH> v2[2 * N];
-    Swizzle4Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, 0, FINAL_REPS,
+    Swizzle2Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, 0, FINAL_REPS,
                           ODD>::_swizzle(v, v2);
   }
 };
-} // namespace ext
-} // namespace internal
 
-// ------------------------ transpose5 function call -------------------------
+// ------------------------ transpose_h function call -------------------------
 
-// called transpose5 as it is based on swizzle2, but expects same
-// number of vectors as transpose (not twice the number)
-
-/**
- * @copydoc transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- * @ingroup group_transpose
- */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose5(
+static SIMD_INLINE void transpose_h(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
   const int n = Vec<T, SIMD_WIDTH>::elements, N = n / 2;
   for (int i = 0; i < n; i++) outRows[i] = inRows[i];
-  internal::ext::Swizzle4<internal::ext::Zip16, T, SIMD_WIDTH, N, N>::_swizzle(
-    outRows);
-  internal::ext::Swizzle4Postprocess<internal::ext::Zip16, T, SIMD_WIDTH,
-                                     N>::_swizzle(outRows);
+  Swizzle2<Zip16, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
+  Swizzle2Postprocess<Zip16, T, SIMD_WIDTH, N>::_swizzle(outRows);
 }
 
 // ===========================================================================
-// transpose6: register-count based transpose
+// transpose_i: register-count based transpose
 // ===========================================================================
 
 // contributed by Adam Marschall
 
-namespace internal {
-namespace ext {
 // primary template: unpack repetition
 template <template <int, int, typename, int> class Unpack, typename T,
           int SIMD_WIDTH, int PROCESS_ROW, int PROCESS_ROWS, int UNPACK_ELEMS,
@@ -2982,58 +2751,12 @@ struct TransposeRc
     // printf("%s","\n");
   }
 };
-} // namespace ext
-} // namespace internal
 
 // ---------------------------------------------------------------------------
 
 // function template: full transpose
-
-/**
- * @ingroup group_transpose
- * @brief Transposes a matrix held in an aligned array.
- *
- * The matrix must be of size <tt>n*n</tt> where <tt>n</tt> is the number of
- * elements in a Vec (Vec<T, SIMD_WIDTH>::elems, <tt>SIMD_WIDTH/sizeof(T)</tt>.
- *
- * The input and output arrays must be aligned to the SIMD_WIDTH.
- *
- * @param inArray input array
- * @param outArray output array
- *
- * @sa transpose(), transpose0(), transpose2(), transpose3(), transpose4(),
- * transpose5(), transpose6_t(), transpose16(), transpose1_16(),
- * transpose1_16_t(): %transpose functions that %transpose matrices that are
- * already held in Vec's
- */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose6(
-  const T inArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
-  T outArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems])
-{
-  internal::ext::TransposeRc<internal::ext::Unpack16, T,
-                             SIMD_WIDTH>::_transpose(inArray, outArray);
-}
-
-// function template: full transpose for tests
-
-/**
- * @copybrief transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- *
- * @note This function is the same as transpose6(), but stores the @p inRows in
- * an array, then calls transpose6() and loads the output into @p outRows ,
- * making
- * this function possibly slower. This function is mainly used for testing, but
- * can also be used normally.
- *
- * @copydetails transpose(const Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems],
- * Vec<T,SIMD_WIDTH>[Vec<T,SIMD_WIDTH>::elems])
- *
- * @ingroup group_transpose
- */
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose6_t(
+static SIMD_INLINE void transpose_i(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
@@ -3047,13 +2770,82 @@ static SIMD_INLINE void transpose6_t(
   T inArray[N * N] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   T outArray[N * N] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   store(inArray, inRows, N);
-  transpose6<T, SIMD_WIDTH>(inArray, outArray);
+  TransposeRc<Unpack16, T, SIMD_WIDTH>::_transpose(inArray, outArray);
   load(outArray, outRows, N);
 }
 
 // ===========================================================================
-// unswizzle2 (interleave)
+// unswizzle_a (interleave)
 // ===========================================================================
+
+template <int N, typename T, int SIMD_WIDTH>
+static SIMD_INLINE void unswizzle_a(Vec<T, SIMD_WIDTH> v[2 * N])
+{
+  const int finalBlkSize = Vec<T, SIMD_WIDTH>::elements;
+  Vec<T, SIMD_WIDTH> v2[2 * N];
+  for (int blkSize = 1; blkSize <= finalBlkSize; blkSize *= 2) {
+    // zip
+    for (int dst = 0, src = 0; dst < N; dst++, src += 2)
+      unzip<1>(v[src], v[src + 1], v2[dst], v2[dst + N]);
+    // copy result back to v
+    // TODO: unswizzle_a: check code produced by compiler for copying
+    for (int i = 0; i < 2 * N; i++) v[i] = v2[i];
+  }
+}
+
+} // namespace ext
+} // namespace internal
+
+/**
+ * @ingroup group_swizzle
+ * @brief Swizzle/de-interleave/convert from AoS to SoA multiple Vec's in-place.
+ *
+ * This function swizzles/de-interleaves/converts from AoS (Array of Structs) to
+ * SoA (Struct of Arrays) multiple Vec's in-place.
+ *
+ * In contrast to swizzle(), this function takes double the number of Vec's as
+ * input and might be faster.
+ *
+ * <h4>Example:</h4>
+ * Example for a swizzle distance of 3 with 6 Vec's of 8 elements each:
+ *
+ * input stream (structures indicated by curly brackets):
+ * @code
+ * {0 1 2} {3 4 5} {6 7 8} {9 10 11} ... {45 46 47}
+ * @endcode
+ * input vectors:
+ * @code
+ * v[0] =  0  1  2  3  4  5  6  7
+ * v[1] =  8  9 10 11 12 13 14 15
+ * v[2] = 16 17 18 19 20 21 22 23
+ * v[3] = 24 25 26 27 28 29 30 31
+ * v[4] = 32 33 34 35 36 37 38 39
+ * v[5] = 40 41 42 43 44 45 46 47
+ * @endcode
+ * output vectors:
+ * @code
+ * v[0] =  0  6 12 18 24 30 36 42
+ * v[1] =  1  7 13 19 25 31 37 43
+ * v[2] =  2  8 14 20 26 32 38 44
+ * v[3] =  3  9 15 21 27 33 39 45
+ * v[4] =  4 10 16 22 28 34 40 46
+ * v[5] =  5 11 17 23 29 35 41 47
+ * @endcode
+ *
+ * @tparam N swizzle distance, must be between 1 and 5
+ * @param[in,out] v array of Vec's to swizzle
+ *
+ * @sa swizzle(): swizzles half the number of Vec's as this function
+ * @sa unswizzle()
+ */
+template <int N, typename T, int SIMD_WIDTH>
+static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
+{
+  // uncomment fastest version
+  // internal::ext::swizzle2_a<N>(v);
+  // internal::ext::swizzle2_b<N>(v);
+  internal::ext::swizzle2_c<N>(v);
+}
 
 /**
  * @ingroup group_swizzle
@@ -3087,23 +2879,43 @@ static SIMD_INLINE void transpose6_t(
  * @tparam N unswizzle distance
  * @param[in,out] v array of Vec's to unswizzle
  *
- * @sa swizzle(), swizzle2(), swizzle3(), swizzle4(): %swizzle functions
- * @sa unswizzle2(), unswizzle4(): different implementations of this
- * function that might have different performance characteristics
+ * @sa swizzle(), swizzle2(): %swizzle functions
  */
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void unswizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
+static SIMD_INLINE void unswizzle(Vec<T, SIMD_WIDTH> v[2 * N])
 {
-  const int finalBlkSize = Vec<T, SIMD_WIDTH>::elements;
-  Vec<T, SIMD_WIDTH> v2[2 * N];
-  for (int blkSize = 1; blkSize <= finalBlkSize; blkSize *= 2) {
-    // zip
-    for (int dst = 0, src = 0; dst < N; dst++, src += 2)
-      unzip<1>(v[src], v[src + 1], v2[dst], v2[dst + N]);
-    // copy result back to v
-    // TODO: unswizzle2: check code produced by compiler for copying
-    for (int i = 0; i < 2 * N; i++) v[i] = v2[i];
-  }
+  // uncomment fastest version
+  // internal::ext::unswizzle_a<N>(v);
+  internal::ext::unswizzle_b<N>(v);
+}
+
+/**
+ * @ingroup group_transpose
+ * @brief Transposes a matrix held in an array of Vec's.
+ *
+ * The matrix must be given as an array of Vec's which are the rows of
+ * the matrix. The number of rows must be equal to the number of elements
+ * in a Vec (<tt>SIMD_WIDTH/sizeof(T)</tt>), i.e. the matrix must be
+ * square.
+ *
+ * @param[in] inRows array of Vec's holding the matrix to be transposed
+ * @param[out] outRows array of Vec's where the transposed matrix is stored
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
+{
+  // uncomment fastest version
+  // internal::ext::transpose_a(inRows, outRows);
+  internal::ext::transpose_b(inRows, outRows);
+  // internal::ext::transpose_c(inRows, outRows);
+  // internal::ext::transpose_d(inRows, outRows);
+  // internal::ext::transpose_e(inRows, outRows);
+  // internal::ext::transpose_f(inRows, outRows);
+  // internal::ext::transpose_g(inRows, outRows);
+  // internal::ext::transpose_h(inRows, outRows);
+  // internal::ext::transpose_i(inRows, outRows);
 }
 
 // ===========================================================================
@@ -3380,7 +3192,7 @@ static SIMD_INLINE void bitonicSortReducedTransposed(
 } // namespace ext
 } // namespace internal
 
-// with transpose
+// with transpose_a
 
 /**
  * @brief Sorts multiple Vec's independently using the bitonic sort algorithm.
@@ -3396,12 +3208,12 @@ static SIMD_INLINE void bitonicSort(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {
   Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
-  transpose(vecs, transVecs);
+  internal::ext::transpose_a(vecs, transVecs);
   internal::ext::bitonicSortTransposed<SLOPE>(transVecs);
-  transpose(transVecs, vecs);
+  internal::ext::transpose_a(transVecs, vecs);
 }
 
-// with transpose2
+// with transpose_e
 
 /**
  * @brief Sorts multiple Vec's independently using the bitonic sort algorithm.
@@ -3417,9 +3229,9 @@ static SIMD_INLINE void bitonicSort2(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {
   Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
-  transpose2(vecs, transVecs);
+  internal::ext::transpose_e(vecs, transVecs);
   internal::ext::bitonicSortTransposed<SLOPE>(transVecs);
-  transpose2(transVecs, vecs);
+  internal::ext::transpose_e(transVecs, vecs);
 }
 
 namespace internal {
@@ -3439,7 +3251,7 @@ static SIMD_INLINE void bitonicFusion(Vec<T, SIMD_WIDTH> &a,
 
 // given sorted vectors as inputs, it fuses each consecutive pair
 // such it is completely sorted over the pair
-// with transpose
+// with transpose_a
 
 /**
  * @brief Fuses consecutive pairs of sorted Vec's such that the pair is sorted
@@ -3459,14 +3271,14 @@ static SIMD_INLINE void bitonicSortSortedPairs(
   // second vector of each pair is reversed and fused with first vector
   for (int i = 0; i < Vec<T, SIMD_WIDTH>::elements; i += 2)
     internal::ext::bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
-  transpose(vecs, transVecs);
+  internal::ext::transpose_a(vecs, transVecs);
   internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
-  transpose(transVecs, vecs);
+  internal::ext::transpose_a(transVecs, vecs);
 }
 
 // given sorted vectors as inputs, it fuses each consecutive pair
 // such it is completely sorted over the pair
-// with transpose2
+// with transpose_e
 
 /**
  * @brief Fuses consecutive pairs of sorted Vec's such that the pair is sorted
@@ -3486,9 +3298,9 @@ static SIMD_INLINE void bitonicSortSortedPairs2(
   // second vector of each pair is reversed and fused with first vector
   for (int i = 0; i < Vec<T, SIMD_WIDTH>::elements; i += 2)
     internal::ext::bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
-  transpose2(vecs, transVecs);
+  internal::ext::transpose_e(vecs, transVecs);
   internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
-  transpose2(transVecs, vecs);
+  internal::ext::transpose_e(transVecs, vecs);
 }
 
 /** @} */

@@ -1160,9 +1160,9 @@ static Vec<T, SIMD_WIDTH> reverse(const Vec<T, SIMD_WIDTH> &a)
  * @tparam N swizzle distance, must be between 1 and 5
  * @param[in,out] v array of Vec's to swizzle
  *
- * @sa swizzle2(), swizzle3(), swizzle4(): %swizzle functions that take double
- * the number of Vec's and might have different performance characteristics
- * @sa unswizzle2(), unswizzle4(): %unswizzle functions
+ * @sa swizzle2(): %swizzle function that takes double the number of Vec's with
+ * potentially better performance
+ * @sa unswizzle()
  */
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> v[N])

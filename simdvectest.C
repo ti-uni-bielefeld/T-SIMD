@@ -560,7 +560,7 @@ using namespace simd;
       printf("\n");                                                            \
     }                                                                          \
     printf("\n");                                                              \
-    unswizzle2<N>(v);                                                          \
+    unswizzle<N>(v);                                                           \
     for (int i = 0; i < 2 * N; i++, bufp += nElems) {                          \
       printf("v[%d] = ", i);                                                   \
       print(FORMAT, v[i]);                                                     \
@@ -569,9 +569,9 @@ using namespace simd;
     printf("\n");                                                              \
   }
 
-#define UNSWIZZLE2(TYPE, N, FORMAT)                                            \
+#define UNSWIZZLE(TYPE, N, FORMAT)                                             \
   {                                                                            \
-    printf("unswizzle2 " #TYPE " " #N "\n\n");                                 \
+    printf("unswizzle " #TYPE " " #N "\n\n");                                  \
     const int nElems = SW / sizeof(TYPE);                                      \
     TYPE buf[2 * N * nElems];                                                  \
     for (int i = 0; i < 2 * N * nElems; i++) buf[i] = TYPE(i);                 \
@@ -584,7 +584,7 @@ using namespace simd;
       printf("\n");                                                            \
     }                                                                          \
     printf("\n");                                                              \
-    unswizzle2<N>(v);                                                          \
+    unswizzle<N>(v);                                                           \
     for (int i = 0; i < 2 * N; i++, bufp += nElems) {                          \
       printf("v[%d] = ", i);                                                   \
       print(FORMAT, v[i]);                                                     \
@@ -968,45 +968,45 @@ int main()
   SWIZZLE2(Float, 4, "%3g ");
   SWIZZLE2(Float, 5, "%3g ");
 
-  puts("\n*********** test of unswizzle2 ************\n");
+  puts("\n*********** test of unswizzle ************\n");
 
   // here we could also test higher values than 5
 
-  UNSWIZZLE2(Byte, 1, "%3d ");
-  UNSWIZZLE2(Byte, 2, "%3d ");
-  UNSWIZZLE2(Byte, 3, "%3d ");
-  UNSWIZZLE2(Byte, 4, "%3d ");
-  UNSWIZZLE2(Byte, 5, "%3d ");
+  UNSWIZZLE(Byte, 1, "%3d ");
+  UNSWIZZLE(Byte, 2, "%3d ");
+  UNSWIZZLE(Byte, 3, "%3d ");
+  UNSWIZZLE(Byte, 4, "%3d ");
+  UNSWIZZLE(Byte, 5, "%3d ");
 
-  UNSWIZZLE2(SignedByte, 1, "%3d ");
-  UNSWIZZLE2(SignedByte, 2, "%3d ");
-  UNSWIZZLE2(SignedByte, 3, "%3d ");
-  UNSWIZZLE2(SignedByte, 4, "%3d ");
-  UNSWIZZLE2(SignedByte, 5, "%3d ");
+  UNSWIZZLE(SignedByte, 1, "%3d ");
+  UNSWIZZLE(SignedByte, 2, "%3d ");
+  UNSWIZZLE(SignedByte, 3, "%3d ");
+  UNSWIZZLE(SignedByte, 4, "%3d ");
+  UNSWIZZLE(SignedByte, 5, "%3d ");
 
-  UNSWIZZLE2(Word, 1, "%3d ");
-  UNSWIZZLE2(Word, 2, "%3d ");
-  UNSWIZZLE2(Word, 3, "%3d ");
-  UNSWIZZLE2(Word, 4, "%3d ");
-  UNSWIZZLE2(Word, 5, "%3d ");
+  UNSWIZZLE(Word, 1, "%3d ");
+  UNSWIZZLE(Word, 2, "%3d ");
+  UNSWIZZLE(Word, 3, "%3d ");
+  UNSWIZZLE(Word, 4, "%3d ");
+  UNSWIZZLE(Word, 5, "%3d ");
 
-  UNSWIZZLE2(Short, 1, "%3d ");
-  UNSWIZZLE2(Short, 2, "%3d ");
-  UNSWIZZLE2(Short, 3, "%3d ");
-  UNSWIZZLE2(Short, 4, "%3d ");
-  UNSWIZZLE2(Short, 5, "%3d ");
+  UNSWIZZLE(Short, 1, "%3d ");
+  UNSWIZZLE(Short, 2, "%3d ");
+  UNSWIZZLE(Short, 3, "%3d ");
+  UNSWIZZLE(Short, 4, "%3d ");
+  UNSWIZZLE(Short, 5, "%3d ");
 
-  UNSWIZZLE2(Int, 1, "%3d ");
-  UNSWIZZLE2(Int, 2, "%3d ");
-  UNSWIZZLE2(Int, 3, "%3d ");
-  UNSWIZZLE2(Int, 4, "%3d ");
-  UNSWIZZLE2(Int, 5, "%3d ");
+  UNSWIZZLE(Int, 1, "%3d ");
+  UNSWIZZLE(Int, 2, "%3d ");
+  UNSWIZZLE(Int, 3, "%3d ");
+  UNSWIZZLE(Int, 4, "%3d ");
+  UNSWIZZLE(Int, 5, "%3d ");
 
-  UNSWIZZLE2(Float, 1, "%3g ");
-  UNSWIZZLE2(Float, 2, "%3g ");
-  UNSWIZZLE2(Float, 3, "%3g ");
-  UNSWIZZLE2(Float, 4, "%3g ");
-  UNSWIZZLE2(Float, 5, "%3g ");
+  UNSWIZZLE(Float, 1, "%3g ");
+  UNSWIZZLE(Float, 2, "%3g ");
+  UNSWIZZLE(Float, 3, "%3g ");
+  UNSWIZZLE(Float, 4, "%3g ");
+  UNSWIZZLE(Float, 5, "%3g ");
 
   puts("\n*********** test of swizzle_32_16 ************\n");
 
@@ -1309,7 +1309,6 @@ int main()
   Vecs<NUMTRANSPOSEROWS, TRANSPOSETYPE, SW> outRowsPart;
   // 30. Sep 22 (rm): was called transpose1, moved back to transpose
   transpose(inRows, outRows);
-  transposePartial(inRows, outRowsPart);
 #define HORTYPE Short
 #define NHOR    (SW / sizeof(HORTYPE))
   Vecs<NHOR, HORTYPE, SW> horInVecs;

@@ -150,31 +150,31 @@ int main(int argc, char *argv[])
   TestAll<UnaryScalarT, SW, HaddsSingle>::test(repeats1, pattern);
   TestAll<UnaryScalarT, SW, HminSingle>::test(repeats1, pattern);
   TestAll<UnaryScalarT, SW, HmaxSingle>::test(repeats1, pattern);
-  // TODO: partial transpose
-  TestAll<ArrayArrayVoid, SW, Transpose>::test(repeats1, pattern);
-  TestAll<ArrayArrayVoid, SW, Transpose2>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose_a>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose_e>::test(repeats1, pattern);
   // contributed by Adam Marschall
-  TestAll<ArrayArrayVoid, SW, Transpose0>::test(repeats1, pattern);
-  TestAll<ArrayArrayVoid, SW, Transpose16>::test(repeats1, pattern);
-  TestAll<ArrayArrayVoid, SW, Transpose3>::test(repeats1, pattern);
-  TestAll<ArrayArrayVoid, SW, Transpose4>::test(repeats1, pattern);
-  TestAll<ArrayArrayVoid, SW, Transpose5>::test(repeats1, pattern);
-  TestAll<ArrayArrayVoid, SW, Transpose1_16>::test(repeats1, pattern);
-  TestAll<ArrayArrayVoid, SW, Transpose6>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose_b>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose_d>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose_f>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose_g>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose_h>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose_c>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose_i>::test(repeats1, pattern);
   // 15. Oct 22 (Jonas Keller): added test for _Swizzle
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle>::test(repeats1, pattern);
-  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle2>::test(repeats1,
-                                                              pattern);
-  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Unswizzle2>::test(repeats1,
+  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle2_a>::test(repeats1,
                                                                 pattern);
-  // 07. Feb 23 (Jonas Keller): added test for swizzle3
-  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle3>::test(repeats1,
-                                                              pattern);
-  // 15. Oct 22 (Jonas Keller): added test for swizzle4 and unswizzle4
-  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle4>::test(repeats1,
-                                                              pattern);
-  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Unswizzle4>::test(repeats1,
+  // 07. Feb 23 (Jonas Keller): added test for swizzle2_b
+  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle2_b>::test(repeats1,
                                                                 pattern);
+  // 15. Oct 22 (Jonas Keller): added test for swizzle2_c
+  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle2_c>::test(repeats1,
+                                                                pattern);
+  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Unswizzle_a>::test(repeats1,
+                                                                 pattern);
+  // 15. Oct 22 (Jonas Keller): added test for unswizzle_b
+  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Unswizzle_b>::test(repeats1,
+                                                                 pattern);
   // 04. Dec 22 (Jonas Keller): The bitonic sorts flush denormals to zero on
   // ARMv7, since the min and max operations flush denormals to zero on ARMv7.
   // This results in autotest errors on ARMv7.

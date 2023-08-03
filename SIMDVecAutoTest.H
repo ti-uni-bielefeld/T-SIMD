@@ -630,8 +630,8 @@ struct Nullary
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "";
-    SerialVec<T, SIMD_WIDTH> cs, cp;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> cs, cp;
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -679,8 +679,8 @@ struct Unary
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SerialVec<T, SIMD_WIDTH> a, cs, cp;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> a, cs, cp;
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -733,9 +733,9 @@ struct Scalar
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "s";
+#if !ONLY_TIME_MEASUREMENT
     T a;
     SerialVec<T, SIMD_WIDTH> cs, cp;
-#if !ONLY_TIME_MEASUREMENT
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -790,8 +790,8 @@ struct ScalarUInt64
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "s";
-    SerialVec<T, SIMD_WIDTH> cs, cp;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> cs, cp;
     uint64_t a;
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
@@ -846,9 +846,9 @@ struct UnaryScalar
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
+#if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     TRES cs, cp;
-#if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtRes = TypeInfo<TRES>::defaultFormat();
 #endif
@@ -908,8 +908,8 @@ struct UnaryScalarUInt64
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SerialVec<T, SIMD_WIDTH> a;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> a;
     uint64_t cs, cp;
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtRes = "%" PRIu64;
@@ -965,9 +965,9 @@ struct UnaryUInt8
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
+#if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     SerialVec<T, SIMD_WIDTH> cs, cp;
-#if !ONLY_TIME_MEASUREMENT
     uint8_t b;
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtRes = TypeInfo<T>::defaultFormat();
@@ -1023,9 +1023,9 @@ struct UnaryTemplateType
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
+#if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     SerialVec<Tout, SIMD_WIDTH> cs, cp;
-#if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
 #endif
@@ -1078,9 +1078,9 @@ struct UnaryTemplateIntScalar
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
+#if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     T cp, cs;
-#if !ONLY_TIME_MEASUREMENT
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
@@ -1154,8 +1154,8 @@ struct UnaryTemplateInt
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
-    SerialVec<T, SIMD_WIDTH> a, cp, cs;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> a, cp, cs;
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
@@ -1232,9 +1232,9 @@ struct UnaryTemplateInt16
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v";
+#if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     SerialVec<T, 16> cp, cs;
-#if !ONLY_TIME_MEASUREMENT
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
@@ -1308,8 +1308,8 @@ struct Binary
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v";
-    SerialVec<T, SIMD_WIDTH> a, b, cs, cp;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> a, b, cs, cp;
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -1364,9 +1364,9 @@ struct BinaryTemplateType
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v";
+#if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, b;
     SerialVec<Tout, SIMD_WIDTH> cs, cp;
-#if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
 #endif
@@ -1424,8 +1424,8 @@ struct UnaryArrayTemplateType
   {
     std::string args   = "v,*v";
     const int nOutVecs = sizeof(Tout) / sizeof(T);
-    SerialVec<T, SIMD_WIDTH> a;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> a;
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
 #endif
@@ -1490,8 +1490,8 @@ struct Array
   {
     std::string args  = "*v";
     const int nInVecs = FCT<T, SIMD_WIDTH>::nInputs;
-    SerialVec<T, SIMD_WIDTH> cs, cp;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> cs, cp;
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<T, SIMD_WIDTH>::name();
@@ -1550,8 +1550,8 @@ struct ArrayTemplateType
   {
     std::string args  = "*v";
     const int nInVecs = FCT<Tout, T, SIMD_WIDTH>::nInputs;
-    SerialVec<Tout, SIMD_WIDTH> cs, cp;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<Tout, SIMD_WIDTH> cs, cp;
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
 #endif
@@ -2192,8 +2192,8 @@ struct BinaryTemplateInt
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v";
-    SerialVec<T, SIMD_WIDTH> a, b, cp, cs;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> a, b, cp, cs;
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
@@ -2271,9 +2271,9 @@ struct BinaryBinaryTemplateInt
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v,v&,v&";
+#if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, b, cs, cp, ds, dp;
     Vec<T, SIMD_WIDTH> _cp, _dp;
-#if !ONLY_TIME_MEASUREMENT
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
@@ -2356,8 +2356,8 @@ struct BinaryTemplateIntInt
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v";
-    SerialVec<T, SIMD_WIDTH> a, b, cp, cs;
 #if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> a, b, cp, cs;
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
     std::string name = FCT<I, J, T, SIMD_WIDTH>::name();
@@ -2438,10 +2438,10 @@ struct TernaryConditionTemplateType
   static void test(int repeats, const std::string &pattern)
   {
     std::string args = "v,v,v";
+#if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, b;
     SerialVec<Tcond, SIMD_WIDTH> cond;
     SerialVec<T, SIMD_WIDTH> cs, cp;
-#if !ONLY_TIME_MEASUREMENT
     const char *fmt     = TypeInfo<T>::defaultFormat();
     const char *fmtCond = TypeInfo<Tcond>::defaultFormat();
 #endif

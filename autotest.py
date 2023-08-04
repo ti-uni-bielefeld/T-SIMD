@@ -8,6 +8,11 @@ import sys
 
 SDE_PATH = ""
 
+COMPILERS = [
+    "clang++",
+    "g++",
+]
+
 SDE_OPTIONS = "-align_checker_action ignore -future"
 
 LOG_DIR = f"autotest_{os.popen('hostname').read().strip()}_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
@@ -62,10 +67,7 @@ def get_required_emulator(arch_flags):
 def generate_test_configs():
     test_configs = []
 
-    for compiler in [
-        "clang++",
-        "g++",
-    ]:
+    for compiler in COMPILERS:
         if os.system(f"which {compiler} > /dev/null 2>&1") != 0:
             print(f"WARNING: compiler \"{compiler}\" not found, skipping")
             continue
@@ -166,7 +168,11 @@ if __name__ == "__main__":
                 f"ERROR: SDE_PATH from environment variables is invalid: \"{SDE_PATH}\"")
         else:
             print(f"ERROR: SDE_PATH from constant is invalid: \"{SDE_PATH}\"")
-        print("       Please specify a valid SDE_PATH pointing to the sde or sde64 executable with --sde-path, SDE_PATH=..., in the environment variables, or with the constant SDE_PATH in this script.")
+        print("       Please specify a valid SDE_PATH pointing to the sde or sde64 executable with one of the following options:")
+        print("       - with the --sde-path command line argument")
+        print("       - with the SDE_PATH= command line argument")
+        print("       - with the SDE_PATH environment variable")
+        print("       - by changing the SDE_PATH constant in this script")
         sys.exit(1)
 
     os.nice(19)  # be as nice as possible

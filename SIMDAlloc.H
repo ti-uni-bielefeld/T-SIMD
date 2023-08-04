@@ -60,7 +60,7 @@
  * @param size size of the memory block in bytes
  * @return pointer to the allocated memory block
  */
-void *simd_aligned_malloc(size_t alignment, size_t size)
+inline void *simd_aligned_malloc(size_t alignment, size_t size)
 {
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
@@ -79,7 +79,7 @@ void *simd_aligned_malloc(size_t alignment, size_t size)
  *
  * @param ptr pointer to the memory block to be freed
  */
-void simd_aligned_free(void *ptr)
+inline void simd_aligned_free(void *ptr)
 {
 #ifdef _WIN32
   _aligned_free(ptr);

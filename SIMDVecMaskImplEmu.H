@@ -135,7 +135,7 @@ public:
   SIMD_INLINE bool operator==(const Mask<T, SIMD_WIDTH> &other) const
   {
     return test_all_zeros(
-      xor_(reinterpret<Int>(mask), reinterpret<Int>(other.mask)));
+      bit_xor(reinterpret<Int>(mask), reinterpret<Int>(other.mask)));
   }
   // define operators new and delete to ensure proper alignment, since
   // the default new and delete are not guaranteed to do so before C++17
@@ -202,7 +202,7 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelsezero(
   const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &trueVal)
 {
-  return and_((Vec<T, SIMD_WIDTH>) k, trueVal);
+  return bit_and((Vec<T, SIMD_WIDTH>) k, trueVal);
 }
 
 template <typename Tout, typename Tin, int SIMD_WIDTH>
@@ -462,11 +462,11 @@ EMULATE_SOP(sqrt)
 
 EMULATE_SOP(abs)
 
-EMULATE_DOP_NAME(and_, and)
-EMULATE_DOP_NAME(or_, or)
-EMULATE_DOP(andnot)
-EMULATE_DOP_NAME(xor_, xor)
-EMULATE_SOP_NAME(not_, not )
+EMULATE_DOP_NAME(bit_and, and)
+EMULATE_DOP_NAME(bit_or, or)
+EMULATE_DOP_NAME(bit_andnot, andnot)
+EMULATE_DOP_NAME(bit_xor, xor)
+EMULATE_SOP_NAME(bit_not, not )
 EMULATE_SOP(neg)
 EMULATE_DOP(min)
 EMULATE_DOP(max)
@@ -536,8 +536,8 @@ static SIMD_INLINE int mask_test_all_ones(const Mask<T, SIMD_WIDTH> &k,
                                           const Vec<T, SIMD_WIDTH> &a)
 {
   return mask::mask_test_all_zeros(
-    k, not_(a)); // test_all_ones(mask_ifelse<T, SIMD_WIDTH>(k, a, ()
-                 // set1<Byte, SIMD_WIDTH>(0xFF)));
+    k, bit_not(a)); // test_all_ones(mask_ifelse<T, SIMD_WIDTH>(k, a, ()
+                    // set1<Byte, SIMD_WIDTH>(0xFF)));
 }
 
 template <typename T, int SIMD_WIDTH>
@@ -559,26 +559,27 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_all_ones(OutputType<T>,
 EMULATE_DMASKOP(and)
 
 // EMULATE_DMASKOP(andn)
-//  function name should be "kandn" but the vector function is "andnot"
+//  function name should be "kandn" but the vector function is "bit_andnot"
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kandn(const Mask<T, SIMD_WIDTH> &a,
                                              const Mask<T, SIMD_WIDTH> &b)
 {
-  return (Mask<T, SIMD_WIDTH>) andnot((Vec<T, SIMD_WIDTH>) a,
-                                      (Vec<T, SIMD_WIDTH>) b);
+  return (Mask<T, SIMD_WIDTH>) bit_andnot((Vec<T, SIMD_WIDTH>) a,
+                                          (Vec<T, SIMD_WIDTH>) b);
 }
 
 EMULATE_DMASKOP(or)
 EMULATE_DMASKOP(xor)
 
 // EMULATE_DMASKOP(xnor)
-//  there is not xnor-function for vectors, so we have to do: not_(xor_(a, b))
+//  there is not xnor-function for vectors, so we have to do: bit_not(bit_xor(a,
+//  b))
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> kxnor(const Mask<T, SIMD_WIDTH> &a,
                                              const Mask<T, SIMD_WIDTH> &b)
 {
-  return (Mask<T, SIMD_WIDTH>) not_(
-    xor_((Vec<T, SIMD_WIDTH>) a, (Vec<T, SIMD_WIDTH>) b));
+  return (Mask<T, SIMD_WIDTH>) bit_not(
+    bit_xor((Vec<T, SIMD_WIDTH>) a, (Vec<T, SIMD_WIDTH>) b));
 }
 
 template <typename T, int SIMD_WIDTH>
@@ -593,7 +594,7 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> kadd(const Mask<T, SIMD_WIDTH> &a,
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> knot(const Mask<T, SIMD_WIDTH> &a)
 {
-  return (Mask<T, SIMD_WIDTH>) not_((Vec<T, SIMD_WIDTH>) a);
+  return (Mask<T, SIMD_WIDTH>) bit_not((Vec<T, SIMD_WIDTH>) a);
 }
 
 // shift with flexible parameter (not template), probably slower than

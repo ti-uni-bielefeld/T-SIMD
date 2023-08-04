@@ -565,8 +565,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpneq(const Vec<T, SIMD_WIDTH> &,
 
 // bitwise and
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> and_(const Vec<T, SIMD_WIDTH> &,
-                                           const Vec<T, SIMD_WIDTH> &)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_and(const Vec<T, SIMD_WIDTH> &,
+                                              const Vec<T, SIMD_WIDTH> &)
 {
   printf("and<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
@@ -574,8 +574,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> and_(const Vec<T, SIMD_WIDTH> &,
 
 // bitwise or
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &,
-                                          const Vec<T, SIMD_WIDTH> &)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_or(const Vec<T, SIMD_WIDTH> &,
+                                             const Vec<T, SIMD_WIDTH> &)
 {
   printf("or<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
@@ -583,17 +583,17 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &,
 
 // bitwise andnot: (not a) and b
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> andnot(const Vec<T, SIMD_WIDTH> &,
-                                             const Vec<T, SIMD_WIDTH> &)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_andnot(const Vec<T, SIMD_WIDTH> &,
+                                                 const Vec<T, SIMD_WIDTH> &)
 {
-  printf("andnot<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("bit_andnot<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 // bitwise xor
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> xor_(const Vec<T, SIMD_WIDTH> &,
-                                           const Vec<T, SIMD_WIDTH> &)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_xor(const Vec<T, SIMD_WIDTH> &,
+                                              const Vec<T, SIMD_WIDTH> &)
 {
   printf("xor<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
@@ -601,7 +601,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> xor_(const Vec<T, SIMD_WIDTH> &,
 
 // bitwise not (work-arounds required)
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> not_(const Vec<T, SIMD_WIDTH> &)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_not(const Vec<T, SIMD_WIDTH> &)
 {
   printf("not<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();

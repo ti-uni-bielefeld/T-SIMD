@@ -139,7 +139,7 @@ struct SerialMask
     mask = 0;
     // avoids comparison with TypeInfo::trueval, which fails for
     // Float (NaN)
-    SerialVec<T, SIMD_WIDTH> negX = not_(x);
+    SerialVec<T, SIMD_WIDTH> negX = bit_not(x);
     for (int i = 0; i < x.elements; i++) {
       if (negX[i] == T(0)) { mask = mask | (UInt<bits>(1) << i); }
     }
@@ -470,11 +470,11 @@ GENERATE_SERIAL_MASK_MASKZ_UNARY(rsqrt)
 GENERATE_SERIAL_MASK_MASKZ_UNARY(sqrt)
 GENERATE_SERIAL_MASK_MASKZ_UNARY(abs)
 
-GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(and_, and)
-GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(or_, or)
-GENERATE_SERIAL_MASK_MASKZ_BINARY(andnot)
-GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(xor_, xor)
-GENERATE_SERIAL_MASK_MASKZ_UNARY_NAME(not_, not )
+GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(bit_and, and)
+GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(bit_or, or)
+GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(bit_andnot, andnot)
+GENERATE_SERIAL_MASK_MASKZ_BINARY_NAME(bit_xor, xor)
+GENERATE_SERIAL_MASK_MASKZ_UNARY_NAME(bit_not, not )
 
 GENERATE_SERIAL_MASK_MASKZ_UNARY(neg)
 

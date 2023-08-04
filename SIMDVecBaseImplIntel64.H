@@ -4752,11 +4752,11 @@ static SIMD_INLINE Vec<T, 64> ifelse(const Vec<T, 64> &cond,
 }
 
 // ---------------------------------------------------------------------------
-// and v
+// bit_and v
 // ---------------------------------------------------------------------------
 
 template <typename T>
-static SIMD_INLINE Vec<T, 64> and_(const Vec<T, 64> &a, const Vec<T, 64> &b)
+static SIMD_INLINE Vec<T, 64> bit_and(const Vec<T, 64> &a, const Vec<T, 64> &b)
 {
   // reinterpret as byte for float and double versions
   const Vec<Byte, 64> res = _mm512_and_si512(
@@ -4765,11 +4765,11 @@ static SIMD_INLINE Vec<T, 64> and_(const Vec<T, 64> &a, const Vec<T, 64> &b)
 }
 
 // ---------------------------------------------------------------------------
-// or v
+// bit_or v
 // ---------------------------------------------------------------------------
 
 template <typename T>
-static SIMD_INLINE Vec<T, 64> or_(const Vec<T, 64> &a, const Vec<T, 64> &b)
+static SIMD_INLINE Vec<T, 64> bit_or(const Vec<T, 64> &a, const Vec<T, 64> &b)
 {
   // reinterpret as byte for float and double versions
   const Vec<Byte, 64> res = _mm512_or_si512(reinterpret(a, OutputType<Byte>()),
@@ -4778,11 +4778,12 @@ static SIMD_INLINE Vec<T, 64> or_(const Vec<T, 64> &a, const Vec<T, 64> &b)
 }
 
 // ---------------------------------------------------------------------------
-// andnot v
+// bit_andnot v
 // ---------------------------------------------------------------------------
 
 template <typename T>
-static SIMD_INLINE Vec<T, 64> andnot(const Vec<T, 64> &a, const Vec<T, 64> &b)
+static SIMD_INLINE Vec<T, 64> bit_andnot(const Vec<T, 64> &a,
+                                         const Vec<T, 64> &b)
 {
   // reinterpret as byte for float and double versions
   const Vec<Byte, 64> res = _mm512_andnot_si512(
@@ -4791,11 +4792,11 @@ static SIMD_INLINE Vec<T, 64> andnot(const Vec<T, 64> &a, const Vec<T, 64> &b)
 }
 
 // ---------------------------------------------------------------------------
-// xor v
+// bit_xor v
 // ---------------------------------------------------------------------------
 
 template <typename T>
-static SIMD_INLINE Vec<T, 64> xor_(const Vec<T, 64> &a, const Vec<T, 64> &b)
+static SIMD_INLINE Vec<T, 64> bit_xor(const Vec<T, 64> &a, const Vec<T, 64> &b)
 {
   // reinterpret as byte for float and double versions
   const Vec<Byte, 64> res = _mm512_xor_si512(
@@ -4804,12 +4805,12 @@ static SIMD_INLINE Vec<T, 64> xor_(const Vec<T, 64> &a, const Vec<T, 64> &b)
 }
 
 // ---------------------------------------------------------------------------
-// not v
+// bit_not v
 // ---------------------------------------------------------------------------
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE Vec<T, 64> not_(const Vec<T, 64> &a)
+static SIMD_INLINE Vec<T, 64> bit_not(const Vec<T, 64> &a)
 {
   // reinterpret as byte for float and double versions
   // from Agner Fog's VCL vectori256.h operator ~
@@ -4879,7 +4880,7 @@ static SIMD_INLINE Vec<Int, 64> avg(const Vec<Int, 64> &a,
                                     const Vec<Int, 64> &b)
 {
   Vec<Int, 64> one = set1(Int(1), Integer<64>()), as, bs, lsb;
-  lsb              = and_(or_(a, b), one);
+  lsb              = bit_and(bit_or(a, b), one);
   as               = srai<1>(a);
   bs               = srai<1>(b);
   return add(lsb, add(as, bs));
@@ -4945,7 +4946,7 @@ static SIMD_INLINE int test_all_zeros(const Vec<Double, 64> &a)
 template <typename T>
 static SIMD_INLINE int test_all_ones(const Vec<T, 64> &a)
 {
-  return test_all_zeros(not_(a));
+  return test_all_zeros(bit_not(a));
 }
 
 // ---------------------------------------------------------------------------

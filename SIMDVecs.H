@@ -201,93 +201,16 @@ static SIMD_INLINE void transpose(
   transpose(inRows.vec, outRows.vec);
 }
 
-// 10. Feb 16 (rm): this was originally called transpose(), however,
-// icc 15 (but not gcc 4.8) complained that for the special case of
-// NUM_TRANSPOSE_ROWS = SIMD_WIDTH / sizeof(T) it is not clear
-// whether to use this function or transpose() above; I therefore
-// renamed it to transposePartial
-// inRows passed by-value to allow in-place transpose
-template <int NUM_TRANSPOSE_ROWS, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transposePartial(
-  const Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> inRows,
-  Vecs<NUM_TRANSPOSE_ROWS, T, SIMD_WIDTH> &outRows)
-{
-  transpose<NUM_TRANSPOSE_ROWS>(inRows.vec, outRows.vec);
-}
-
-// inRows passed by-value to allow in-place transpose
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose0(
-  const Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> inRows,
-  Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> &outRows)
-{
-  transpose0(inRows.vec, outRows.vec);
-}
-
-// inRows passed by-value to allow in-place transpose
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose1_16(
-  const Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> inRows,
-  Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> &outRows)
-{
-  transpose1_16(inRows.vec, outRows.vec);
-}
-
-// inRows passed by-value to allow in-place transpose
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose16(
-  const Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> inRows,
-  Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> &outRows)
-{
-  transpose16(inRows.vec, outRows.vec);
-}
-
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void swizzle2(Vecs<2 * N, T, SIMD_WIDTH> &v)
 {
   swizzle2(v.vec);
 }
 
-// inRows passed by-value to allow in-place transpose
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose2(
-  const Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> inRows,
-  Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> &outRows)
-{
-  transpose2(inRows.vec, outRows.vec);
-}
-
-// inRows passed by-value to allow in-place transpose
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose3(
-  const Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> inRows,
-  Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> &outRows)
-{
-  transpose3(inRows.vec, outRows.vec);
-}
-
-// inRows passed by-value to allow in-place transpose
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose4(
-  const Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> inRows,
-  Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> &outRows)
-{
-  transpose4(inRows.vec, outRows.vec);
-}
-
-// inRows passed by-value to allow in-place transpose
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose5(
-  const Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> inRows,
-  Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> &outRows)
-{
-  transpose5(inRows.vec, outRows.vec);
-}
-
 template <int N, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void unswizzle2(Vecs<2 * N, T, SIMD_WIDTH> &v)
+static SIMD_INLINE void unswizzle(Vecs<2 * N, T, SIMD_WIDTH> &v)
 {
-  unswizzle2(v.vec);
+  unswizzle(v.vec);
 }
 
 template <typename T, int SIMD_WIDTH>

@@ -604,7 +604,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sqrt(const Vec<T, SIMD_WIDTH> &a)
 /** @} */
 
 /**
- * @addtogroup group_special_math
+ * @addtogroup group_math_operations
  * @{
  */
 
@@ -737,35 +737,29 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> truncate(const Vec<T, SIMD_WIDTH> &a)
 /**
  * @brief Computes the bitwise AND of two Vec's.
  *
- * @note This function is called @c "and_" instead of @c "and" because the
- * latter is a reserved word in C++.
- *
  * @param a first Vec
  * @param b second Vec
  * @return Vec containing the bitwise AND of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> and_(const Vec<T, SIMD_WIDTH> &a,
-                                           const Vec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_and(const Vec<T, SIMD_WIDTH> &a,
+                                              const Vec<T, SIMD_WIDTH> &b)
 {
-  return internal::base::and_(a, b);
+  return internal::base::bit_and(a, b);
 }
 
 /**
  * @brief Computes the bitwise OR of two Vec's.
- *
- * @note This function is called @c "or_" instead of @c "or" because the
- * latter is a reserved word in C++.
  *
  * @param a first Vec
  * @param b second Vec
  * @return Vec containing the bitwise OR of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &a,
-                                          const Vec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_or(const Vec<T, SIMD_WIDTH> &a,
+                                             const Vec<T, SIMD_WIDTH> &b)
 {
-  return internal::base::or_(a, b);
+  return internal::base::bit_or(a, b);
 }
 
 /**
@@ -778,42 +772,36 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &a,
  * @return Vec containing the bitwise ANDNOT of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> andnot(const Vec<T, SIMD_WIDTH> &a,
-                                             const Vec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_andnot(const Vec<T, SIMD_WIDTH> &a,
+                                                 const Vec<T, SIMD_WIDTH> &b)
 {
-  return internal::base::andnot(a, b);
+  return internal::base::bit_andnot(a, b);
 }
 
 /**
  * @brief Computes the bitwise XOR of two Vec's.
- *
- * @note This function is called @c "xor_" instead of @c "xor" because the
- * latter is a reserved word in C++.
  *
  * @param a first Vec
  * @param b second Vec
  * @return Vec containing the bitwise XOR of the two input Vec's
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> xor_(const Vec<T, SIMD_WIDTH> &a,
-                                           const Vec<T, SIMD_WIDTH> &b)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_xor(const Vec<T, SIMD_WIDTH> &a,
+                                              const Vec<T, SIMD_WIDTH> &b)
 {
-  return internal::base::xor_(a, b);
+  return internal::base::bit_xor(a, b);
 }
 
 /**
  * @brief Computes the bitwise NOT of a Vec.
  *
- * @note This function is called @c "not_" instead of @c "not" because the
- * latter is a reserved word in C++.
- *
  * @param a Vec
  * @return Vec containing the bitwise NOT of the input Vec
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> not_(const Vec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_not(const Vec<T, SIMD_WIDTH> &a)
 {
-  return internal::base::not_(a);
+  return internal::base::bit_not(a);
 }
 
 /** @} */
@@ -1084,11 +1072,7 @@ static SIMD_INLINE int test_all_ones(const Vec<T, SIMD_WIDTH> &a)
 /** @} */
 
 /**
- * @addtogroup group_reordering
- * @{
- */
-
-/**
+ * @ingroup group_extract
  * @brief Extracts a single value from a Vec.
  *
  * @tparam INDEX index of the value to extract
@@ -1102,6 +1086,7 @@ static SIMD_INLINE T extract(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_extract
  * @brief Extracts the lowest element of a Vec.
  *
  * Semantically equivalent to @c extract<0>(a) , but may be more efficient.
@@ -1118,6 +1103,7 @@ static SIMD_INLINE T elem0(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_extract
  * @brief Extracts a 16-byte lane from a Vec as a Vec < T, 16 >.
  *
  * @tparam LANE_INDEX lane to extract Must be in the range [0, @p SIMD_WIDTH /
@@ -1132,6 +1118,7 @@ static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_reordering
  * @brief Reverses the order of the elements of a Vec.
  *
  * @param a Vec to reverse
@@ -1173,9 +1160,9 @@ static Vec<T, SIMD_WIDTH> reverse(const Vec<T, SIMD_WIDTH> &a)
  * @tparam N swizzle distance, must be between 1 and 5
  * @param[in,out] v array of Vec's to swizzle
  *
- * @sa swizzle2(), swizzle3(), swizzle4(): %swizzle functions that take double
- * the number of Vec's and might have different performance characteristics
- * @sa unswizzle2(), unswizzle4(): %unswizzle functions
+ * @sa swizzle2(): %swizzle function that takes double the number of Vec's with
+ * potentially better performance
+ * @sa unswizzle()
  */
 template <int N, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> v[N])
@@ -1185,6 +1172,7 @@ static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> v[N])
 }
 
 /**
+ * @ingroup group_zip_unpack
  * @brief Interleaves blocks of elements from the high or low half of two
  * Vec's.
  *
@@ -1213,6 +1201,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /**
+ * @ingroup group_zip_unpack
  * @brief Interleaves blocks of elements from the high or low half of each
  * 16-byte lane of two Vec's.
  *
@@ -1246,6 +1235,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack16(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /**
+ * @ingroup group_zip_unpack
  * @brief Interleaves blocks of elements of two Vec's.
  *
  * This function interleaves blocks of elements from two
@@ -1278,6 +1268,7 @@ static SIMD_INLINE void zip(const Vec<T, SIMD_WIDTH> a,
 }
 
 /**
+ * @ingroup group_zip_unpack
  * @brief Interleaves blocks of elements of each 16-byte lane of two
  * Vec's.
  *
@@ -1312,6 +1303,7 @@ static SIMD_INLINE void zip16(const Vec<T, SIMD_WIDTH> a,
 }
 
 /**
+ * @ingroup group_zip_unpack
  * @brief Deinterleaves blocks of elements two Vec's.
  *
  * This function deinterleaves blocks of elements from two
@@ -1338,6 +1330,7 @@ static SIMD_INLINE void unzip(const Vec<T, SIMD_WIDTH> a,
 }
 
 /**
+ * @ingroup group_elementwise_shift
  * @brief Shifts a Vec right by a constant number of elements,
  * shifting in zero elements.
  *
@@ -1352,6 +1345,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srle(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_elementwise_shift
  * @brief Shifts a Vec left by a constant number of elements,
  * shifting in zero elements.
  *
@@ -1366,6 +1360,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> slle(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /**
+ * @ingroup group_elementwise_shift
  * @brief Concatenates two Vec's, shifts the result right by a
  * constant number of elements, and returns the low half of the
  * result.
@@ -1381,8 +1376,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &h,
 {
   return internal::base::alignre<COUNT>(h, l);
 }
-
-/** @} */
 
 /**
  * @addtogroup group_type_conversion

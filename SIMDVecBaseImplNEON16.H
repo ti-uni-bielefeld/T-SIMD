@@ -2183,43 +2183,44 @@ SIMDVEC_NEON_IFELSE(Int, s32, u32)
 SIMDVEC_NEON_IFELSE(Float, f32, u32)
 
 // -------------------------------------------------------------------------
-// and
+// bit_and
 // -------------------------------------------------------------------------
 
 SIMDVEC_NEON_BINARY_FLOAT_BY_INT(vandq)
-SIMDVEC_NEON_BINARY_ALL(and_, vandq)
+SIMDVEC_NEON_BINARY_ALL(bit_and, vandq)
 
 // -------------------------------------------------------------------------
-// or
+// bit_or
 // -------------------------------------------------------------------------
 
 SIMDVEC_NEON_BINARY_FLOAT_BY_INT(vorrq)
-SIMDVEC_NEON_BINARY_ALL(or_, vorrq)
+SIMDVEC_NEON_BINARY_ALL(bit_or, vorrq)
 
 // -------------------------------------------------------------------------
-// andnot
+// bit_andnot
 // -------------------------------------------------------------------------
 
 template <typename T>
-static SIMD_INLINE Vec<T, 16> andnot(const Vec<T, 16> &a, const Vec<T, 16> &b)
+static SIMD_INLINE Vec<T, 16> bit_andnot(const Vec<T, 16> &a,
+                                         const Vec<T, 16> &b)
 {
-  return and_(not_(a), b);
+  return bit_and(bit_not(a), b);
 }
 
 // -------------------------------------------------------------------------
-// xor
+// bit_xor
 // -------------------------------------------------------------------------
 
 SIMDVEC_NEON_BINARY_FLOAT_BY_INT(veorq)
-SIMDVEC_NEON_BINARY_ALL(xor_, veorq)
+SIMDVEC_NEON_BINARY_ALL(bit_xor, veorq)
 
 // -------------------------------------------------------------------------
-// not
+// bit_not
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_UNARY_ALLINT(not_, vmvnq)
+SIMDVEC_NEON_UNARY_ALLINT(bit_not, vmvnq)
 
-static SIMD_INLINE Vec<Float, 16> not_(const Vec<Float, 16> &a)
+static SIMD_INLINE Vec<Float, 16> bit_not(const Vec<Float, 16> &a)
 {
   return vreinterpretq_f32_s32(vmvnq_s32(vreinterpretq_s32_f32(a)));
 }
@@ -2271,7 +2272,7 @@ SIMDVEC_NEON_TESTALLZEROS(Float, f32)
 template <typename T>
 static SIMD_INLINE int test_all_ones(const Vec<T, 16> &a)
 {
-  return test_all_zeros(not_(a));
+  return test_all_zeros(bit_not(a));
 }
 
 // -------------------------------------------------------------------------

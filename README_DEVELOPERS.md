@@ -112,7 +112,7 @@ In order to give the `SIMD_WIDTH` template parameter a default value of `NATIVE_
 ```C++
 template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 struct MySIMDStruct {
-  // ...
+  // code using the SIMD_WIDTH template parameter
 };
 ```
 

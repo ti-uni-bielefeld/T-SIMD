@@ -31,7 +31,8 @@
 # binaries
 #===========================================================================
 
-tsimd_binaries = tsimdtest nativetest simdvectest simdmasktest styleExamples
+tsimd_binaries = tsimdtest nativetest simdvectest simdmasktest styleExamples \
+	hacctest
 warping_binaries = warpingSIMDTest warpingSIMDSmallTest \
 	BaselineDemo IdealScale Tilt TiltSearchDemo
 

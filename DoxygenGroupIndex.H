@@ -72,6 +72,12 @@
  * @defgroup group_horizontal Horizontal Functions
  * @brief Horizontal Functions
  * @sa @ref group_mask_horizontal
+ * @{
+ *
+ * @defgroup group_iter_hor_acc Iterative Horizontal Accumulation
+ * @brief Classes for iterative horizontal accumulation.
+ *
+ * @}
  *
  * @defgroup group_logic Logic
  * @brief Logical functions on Vec's.

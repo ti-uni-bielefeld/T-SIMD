@@ -1079,6 +1079,18 @@ static SIMD_INLINE bool mask_test_all_ones(const Mask<T, SIMD_WIDTH> &a)
   printf("mask_test_all_ones<%s,%d>(M)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return false;
 }
+
+// 07. Aug 23 (Jonas Keller): added kcmpeq
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool kcmpeq(const Mask<T, SIMD_WIDTH> &a,
+                               const Mask<T, SIMD_WIDTH> &b)
+{
+  (void) a;
+  (void) b;
+  printf("kcmpeq<%s,%d>(M,M)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  return false;
+}
 } // namespace mask
 } // namespace internal
 } // namespace simd

@@ -1715,6 +1715,15 @@ static SIMD_INLINE bool mask_test_all_ones(const Mask<T, 64> &a)
 {
   return a == mask_all_ones<T, 64>();
 }
+
+// 07. Aug 23 (Jonas Keller): added kcmpeq
+
+template <typename T>
+static SIMD_INLINE Mask<T, 64> kcmpeq(const Mask<T, 64> &a,
+                                      const Mask<T, 64> &b)
+{
+  return a == b;
+}
 } // namespace mask
 } // namespace internal
 } // namespace simd

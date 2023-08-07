@@ -714,6 +714,15 @@ static SIMD_INLINE bool mask_test_all_ones(const Mask<T, SIMD_WIDTH> &a)
   return test_all_ones((Vec<T, SIMD_WIDTH>) a);
 }
 
+// 07. Aug 23 (Jonas Keller): added kcmpeq
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool kcmpeq(const Mask<T, SIMD_WIDTH> &a,
+                               const Mask<T, SIMD_WIDTH> &b)
+{
+  return mask_test_all_zeros(kxor(a, b));
+}
+
 } // namespace mask
 } // namespace internal
 } // namespace simd

@@ -1611,6 +1611,22 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelsezero(
   return internal::mask::mask_ifelsezero(cond, trueVal);
 }
 
+// 07. Aug 23 (Jonas Keller): added kcmpeq
+
+/**
+ * @brief Tests if all bits of two Mask's are equal.
+ *
+ * @param a first Mask
+ * @param b second Mask
+ * @return true if all bits of both Mask's are equal, false otherwise
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool kcmpeq(const Mask<T, SIMD_WIDTH> &a,
+                               const Mask<T, SIMD_WIDTH> &b)
+{
+  return internal::mask::kcmpeq(a, b);
+}
+
 /** @} */
 } // namespace simd
 

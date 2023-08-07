@@ -2251,11 +2251,11 @@ SIMDVEC_NEON_BINARY_FLOAT_BY_INT_64(vorr)
 // vpmax has to operate on unsigned (u32), otherwise 0 could be
 // the max. of a pair even though the other value is non-zero (neg.)
 #define SIMDVEC_NEON_TESTALLZEROS(T, NEON_SUF)                                 \
-  static SIMD_INLINE int test_all_zeros(const Vec<T, 16> &a)                   \
+  static SIMD_INLINE bool test_all_zeros(const Vec<T, 16> &a)                  \
   {                                                                            \
     uint32x4_t au  = vreinterpretq_u32_##NEON_SUF(a);                          \
     uint32x2_t tmp = vorr_u32(vget_low_u32(au), vget_high_u32(au));            \
-    return !(vget_lane_u32(vpmax_u32(tmp, tmp), 0));                           \
+    return !vget_lane_u32(vpmax_u32(tmp, tmp), 0);                             \
   }
 
 SIMDVEC_NEON_TESTALLZEROS(Byte, u8)
@@ -2270,7 +2270,7 @@ SIMDVEC_NEON_TESTALLZEROS(Float, f32)
 // -------------------------------------------------------------------------
 
 template <typename T>
-static SIMD_INLINE int test_all_ones(const Vec<T, 16> &a)
+static SIMD_INLINE bool test_all_ones(const Vec<T, 16> &a)
 {
   return test_all_zeros(bit_not(a));
 }

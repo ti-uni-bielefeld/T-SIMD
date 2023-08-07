@@ -1820,11 +1820,11 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> avg(
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int test_all_zeros(const SerialVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE bool test_all_zeros(const SerialVec<T, SIMD_WIDTH> &a)
 {
   for (int i = 0; i < a.elements; i++)
-    if (a[i] != T(0)) return 0;
-  return 1;
+    if (a[i] != T(0)) return false;
+  return true;
 }
 
 // 26. Aug 22 (Jonas Keller):
@@ -1834,20 +1834,20 @@ static SIMD_INLINE int test_all_zeros(const SerialVec<T, SIMD_WIDTH> &a)
 
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
 template <int SIMD_WIDTH>
-static SIMD_INLINE int test_all_zeros(const SerialVec<Float, SIMD_WIDTH> &a)
+static SIMD_INLINE bool test_all_zeros(const SerialVec<Float, SIMD_WIDTH> &a)
 {
   return test_all_zeros(reinterpret<Int>(a));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int test_all_ones(const SerialVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE bool test_all_ones(const SerialVec<T, SIMD_WIDTH> &a)
 {
   // avoids comparison with TypeInfo::trueval, which fails for
   // Float (NaN)
   SerialVec<T, SIMD_WIDTH> aNot = bit_not(a);
   for (int i = 0; i < a.elements; i++)
-    if (aNot[i] != T(0)) return 0;
-  return 1;
+    if (aNot[i] != T(0)) return false;
+  return true;
 }
 
 // 26. Aug 22 (Jonas Keller):
@@ -1857,7 +1857,7 @@ static SIMD_INLINE int test_all_ones(const SerialVec<T, SIMD_WIDTH> &a)
 
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
 template <int SIMD_WIDTH>
-static SIMD_INLINE int test_all_ones(const SerialVec<Float, SIMD_WIDTH> &a)
+static SIMD_INLINE bool test_all_ones(const SerialVec<Float, SIMD_WIDTH> &a)
 {
   return test_all_ones(reinterpret<Int>(a));
 }

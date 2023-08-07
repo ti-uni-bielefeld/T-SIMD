@@ -3202,7 +3202,7 @@ static SIMD_INLINE Vec<Float, 16> avg(const Vec<Float, 16> &a,
 // ---------------------------------------------------------------------------
 
 template <typename T>
-static SIMD_INLINE int test_all_zeros(const Vec<T, 16> &a)
+static SIMD_INLINE bool test_all_zeros(const Vec<T, 16> &a)
 {
   // reinterpret to int in case T is float
   const auto intA = reinterpret(a, OutputType<Int>());
@@ -3222,7 +3222,7 @@ static SIMD_INLINE int test_all_zeros(const Vec<T, 16> &a)
 // ---------------------------------------------------------------------------
 
 template <typename T>
-static SIMD_INLINE int test_all_ones(const Vec<T, 16> &a)
+static SIMD_INLINE bool test_all_ones(const Vec<T, 16> &a)
 {
   // reinterpret to int in case T is float
   const auto intA = reinterpret(a, OutputType<Int>());

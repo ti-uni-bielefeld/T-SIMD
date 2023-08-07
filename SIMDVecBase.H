@@ -1049,10 +1049,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpneq(const Vec<T, SIMD_WIDTH> &a,
  * @brief Tests if all bits of a Vec are zero.
  *
  * @param a Vec to test
- * @return 1 if all bits are zero, 0 otherwise
+ * @return true if all bits are zero, false otherwise
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int test_all_zeros(const Vec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE bool test_all_zeros(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::test_all_zeros(a);
 }
@@ -1061,10 +1061,10 @@ static SIMD_INLINE int test_all_zeros(const Vec<T, SIMD_WIDTH> &a)
  * @brief Tests if all bits of a Vec are one.
  *
  * @param a Vec to test
- * @return 1 if all bits are one, 0 otherwise
+ * @return true if all bits are one, false otherwise
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int test_all_ones(const Vec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE bool test_all_ones(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::test_all_ones(a);
 }

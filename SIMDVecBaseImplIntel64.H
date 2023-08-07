@@ -4295,16 +4295,16 @@ static SIMD_INLINE int x_mm512_mask2int(__mmask16 k1)
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE int test_all_zeros(const Vec<T, 64> &a)
+static SIMD_INLINE bool test_all_zeros(const Vec<T, 64> &a)
 {
   // m[i] = (a[i] & a[i] != 0) = (a[i] != 0)
   __mmask16 m = _mm512_test_epi32_mask(a, a);
-  return (x_mm512_mask2int(m) == 0);
+  return x_mm512_mask2int(m) == 0;
 }
 
 // float version
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
-static SIMD_INLINE int test_all_zeros(const Vec<Float, 64> &a)
+static SIMD_INLINE bool test_all_zeros(const Vec<Float, 64> &a)
 {
   return test_all_zeros(reinterpret(a, OutputType<Int>()));
 }
@@ -4316,7 +4316,7 @@ static SIMD_INLINE int test_all_zeros(const Vec<Float, 64> &a)
 // description of testn intrinsics was not clear, chosen other way
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
 template <typename T>
-static SIMD_INLINE int test_all_ones(const Vec<T, 64> &a)
+static SIMD_INLINE bool test_all_ones(const Vec<T, 64> &a)
 {
   return test_all_zeros(bit_not(a));
 }

@@ -4277,7 +4277,7 @@ static SIMD_INLINE Vec<Float, 32> avg(const Vec<Float, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE int test_all_zeros(const Vec<T, 32> &a)
+static SIMD_INLINE bool test_all_zeros(const Vec<T, 32> &a)
 {
   // 2nd argument: generates vector full of ones (epiX: X irrelevant)
   // 10. Oct 22 (Jonas Keller):
@@ -4292,7 +4292,7 @@ static SIMD_INLINE int test_all_zeros(const Vec<T, 32> &a)
 // float version
 // NOTE: _mm256_testz_ps only tests the sign bits!
 // 28. Sep 17 (rm) BUGFIX: using _mm256_testz_si256 instead
-static SIMD_INLINE int test_all_zeros(const Vec<Float, 32> &a)
+static SIMD_INLINE bool test_all_zeros(const Vec<Float, 32> &a)
 {
   // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
   // 10. Oct 22 (Jonas Keller):
@@ -4309,7 +4309,7 @@ static SIMD_INLINE int test_all_zeros(const Vec<Float, 32> &a)
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE int test_all_ones(const Vec<T, 32> &a)
+static SIMD_INLINE bool test_all_ones(const Vec<T, 32> &a)
 {
   // 2nd argument: generates vector full of ones (epiX: X irrelevant)
 #ifdef __AVX2__
@@ -4325,7 +4325,7 @@ static SIMD_INLINE int test_all_ones(const Vec<T, 32> &a)
 // float version
 // NOTE: _mm256_testc_ps only tests the sign bits!
 // 28. Sep 17 (rm) BUGFIX: using _mm256_testc_si256 instead
-static SIMD_INLINE int test_all_ones(const Vec<Float, 32> &a)
+static SIMD_INLINE bool test_all_ones(const Vec<Float, 32> &a)
 {
   // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
   return _mm256_testc_si256(

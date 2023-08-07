@@ -1061,6 +1061,24 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x,
          x);
   return Mask<T, SIMD_WIDTH>();
 }
+
+// 07. Aug 23 (Jonas Keller): added mask_test_all_zeros/ones.
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool mask_test_all_zeros(const Mask<T, SIMD_WIDTH> &a)
+{
+  (void) a;
+  printf("mask_test_all_zeros<%s,%d>(M)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  return false;
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool mask_test_all_ones(const Mask<T, SIMD_WIDTH> &a)
+{
+  (void) a;
+  printf("mask_test_all_ones<%s,%d>(M)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  return false;
+}
 } // namespace mask
 } // namespace internal
 } // namespace simd

@@ -1701,6 +1701,20 @@ static SIMD_INLINE Mask<T, 64> kshiftri(const Mask<T, 64> &a, uint64_t count)
   if (count >= 64) { return Mask<T, 64>(0); }
   return Mask<T, 64>(((uint64_t) a) >> count);
 }
+
+// 07. Aug 23 (Jonas Keller): added mask_test_all_zeros/ones.
+
+template <typename T>
+static SIMD_INLINE bool mask_test_all_zeros(const Mask<T, 64> &a)
+{
+  return a == 0;
+}
+
+template <typename T>
+static SIMD_INLINE bool mask_test_all_ones(const Mask<T, 64> &a)
+{
+  return a == mask_all_ones<T, 64>();
+}
 } // namespace mask
 } // namespace internal
 } // namespace simd

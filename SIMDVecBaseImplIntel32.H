@@ -4456,24 +4456,32 @@ static SIMD_INLINE Vec<Float, 32> reverse(const Vec<Float, 32> &a)
 
 // 26. Aug 22 (Jonas Keller): added msb2int functions
 
+// 16. Aug 23 (Jonas Keller): fixed bug in msb2int for Byte and SignedByte
+// caused by trying to cast an int to uint64_t which internally first casts to
+// int64_t and then to uint64_t, which causes sign extension
+
 static SIMD_INLINE uint64_t msb2int(const Vec<Byte, 32> &a)
 {
 #ifdef __AVX2__
-  return uint64_t(_mm256_movemask_epi8(a));
+  const auto res = _mm256_movemask_epi8(a);
 #else
-  return uint64_t(_mm_movemask_epi8(a.lo()) |
-                  (_mm_movemask_epi8(a.hi()) << 16));
+  const auto res =
+    _mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16);
 #endif
+  // prevent sign extension when casting to uint64_t by first casting to uint
+  return uint64_t(uint(res));
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<SignedByte, 32> &a)
 {
 #ifdef __AVX2__
-  return uint64_t(_mm256_movemask_epi8(a));
+  const auto res = _mm256_movemask_epi8(a);
 #else
-  return uint64_t(_mm_movemask_epi8(a.lo()) |
-                  (_mm_movemask_epi8(a.hi()) << 16));
+  const auto res =
+    _mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16);
 #endif
+  // prevent sign extension when casting to uint64_t by first casting to uint
+  return uint64_t(uint(res));
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Short, 32> &a)
@@ -4484,10 +4492,9 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Short, 32> &a)
   // since shuffle shuffles within 128 bit lanes
   // TODO: better way to do this?
 #ifdef __AVX2__
-  uint64_t x = uint64_t(_mm256_movemask_epi8(a));
+  uint64_t x = _mm256_movemask_epi8(a);
 #else
-  uint64_t x =
-    uint64_t(_mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16));
+  uint64_t x = _mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16);
 #endif
   // idea from: https://stackoverflow.com/a/45695465/8461272
   // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.
@@ -4520,10 +4527,9 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Word, 32> &a)
   // since shuffle shuffles within 128 bit lanes
   // TODO: better way to do this?
 #ifdef __AVX2__
-  uint64_t x = uint64_t(_mm256_movemask_epi8(a));
+  uint64_t x = _mm256_movemask_epi8(a);
 #else
-  uint64_t x =
-    uint64_t(_mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16));
+  uint64_t x = _mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16);
 #endif
   // idea from: https://stackoverflow.com/a/45695465/8461272
   // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.

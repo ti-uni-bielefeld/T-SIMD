@@ -3131,7 +3131,7 @@ static SIMD_INLINE void unswizzle(Vec<T, SIMD_WIDTH> v[2 * N])
 }
 
 /**
- * @ingroup group_transpose
+ * @ingroup group_reordering
  * @brief Transposes a matrix held in an array of Vec's.
  *
  * The matrix must be given as an array of Vec's which are the rows of

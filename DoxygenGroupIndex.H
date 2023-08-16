@@ -158,9 +158,6 @@
  * @defgroup group_swizzle Swizzling
  * @brief Swizzle/deinterleave functions on Vec's.
  *
- * @defgroup group_transpose Transpose
- * @brief Functions for transposing a matrix held in an array of Vec's.
- *
  * @defgroup group_elementwise_shift Elementwise Shifting
  * @brief Functions for shifting a Vec elementwise.
  *

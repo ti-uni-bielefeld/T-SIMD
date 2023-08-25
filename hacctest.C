@@ -45,8 +45,6 @@ int main()
   }
   puts("");
 
-#if 0
-
   simd::HAcc<simd::HAdd, T, SW> hAcc;
   // const int num = elems;
   const int num = elems - 2;
@@ -55,12 +53,10 @@ int main()
     hAcc.push(v);
   }
   hAcc.finish();
-  if (hAcc.ready()) {
+  if (hAcc.isDone()) {
     simd::print("%d,", hAcc.get());
     puts("");
   }
-
-#else
 
   T sum[FACTOR * elems];
   for (int i = 0; i < FACTOR * elems; i++) sum[i] = T(0);
@@ -74,8 +70,6 @@ int main()
   hAccStore.finish();
   for (int i = 0; i < FACTOR * elems; i++) printf("%d,", sum[i]);
   puts("");
-
-#endif
 
   return 0;
 }

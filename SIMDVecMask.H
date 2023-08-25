@@ -365,7 +365,7 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x)
                                              internal::Integer<SIMD_WIDTH>());
 }
 
-// 07. Aug 23 (Jonas Keller): added mask_test_all_zeros/ones.
+// 07. Aug 23 (Jonas Keller): added ktest_all_zeros/ones.
 
 /**
  * @brief Tests if all bits of a Mask are set to false.
@@ -374,9 +374,9 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x)
  * @return true if all bits are set to false, false otherwise
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE bool mask_test_all_zeros(const Mask<T, SIMD_WIDTH> &a)
+static SIMD_INLINE bool ktest_all_zeros(const Mask<T, SIMD_WIDTH> &a)
 {
-  return internal::mask::mask_test_all_zeros(a);
+  return internal::mask::ktest_all_zeros(a);
 }
 
 /**
@@ -386,9 +386,9 @@ static SIMD_INLINE bool mask_test_all_zeros(const Mask<T, SIMD_WIDTH> &a)
  * @return true if all bits are set to true, false otherwise
  */
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE bool mask_test_all_ones(const Mask<T, SIMD_WIDTH> &a)
+static SIMD_INLINE bool ktest_all_ones(const Mask<T, SIMD_WIDTH> &a)
 {
-  return internal::mask::mask_test_all_ones(a);
+  return internal::mask::ktest_all_ones(a);
 }
 
 /** @} */

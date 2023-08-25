@@ -720,7 +720,7 @@ template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE bool kcmpeq(const Mask<T, SIMD_WIDTH> &a,
                                const Mask<T, SIMD_WIDTH> &b)
 {
-  return mask_test_all_zeros(kxor(a, b));
+  return internal::mask::mask_test_all_zeros(internal::mask::kxor(a, b));
 }
 
 } // namespace mask

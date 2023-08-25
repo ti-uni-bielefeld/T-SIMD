@@ -199,6 +199,14 @@ int main(int argc, char *argv[])
   TestAllTI<TesterUnaryKTIMinToMax, SW, Kshiftli>::test(repeats1, pattern);
   TestAllTI<TesterUnaryKTIMinToMax, SW, Kshiftri>::test(repeats1, pattern);
 
+  // 25. Aug 23 (Jonas Keller): added tests for Kcmpeq
+  TestAll<TesterBinaryBoolK, SW, Kcmpeq>::test(repeats1, pattern);
+
+  // 25. Aug 23 (Jonas Keller): added tests for Ktest_all_zeros and
+  // Ktest_all_ones
+  TestAll<TesterUnaryBoolK, SW, Ktest_all_zeros>::test(repeats1, pattern);
+  TestAll<TesterUnaryBoolK, SW, Ktest_all_ones>::test(repeats1, pattern);
+
   // 28. Dec 22 (Jonas Keller): added tests for setTrueLeft and setTrueRight
   // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
   // mask_set_true/false_low/high.

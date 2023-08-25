@@ -534,6 +534,56 @@ struct Kshiftri
   }
 };
 
+// 25. Aug 23 (Jonas Keller): added kcmpneq
+
+template <typename T, int SIMD_WIDTH>
+struct Kcmpeq
+{
+  static std::string name() { return t2s<T, SIMD_WIDTH>("kcmpeq"); }
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
+  {
+    mask.randomize();
+  }
+  template <template <typename, int> class Mask>
+  static Mask<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &a,
+                                   const Mask<T, SIMD_WIDTH> &b)
+  {
+    return kcmpeq(a, b);
+  }
+};
+
+// 25. Aug 23 (Jonas Keller): added ktest_all_zeros and ktest_all_ones
+
+template <typename T, int SIMD_WIDTH>
+struct Ktest_all_zeros
+{
+  static std::string name() { return t2s<T, SIMD_WIDTH>("ktest_all_zeros"); }
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
+  {
+    mask.randomize();
+  }
+  template <template <typename, int> class Mask>
+  static bool apply(const Mask<T, SIMD_WIDTH> &a)
+  {
+    return ktest_all_zeros(a);
+  }
+};
+
+template <typename T, int SIMD_WIDTH>
+struct Ktest_all_ones
+{
+  static std::string name() { return t2s<T, SIMD_WIDTH>("ktest_all_ones"); }
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
+  {
+    mask.randomize();
+  }
+  template <template <typename, int> class Mask>
+  static bool apply(const Mask<T, SIMD_WIDTH> &a)
+  {
+    return ktest_all_ones(a);
+  }
+};
+
 // 28. Dec 22 (Jonas Keller): added SetTrueLeft and SetTrueRight
 // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
 // mask_set_true/false_low/high.

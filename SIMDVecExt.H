@@ -3433,46 +3433,21 @@ static SIMD_INLINE void bitonicSortReducedTransposed(
 } // namespace ext
 } // namespace internal
 
-// with transpose_a
-
 /**
  * @brief Sorts multiple Vec's independently using the bitonic sort algorithm.
  *
  * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
  * SortSlope::DESCENDING)
  * @param[in, out] vecs array of Vec's to sort
- *
- * @sa bitonicSort2() alternative implementation
  */
 template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSort(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {
   Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
-  internal::ext::transpose_a(vecs, transVecs);
+  transpose(vecs, transVecs);
   internal::ext::bitonicSortTransposed<SLOPE>(transVecs);
-  internal::ext::transpose_a(transVecs, vecs);
-}
-
-// with transpose_e
-
-/**
- * @brief Sorts multiple Vec's independently using the bitonic sort algorithm.
- *
- * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
- * SortSlope::DESCENDING)
- * @param vecs array of Vec's to sort
- *
- * @sa bitonicSort() alternative implementation
- */
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
-static SIMD_INLINE void bitonicSort2(
-  Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
-{
-  Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
-  internal::ext::transpose_e(vecs, transVecs);
-  internal::ext::bitonicSortTransposed<SLOPE>(transVecs);
-  internal::ext::transpose_e(transVecs, vecs);
+  transpose(transVecs, vecs);
 }
 
 namespace internal {
@@ -3492,7 +3467,6 @@ static SIMD_INLINE void bitonicFusion(Vec<T, SIMD_WIDTH> &a,
 
 // given sorted vectors as inputs, it fuses each consecutive pair
 // such it is completely sorted over the pair
-// with transpose_a
 
 /**
  * @brief Fuses consecutive pairs of sorted Vec's such that the pair is sorted
@@ -3501,8 +3475,6 @@ static SIMD_INLINE void bitonicFusion(Vec<T, SIMD_WIDTH> &a,
  * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
  * SortSlope::DESCENDING)
  * @param vecs array of Vec's to sort (Vec's must be sorted individually)
- *
- * @sa bitonicSortSortedPairs2() alternative implementation
  */
 template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortSortedPairs(
@@ -3512,36 +3484,9 @@ static SIMD_INLINE void bitonicSortSortedPairs(
   // second vector of each pair is reversed and fused with first vector
   for (int i = 0; i < Vec<T, SIMD_WIDTH>::elements; i += 2)
     internal::ext::bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
-  internal::ext::transpose_a(vecs, transVecs);
+  transpose(vecs, transVecs);
   internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
-  internal::ext::transpose_a(transVecs, vecs);
-}
-
-// given sorted vectors as inputs, it fuses each consecutive pair
-// such it is completely sorted over the pair
-// with transpose_e
-
-/**
- * @brief Fuses consecutive pairs of sorted Vec's such that the pair is sorted
- * over the two vectors.
- *
- * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
- * SortSlope::DESCENDING)
- * @param vecs array of Vec's to sort (Vec's must be sorted individually)
- *
- * @sa bitonicSortSortedPairs() alternative implementation
- */
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
-static SIMD_INLINE void bitonicSortSortedPairs2(
-  Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
-{
-  Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
-  // second vector of each pair is reversed and fused with first vector
-  for (int i = 0; i < Vec<T, SIMD_WIDTH>::elements; i += 2)
-    internal::ext::bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
-  internal::ext::transpose_e(vecs, transVecs);
-  internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
-  internal::ext::transpose_e(transVecs, vecs);
+  transpose(transVecs, vecs);
 }
 
 /** @} */

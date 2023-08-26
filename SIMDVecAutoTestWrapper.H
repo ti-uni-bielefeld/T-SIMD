@@ -1888,31 +1888,6 @@ struct BitonicSort
 };
 
 template <int SLOPE, typename T, int SIMD_WIDTH>
-struct BitonicSort2
-{
-  static SIMD_INLINE std::string name()
-  {
-    return ti2s<SLOPE, T, SIMD_WIDTH>("bitonicSort2");
-  }
-
-  static constexpr int minI    = 0;
-  static constexpr int maxI    = 2;
-  static constexpr int nextI   = SLOPE + 1;
-  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
-
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
-
-  template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
-  {
-    bitonicSort2<static_cast<SortSlope>(SLOPE)>(vecs);
-  }
-};
-
-template <int SLOPE, typename T, int SIMD_WIDTH>
 struct BitonicSortSortedPairs
 {
   static SIMD_INLINE std::string name()
@@ -1934,31 +1909,6 @@ struct BitonicSortSortedPairs
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
     bitonicSortSortedPairs<static_cast<SortSlope>(SLOPE)>(vecs);
-  }
-};
-
-template <int SLOPE, typename T, int SIMD_WIDTH>
-struct BitonicSortSortedPairs2
-{
-  static SIMD_INLINE std::string name()
-  {
-    return ti2s<SLOPE, T, SIMD_WIDTH>("bitonicSortSortedPairs2");
-  }
-
-  static constexpr int minI    = 0;
-  static constexpr int maxI    = 2;
-  static constexpr int nextI   = SLOPE + 1;
-  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
-
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomizeSorted(static_cast<SortSlope>(SLOPE));
-  }
-
-  template <template <typename, int> class VEC>
-  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
-  {
-    bitonicSortSortedPairs2<static_cast<SortSlope>(SLOPE)>(vecs);
   }
 };
 

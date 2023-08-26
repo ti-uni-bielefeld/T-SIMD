@@ -2154,14 +2154,6 @@ static SIMD_INLINE void bitonicSort(
 }
 
 template <SortSlope SLOPE, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void bitonicSort2(
-  SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
-{
-  // same as bitonicSort
-  bitonicSort<SLOPE>(vecs);
-}
-
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH>
 static SIMD_INLINE void bitonicSortSortedPairs(
   SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
 {
@@ -2185,14 +2177,6 @@ static SIMD_INLINE void bitonicSortSortedPairs(
       vecs[i + 1][j] = twovecs[j + n];
     }
   }
-}
-
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH>
-static SIMD_INLINE void bitonicSortSortedPairs2(
-  SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
-{
-  // same as bitonicSortSortedPairs
-  bitonicSortSortedPairs<SLOPE>(vecs);
 }
 
 // synonymous to avg

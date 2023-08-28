@@ -311,7 +311,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_load(const Vec<T, SIMD_WIDTH> &src,
   }
   T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   T src_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  store<SIMD_WIDTH>(src_arr, src);
+  store(src_arr, src);
   for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     result[i] = k[i] ? p[i] : src_arr[i];
   }
@@ -362,7 +362,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_loadu(const Vec<T, SIMD_WIDTH> &src,
   }
   T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   T src_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  store<SIMD_WIDTH>(src_arr, src);
+  store(src_arr, src);
   for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     result[i] = k[i] ? p[i] : src_arr[i];
   }
@@ -388,7 +388,7 @@ static SIMD_INLINE void mask_store(T *const p, const Mask<T, SIMD_WIDTH> &k,
     return;
   }
   T a_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  store<SIMD_WIDTH>(a_arr, a);
+  store(a_arr, a);
   for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     if (k[i]) { p[i] = a_arr[i]; }
   }

@@ -261,9 +261,11 @@ static SIMD_INLINE bool is_within_same_page(const T *const p)
   const uintptr_t PAGE_SIZE = 4096; // smallest page size I found
   const uintptr_t begin_page =
     reinterpret_cast<uintptr_t>(p) & ~(PAGE_SIZE - 1);
+  // 29. Aug 23 (Jonas Keller): fixed wrong calculation of end_page
   const uintptr_t end_page =
-    reinterpret_cast<uintptr_t>(p + Vec<T, SIMD_WIDTH>::elems - 1) &
-    ~(PAGE_SIZE - 1);
+    // reinterpret_cast<uintptr_t>(p + Vec<T, SIMD_WIDTH>::elems - 1) &
+    // ~(PAGE_SIZE - 1);
+    (reinterpret_cast<uintptr_t>(p) + SIMD_WIDTH - 1) & ~(PAGE_SIZE - 1);
   return begin_page == end_page;
 }
 

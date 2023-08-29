@@ -1713,7 +1713,7 @@ static SIMD_INLINE bool mask_test_all_zeros(const Mask<T, 64> &a)
 template <typename T>
 static SIMD_INLINE bool mask_test_all_ones(const Mask<T, 64> &a)
 {
-  return a == mask_all_ones<T, 64>();
+  return a == mask_all_ones(OutputType<T>(), Integer<64>());
 }
 
 // 07. Aug 23 (Jonas Keller): added kcmpeq

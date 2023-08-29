@@ -617,7 +617,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avg(const Vec<T, SIMD_WIDTH> &,
 
 // test if all bits are zeros (false)
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int test_all_zeros(const Vec<T, SIMD_WIDTH> &)
+static SIMD_INLINE bool test_all_zeros(const Vec<T, SIMD_WIDTH> &)
 {
   printf("test_all_zeros<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return 0;
@@ -625,7 +625,7 @@ static SIMD_INLINE int test_all_zeros(const Vec<T, SIMD_WIDTH> &)
 
 // test if all bits are ones (true)
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE int test_all_ones(const Vec<T, SIMD_WIDTH> &)
+static SIMD_INLINE bool test_all_ones(const Vec<T, SIMD_WIDTH> &)
 {
   printf("test_all_ones<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return 0;

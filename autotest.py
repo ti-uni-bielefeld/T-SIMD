@@ -74,9 +74,9 @@ def generate_test_configs():
 
         for opt_flags in [
             # "-O0", compiling with -O0 takes an unreasonable amount ram (like up to 70 GB (wtf?))
-            "-O1",
+            #"-O1",
             "-O2",
-            "-O3",
+            #"-O3",
             "-O3 -funroll-loops",
         ]:
             for arch_flags in [
@@ -91,13 +91,9 @@ def generate_test_configs():
                 "-mavx512f",
                 "-mavx512bw",
                 "-mavx512dq",
-                "-mavx512er",
                 "-mavx512vbmi",
                 "-mavx512bw -mavx512dq",
-                "-mavx512bw -mavx512er",
-                "-mavx512dq -mavx512er",
-                "-mavx512bw -mavx512dq -mavx512er",
-                "-mavx512dq -mavx512er -mavx512vbmi",
+                "-mavx512dq -mavx512vbmi",
                 # TODO: maybe add more combinations?
             ]:
                 test_configs.append({
@@ -138,6 +134,9 @@ def run_test(test_config):
     log_file_testM = f"{LOG_DIR}/{name}_testM.log"
     os.system(
         f"{test_config['emulator']} {build_dir}/simdvecautotestM \"\" 10000 > {log_file_testM} 2>&1 || echo \"ERROR: simdvecautotestM failed\" >> {log_file_testM}")
+    log_file_test_load_store = f"{LOG_DIR}/{name}_test_load_store.log"
+    os.system(
+        f"{test_config['emulator']} {build_dir}/simdvecautotest_load_store 10000 > {log_file_test_load_store} 2>&1 || echo \"ERROR: simdvecautotest_load_store failed\" >> {log_file_test_load_store}")
 
     os.system(f"rm -r {build_dir}")
 
@@ -145,35 +144,40 @@ def run_test(test_config):
 
 
 if __name__ == "__main__":
-    is_sde_path_in_env = False
-    if "SDE_PATH" in os.environ:
-        SDE_PATH = os.environ["SDE_PATH"]
-        is_sde_path_in_env = True
+    test_configs = generate_test_configs()
 
-    is_sde_path_in_args = False
-    for i in range(len(sys.argv)):
-        if sys.argv[i] == "--sde-path":
-            SDE_PATH = sys.argv[i + 1]
-            is_sde_path_in_args = True
-        elif sys.argv[i].startswith("SDE_PATH="):
-            SDE_PATH = sys.argv[i].split("=")[1]
-            is_sde_path_in_args = True
+    is_sde_required = any([test_config["emulator"] != "" for test_config in test_configs])
 
-    if not os.path.exists(SDE_PATH):
-        if is_sde_path_in_args:
-            print(
-                f"ERROR: SDE_PATH from command line arguments is invalid: \"{SDE_PATH}\"")
-        elif is_sde_path_in_env:
-            print(
-                f"ERROR: SDE_PATH from environment variables is invalid: \"{SDE_PATH}\"")
-        else:
-            print(f"ERROR: SDE_PATH from constant is invalid: \"{SDE_PATH}\"")
-        print("       Please specify a valid SDE_PATH pointing to the sde or sde64 executable with one of the following options:")
-        print("       - with the --sde-path command line argument")
-        print("       - with the SDE_PATH= command line argument")
-        print("       - with the SDE_PATH environment variable")
-        print("       - by changing the SDE_PATH constant in this script")
-        sys.exit(1)
+    if is_sde_required:
+        is_sde_path_in_env = False
+        if "SDE_PATH" in os.environ:
+            SDE_PATH = os.environ["SDE_PATH"]
+            is_sde_path_in_env = True
+
+        is_sde_path_in_args = False
+        for i in range(len(sys.argv)):
+            if sys.argv[i] == "--sde-path":
+                SDE_PATH = sys.argv[i + 1]
+                is_sde_path_in_args = True
+            elif sys.argv[i].startswith("SDE_PATH="):
+                SDE_PATH = sys.argv[i].split("=")[1]
+                is_sde_path_in_args = True
+
+        if not os.path.exists(SDE_PATH):
+            if is_sde_path_in_args:
+                print(
+                    f"ERROR: Intel® SDE is required for some tests, but SDE_PATH from command line arguments is invalid: \"{SDE_PATH}\"")
+            elif is_sde_path_in_env:
+                print(
+                    f"ERROR: Intel® SDE is required for some tests, but SDE_PATH from environment variables is invalid: \"{SDE_PATH}\"")
+            else:
+                print(f"ERROR: Intel® SDE is required for some tests, but SDE_PATH from constant is invalid: \"{SDE_PATH}\"")
+            print("       Please specify a valid SDE_PATH pointing to the sde or sde64 executable (download from https://www.intel.com/content/www/us/en/developer/articles/tool/software-development-emulator.html) with one of the following options:")
+            print("       - with the --sde-path command line argument")
+            print("       - with the SDE_PATH= command line argument")
+            print("       - with the SDE_PATH environment variable")
+            print("       - by changing the SDE_PATH constant in this script")
+            sys.exit(1)
 
     os.nice(19)  # be as nice as possible
     num_procs_cores = multiprocessing.cpu_count()
@@ -198,8 +202,6 @@ if __name__ == "__main__":
         os.makedirs(TMP_BUILD_DIR)
 
     pool = multiprocessing.Pool(processes=num_procs)
-
-    test_configs = generate_test_configs()
 
     random.shuffle(test_configs)
 

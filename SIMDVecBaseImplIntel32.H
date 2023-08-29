@@ -4930,7 +4930,7 @@ static SIMD_INLINE Vec<Double, 32> avg(const Vec<Double, 32> &a,
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE int test_all_zeros(const Vec<T, 32> &a)
+static SIMD_INLINE bool test_all_zeros(const Vec<T, 32> &a)
 {
   // 2nd argument: generates vector full of ones (epiX: X irrelevant)
   // 10. Oct 22 (Jonas Keller):
@@ -4945,7 +4945,7 @@ static SIMD_INLINE int test_all_zeros(const Vec<T, 32> &a)
 // float version
 // NOTE: _mm256_testz_ps only tests the sign bits!
 // 28. Sep 17 (rm) BUGFIX: using _mm256_testz_si256 instead
-static SIMD_INLINE int test_all_zeros(const Vec<Float, 32> &a)
+static SIMD_INLINE bool test_all_zeros(const Vec<Float, 32> &a)
 {
   // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
   // 10. Oct 22 (Jonas Keller):
@@ -4968,7 +4968,7 @@ static SIMD_INLINE int test_all_zeros(const Vec<Double, 32> &a)
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE int test_all_ones(const Vec<T, 32> &a)
+static SIMD_INLINE bool test_all_ones(const Vec<T, 32> &a)
 {
   // 2nd argument: generates vector full of ones (epiX: X irrelevant)
 #ifdef __AVX2__
@@ -4984,7 +4984,7 @@ static SIMD_INLINE int test_all_ones(const Vec<T, 32> &a)
 // float version
 // NOTE: _mm256_testc_ps only tests the sign bits!
 // 28. Sep 17 (rm) BUGFIX: using _mm256_testc_si256 instead
-static SIMD_INLINE int test_all_ones(const Vec<Float, 32> &a)
+static SIMD_INLINE bool test_all_ones(const Vec<Float, 32> &a)
 {
   // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
   return _mm256_testc_si256(
@@ -5136,18 +5136,23 @@ static SIMD_INLINE Vec<Double, 32> reverse(const Vec<Double, 32> &a)
 
 // 26. Aug 22 (Jonas Keller): added msb2int functions
 
+// 16. Aug 23 (Jonas Keller): fixed bug in msb2int for Byte and SignedByte
+// caused by trying to cast an int to uint64_t which internally first casts to
+// int64_t and then to uint64_t, which causes sign extension
+
 template <typename T,
           SIMD_ENABLE_IF(std::is_integral<T>::value && sizeof(T) == 1)>
 static SIMD_INLINE uint64_t msb2int(const Vec<T, 32> &a)
 {
   // first convert to uint32_t to avoid sign extension
 #ifdef __AVX2__
-  const uint32_t res = _mm256_movemask_epi8(a);
+  const auto res = _mm256_movemask_epi8(a);
 #else
-  const uint32_t res =
+  const auto res =
     _mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16);
 #endif
-  return uint64_t(res);
+  // prevent sign extension when casting to uint64_t by first casting to uint
+  return uint64_t(uint(res));
 }
 
 template <typename T,
@@ -5155,18 +5160,25 @@ template <typename T,
           typename = void>
 static SIMD_INLINE uint64_t msb2int(const Vec<T, 32> &a)
 {
+#ifdef __AVX2__
+  return uint64_t(_mm256_movemask_epi8(a));
+#else
+  return uint64_t(_mm_movemask_epi8(a.lo()) |
+                  (_mm_movemask_epi8(a.hi()) << 16));
+#endif
+}
+
+static SIMD_INLINE uint64_t msb2int(const Vec<Short, 32> &a)
+{
   // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
   // and discard the even bits
   // discarding the even bytes in a with a shuffle does not work,
   // since shuffle shuffles within 128 bit lanes
   // TODO: better way to do this?
-
-  // first convert to uint32_t to avoid sign extension
 #ifdef __AVX2__
-  uint64_t x = uint64_t(uint32_t(_mm256_movemask_epi8(a)));
+  uint64_t x = _mm256_movemask_epi8(a);
 #else
-  uint64_t x = uint64_t(
-    uint32_t(_mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16)));
+  uint64_t x = _mm_movemask_epi8(a.lo()) | (_mm_movemask_epi8(a.hi()) << 16);
 #endif
   // idea from: https://stackoverflow.com/a/45695465/8461272
   // x = 0b a.b. c.d. e.f. g.h. i.j. k.l. m.n. o.p.

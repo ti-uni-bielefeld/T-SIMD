@@ -72,6 +72,12 @@
  * @defgroup group_horizontal Horizontal Functions
  * @brief Horizontal Functions
  * @sa @ref group_mask_horizontal
+ * @{
+ *
+ * @defgroup group_iter_hor_acc Iterative Horizontal Accumulation
+ * @brief Classes for iterative horizontal accumulation.
+ *
+ * @}
  *
  * @defgroup group_logic Logic
  * @brief Logical functions on Vec's.
@@ -151,9 +157,6 @@
  *
  * @defgroup group_swizzle Swizzling
  * @brief Swizzle/deinterleave functions on Vec's.
- *
- * @defgroup group_transpose Transpose
- * @brief Functions for transposing a matrix held in an array of Vec's.
  *
  * @defgroup group_elementwise_shift Elementwise Shifting
  * @brief Functions for shifting a Vec elementwise.

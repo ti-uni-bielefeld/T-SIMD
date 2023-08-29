@@ -261,9 +261,11 @@ static SIMD_INLINE bool is_within_same_page(const T *const p)
   const uintptr_t PAGE_SIZE = 4096; // smallest page size I found
   const uintptr_t begin_page =
     reinterpret_cast<uintptr_t>(p) & ~(PAGE_SIZE - 1);
+  // 29. Aug 23 (Jonas Keller): fixed wrong calculation of end_page
   const uintptr_t end_page =
-    reinterpret_cast<uintptr_t>(p + Vec<T, SIMD_WIDTH>::elems - 1) &
-    ~(PAGE_SIZE - 1);
+    // reinterpret_cast<uintptr_t>(p + Vec<T, SIMD_WIDTH>::elems - 1) &
+    // ~(PAGE_SIZE - 1);
+    (reinterpret_cast<uintptr_t>(p) + SIMD_WIDTH - 1) & ~(PAGE_SIZE - 1);
   return begin_page == end_page;
 }
 
@@ -311,7 +313,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_load(const Vec<T, SIMD_WIDTH> &src,
   }
   T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   T src_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  store<SIMD_WIDTH>(src_arr, src);
+  store(src_arr, src);
   for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     result[i] = k[i] ? p[i] : src_arr[i];
   }
@@ -362,7 +364,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_loadu(const Vec<T, SIMD_WIDTH> &src,
   }
   T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   T src_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  store<SIMD_WIDTH>(src_arr, src);
+  store(src_arr, src);
   for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     result[i] = k[i] ? p[i] : src_arr[i];
   }
@@ -388,7 +390,7 @@ static SIMD_INLINE void mask_store(T *const p, const Mask<T, SIMD_WIDTH> &k,
     return;
   }
   T a_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  store<SIMD_WIDTH>(a_arr, a);
+  store(a_arr, a);
   for (int i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     if (k[i]) { p[i] = a_arr[i]; }
   }
@@ -699,6 +701,30 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x,
   static MaskSetBuffer<false, T, SIMD_WIDTH> buffer;
   return Mask<T, SIMD_WIDTH>(loadu<SIMD_WIDTH>(buffer.buffer + x));
 }
+
+// 07. Aug 23 (Jonas Keller): added ktest_all_zeros/ones.
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool ktest_all_zeros(const Mask<T, SIMD_WIDTH> &a)
+{
+  return test_all_zeros((Vec<T, SIMD_WIDTH>) a);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool ktest_all_ones(const Mask<T, SIMD_WIDTH> &a)
+{
+  return test_all_ones((Vec<T, SIMD_WIDTH>) a);
+}
+
+// 07. Aug 23 (Jonas Keller): added kcmpeq
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool kcmpeq(const Mask<T, SIMD_WIDTH> &a,
+                               const Mask<T, SIMD_WIDTH> &b)
+{
+  return internal::mask::ktest_all_zeros(internal::mask::kxor(a, b));
+}
+
 } // namespace mask
 } // namespace internal
 } // namespace simd

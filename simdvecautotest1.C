@@ -242,11 +242,7 @@ int main(int argc, char *argv[])
   // This results in autotest errors on ARMv7.
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, BitonicSort>::test(repeats1,
                                                                  pattern);
-  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, BitonicSort2>::test(repeats1,
-                                                                  pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, BitonicSortSortedPairs>::test(
-    repeats1, pattern);
-  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, BitonicSortSortedPairs2>::test(
     repeats1, pattern);
   TestAll<Binary, SW, Avgru>::test(repeats1, pattern);
   TestAll<Binary, SW, Avgrd>::test(repeats1, pattern);

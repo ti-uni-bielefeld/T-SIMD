@@ -365,6 +365,32 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const unsigned int x)
                                              internal::Integer<SIMD_WIDTH>());
 }
 
+// 07. Aug 23 (Jonas Keller): added ktest_all_zeros/ones.
+
+/**
+ * @brief Tests if all bits of a Mask are set to false.
+ *
+ * @param a Mask to test
+ * @return true if all bits are set to false, false otherwise
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool ktest_all_zeros(const Mask<T, SIMD_WIDTH> &a)
+{
+  return internal::mask::ktest_all_zeros(a);
+}
+
+/**
+ * @brief Tests if all bits of a Mask are set to true.
+ *
+ * @param a Mask to test
+ * @return true if all bits are set to true, false otherwise
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool ktest_all_ones(const Mask<T, SIMD_WIDTH> &a)
+{
+  return internal::mask::ktest_all_ones(a);
+}
+
 /** @} */
 
 /**
@@ -1583,6 +1609,22 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelsezero(
   const Mask<T, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal)
 {
   return internal::mask::mask_ifelsezero(cond, trueVal);
+}
+
+// 07. Aug 23 (Jonas Keller): added kcmpeq
+
+/**
+ * @brief Tests if all bits of two Mask's are equal.
+ *
+ * @param a first Mask
+ * @param b second Mask
+ * @return true if all bits of both Mask's are equal, false otherwise
+ */
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE bool kcmpeq(const Mask<T, SIMD_WIDTH> &a,
+                               const Mask<T, SIMD_WIDTH> &b)
+{
+  return internal::mask::kcmpeq(a, b);
 }
 
 /** @} */

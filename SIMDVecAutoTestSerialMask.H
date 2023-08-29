@@ -601,6 +601,30 @@ static SerialMask<T, SIMD_WIDTH> kshiftri(const SerialMask<T, SIMD_WIDTH> &a,
   return a >> count;
 }
 
+// 25. Aug 23 (Jonas Keller): added kcmpneq
+
+template <typename T, int SIMD_WIDTH>
+static bool kcmpeq(const SerialMask<T, SIMD_WIDTH> &a,
+                   const SerialMask<T, SIMD_WIDTH> &b)
+{
+  return a == b;
+}
+
+// 25. Aug 23 (Jonas Keller): added ktest_all_ones and ktest_all_zeros
+
+template <typename T, int SIMD_WIDTH>
+static bool ktest_all_ones(const SerialMask<T, SIMD_WIDTH> &a)
+{
+  return a ==
+         SerialMask<T, SIMD_WIDTH>(~UInt<SerialMask<T, SIMD_WIDTH>::bits>(0));
+}
+
+template <typename T, int SIMD_WIDTH>
+static bool ktest_all_zeros(const SerialMask<T, SIMD_WIDTH> &a)
+{
+  return a == SerialMask<T, SIMD_WIDTH>(0);
+}
+
 } // namespace auto_test
 } // namespace simd
 

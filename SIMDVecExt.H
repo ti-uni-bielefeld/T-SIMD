@@ -49,6 +49,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <cstdio>
 #include <string>
 #include <type_traits>
@@ -1299,6 +1300,246 @@ static SIMD_INLINE T hmax(const Vec<T, SIMD_WIDTH> &v)
     internal::ext::Horizontal1<T, SIMD_WIDTH,
                                SIMD_WIDTH / sizeof(T) / 2>::_hmax(v));
 }
+
+/** @} */
+
+// ===========================================================================
+// iterative horizontal accumulation
+// ===========================================================================
+
+/**
+ * @addtogroup group_iter_hor_acc
+ * @{
+ */
+
+// 04. Aug 23 (Jonas Keller): added classes for iterative horizontal
+// accumulation
+
+/**
+ * @brief Iterative horizontal accumulator. Calculates the horizontal
+ * accumulation of multiple (Vec<T, SIMD_WIDTH>::elems) Vec's into a single Vec
+ * in parallel with the Vec's to be accumulated pushed one by one.
+ *
+ * @tparam HOp horizontal accumulation operation, one of HAdd, HAdds, HMin, HMax
+ */
+template <class HOp, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+struct HAcc
+{
+private:
+  size_t count    = 0;
+  size_t stackTop = 0;
+  Vec<T, SIMD_WIDTH> stack[internal::ext::floorlog2(Vec<T, SIMD_WIDTH>::elems)];
+
+public:
+  /**
+   * @brief Checks if the horizontal accumulation is empty, i.e. if no Vec has
+   * been pushed yet.
+   *
+   * @return whether the horizontal accumulation is empty
+   */
+  bool isEmpty() const { return count == 0; }
+
+  /**
+   * @brief Checks if the horizontal accumulation is done.
+   *
+   * @return whether the horizontal accumulation is done
+   */
+  bool isDone() const { return count == Vec<T, SIMD_WIDTH>::elems; }
+
+  /**
+   * @brief Pushes the next Vec to be horizontally accumulated. Does nothing if
+   * the horizontal accumulation is already done.
+   *
+   * @param v Vec to be pushed
+   */
+  void push(const Vec<T, SIMD_WIDTH> &v)
+  {
+    if (isDone()) { return; }
+    auto acc = v;
+    for (size_t i = 0; count & (1 << i); i++) {
+      stackTop--;
+      acc = HOp::apply(stack[stackTop], acc);
+    }
+    stack[stackTop] = acc;
+    stackTop++;
+    count++;
+  }
+
+  /**
+   * @brief Finishes the horizontal accumulation by pushing neutral values until
+   * the horizontal accumulation is done.
+   */
+  void finish()
+  {
+    while (!isDone()) {
+      push(set1<T, SIMD_WIDTH>(HOp::template neutralValue<T>()));
+    }
+  }
+
+  /**
+   * @brief Gets the result of the horizontal accumulation. Finishes the
+   * horizontal accumulation if it is not done yet.
+   *
+   * @return result of the horizontal accumulation
+   */
+  Vec<T, SIMD_WIDTH> get()
+  {
+    finish();
+    return stack[0];
+  }
+
+  /**
+   * @brief Resets the horizontal accumulation.
+   */
+  void reset()
+  {
+    count    = 0;
+    stackTop = 0;
+  }
+};
+
+/**
+ * @brief Iterative horizontal accumulator with store of the result. Calculates
+ * the horizontal accumulation of multiple Vec's in parallel with the Vec's to
+ * be accumulated pushed one by one. Stores the result of the horizontal
+ * accumulation every Vec<T, SIMD_WIDTH>::elems Vec's into memory.
+ *
+ * @tparam HOp horizontal accumulation operation, one of HAdd, HAdds, HMin, HMax
+ */
+template <class HOp, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+class HAccStore
+{
+private:
+  T *const ptr;
+  size_t index = 0;
+  HAcc<HOp, T, SIMD_WIDTH> hacc;
+
+public:
+  /**
+   * @brief Constructs a new HAccStore object.
+   *
+   * @param ptr pointer to the memory to store the result of the horizontal
+   * accumulation
+   */
+  HAccStore(T *const ptr) : ptr(ptr) {}
+
+  ~HAccStore() { finish(); }
+
+  /**
+   * @brief Pushes the next Vec to be horizontally accumulated. Stores the
+   * result of the horizontal accumulation every Vec<T, SIMD_WIDTH>::elems Vec's
+   * into memory.
+   *
+   * @param v Vec to be pushed
+   */
+  void push(Vec<T, SIMD_WIDTH> v)
+  {
+    hacc.push(v);
+    if (hacc.isDone()) {
+      // TODO: aligned/unaligned?
+      storeu(&ptr[index], hacc.get());
+      index += Vec<T, SIMD_WIDTH>::elems;
+      hacc.reset();
+    }
+  }
+
+  /**
+   * @brief Finishes the horizontal accumulation and stores the result of the
+   * horizontal accumulation into memory.
+   */
+  void finish()
+  {
+    // if hacc is not empty, we have to finish and store;
+    // if hacc was reset after last push, nothing happens
+    if (hacc.isEmpty()) return;
+
+    hacc.finish();
+    storeu(&ptr[index], hacc.get());
+    index = 0;
+    hacc.reset();
+  }
+};
+
+/**
+ * @brief Horizontal addition class for iterative horizontal accumulation.
+ * @sa HAcc, HAccStore
+ */
+struct HAdd
+{
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
+                                              const Vec<T, SIMD_WIDTH> &b)
+  {
+    return hadd(a, b);
+  }
+
+  template <typename T>
+  static SIMD_INLINE T neutralValue()
+  {
+    return T(0);
+  }
+};
+
+/**
+ * @brief Horizontal saturated addition class for iterative horizontal
+ * accumulation.
+ * @sa HAcc, HAccStore
+ */
+struct HAdds
+{
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
+                                              const Vec<T, SIMD_WIDTH> &b)
+  {
+    return hadds(a, b);
+  }
+
+  template <typename T>
+  static SIMD_INLINE T neutralValue()
+  {
+    return T(0);
+  }
+};
+
+/**
+ * @brief Horizontal minimum class for iterative horizontal accumulation.
+ * @sa HAcc, HAccStore
+ */
+struct HMin
+{
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
+                                              const Vec<T, SIMD_WIDTH> &b)
+  {
+    return min(a, b);
+  }
+
+  template <typename T>
+  static SIMD_INLINE T neutralValue()
+  {
+    return std::numeric_limits<T>::max();
+  }
+};
+
+/**
+ * @brief Horizontal maximum class for iterative horizontal accumulation.
+ * @sa HAcc, HAccStore
+ */
+struct HMax
+{
+  template <typename T, int SIMD_WIDTH>
+  static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
+                                              const Vec<T, SIMD_WIDTH> &b)
+  {
+    return max(a, b);
+  }
+
+  template <typename T>
+  static SIMD_INLINE T neutralValue()
+  {
+    return std::numeric_limits<T>::lowest();
+  }
+};
 
 /** @} */
 
@@ -2936,7 +3177,7 @@ static SIMD_INLINE void unswizzle(Vec<T, SIMD_WIDTH> v[2 * N])
 }
 
 /**
- * @ingroup group_transpose
+ * @ingroup group_reordering
  * @brief Transposes a matrix held in an array of Vec's.
  *
  * The matrix must be given as an array of Vec's which are the rows of
@@ -3237,46 +3478,21 @@ static SIMD_INLINE void bitonicSortReducedTransposed(
 } // namespace ext
 } // namespace internal
 
-// with transpose_a
-
 /**
  * @brief Sorts multiple Vec's independently using the bitonic sort algorithm.
  *
  * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
  * SortSlope::DESCENDING)
  * @param[in, out] vecs array of Vec's to sort
- *
- * @sa bitonicSort2() alternative implementation
  */
 template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSort(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {
   Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
-  internal::ext::transpose_a(vecs, transVecs);
+  transpose(vecs, transVecs);
   internal::ext::bitonicSortTransposed<SLOPE>(transVecs);
-  internal::ext::transpose_a(transVecs, vecs);
-}
-
-// with transpose_e
-
-/**
- * @brief Sorts multiple Vec's independently using the bitonic sort algorithm.
- *
- * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
- * SortSlope::DESCENDING)
- * @param vecs array of Vec's to sort
- *
- * @sa bitonicSort() alternative implementation
- */
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
-static SIMD_INLINE void bitonicSort2(
-  Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
-{
-  Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
-  internal::ext::transpose_e(vecs, transVecs);
-  internal::ext::bitonicSortTransposed<SLOPE>(transVecs);
-  internal::ext::transpose_e(transVecs, vecs);
+  transpose(transVecs, vecs);
 }
 
 namespace internal {
@@ -3296,7 +3512,6 @@ static SIMD_INLINE void bitonicFusion(Vec<T, SIMD_WIDTH> &a,
 
 // given sorted vectors as inputs, it fuses each consecutive pair
 // such it is completely sorted over the pair
-// with transpose_a
 
 /**
  * @brief Fuses consecutive pairs of sorted Vec's such that the pair is sorted
@@ -3305,8 +3520,6 @@ static SIMD_INLINE void bitonicFusion(Vec<T, SIMD_WIDTH> &a,
  * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
  * SortSlope::DESCENDING)
  * @param vecs array of Vec's to sort (Vec's must be sorted individually)
- *
- * @sa bitonicSortSortedPairs2() alternative implementation
  */
 template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortSortedPairs(
@@ -3316,36 +3529,9 @@ static SIMD_INLINE void bitonicSortSortedPairs(
   // second vector of each pair is reversed and fused with first vector
   for (int i = 0; i < Vec<T, SIMD_WIDTH>::elements; i += 2)
     internal::ext::bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
-  internal::ext::transpose_a(vecs, transVecs);
+  transpose(vecs, transVecs);
   internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
-  internal::ext::transpose_a(transVecs, vecs);
-}
-
-// given sorted vectors as inputs, it fuses each consecutive pair
-// such it is completely sorted over the pair
-// with transpose_e
-
-/**
- * @brief Fuses consecutive pairs of sorted Vec's such that the pair is sorted
- * over the two vectors.
- *
- * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
- * SortSlope::DESCENDING)
- * @param vecs array of Vec's to sort (Vec's must be sorted individually)
- *
- * @sa bitonicSortSortedPairs() alternative implementation
- */
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
-static SIMD_INLINE void bitonicSortSortedPairs2(
-  Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
-{
-  Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
-  // second vector of each pair is reversed and fused with first vector
-  for (int i = 0; i < Vec<T, SIMD_WIDTH>::elements; i += 2)
-    internal::ext::bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
-  internal::ext::transpose_e(vecs, transVecs);
-  internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
-  internal::ext::transpose_e(transVecs, vecs);
+  transpose(transVecs, vecs);
 }
 
 /** @} */

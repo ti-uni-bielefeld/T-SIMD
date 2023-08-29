@@ -19,9 +19,11 @@ simdRadixSortGeneric
 simdvectest
 styleExamples
 tsimdtest
+hacctest
 simdvecautotest0
 simdvecautotest1
 simdvecautotestM
+simdvecautotest_load_store
 BaselineDemo
 IdealScale
 Tilt

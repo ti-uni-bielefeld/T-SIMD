@@ -2429,108 +2429,18 @@ static SIMD_INLINE Vec<T, 64> unpack16(const Vec<T, 64> &a, const Vec<T, 64> &b)
 // zip v
 // ---------------------------------------------------------------------------
 
+// 25. Aug 23 (Jonas Keller): Simplified zip implementation by using a single
+// template function instead of multiple specializations.
+
 // a, b are passed by-value to avoid problems with identical in/out args.
-
-// here we typically have to transpose the inputs in the same way
-// for both output computations, so we define separate functions for
-// all T and Bytes<> (combinations of unpack functions above)
-
-// integer version
-template <typename T>
-static SIMD_INLINE void zip(const Vec<T, 64> a, const Vec<T, 64> b,
-                            Vec<T, 64> &l, Vec<T, 64> &h, Bytes<1>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<1>());
-  h = unpack(a, b, Part<1>(), Bytes<1>());
-}
-
-// integer version
-template <typename T>
-static SIMD_INLINE void zip(const Vec<T, 64> a, const Vec<T, 64> b,
-                            Vec<T, 64> &l, Vec<T, 64> &h, Bytes<2>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<2>());
-  h = unpack(a, b, Part<1>(), Bytes<2>());
-}
-
-// integer version
-template <typename T>
-static SIMD_INLINE void zip(const Vec<T, 64> a, const Vec<T, 64> b,
-                            Vec<T, 64> &l, Vec<T, 64> &h, Bytes<4>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<4>());
-  h = unpack(a, b, Part<1>(), Bytes<4>());
-}
-
-// integer version
-template <typename T>
-static SIMD_INLINE void zip(const Vec<T, 64> a, const Vec<T, 64> b,
-                            Vec<T, 64> &l, Vec<T, 64> &h, Bytes<8>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<8>());
-  h = unpack(a, b, Part<1>(), Bytes<8>());
-}
-
-// integer version
-template <typename T>
-static SIMD_INLINE void zip(const Vec<T, 64> a, const Vec<T, 64> b,
-                            Vec<T, 64> &l, Vec<T, 64> &h, Bytes<16>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<16>());
-  h = unpack(a, b, Part<1>(), Bytes<16>());
-}
-
-// integer version
-template <typename T>
-static SIMD_INLINE void zip(const Vec<T, 64> a, const Vec<T, 64> b,
-                            Vec<T, 64> &l, Vec<T, 64> &h, Bytes<32>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<32>());
-  h = unpack(a, b, Part<1>(), Bytes<32>());
-}
-
-// float version
-static SIMD_INLINE void zip(const Vec<Float, 64> a, const Vec<Float, 64> b,
-                            Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<4>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<4>());
-  h = unpack(a, b, Part<1>(), Bytes<4>());
-}
-
-// float version
-static SIMD_INLINE void zip(const Vec<Float, 64> a, const Vec<Float, 64> b,
-                            Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<8>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<8>());
-  h = unpack(a, b, Part<1>(), Bytes<8>());
-}
-
-// float version
-static SIMD_INLINE void zip(const Vec<Float, 64> a, const Vec<Float, 64> b,
-                            Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<16>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<16>());
-  h = unpack(a, b, Part<1>(), Bytes<16>());
-}
-
-// float version
-static SIMD_INLINE void zip(const Vec<Float, 64> a, const Vec<Float, 64> b,
-                            Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<32>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<32>());
-  h = unpack(a, b, Part<1>(), Bytes<32>());
-}
-
-// ---------------------------------------------------------------------------
-// zip hub v
-// ---------------------------------------------------------------------------
 
 // zips blocks of NUM_ELEMS elements of type T
 template <int NUM_ELEMS, typename T>
 static SIMD_INLINE void zip(const Vec<T, 64> a, const Vec<T, 64> b,
                             Vec<T, 64> &l, Vec<T, 64> &h)
 {
-  return zip(a, b, l, h, Bytes<NUM_ELEMS * sizeof(T)>());
+  l = unpack(a, b, Part<0>(), Bytes<NUM_ELEMS * sizeof(T)>());
+  h = unpack(a, b, Part<1>(), Bytes<NUM_ELEMS * sizeof(T)>());
 }
 
 // ---------------------------------------------------------------------------
@@ -4916,16 +4826,16 @@ static SIMD_INLINE int x_mm512_mask2int(__mmask16 k1)
 
 // all integer versions
 template <typename T>
-static SIMD_INLINE int test_all_zeros(const Vec<T, 64> &a)
+static SIMD_INLINE bool test_all_zeros(const Vec<T, 64> &a)
 {
   // m[i] = (a[i] & a[i] != 0) = (a[i] != 0)
   __mmask16 m = _mm512_test_epi32_mask(a, a);
-  return (x_mm512_mask2int(m) == 0);
+  return x_mm512_mask2int(m) == 0;
 }
 
 // float version
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
-static SIMD_INLINE int test_all_zeros(const Vec<Float, 64> &a)
+static SIMD_INLINE bool test_all_zeros(const Vec<Float, 64> &a)
 {
   return test_all_zeros(reinterpret(a, OutputType<Int>()));
 }
@@ -4944,7 +4854,7 @@ static SIMD_INLINE int test_all_zeros(const Vec<Double, 64> &a)
 // description of testn intrinsics was not clear, chosen other way
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
 template <typename T>
-static SIMD_INLINE int test_all_ones(const Vec<T, 64> &a)
+static SIMD_INLINE bool test_all_ones(const Vec<T, 64> &a)
 {
   return test_all_zeros(bit_not(a));
 }

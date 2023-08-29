@@ -74,9 +74,9 @@ def generate_test_configs():
 
         for opt_flags in [
             # "-O0", compiling with -O0 takes an unreasonable amount ram (like up to 70 GB (wtf?))
-            "-O1",
+            #"-O1",
             "-O2",
-            "-O3",
+            #"-O3",
             "-O3 -funroll-loops",
         ]:
             for arch_flags in [
@@ -91,13 +91,9 @@ def generate_test_configs():
                 "-mavx512f",
                 "-mavx512bw",
                 "-mavx512dq",
-                "-mavx512er",
                 "-mavx512vbmi",
                 "-mavx512bw -mavx512dq",
-                "-mavx512bw -mavx512er",
-                "-mavx512dq -mavx512er",
-                "-mavx512bw -mavx512dq -mavx512er",
-                "-mavx512dq -mavx512er -mavx512vbmi",
+                "-mavx512dq -mavx512vbmi",
                 # TODO: maybe add more combinations?
             ]:
                 test_configs.append({

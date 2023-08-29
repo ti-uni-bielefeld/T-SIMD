@@ -138,6 +138,9 @@ def run_test(test_config):
     log_file_testM = f"{LOG_DIR}/{name}_testM.log"
     os.system(
         f"{test_config['emulator']} {build_dir}/simdvecautotestM \"\" 10000 > {log_file_testM} 2>&1 || echo \"ERROR: simdvecautotestM failed\" >> {log_file_testM}")
+    log_file_testM = f"{LOG_DIR}/{name}_testM.log"
+    os.system(
+        f"{test_config['emulator']} {build_dir}/simdvecautotest_load_store 10000 > {log_file_testM} 2>&1 || echo \"ERROR: simdvecautotest_load_store failed\" >> {log_file_testM}")
 
     os.system(f"rm -r {build_dir}")
 

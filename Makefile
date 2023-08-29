@@ -45,7 +45,7 @@ binaries = $(patsubst %.C,%,$(existing_sources))
 
 # binaries autotest (target autotest)
 # these are assumed to always exists in the distribution
-autotest_binaries = simdvecautotest0 simdvecautotest1 simdvecautotestM
+autotest_binaries = simdvecautotest0 simdvecautotest1 simdvecautotestM simdvecautotest_load_store
 
 # architecture-specific binaries (target archspec)
 # these are assumed to always exists in the distribution

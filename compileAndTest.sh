@@ -166,6 +166,8 @@ if ($opt_arch_test) then
           >& "COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest1.log" &
         ./simdvecautotestM "" 10000 \
           >& "COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotestM.log" &
+        ./simdvecautotest_load_store 10000 \
+          >& "COMPILE_AND_TEST/opt_arch/$arch/run_simdvecautotest_load_store.log" &
       endif
       wait
     endif

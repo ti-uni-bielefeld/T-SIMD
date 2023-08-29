@@ -48,6 +48,7 @@ and run them:
 $ ./simdvecautotest0
 $ ./simdvecautotest1
 $ ./simdvecautotestM
+$ ./simdvecautotest_load_store
 ```
 
 ### Testing different configurations automatically

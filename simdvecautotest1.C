@@ -86,7 +86,6 @@ int main(int argc, char *argv[])
   // ------------------------------------------------------------------------
 
   // TODO: multi-vector store and load
-  // TODO: load*_store*
   ArrayArrayVoidTemplateType<SignedByte, SignedByte, SW, Convert>::test(
     repeats1, pattern);
   ArrayArrayVoidTemplateType<Short, SignedByte, SW, Convert>::test(repeats1,

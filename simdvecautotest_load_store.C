@@ -205,6 +205,17 @@ struct StoreU
 };
 
 template <typename T, int SIMD_WIDTH>
+struct StreamStore
+{
+  static constexpr long alignment = Vec<T, SIMD_WIDTH>::bytes;
+  static std::string name() { return makeName<T, SIMD_WIDTH>("StreamStore"); }
+  static void store(T *const dst, const Vec<T, SIMD_WIDTH> &src)
+  {
+    ::simd::stream_store(dst, src);
+  }
+};
+
+template <typename T, int SIMD_WIDTH>
 struct MaskStore
 {
   static constexpr long alignment = Vec<T, SIMD_WIDTH>::bytes;
@@ -574,6 +585,7 @@ int main(int argc, char *argv[])
 
   testAll<SW, TestStore, Store>(reps);
   testAll<SW, TestStore, StoreU>(reps);
+  testAll<SW, TestStore, StreamStore>(reps);
   testAll<SW, TestMaskStore, MaskStore>(reps);
   testAll<SW, TestMaskStore, MaskStoreU>(reps);
   testAll<SW, TestLoad, Load>(reps);

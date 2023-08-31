@@ -63,6 +63,8 @@ depend_files = $(addsuffix .d,$(all_binaries))
 
 # single header tsimd library file
 tsimd_single_header_file = tsimd_sh.H
+# minimized single header tsimd library file
+tsimd_single_header_file_min = tsimd_sh_min.H
 
 #===========================================================================
 # object files
@@ -112,7 +114,7 @@ syntax_only ?= 0
 #   libraries are not available
 # - may require -lpthread in libraries above
 
-userdefs_arch   = -march=native -mfpmath=sse
+userdefs_arch   = -mavx512bw -mavx512dq -mfpmath=sse
 userdefs_avx512 = -mavx512f -mavx512bw -mavx512dq -mavx512vl -mpopcnt
 userdefs_c      = -Wall -Wextra -Wpedantic -ggdb -fno-var-tracking
 userdefs_cppstd = -std=c++17
@@ -235,7 +237,7 @@ endif
 all_build_files = $(all_objects) $(all_binaries) $(depend_files) \
 		$(addsuffix .exe,$(all_binaries)) \
 		$(addsuffix .ilk,$(all_binaries)) $(addsuffix .pdb,$(all_binaries)) \
-		$(tsimd_single_header_file)
+		$(tsimd_single_header_file) $(tsimd_single_header_file_min)
 
 .PHONY: clean
 clean:
@@ -308,5 +310,13 @@ single-header:
 	@echo "generating tsimd single header file"
 	@./generateSingleHeader.sh $(tsimd_single_header_file)
 	@echo "single header written to $(tsimd_single_header_file)"
+
+# 31. Aug 23 (Jonas Keller): added rule for generating a minified single header file
+# uses quom (https://github.com/Viatorus/quom)
+.PHONY: single-header-min
+single-header-min:
+	@echo "generating minified tsimd single header file"
+	@./generateSingleHeader.sh $(tsimd_single_header_file_min) -m
+	@echo "minified single header written to $(tsimd_single_header_file_min)"
 
 -include $(addprefix $(build_dir)/,$(depend_files))

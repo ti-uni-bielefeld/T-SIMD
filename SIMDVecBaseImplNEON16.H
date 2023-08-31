@@ -50,6 +50,7 @@
 // option. Similar support was added for the combination of Cortex-A15
 // and Cortex-A7 through the -mcpu=cortex-a15.cortex-a7 option.
 
+#pragma once
 #ifndef SIMD_VEC_BASE_IMPL_NEON_16_H_
 #define SIMD_VEC_BASE_IMPL_NEON_16_H_
 

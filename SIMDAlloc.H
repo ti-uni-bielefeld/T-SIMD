@@ -37,6 +37,7 @@
  * @author Jonas Keller
  */
 
+#pragma once
 #ifndef SIMDALLOC_H_
 #define SIMDALLOC_H_
 

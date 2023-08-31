@@ -1,3 +1,4 @@
+#pragma once
 #ifndef SIMD_VEC_AUTO_TEST_RANDOM_H_
 #define SIMD_VEC_AUTO_TEST_RANDOM_H_
 

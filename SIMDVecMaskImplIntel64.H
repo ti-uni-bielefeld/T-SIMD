@@ -29,6 +29,7 @@
 // 22. Jan 23 (Jonas Keller): moved internal implementations into internal
 // namespace
 
+#pragma once
 #ifndef SIMD_VEC_MASK_IMPL_INTEL_64_H_
 #define SIMD_VEC_MASK_IMPL_INTEL_64_H_
 

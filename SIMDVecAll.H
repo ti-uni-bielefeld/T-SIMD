@@ -30,6 +30,7 @@
  * tsimd.H instead.
  */
 
+#pragma once
 #ifndef SIMD_VEC_ALL_H_
 #define SIMD_VEC_ALL_H_
 

@@ -23,6 +23,7 @@
 //
 // ===========================================================================
 
+#pragma once
 #ifndef SIMD_EXPERIMENTAL_H_
 #define SIMD_EXPERIMENTAL_H_
 

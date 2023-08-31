@@ -29,6 +29,7 @@
 
 // 09. Mar 23 (Jonas Keller): added doxygen documentation
 
+#pragma once
 #ifndef SIMD_VEC_H_
 #define SIMD_VEC_H_
 

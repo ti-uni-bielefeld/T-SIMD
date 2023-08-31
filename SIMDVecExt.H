@@ -36,6 +36,7 @@
 // etc. and moved them into the internal namespace and added a hub function
 // <base_name> that wraps the fastest version
 
+#pragma once
 #ifndef SIMD_VEC_EXT_H_
 #define SIMD_VEC_EXT_H_
 

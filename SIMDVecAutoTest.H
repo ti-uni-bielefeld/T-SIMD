@@ -48,6 +48,7 @@
 // 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
 // namespace
 
+#pragma once
 #ifndef SIMD_VEC_AUTO_TEST_H_
 #define SIMD_VEC_AUTO_TEST_H_
 

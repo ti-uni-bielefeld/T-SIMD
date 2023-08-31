@@ -32,6 +32,7 @@
 // 15. Mar 23 (Jonas Keller): added ONLY_TIME_MEASUREMENT (see
 // SIMDVecAutoTest.H)
 
+#pragma once
 #ifndef SIMD_VEC_AUTO_TEST_MASK_H_
 #define SIMD_VEC_AUTO_TEST_MASK_H_
 

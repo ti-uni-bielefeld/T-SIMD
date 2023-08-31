@@ -63,8 +63,6 @@ depend_files = $(addsuffix .d,$(all_binaries))
 
 # single header tsimd library file
 tsimd_single_header_file = tsimd_sh.H
-# minimized single header tsimd library file
-tsimd_single_header_file_min = tsimd_sh_min.H
 
 #===========================================================================
 # object files
@@ -237,7 +235,7 @@ endif
 all_build_files = $(all_objects) $(all_binaries) $(depend_files) \
 		$(addsuffix .exe,$(all_binaries)) \
 		$(addsuffix .ilk,$(all_binaries)) $(addsuffix .pdb,$(all_binaries)) \
-		$(tsimd_single_header_file) $(tsimd_single_header_file_min)
+		$(tsimd_single_header_file)
 
 .PHONY: clean
 clean:
@@ -310,13 +308,5 @@ single-header:
 	@echo "generating tsimd single header file"
 	@./generateSingleHeader.sh $(tsimd_single_header_file)
 	@echo "single header written to $(tsimd_single_header_file)"
-
-# 31. Aug 23 (Jonas Keller): added rule for generating a minified single header file
-# uses quom (https://github.com/Viatorus/quom)
-.PHONY: single-header-min
-single-header-min:
-	@echo "generating minified tsimd single header file"
-	@./generateSingleHeader.sh $(tsimd_single_header_file_min) -m
-	@echo "minified single header written to $(tsimd_single_header_file_min)"
 
 -include $(addprefix $(build_dir)/,$(depend_files))

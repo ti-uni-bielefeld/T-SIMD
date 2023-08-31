@@ -28,9 +28,8 @@
 set -e
 
 # check if single header file name is given
-if [ -z "$1" ]; then
-    echo "Usage: $0 <single header file name> [-m]"
-    echo "  -m: minify single header file (remove comments and superfluous spaces)"
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <single header file name>"
     exit 1
 fi
 
@@ -90,27 +89,7 @@ EOF
 
 # generate single header file
 quom tsimd.H $sh_name.tmp
-
-# if -m option is given
-if [ "$2" = "-m" ]; then
-    # write minified single header file
-    cat $sh_name.tmp |
-    # remove backslash and line break at the end of a line
-    sed ':a;N;$!ba;s/\\\n//g' |
-    # remove all comments
-    gcc -fpreprocessed -dD -E -P - 2>/dev/null |
-    # remove all empty lines
-    sed '/^\s*$/d' |
-    # remove superfluous spaces
-    sed 's/  */ /g' |
-    # remove spaces at beginning of line
-    sed 's/^ //' |
-    # remove spaces at end of line
-    sed 's/ $//' >> $sh_name
-else
-    # write single header file
-    cat $sh_name.tmp >> $sh_name
-fi
-
+# write to single header file
+cat $sh_name.tmp >> $sh_name
 # remove temporary file
 rm $sh_name.tmp

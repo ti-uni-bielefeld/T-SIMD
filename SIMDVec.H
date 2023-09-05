@@ -84,6 +84,19 @@ public:
    * @brief Number of bytes in the vector.
    */
   static constexpr int bytes = SIMD_WIDTH;
+
+  // 05. Sep 23 (Jonas Keller): added allocator
+  /**
+   * @brief Allocator to be used with std::vector.
+   *
+   * This allocator is to be used when creating a std::vector of Vec in the
+   * following way:
+   *
+   * @code
+   * std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator> v;
+   * @endcode
+   */
+  using allocator = simd_aligned_allocator<Vec<T, SIMD_WIDTH>, SIMD_WIDTH>;
 }
 #endif
 ;

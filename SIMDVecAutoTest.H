@@ -1436,7 +1436,9 @@ struct UnaryArrayTemplateType
 #if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(nOutVecs), cp(nOutVecs);
-      std::vector<Vec<Tout, SIMD_WIDTH>> _cp(nOutVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(nOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
@@ -1501,7 +1503,8 @@ struct Array
 #if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> a(nInVecs);
-      std::vector<Vec<T, SIMD_WIDTH>> _a(nInVecs);
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _a(nInVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < nInVecs; j++) {
@@ -1562,7 +1565,8 @@ struct ArrayTemplateType
 #if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> a(nInVecs);
-      std::vector<Vec<T, SIMD_WIDTH>> _a(nInVecs);
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _a(nInVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < nInVecs; j++) {
@@ -1621,7 +1625,8 @@ struct ArrayArrayVoid
 #if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(n), cs(n), cp(n);
-      std::vector<Vec<T, SIMD_WIDTH>> _ap(n), _cp(n);
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(n), _cp(n);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < n; j++) {
@@ -1696,8 +1701,11 @@ struct ArrayArrayVoidTemplateType
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
-      std::vector<Vec<T, SIMD_WIDTH>> _ap(numInVecs);
-      std::vector<Vec<Tout, SIMD_WIDTH>> _cp(numOutVecs);
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numInVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < numInVecs; j++) {
@@ -1772,8 +1780,11 @@ struct ArrayDoubleArrayVoidTemplateType
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
-      std::vector<Vec<T, SIMD_WIDTH>> _ap(numInVecs);
-      std::vector<Vec<Tout, SIMD_WIDTH>> _cp(numOutVecs);
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numInVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         double d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
@@ -1852,8 +1863,11 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
-      std::vector<Vec<T, SIMD_WIDTH>> _ap(numInVecs);
-      std::vector<Vec<Tout, SIMD_WIDTH>> _cp(numOutVecs);
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numInVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         double d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
@@ -1934,8 +1948,11 @@ struct ArrayArrayDoubleArrayVoidTemplateType
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs), bs(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
-      std::vector<Vec<T, SIMD_WIDTH>> _ap(numInVecs), _bp(numInVecs);
-      std::vector<Vec<Tout, SIMD_WIDTH>> _cp(numOutVecs);
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numInVecs), _bp(numInVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         double d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
@@ -2020,8 +2037,11 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs), bs(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
-      std::vector<Vec<T, SIMD_WIDTH>> _ap(numInVecs), _bp(numInVecs);
-      std::vector<Vec<Tout, SIMD_WIDTH>> _cp(numOutVecs);
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numInVecs), _bp(numInVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         double d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
@@ -2109,7 +2129,8 @@ struct ArrayVoidTemplateInt
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numVecs), ap(numVecs),
         a(numVecs);
-      std::vector<Vec<T, SIMD_WIDTH>> _ap(numVecs);
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < numVecs; j++) {

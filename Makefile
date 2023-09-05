@@ -114,7 +114,7 @@ syntax_only ?= 0
 #   libraries are not available
 # - may require -lpthread in libraries above
 
-userdefs_arch   = -mavx512bw -mavx512dq -mfpmath=sse
+userdefs_arch   = -march=native -mfpmath=sse
 userdefs_avx512 = -mavx512f -mavx512bw -mavx512dq -mavx512vl -mpopcnt
 userdefs_c      = -Wall -Wextra -Wpedantic -ggdb -fno-var-tracking
 userdefs_cppstd = -std=c++17

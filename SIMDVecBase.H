@@ -1232,7 +1232,8 @@ template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack16(const Vec<T, SIMD_WIDTH> &a,
                                                const Vec<T, SIMD_WIDTH> &b)
 {
-  return internal::base::unpack16<PART, NUM_ELEMS>(a, b);
+  return internal::base::unpack16(a, b, internal::Part<PART>(),
+                                  internal::Bytes<NUM_ELEMS * sizeof(T)>());
 }
 
 /**

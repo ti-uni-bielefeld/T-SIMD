@@ -2137,20 +2137,6 @@ static SIMD_INLINE Vec<Float, 32> unpack(const Vec<Float, 32> &a,
 }
 
 // ---------------------------------------------------------------------------
-// unpack hub
-// ---------------------------------------------------------------------------
-
-// generalized unpack
-// unpack blocks of NUM_ELEMS elements of type T
-// PART=0: low half of input vectors,
-// PART=1: high half of input vectors
-template <int PART, int NUM_ELEMS, typename T>
-static SIMD_INLINE Vec<T, 32> unpack(const Vec<T, 32> &a, const Vec<T, 32> &b)
-{
-  return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
-}
-
-// ---------------------------------------------------------------------------
 // 16-byte-lane oriented unpacklo
 // ---------------------------------------------------------------------------
 
@@ -2286,20 +2272,6 @@ static SIMD_INLINE Vec<Float, 32> unpack16(const Vec<Float, 32> &a,
                                            Bytes<16>)
 {
   return _mm256_permute2f128_ps(a, b, _MM_SHUFFLE(0, 3, 0, 1));
-}
-
-// ---------------------------------------------------------------------------
-// 128-bit-lane oriented unpack hub
-// ---------------------------------------------------------------------------
-
-// generalized 128-bit-lane oriented unpack
-// unpack blocks of NUM_ELEMS elements of type T
-// PART=0: low half of 128-bit lanes of input vectors,
-// PART=1: high half of 128-bit lanes of input vectors
-template <int PART, int NUM_ELEMS, typename T>
-static SIMD_INLINE Vec<T, 32> unpack16(const Vec<T, 32> &a, const Vec<T, 32> &b)
-{
-  return unpack16(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
 }
 
 // ---------------------------------------------------------------------------

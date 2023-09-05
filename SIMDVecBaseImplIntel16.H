@@ -1521,10 +1521,11 @@ static SIMD_INLINE Vec<Float, 16> unpack(const Vec<Float, 16> &a,
 // unpack blocks of NUM_ELEMS elements of type T
 // PART=0: low half of input vectors,
 // PART=1: high half of input vectors
-template <int PART, int NUM_ELEMS, typename T>
-static SIMD_INLINE Vec<T, 16> unpack16(const Vec<T, 16> &a, const Vec<T, 16> &b)
+template <int PART, int BYTES, typename T>
+static SIMD_INLINE Vec<T, 16> unpack16(const Vec<T, 16> &a, const Vec<T, 16> &b,
+                                       Part<PART>, Bytes<BYTES>)
 {
-  return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
+  return unpack(a, b, Part<PART>(), Bytes<BYTES>());
 }
 
 // ---------------------------------------------------------------------------

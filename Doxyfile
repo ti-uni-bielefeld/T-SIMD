@@ -1000,6 +1000,7 @@ INPUT                  = DoxygenGroupIndex.H \
                          SIMDVecBaseImplNEON16.H \
                          SIMDVecBaseImplSandbox.H \
                          SIMDVecExt.H \
+                         SIMDVecExtTransposeAutogen.H \
                          SIMDVecMask.H \
                          SIMDVecMaskImplEmu.H \
                          SIMDVecMaskImplIntel64.H \

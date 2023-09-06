@@ -159,6 +159,11 @@ int main(int argc, char *argv[])
   TestAll<ArrayArrayVoid, SW, Transpose_h>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid, SW, Transpose_c>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid, SW, Transpose_i>::test(repeats1, pattern);
+  // 06. Sep 23 (Jonas Keller): added tests for inplace auto generated transpose
+  TestAll<ArrayArrayVoid, SW, Transpose1inplc>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose2inplc>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose1inplcLane>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose2inplcLane>::test(repeats1, pattern);
   // 15. Oct 22 (Jonas Keller): added test for _Swizzle
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle2_a>::test(repeats1,

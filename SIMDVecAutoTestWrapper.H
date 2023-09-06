@@ -2081,6 +2081,109 @@ struct Transpose_i
   }
 };
 
+// 06. Sep 23 (Jonas Keller): added Transpose1inplc, Transpose2inplc,
+// Transpose1inplcLane and Transpose2inplcLane
+
+template <typename T, int SIMD_WIDTH>
+struct Transpose1inplc
+{
+  static SIMD_INLINE std::string name()
+  {
+    return t2s<T, SIMD_WIDTH>("transpose1inplc");
+  }
+
+  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
+
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  {
+    vec.randomize();
+  }
+
+  template <template <typename, int> class VEC>
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
+  {
+    using ::simd::internal::ext::transpose1inplc;
+    transpose1inplc(inRows, outRows);
+  }
+};
+
+template <typename T, int SIMD_WIDTH>
+struct Transpose2inplc
+{
+  static SIMD_INLINE std::string name()
+  {
+    return t2s<T, SIMD_WIDTH>("transpose2inplc");
+  }
+
+  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
+
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  {
+    vec.randomize();
+  }
+
+  template <template <typename, int> class VEC>
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
+  {
+    using ::simd::internal::ext::transpose2inplc;
+    transpose2inplc(inRows, outRows);
+  }
+};
+
+template <typename T, int SIMD_WIDTH>
+struct Transpose1inplcLane
+{
+  static SIMD_INLINE std::string name()
+  {
+    return t2s<T, SIMD_WIDTH>("transpose1inplcLane");
+  }
+
+  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
+
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  {
+    vec.randomize();
+  }
+
+  template <template <typename, int> class VEC>
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
+  {
+    using ::simd::internal::ext::transpose1inplcLane;
+    transpose1inplcLane(inRows, outRows);
+  }
+};
+
+template <typename T, int SIMD_WIDTH>
+struct Transpose2inplcLane
+{
+  static SIMD_INLINE std::string name()
+  {
+    return t2s<T, SIMD_WIDTH>("transpose2inplcLane");
+  }
+
+  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
+
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  {
+    vec.randomize();
+  }
+
+  template <template <typename, int> class VEC>
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
+  {
+    using ::simd::internal::ext::transpose2inplcLane;
+    transpose2inplcLane(inRows, outRows);
+  }
+};
+
 template <typename T, int SIMD_WIDTH>
 struct Avgru
 {

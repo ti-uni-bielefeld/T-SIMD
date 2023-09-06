@@ -45,6 +45,7 @@
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
 #include "SIMDVecBase.H"
+#include "SIMDVecExtTransposeAutogen.H"
 
 #include <cassert>
 #include <cmath>
@@ -3149,8 +3150,13 @@ static SIMD_INLINE void transpose(
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
   // uncomment fastest version
+
+  // 06. Sep 23 (Jonas Keller):
+  // added transpose1inplc, transpose2inplc, transpose1inplcLane and
+  // transpose2inplcLane and switched to transpose1inplcLane
+
   // internal::ext::transpose_a(inRows, outRows);
-  internal::ext::transpose_b(inRows, outRows);
+  // internal::ext::transpose_b(inRows, outRows);
   // internal::ext::transpose_c(inRows, outRows);
   // internal::ext::transpose_d(inRows, outRows);
   // internal::ext::transpose_e(inRows, outRows);
@@ -3158,6 +3164,10 @@ static SIMD_INLINE void transpose(
   // internal::ext::transpose_g(inRows, outRows);
   // internal::ext::transpose_h(inRows, outRows);
   // internal::ext::transpose_i(inRows, outRows);
+  // internal::ext::transpose1inplc(inRows, outRows);
+  // internal::ext::transpose2inplc(inRows, outRows);
+  internal::ext::transpose1inplcLane(inRows, outRows);
+  // internal::ext::transpose2inplcLane(inRows, outRows);
 }
 
 // ===========================================================================

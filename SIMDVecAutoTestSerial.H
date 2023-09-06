@@ -1748,12 +1748,12 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_and(
 }
 
 template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> and_(
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_and(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
 {
   SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
-  return SerialVec<Double, SIMD_WIDTH>(and_(ai, bi));
+  return SerialVec<Double, SIMD_WIDTH>(bit_and(ai, bi));
 }
 
 template <typename T, int SIMD_WIDTH>
@@ -1774,12 +1774,12 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_or(
 }
 
 template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> or_(
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_or(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
 {
   SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
-  return SerialVec<Double, SIMD_WIDTH>(or_(ai, bi));
+  return SerialVec<Double, SIMD_WIDTH>(bit_or(ai, bi));
 }
 
 template <typename T, int SIMD_WIDTH>
@@ -1800,12 +1800,12 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_andnot(
 }
 
 template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> andnot(
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_andnot(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
 {
   SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
-  return SerialVec<Double, SIMD_WIDTH>(andnot(ai, bi));
+  return SerialVec<Double, SIMD_WIDTH>(bit_andnot(ai, bi));
 }
 
 template <typename T, int SIMD_WIDTH>
@@ -1826,12 +1826,12 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_xor(
 }
 
 template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> xor_(
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_xor(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
 {
   SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
-  return SerialVec<Double, SIMD_WIDTH>(xor_(ai, bi));
+  return SerialVec<Double, SIMD_WIDTH>(bit_xor(ai, bi));
 }
 
 template <typename T, int SIMD_WIDTH>
@@ -1852,11 +1852,11 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_not(
 }
 
 template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> not_(
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_not(
   const SerialVec<Double, SIMD_WIDTH> &a)
 {
   SerialVec<Int, SIMD_WIDTH> ai(a);
-  return SerialVec<Double, SIMD_WIDTH>(not_(ai));
+  return SerialVec<Double, SIMD_WIDTH>(bit_not(ai));
 }
 
 // int types except Int

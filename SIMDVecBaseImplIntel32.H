@@ -4712,8 +4712,8 @@ static SIMD_INLINE Vec<Float, 32> bit_and(const Vec<Float, 32> &a,
 }
 
 // double version
-static SIMD_INLINE Vec<Double, 32> and_(const Vec<Double, 32> &a,
-                                        const Vec<Double, 32> &b)
+static SIMD_INLINE Vec<Double, 32> bit_and(const Vec<Double, 32> &a,
+                                           const Vec<Double, 32> &b)
 {
   return _mm256_and_pd(a, b);
 }
@@ -4743,8 +4743,8 @@ static SIMD_INLINE Vec<Float, 32> bit_or(const Vec<Float, 32> &a,
 }
 
 // double version
-static SIMD_INLINE Vec<Double, 32> or_(const Vec<Double, 32> &a,
-                                       const Vec<Double, 32> &b)
+static SIMD_INLINE Vec<Double, 32> bit_or(const Vec<Double, 32> &a,
+                                          const Vec<Double, 32> &b)
 {
   return _mm256_or_pd(a, b);
 }
@@ -4775,8 +4775,8 @@ static SIMD_INLINE Vec<Float, 32> bit_andnot(const Vec<Float, 32> &a,
 }
 
 // double version
-static SIMD_INLINE Vec<Double, 32> andnot(const Vec<Double, 32> &a,
-                                          const Vec<Double, 32> &b)
+static SIMD_INLINE Vec<Double, 32> bit_andnot(const Vec<Double, 32> &a,
+                                              const Vec<Double, 32> &b)
 {
   return _mm256_andnot_pd(a, b);
 }
@@ -4806,8 +4806,8 @@ static SIMD_INLINE Vec<Float, 32> bit_xor(const Vec<Float, 32> &a,
 }
 
 // double version
-static SIMD_INLINE Vec<Double, 32> xor_(const Vec<Double, 32> &a,
-                                        const Vec<Double, 32> &b)
+static SIMD_INLINE Vec<Double, 32> bit_xor(const Vec<Double, 32> &a,
+                                           const Vec<Double, 32> &b)
 {
   return _mm256_xor_pd(a, b);
 }
@@ -4836,7 +4836,7 @@ static SIMD_INLINE Vec<Float, 32> bit_not(const Vec<Float, 32> &a)
 }
 
 // double version
-static SIMD_INLINE Vec<Double, 32> not_(const Vec<Double, 32> &a)
+static SIMD_INLINE Vec<Double, 32> bit_not(const Vec<Double, 32> &a)
 {
   return _mm256_xor_pd(a, _mm256_castsi256_pd(_mm256_set1_epi32(-1)));
 }

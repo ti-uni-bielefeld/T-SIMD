@@ -3708,8 +3708,8 @@ static SIMD_INLINE Vec<Float, 16> bit_and(const Vec<Float, 16> &a,
 }
 
 // double version
-static SIMD_INLINE Vec<Double, 16> and_(const Vec<Double, 16> &a,
-                                        const Vec<Double, 16> &b)
+static SIMD_INLINE Vec<Double, 16> bit_and(const Vec<Double, 16> &a,
+                                           const Vec<Double, 16> &b)
 {
   return _mm_and_pd(a, b);
 }
@@ -3733,8 +3733,8 @@ static SIMD_INLINE Vec<Float, 16> bit_or(const Vec<Float, 16> &a,
 }
 
 // double version
-static SIMD_INLINE Vec<Double, 16> or_(const Vec<Double, 16> &a,
-                                       const Vec<Double, 16> &b)
+static SIMD_INLINE Vec<Double, 16> bit_or(const Vec<Double, 16> &a,
+                                          const Vec<Double, 16> &b)
 {
   return _mm_or_pd(a, b);
 }
@@ -3759,8 +3759,8 @@ static SIMD_INLINE Vec<Float, 16> bit_andnot(const Vec<Float, 16> &a,
 }
 
 // double version
-static SIMD_INLINE Vec<Double, 16> andnot(const Vec<Double, 16> &a,
-                                          const Vec<Double, 16> &b)
+static SIMD_INLINE Vec<Double, 16> bit_andnot(const Vec<Double, 16> &a,
+                                              const Vec<Double, 16> &b)
 {
   return _mm_andnot_pd(a, b);
 }
@@ -3784,8 +3784,8 @@ static SIMD_INLINE Vec<Float, 16> bit_xor(const Vec<Float, 16> &a,
 }
 
 // double version
-static SIMD_INLINE Vec<Double, 16> xor_(const Vec<Double, 16> &a,
-                                        const Vec<Double, 16> &b)
+static SIMD_INLINE Vec<Double, 16> bit_xor(const Vec<Double, 16> &a,
+                                           const Vec<Double, 16> &b)
 {
   return _mm_xor_pd(a, b);
 }
@@ -3810,7 +3810,7 @@ static SIMD_INLINE Vec<Float, 16> bit_not(const Vec<Float, 16> &a)
 }
 
 // double version
-static SIMD_INLINE Vec<Double, 16> not_(const Vec<Double, 16> &a)
+static SIMD_INLINE Vec<Double, 16> bit_not(const Vec<Double, 16> &a)
 {
   // there is no _mm_not_pd, so xor with all 1's
   return _mm_xor_pd(a, _mm_castsi128_pd(_mm_set1_epi32(-1)));

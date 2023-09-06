@@ -26,6 +26,7 @@
 // 02. Mar 23 (Jonas Keller): added doxygen documentation
 // 13. May 23 (Jonas Keller): added Double support
 
+#pragma once
 #ifndef SIMD_TYPES_H_
 #define SIMD_TYPES_H_
 

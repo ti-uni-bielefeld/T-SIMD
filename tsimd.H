@@ -28,6 +28,7 @@
  * @brief Main include file for using the T-SIMD library.
  */
 
+#pragma once
 #ifndef T_SIMD_H_
 #define T_SIMD_H_
 

@@ -50,6 +50,7 @@
 
 // 13. May 23 (Jonas Keller): added Double support
 
+#pragma once
 #ifndef SIMD_VEC_AUTO_TEST_H_
 #define SIMD_VEC_AUTO_TEST_H_
 
@@ -1456,12 +1457,14 @@ struct UnaryArrayTemplateType
 #if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(nOutVecs), cp(nOutVecs);
-      Vec<Tout, SIMD_WIDTH> *const _cp = new Vec<Tout, SIMD_WIDTH>[nOutVecs];
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(nOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<Tout, T, SIMD_WIDTH>::apply(a, cs.data());
-        FCT<Tout, T, SIMD_WIDTH>::apply(a.getVec(), _cp);
+        FCT<Tout, T, SIMD_WIDTH>::apply(a.getVec(), _cp.data());
         bool foundError = false;
         for (int io = 0; io < nOutVecs; io++) {
           cp[io].setVec(_cp[io]);
@@ -1480,7 +1483,6 @@ struct UnaryArrayTemplateType
           EXIT;
         }
       }
-      delete[] _cp;
       printErrorStats(errors, trials);
 #endif
       Vec<T, SIMD_WIDTH> input;
@@ -1522,7 +1524,8 @@ struct Array
 #if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> a(nInVecs);
-      Vec<T, SIMD_WIDTH> *const _a = new Vec<T, SIMD_WIDTH>[nInVecs];
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _a(nInVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < nInVecs; j++) {
@@ -1530,7 +1533,7 @@ struct Array
           _a[j] = a[j].getVec();
         }
         cs = FCT<T, SIMD_WIDTH>::apply(a.data());
-        cp.setVec(FCT<T, SIMD_WIDTH>::apply(_a));
+        cp.setVec(FCT<T, SIMD_WIDTH>::apply(_a.data()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -1542,7 +1545,6 @@ struct Array
           EXIT;
         }
       }
-      delete[] _a;
       printErrorStats(errors, trials);
 #endif
       Vec<T, SIMD_WIDTH> input[nInVecs];
@@ -1584,7 +1586,8 @@ struct ArrayTemplateType
 #if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> a(nInVecs);
-      Vec<T, SIMD_WIDTH> *const _a = new Vec<T, SIMD_WIDTH>[nInVecs];
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _a(nInVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < nInVecs; j++) {
@@ -1592,7 +1595,7 @@ struct ArrayTemplateType
           _a[j] = a[j].getVec();
         }
         cs = FCT<Tout, T, SIMD_WIDTH>::apply(a.data());
-        cp.setVec(FCT<Tout, T, SIMD_WIDTH>::apply(_a));
+        cp.setVec(FCT<Tout, T, SIMD_WIDTH>::apply(_a.data()));
         if (!CMP::cmpVec(cs, cp)) {
           errors++;
           if (errors <= PRINT_ERRORS) {
@@ -1604,7 +1607,6 @@ struct ArrayTemplateType
           EXIT;
         }
       }
-      delete[] _a;
       printErrorStats(errors, trials);
 #endif
       Vec<T, SIMD_WIDTH> input[nInVecs];
@@ -1644,8 +1646,8 @@ struct ArrayArrayVoid
 #if !ONLY_TIME_MEASUREMENT
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(n), cs(n), cp(n);
-      Vec<T, SIMD_WIDTH> *const _ap = new Vec<T, SIMD_WIDTH>[n];
-      Vec<T, SIMD_WIDTH> *const _cp = new Vec<T, SIMD_WIDTH>[n];
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(n), _cp(n);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < n; j++) {
@@ -1654,7 +1656,7 @@ struct ArrayArrayVoid
         }
         // apply function
         FCT<T, SIMD_WIDTH>::apply(as.data(), cs.data());
-        FCT<T, SIMD_WIDTH>::apply(_ap, _cp);
+        FCT<T, SIMD_WIDTH>::apply(_ap.data(), _cp.data());
         // compare results
         bool equal = true;
         for (int j = 0; j < n; j++) {
@@ -1677,8 +1679,6 @@ struct ArrayArrayVoid
           EXIT;
         }
       }
-      delete[] _ap;
-      delete[] _cp;
       printErrorStats(errors, trials);
 #endif
       Vec<T, SIMD_WIDTH> input[n];
@@ -1722,8 +1722,11 @@ struct ArrayArrayVoidTemplateType
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
-      Vec<T, SIMD_WIDTH> *const _ap    = new Vec<T, SIMD_WIDTH>[numInVecs];
-      Vec<Tout, SIMD_WIDTH> *const _cp = new Vec<Tout, SIMD_WIDTH>[numOutVecs];
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numInVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < numInVecs; j++) {
@@ -1732,7 +1735,7 @@ struct ArrayArrayVoidTemplateType
         }
         // apply function
         FCT<Tout, T, SIMD_WIDTH>::apply(as.data(), cs.data());
-        FCT<Tout, T, SIMD_WIDTH>::apply(_ap, _cp);
+        FCT<Tout, T, SIMD_WIDTH>::apply(_ap.data(), _cp.data());
         // compare results
         bool equal = true;
         for (int j = 0; j < numOutVecs; j++) {
@@ -1755,8 +1758,6 @@ struct ArrayArrayVoidTemplateType
           EXIT;
         }
       }
-      delete[] _ap;
-      delete[] _cp;
       printErrorStats(errors, trials);
 #endif
       Vec<T, SIMD_WIDTH> input[numInVecs];
@@ -1800,8 +1801,11 @@ struct ArrayDoubleArrayVoidTemplateType
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
-      Vec<T, SIMD_WIDTH> *const _ap    = new Vec<T, SIMD_WIDTH>[numInVecs];
-      Vec<Tout, SIMD_WIDTH> *const _cp = new Vec<Tout, SIMD_WIDTH>[numOutVecs];
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numInVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         const auto d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
@@ -1811,7 +1815,7 @@ struct ArrayDoubleArrayVoidTemplateType
         }
         // apply function
         FCT<Tout, T, SIMD_WIDTH>::apply(as.data(), d, cs.data());
-        FCT<Tout, T, SIMD_WIDTH>::apply(_ap, d, _cp);
+        FCT<Tout, T, SIMD_WIDTH>::apply(_ap.data(), d, _cp.data());
         // compare results
         bool equal = true;
         for (int j = 0; j < numOutVecs; j++) {
@@ -1835,8 +1839,6 @@ struct ArrayDoubleArrayVoidTemplateType
           EXIT;
         }
       }
-      delete[] _ap;
-      delete[] _cp;
       printErrorStats(errors, trials);
 #endif
       Vec<T, SIMD_WIDTH> input[numInVecs];
@@ -1882,8 +1884,11 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
-      Vec<T, SIMD_WIDTH> *const _ap    = new Vec<T, SIMD_WIDTH>[numInVecs];
-      Vec<Tout, SIMD_WIDTH> *const _cp = new Vec<Tout, SIMD_WIDTH>[numOutVecs];
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numInVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         const auto d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
@@ -1894,7 +1899,7 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
         }
         // apply function
         FCT<Tout, T, SIMD_WIDTH>::apply(as.data(), d1, d2, cs.data());
-        FCT<Tout, T, SIMD_WIDTH>::apply(_ap, d1, d2, _cp);
+        FCT<Tout, T, SIMD_WIDTH>::apply(_ap.data(), d1, d2, _cp.data());
         // compare results
         bool equal = true;
         for (int j = 0; j < numOutVecs; j++) {
@@ -1918,8 +1923,6 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
           EXIT;
         }
       }
-      delete[] _ap;
-      delete[] _cp;
       printErrorStats(errors, trials);
 #endif
       Vec<T, SIMD_WIDTH> input[numInVecs];
@@ -1966,9 +1969,11 @@ struct ArrayArrayDoubleArrayVoidTemplateType
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs), bs(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
-      Vec<T, SIMD_WIDTH> *const _ap    = new Vec<T, SIMD_WIDTH>[numInVecs];
-      Vec<T, SIMD_WIDTH> *const _bp    = new Vec<T, SIMD_WIDTH>[numInVecs];
-      Vec<Tout, SIMD_WIDTH> *const _cp = new Vec<Tout, SIMD_WIDTH>[numOutVecs];
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numInVecs), _bp(numInVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         const auto d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
@@ -1980,7 +1985,7 @@ struct ArrayArrayDoubleArrayVoidTemplateType
         }
         // apply function
         FCT<Tout, T, SIMD_WIDTH>::apply(as.data(), bs.data(), d, cs.data());
-        FCT<Tout, T, SIMD_WIDTH>::apply(_ap, _bp, d, _cp);
+        FCT<Tout, T, SIMD_WIDTH>::apply(_ap.data(), _bp.data(), d, _cp.data());
         // compare results
         bool equal = true;
         for (int j = 0; j < numOutVecs; j++) {
@@ -2007,9 +2012,6 @@ struct ArrayArrayDoubleArrayVoidTemplateType
           EXIT;
         }
       }
-      delete[] _ap;
-      delete[] _bp;
-      delete[] _cp;
       printErrorStats(errors, trials);
 #endif
       Vec<T, SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
@@ -2056,9 +2058,11 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numInVecs), bs(numInVecs);
       std::vector<SerialVec<Tout, SIMD_WIDTH>> cs(numOutVecs), cp(numOutVecs);
-      Vec<T, SIMD_WIDTH> *const _ap    = new Vec<T, SIMD_WIDTH>[numInVecs];
-      Vec<T, SIMD_WIDTH> *const _bp    = new Vec<T, SIMD_WIDTH>[numInVecs];
-      Vec<Tout, SIMD_WIDTH> *const _cp = new Vec<Tout, SIMD_WIDTH>[numOutVecs];
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numInVecs), _bp(numInVecs);
+      std::vector<Vec<Tout, SIMD_WIDTH>,
+                  typename Vec<Tout, SIMD_WIDTH>::allocator>
+        _cp(numOutVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         const auto d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
@@ -2072,7 +2076,8 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
         // apply function
         FCT<Tout, T, SIMD_WIDTH>::apply(as.data(), bs.data(), d1, d2,
                                         cs.data());
-        FCT<Tout, T, SIMD_WIDTH>::apply(_ap, _bp, d1, d2, _cp);
+        FCT<Tout, T, SIMD_WIDTH>::apply(_ap.data(), _bp.data(), d1, d2,
+                                        _cp.data());
         // compare results
         bool equal = true;
         for (int j = 0; j < numOutVecs; j++) {
@@ -2099,10 +2104,6 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
           EXIT;
         }
       }
-      delete[] _ap;
-      delete[] _bp;
-      delete[] _cp;
-
       printErrorStats(errors, trials);
 #endif
       Vec<T, SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
@@ -2149,7 +2150,8 @@ struct ArrayVoidTemplateInt
       // allocate on the heap to avoid stack overflow
       std::vector<SerialVec<T, SIMD_WIDTH>> as(numVecs), ap(numVecs),
         a(numVecs);
-      Vec<T, SIMD_WIDTH> *const _ap = new Vec<T, SIMD_WIDTH>[numVecs];
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(numVecs);
       int errors = 0, trials = 0;
       for (int i = 0; i < repeats; i++, trials++) {
         for (int j = 0; j < numVecs; j++) {
@@ -2160,7 +2162,7 @@ struct ArrayVoidTemplateInt
         }
         // apply function (overwrites results)
         FCT<I, T, SIMD_WIDTH>::apply(as.data());
-        FCT<I, T, SIMD_WIDTH>::apply(_ap);
+        FCT<I, T, SIMD_WIDTH>::apply(_ap.data());
         // compare results
         bool equal = true;
         for (int j = 0; j < numVecs; j++) {
@@ -2183,7 +2185,6 @@ struct ArrayVoidTemplateInt
           EXIT;
         }
       }
-      delete[] _ap;
       printErrorStats(errors, trials);
 #endif
       Vec<T, SIMD_WIDTH> input[numVecs];

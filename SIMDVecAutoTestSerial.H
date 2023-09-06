@@ -28,6 +28,7 @@
 // namespace
 // 13. May 23 (Jonas Keller): added Double support
 
+#pragma once
 #ifndef SIMD_VEC_AUTO_TEST_SERIAL_H_
 #define SIMD_VEC_AUTO_TEST_SERIAL_H_
 
@@ -2255,6 +2256,45 @@ static SIMD_INLINE void transpose_c(
 // 02. Aug 23 (Jonas Keller): renamed transpose6_t to transpose_i
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose_i(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
+{
+  // same as transpose_a
+  transpose_a(inRows, outRows);
+}
+
+// 06. Sep 23 (Jonas Keller): added transpose1inplc, transpose2inplc,
+// transpose1inplcLane and transpose2inplcLane
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose1inplc(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
+{
+  // same as transpose_a
+  transpose_a(inRows, outRows);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose2inplc(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
+{
+  // same as transpose_a
+  transpose_a(inRows, outRows);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose1inplcLane(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
+{
+  // same as transpose_a
+  transpose_a(inRows, outRows);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose2inplcLane(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {

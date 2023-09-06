@@ -191,6 +191,9 @@
  * @defgroup group_simd_sort Sorting
  * @brief Functions for sorting Vec's.
  *
+ * @defgroup group_aligned_alloc Aligned Allocation
+ * @brief Functions and classes for aligned memory allocation.
+ *
  * @defgroup group_print Print
  * @brief Functions to print the elements of a Vec.
  *

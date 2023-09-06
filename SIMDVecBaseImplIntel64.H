@@ -34,6 +34,7 @@
 // namespace
 // 13. May 23 (Jonas Keller): added Double support
 
+#pragma once
 #ifndef SIMD_VEC_BASE_IMPL_INTEL_64_H_
 #define SIMD_VEC_BASE_IMPL_INTEL_64_H_
 
@@ -107,6 +108,8 @@ public:
   void operator delete(void *p) { simd_aligned_free(p); }
   void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
   void operator delete[](void *p) { simd_aligned_free(p); }
+  // 05. Sep 23 (Jonas Keller): added allocator
+  using allocator = simd_aligned_allocator<Vec<T, bytes>, bytes>;
 };
 
 // ===========================================================================
@@ -151,6 +154,8 @@ public:
   void operator delete(void *p) { simd_aligned_free(p); }
   void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
   void operator delete[](void *p) { simd_aligned_free(p); }
+  // 05. Sep 23 (Jonas Keller): added allocator
+  using allocator = simd_aligned_allocator<Vec<Float, bytes>, bytes>;
 };
 
 // ===========================================================================
@@ -2170,20 +2175,6 @@ static SIMD_INLINE Vec<Double, 64> unpack(const Vec<Double, 64> &a,
 }
 
 // ---------------------------------------------------------------------------
-// unpack hub v
-// ---------------------------------------------------------------------------
-
-// generalized unpack
-// unpack blocks of NUM_ELEMS elements of type T
-// PART=0: low half of input vectors,
-// PART=1: high half of input vectors
-template <int PART, int NUM_ELEMS, typename T>
-static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b)
-{
-  return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
-}
-
-// ---------------------------------------------------------------------------
 // 128-bit-lane oriented unpacklo (with direct intrinsic calls)
 // ---------------------------------------------------------------------------
 
@@ -2409,20 +2400,6 @@ static SIMD_INLINE Vec<Double, 64> unpack16(const Vec<Double, 64> &a,
                                             Bytes<32>)
 {
   return _mm512_shuffle_f64x2(a, b, _MM_SHUFFLE(3, 2, 3, 2));
-}
-
-// ---------------------------------------------------------------------------
-// 128-bit-lane oriented unpack hub
-// ---------------------------------------------------------------------------
-
-// generalized 128-bit-lane oriented unpack
-// unpack blocks of NUM_ELEMS elements of type T
-// PART=0: low half of 128-bit lanes of input vectors,
-// PART=1: high half of 128-bit lanes of input vectors
-template <int PART, int NUM_ELEMS, typename T>
-static SIMD_INLINE Vec<T, 64> unpack16(const Vec<T, 64> &a, const Vec<T, 64> &b)
-{
-  return unpack16(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
 }
 
 // ---------------------------------------------------------------------------

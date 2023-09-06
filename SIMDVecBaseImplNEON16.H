@@ -50,6 +50,7 @@
 // option. Similar support was added for the combination of Cortex-A15
 // and Cortex-A7 through the -mcpu=cortex-a15.cortex-a7 option.
 
+#pragma once
 #ifndef SIMD_VEC_BASE_IMPL_NEON_16_H_
 #define SIMD_VEC_BASE_IMPL_NEON_16_H_
 
@@ -188,6 +189,8 @@ public:
   void operator delete(void *p) { simd_aligned_free(p); }
   void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
   void operator delete[](void *p) { simd_aligned_free(p); }
+  // 05. Sep 23 (Jonas Keller): added allocator
+  using allocator = simd_aligned_allocator<Vec<T, bytes>, bytes>;
 };
 
 // =========================================================================
@@ -1248,10 +1251,11 @@ SIMDVEC_NEON_UNPACK_ALL()
 // unpack blocks of NUM_ELEMS elements of type T
 // PART=0: low half of input vectors,
 // PART=1: high half of input vectors
-template <int PART, int NUM_ELEMS, typename T>
-static SIMD_INLINE Vec<T, 16> unpack16(const Vec<T, 16> &a, const Vec<T, 16> &b)
+template <int PART, int BYTES, typename T>
+static SIMD_INLINE Vec<T, 16> unpack16(const Vec<T, 16> &a, const Vec<T, 16> &b,
+                                       Part<PART>, Bytes<BYTES>)
 {
-  return unpack(a, b, Part<PART>(), Bytes<NUM_ELEMS * sizeof(T)>());
+  return unpack(a, b, Part<PART>(), Bytes<BYTES>());
 }
 
 // ---------------------------------------------------------------------------

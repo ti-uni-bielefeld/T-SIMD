@@ -29,6 +29,7 @@
 // 22. Jan 23 (Jonas Keller): moved sandbox implementations into internal
 // namespace
 
+#pragma once
 #ifndef SIMD_VEC_MASK_IMPL_SANDBOX_H_
 #define SIMD_VEC_MASK_IMPL_SANDBOX_H_
 

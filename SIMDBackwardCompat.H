@@ -33,6 +33,7 @@
  * @brief Aliases for backward compatibility.
  */
 
+#pragma once
 #ifndef SIMD_BACKWARD_COMPAT_H_
 #define SIMD_BACKWARD_COMPAT_H_
 

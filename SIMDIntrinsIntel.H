@@ -23,6 +23,7 @@
 //
 // ===========================================================================
 
+#pragma once
 #ifndef SIMD_INTRINS_INTEL_H_
 #define SIMD_INTRINS_INTEL_H_
 

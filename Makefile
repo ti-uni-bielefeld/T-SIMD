@@ -309,4 +309,11 @@ single-header:
 	@./generateSingleHeader.sh $(tsimd_single_header_file)
 	@echo "single header written to $(tsimd_single_header_file)"
 
+# 06. Sep 23 (Jonas Keller): added rule for autogenerating transpose functions
+transpose_autogen_file = SIMDVecExtTransposeAutogen.H
+.PHONY: gen-transpose-autogen
+gen-transpose-autogen:
+	@echo "generating $(transpose_autogen_file)"
+	@./transpose_inplace_autogen.tcl | clang-format > $(transpose_autogen_file)
+
 -include $(addprefix $(build_dir)/,$(depend_files))

@@ -28,6 +28,7 @@
 // 13. May 23 (Jonas Keller): added support for 2- and 1-bit masks in oder
 // to support larger data sizes
 
+#pragma once
 #ifndef SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_
 #define SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_
 

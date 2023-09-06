@@ -28,6 +28,7 @@
 // 22. Jan 23 (Jonas Keller): moved sandbox implementations into internal
 // namespace
 
+#pragma once
 #ifndef SIMD_VEC_BASE_IMPL_SANDBOX_H_
 #define SIMD_VEC_BASE_IMPL_SANDBOX_H_
 
@@ -57,6 +58,8 @@ public:
   static constexpr int elems    = elements;
   static constexpr int bytes    = SIMD_WIDTH;
   Vec() {}
+  // 05. Sep 23 (Jonas Keller): added allocator
+  using allocator = simd_aligned_allocator<Vec<T, bytes>, bytes>;
 };
 
 namespace internal {

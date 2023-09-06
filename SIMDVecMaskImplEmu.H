@@ -92,6 +92,7 @@ mask_add(const Vec<Float, SIMD_WIDTH> &src,
 // way to use flags or exceptions, so emulating them does not make much
 // sense anyway.
 
+#pragma once
 #ifndef SIMD_VEC_MASK_IMPL_EMU_H_
 #define SIMD_VEC_MASK_IMPL_EMU_H_
 

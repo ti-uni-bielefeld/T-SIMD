@@ -195,6 +195,7 @@ public:
   void operator delete(void *p) { simd_aligned_free(p); }
   void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
   void operator delete[](void *p) { simd_aligned_free(p); }
+  using allocator = simd_aligned_allocator<Vec<Double, bytes>, bytes>;
 };
 
 namespace internal {

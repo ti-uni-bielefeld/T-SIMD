@@ -24,7 +24,6 @@
 #
 # ===========================================================================
 
-# TODO: header
 # TODO: write directly to .H file?
 # TODO: doxygen information?
 
@@ -32,13 +31,23 @@
 set bytesPerElementList {1 2 4 8}
 # currently SSE, AVX, AVX-512
 set bytesList {16 32 64}
+# list of element numbers
+set elementsList {2 4 8 16 32 64}
 
 # ===========================================================================
 # C++ output of template headers etc.
 # ===========================================================================
 
+set includeGuardStart \
+{#pragma once
+#ifndef SIMD_VEC_EXT_TRANSPOSE_AUTOGEN_H_
+#define SIMD_VEC_EXT_TRANSPOSE_AUTOGEN_H_
+}
+set includeGuardEnd \
+    "\n#endif // SIMD_VEC_EXT_TRANSPOSE_AUTOGEN_H_"
+
 set includes \
-    "\#include <utility>\n\#include \"SIMDVecBase.H\"\n"
+    "\#include \"SIMDVecBase.H\"\n\n\#include <utility>\n"
 
 set simdStart \
     "namespace simd \{"
@@ -196,6 +205,7 @@ proc transpose1fullGenerator {elements} {
                             set dst2 [expr $dst1 + 1]
                             set atSrc1 $isAt($src1)
                             set atSrc2 $isAt($src2)
+                            puts -nonewline "        "
                             puts "zip<$span>($vs\[$atSrc1\], $vs\[$atSrc2\],\
                                              $vd\[$atSrc1\], $vd\[$atSrc2\]);"
                             incr ::numZip
@@ -219,6 +229,7 @@ proc transpose1fullGenerator {elements} {
         if {($u != $v) && !$swapped($v)} {
             # do we have a swap partner?
             if {$isAt($u) == $v} {
+                puts -nonewline "        "
                 puts "std::swap($vd\[$v\], $vd\[$u\]);"
                 incr ::numMove 3
                 # enought to mark later u (we never reach v again)
@@ -275,6 +286,7 @@ proc transpose1laneGenerator {elements bytes} {
                             set dst2 [expr $dst1 + 1]
                             set atSrc1 $isAt($src1)
                             set atSrc2 $isAt($src2)
+                            puts -nonewline "        "
                             puts "zip16<$span>($vs\[$atSrc1\], $vs\[$atSrc2\],\
                                                $vd\[$atSrc1\], $vd\[$atSrc2\]);"
                             incr ::numZip16
@@ -298,6 +310,7 @@ proc transpose1laneGenerator {elements bytes} {
         if {($u != $v) && !$swapped($v)} {
             # do we have a swap partner?
             if {$isAt($u) == $v} {
+                puts -nonewline "        "
                 puts "std::swap($vd\[$v\], $vd\[$u\]);"
                 incr ::numMove 3
                 # enought to mark later u (we never reach v again)
@@ -359,6 +372,7 @@ proc blockTranspose1Generator {elements bytes} {
                             set vecAtSrc2 [expr $atSrc2 * $vecsPerLane]
                             set vecSpan [expr $span * $vecsPerLane]
                             for {set v 0} {$v < $vecsPerLane} {incr v} {
+                                puts -nonewline "        "
                                 puts "zip<$vecSpan>($vs\[$vecAtSrc1\],\
                                                     $vs\[$vecAtSrc2\],\
                                                     $vd\[$vecAtSrc1\],\
@@ -390,6 +404,7 @@ proc blockTranspose1Generator {elements bytes} {
                 set uVec [expr $ub * $vecsPerLane]
                 set vVec [expr $vb * $vecsPerLane]
                 for {set i 0} {$i < $vecsPerLane} {incr i} {
+                    puts -nonewline "        "
                     puts "std::swap($vd\[$vVec\], $vd\[$uVec\]);"
                     incr ::numMove 3
                     incr uVec
@@ -433,6 +448,7 @@ proc transpose2fullGenerator {elements} {
                 set dst2 [expr $dst + 1]
                 set atSrc1 $isAt($src1)
                 set atSrc2 $isAt($src2)
+                puts -nonewline "        "
                 puts "zip<1>($vs\[$atSrc1\], $vs\[$atSrc2\],\
                              $vd\[$atSrc1\], $vd\[$atSrc2\]);"
                 incr ::numZip
@@ -477,6 +493,7 @@ proc transpose2laneGeneratorA {elements bytes} {
                 set dst2 [expr $dst + 1]
                 set atSrc1 $isAt($src1)
                 set atSrc2 $isAt($src2)
+                puts -nonewline "        "
                 puts "zip16<1>($vs\[$atSrc1\], $vs\[$atSrc2\],\
                                $vd\[$atSrc1\], $vd\[$atSrc2\]);"
                 incr ::numZip16
@@ -537,6 +554,8 @@ proc blockTranspose2GeneratorA {elements bytes} {
 
                             set atSrc1 $isAt($src1)
                             set atSrc2 $isAt($src2)
+
+                            puts -nonewline "        "
                             puts "zip<$blkSz>($vs\[$atSrc1\],\
                                               $vs\[$atSrc2\],\
                                               $vd\[$atSrc1\],\
@@ -569,7 +588,8 @@ proc blockTranspose2GeneratorA {elements bytes} {
         # is a swap required? and don't swap twice!
         if {($u != $v) && !$swapped($v)} {
             # remember the first one, this one is overwritten
-            puts            "\{"
+            puts            "        \{"
+            puts -nonewline "          "
             puts "Vec<T, SIMD_WIDTH> vec_v = outRows\[$v\];"
             incr ::numMove
             # go through cycle
@@ -577,6 +597,7 @@ proc blockTranspose2GeneratorA {elements bytes} {
             while {1} {
                 set swapped($w) 1
                 set u $isAt($w)
+                puts -nonewline "          "
                 if {$u == $v} {
                     puts "outRows\[$w\] = vec_v;"
                 } else {
@@ -586,7 +607,7 @@ proc blockTranspose2GeneratorA {elements bytes} {
                 set w $u
                 if {$w == $v} break;
             }
-            puts            "\}"
+            puts            "        \}"
         }
     }
 }
@@ -625,6 +646,7 @@ proc transpose2laneGeneratorB {elements bytes} {
                 set dst2 [expr $dst + 1]
                 set atSrc1 $isAt($src1)
                 set atSrc2 $isAt($src2)
+                puts -nonewline "        "
                 puts "zip16<1>($vs\[$atSrc1\], $vs\[$atSrc2\],\
                                $vd\[$atSrc1\], $vd\[$atSrc2\]);"
                 incr ::numZip16
@@ -684,6 +706,8 @@ proc blockTranspose2GeneratorB {elements bytes} {
 
                                  set atSrc1 $isAt($src1)
                                  set atSrc2 $isAt($src2)
+
+                                 puts -nonewline "        "
                                  puts "zip<$blkSz>($vs\[$atSrc1\],\
                                                    $vs\[$atSrc2\],\
                                                    $vd\[$atSrc1\],\
@@ -716,7 +740,8 @@ proc blockTranspose2GeneratorB {elements bytes} {
         # is a swap required? and don't swap twice!
         if {($u != $v) && !$swapped($v)} {
             # remember the first one, this one is overwritten
-            puts            "\{"
+            puts            "        \{"
+            puts -nonewline "          "
             puts "Vec<T, SIMD_WIDTH> vec_v = outRows\[$v\];"
             incr ::numMove
             # go through cycle
@@ -724,6 +749,7 @@ proc blockTranspose2GeneratorB {elements bytes} {
             while {1} {
                 set swapped($w) 1
                 set u $isAt($w)
+                puts -nonewline "          "
                 if {$u == $v} {
                     puts "outRows\[$w\] = vec_v;"
                 } else {
@@ -733,7 +759,7 @@ proc blockTranspose2GeneratorB {elements bytes} {
                 set w $u
                 if {$w == $v} break;
             }
-            puts            "\}"
+            puts            "        \}"
         }
     }
 }
@@ -745,10 +771,10 @@ proc blockTranspose2GeneratorB {elements bytes} {
 proc transposeCoreAutoGen {funcName elements \
                                transposeGenerator} {
     resetCounters
-    puts "[format $::transposeCoreTemplateHead $funcName $elements]"
-    puts "\{"
+    puts "    [format $::transposeCoreTemplateHead $funcName $elements]"
+    puts "    \{"
     puts -nonewline [$transposeGenerator $elements]
-    puts "\}"
+    puts "    \}"
     storeCounters "$funcName elements=$elements"
 }
 
@@ -756,13 +782,13 @@ proc transposeLaneCoreAutoGen {funcName elements bytes \
                                    transposeLaneGenerator \
                                    blockTransposeGenerator} {
     resetCounters
-    puts "[format $::transposeLaneCoreTemplateHead $funcName \
+    puts "    [format $::transposeLaneCoreTemplateHead $funcName \
                       $elements $bytes]"
-    puts "\{"
+    puts "    \{"
     puts -nonewline [$transposeLaneGenerator $elements $bytes]
-    puts "// correction steps follow below (if required)"
+    puts "        // correction steps follow below (if required)"
     puts -nonewline [$blockTransposeGenerator $elements $bytes]
-    puts "\}"
+    puts "    \}"
     storeCounters "$funcName elements=$elements bytes=$bytes"
 }
 
@@ -773,25 +799,24 @@ proc transposeLaneCoreAutoGen {funcName elements bytes \
 resetCounterInfo
 
 puts $header
+puts $includeGuardStart
 puts $includes
 puts "$simdStart"
 puts "$internalExtStart"
 
-puts "// =========================================================="
-puts "// transpose1inplc"
-puts "// =========================================================="
-set maxBytes [lindex $bytesList end]
-foreach bytesPerElement $bytesPerElementList {
-    set elements [expr $maxBytes / $bytesPerElement]
+puts "    // =========================================================="
+puts "    // transpose1inplc"
+puts "    // =========================================================="
+foreach elements $elementsList {
     transposeCoreAutoGen "transpose1inplc" $elements \
         transpose1fullGenerator
 }
 puts [format $transposeHubTemplate \
           "transpose1inplc" "transpose1inplc"]
 
-puts "// =========================================================="
-puts "// transpose1inplcLane"
-puts "// =========================================================="
+puts "    // =========================================================="
+puts "    // transpose1inplcLane"
+puts "    // =========================================================="
 foreach bytes $bytesList {
     foreach bytesPerElement $bytesPerElementList {
         set elements [expr $bytes / $bytesPerElement]
@@ -802,12 +827,10 @@ foreach bytes $bytesList {
 puts [format $transposeLaneHubTemplate \
           "transpose1inplcLane" "transpose1inplcLane"]
 
-puts "// =========================================================="
-puts "// transpose2inplc"
-puts "// =========================================================="
-set maxBytes [lindex $bytesList end]
-foreach bytesPerElement $bytesPerElementList {
-    set elements [expr $maxBytes / $bytesPerElement]
+puts "    // =========================================================="
+puts "    // transpose2inplc"
+puts "    // =========================================================="
+foreach elements $elementsList {
     transposeCoreAutoGen "transpose2inplc" $elements \
         transpose2fullGenerator
 }
@@ -816,9 +839,9 @@ puts [format $transposeHubTemplate \
 
 if {0} {
     # not as efficient as version below, more ops in first phase
-    puts "// =========================================================="
-    puts "// transpose2inplcLaneA"
-    puts "// =========================================================="
+    puts "    // =========================================================="
+    puts "    // transpose2inplcLaneA"
+    puts "    // =========================================================="
     foreach bytes $bytesList {
         foreach bytesPerElement $bytesPerElementList {
             set elements [expr $bytes / $bytesPerElement]
@@ -830,9 +853,9 @@ if {0} {
               "transpose2inplcLaneA" "transpose2inplcLaneA"]
 }
 
-puts "// =========================================================="
-puts "// transpose2inplcLane"
-puts "// =========================================================="
+puts "    // =========================================================="
+puts "    // transpose2inplcLane"
+puts "    // =========================================================="
 foreach bytes $bytesList {
     foreach bytesPerElement $bytesPerElementList {
         set elements [expr $bytes / $bytesPerElement]
@@ -845,5 +868,6 @@ puts [format $transposeLaneHubTemplate \
 
 puts "$internalExtEnd"
 puts "$simdEnd"
+puts $includeGuardEnd
 
 writeCounterInfo "transpose_inplace_autogen_stat.txt"

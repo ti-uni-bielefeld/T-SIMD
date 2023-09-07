@@ -24,6 +24,10 @@
 //
 // ===========================================================================
 
+#pragma once
+#ifndef SIMD_VEC_EXT_TRANSPOSE_AUTOGEN_H_
+#define SIMD_VEC_EXT_TRANSPOSE_AUTOGEN_H_
+
 #include "SIMDVecBase.H"
 
 #include <utility>
@@ -34,6 +38,191 @@ namespace ext {
 // ==========================================================
 // transpose1inplc
 // ==========================================================
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose1inplc(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<2>)
+{
+  zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose1inplc(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<4>)
+{
+  zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
+  zip<1>(inRows[2], inRows[3], outRows[2], outRows[3]);
+  zip<2>(outRows[0], outRows[2], outRows[0], outRows[2]);
+  zip<2>(outRows[1], outRows[3], outRows[1], outRows[3]);
+  std::swap(outRows[1], outRows[2]);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose1inplc(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>)
+{
+  zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
+  zip<1>(inRows[2], inRows[3], outRows[2], outRows[3]);
+  zip<1>(inRows[4], inRows[5], outRows[4], outRows[5]);
+  zip<1>(inRows[6], inRows[7], outRows[6], outRows[7]);
+  zip<2>(outRows[0], outRows[2], outRows[0], outRows[2]);
+  zip<2>(outRows[1], outRows[3], outRows[1], outRows[3]);
+  zip<2>(outRows[4], outRows[6], outRows[4], outRows[6]);
+  zip<2>(outRows[5], outRows[7], outRows[5], outRows[7]);
+  zip<4>(outRows[0], outRows[4], outRows[0], outRows[4]);
+  zip<4>(outRows[2], outRows[6], outRows[2], outRows[6]);
+  zip<4>(outRows[1], outRows[5], outRows[1], outRows[5]);
+  zip<4>(outRows[3], outRows[7], outRows[3], outRows[7]);
+  std::swap(outRows[1], outRows[4]);
+  std::swap(outRows[3], outRows[6]);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose1inplc(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>)
+{
+  zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
+  zip<1>(inRows[2], inRows[3], outRows[2], outRows[3]);
+  zip<1>(inRows[4], inRows[5], outRows[4], outRows[5]);
+  zip<1>(inRows[6], inRows[7], outRows[6], outRows[7]);
+  zip<1>(inRows[8], inRows[9], outRows[8], outRows[9]);
+  zip<1>(inRows[10], inRows[11], outRows[10], outRows[11]);
+  zip<1>(inRows[12], inRows[13], outRows[12], outRows[13]);
+  zip<1>(inRows[14], inRows[15], outRows[14], outRows[15]);
+  zip<2>(outRows[0], outRows[2], outRows[0], outRows[2]);
+  zip<2>(outRows[1], outRows[3], outRows[1], outRows[3]);
+  zip<2>(outRows[4], outRows[6], outRows[4], outRows[6]);
+  zip<2>(outRows[5], outRows[7], outRows[5], outRows[7]);
+  zip<2>(outRows[8], outRows[10], outRows[8], outRows[10]);
+  zip<2>(outRows[9], outRows[11], outRows[9], outRows[11]);
+  zip<2>(outRows[12], outRows[14], outRows[12], outRows[14]);
+  zip<2>(outRows[13], outRows[15], outRows[13], outRows[15]);
+  zip<4>(outRows[0], outRows[4], outRows[0], outRows[4]);
+  zip<4>(outRows[2], outRows[6], outRows[2], outRows[6]);
+  zip<4>(outRows[1], outRows[5], outRows[1], outRows[5]);
+  zip<4>(outRows[3], outRows[7], outRows[3], outRows[7]);
+  zip<4>(outRows[8], outRows[12], outRows[8], outRows[12]);
+  zip<4>(outRows[10], outRows[14], outRows[10], outRows[14]);
+  zip<4>(outRows[9], outRows[13], outRows[9], outRows[13]);
+  zip<4>(outRows[11], outRows[15], outRows[11], outRows[15]);
+  zip<8>(outRows[0], outRows[8], outRows[0], outRows[8]);
+  zip<8>(outRows[4], outRows[12], outRows[4], outRows[12]);
+  zip<8>(outRows[2], outRows[10], outRows[2], outRows[10]);
+  zip<8>(outRows[6], outRows[14], outRows[6], outRows[14]);
+  zip<8>(outRows[1], outRows[9], outRows[1], outRows[9]);
+  zip<8>(outRows[5], outRows[13], outRows[5], outRows[13]);
+  zip<8>(outRows[3], outRows[11], outRows[3], outRows[11]);
+  zip<8>(outRows[7], outRows[15], outRows[7], outRows[15]);
+  std::swap(outRows[1], outRows[8]);
+  std::swap(outRows[2], outRows[4]);
+  std::swap(outRows[3], outRows[12]);
+  std::swap(outRows[5], outRows[10]);
+  std::swap(outRows[7], outRows[14]);
+  std::swap(outRows[11], outRows[13]);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose1inplc(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<32>)
+{
+  zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
+  zip<1>(inRows[2], inRows[3], outRows[2], outRows[3]);
+  zip<1>(inRows[4], inRows[5], outRows[4], outRows[5]);
+  zip<1>(inRows[6], inRows[7], outRows[6], outRows[7]);
+  zip<1>(inRows[8], inRows[9], outRows[8], outRows[9]);
+  zip<1>(inRows[10], inRows[11], outRows[10], outRows[11]);
+  zip<1>(inRows[12], inRows[13], outRows[12], outRows[13]);
+  zip<1>(inRows[14], inRows[15], outRows[14], outRows[15]);
+  zip<1>(inRows[16], inRows[17], outRows[16], outRows[17]);
+  zip<1>(inRows[18], inRows[19], outRows[18], outRows[19]);
+  zip<1>(inRows[20], inRows[21], outRows[20], outRows[21]);
+  zip<1>(inRows[22], inRows[23], outRows[22], outRows[23]);
+  zip<1>(inRows[24], inRows[25], outRows[24], outRows[25]);
+  zip<1>(inRows[26], inRows[27], outRows[26], outRows[27]);
+  zip<1>(inRows[28], inRows[29], outRows[28], outRows[29]);
+  zip<1>(inRows[30], inRows[31], outRows[30], outRows[31]);
+  zip<2>(outRows[0], outRows[2], outRows[0], outRows[2]);
+  zip<2>(outRows[1], outRows[3], outRows[1], outRows[3]);
+  zip<2>(outRows[4], outRows[6], outRows[4], outRows[6]);
+  zip<2>(outRows[5], outRows[7], outRows[5], outRows[7]);
+  zip<2>(outRows[8], outRows[10], outRows[8], outRows[10]);
+  zip<2>(outRows[9], outRows[11], outRows[9], outRows[11]);
+  zip<2>(outRows[12], outRows[14], outRows[12], outRows[14]);
+  zip<2>(outRows[13], outRows[15], outRows[13], outRows[15]);
+  zip<2>(outRows[16], outRows[18], outRows[16], outRows[18]);
+  zip<2>(outRows[17], outRows[19], outRows[17], outRows[19]);
+  zip<2>(outRows[20], outRows[22], outRows[20], outRows[22]);
+  zip<2>(outRows[21], outRows[23], outRows[21], outRows[23]);
+  zip<2>(outRows[24], outRows[26], outRows[24], outRows[26]);
+  zip<2>(outRows[25], outRows[27], outRows[25], outRows[27]);
+  zip<2>(outRows[28], outRows[30], outRows[28], outRows[30]);
+  zip<2>(outRows[29], outRows[31], outRows[29], outRows[31]);
+  zip<4>(outRows[0], outRows[4], outRows[0], outRows[4]);
+  zip<4>(outRows[2], outRows[6], outRows[2], outRows[6]);
+  zip<4>(outRows[1], outRows[5], outRows[1], outRows[5]);
+  zip<4>(outRows[3], outRows[7], outRows[3], outRows[7]);
+  zip<4>(outRows[8], outRows[12], outRows[8], outRows[12]);
+  zip<4>(outRows[10], outRows[14], outRows[10], outRows[14]);
+  zip<4>(outRows[9], outRows[13], outRows[9], outRows[13]);
+  zip<4>(outRows[11], outRows[15], outRows[11], outRows[15]);
+  zip<4>(outRows[16], outRows[20], outRows[16], outRows[20]);
+  zip<4>(outRows[18], outRows[22], outRows[18], outRows[22]);
+  zip<4>(outRows[17], outRows[21], outRows[17], outRows[21]);
+  zip<4>(outRows[19], outRows[23], outRows[19], outRows[23]);
+  zip<4>(outRows[24], outRows[28], outRows[24], outRows[28]);
+  zip<4>(outRows[26], outRows[30], outRows[26], outRows[30]);
+  zip<4>(outRows[25], outRows[29], outRows[25], outRows[29]);
+  zip<4>(outRows[27], outRows[31], outRows[27], outRows[31]);
+  zip<8>(outRows[0], outRows[8], outRows[0], outRows[8]);
+  zip<8>(outRows[4], outRows[12], outRows[4], outRows[12]);
+  zip<8>(outRows[2], outRows[10], outRows[2], outRows[10]);
+  zip<8>(outRows[6], outRows[14], outRows[6], outRows[14]);
+  zip<8>(outRows[1], outRows[9], outRows[1], outRows[9]);
+  zip<8>(outRows[5], outRows[13], outRows[5], outRows[13]);
+  zip<8>(outRows[3], outRows[11], outRows[3], outRows[11]);
+  zip<8>(outRows[7], outRows[15], outRows[7], outRows[15]);
+  zip<8>(outRows[16], outRows[24], outRows[16], outRows[24]);
+  zip<8>(outRows[20], outRows[28], outRows[20], outRows[28]);
+  zip<8>(outRows[18], outRows[26], outRows[18], outRows[26]);
+  zip<8>(outRows[22], outRows[30], outRows[22], outRows[30]);
+  zip<8>(outRows[17], outRows[25], outRows[17], outRows[25]);
+  zip<8>(outRows[21], outRows[29], outRows[21], outRows[29]);
+  zip<8>(outRows[19], outRows[27], outRows[19], outRows[27]);
+  zip<8>(outRows[23], outRows[31], outRows[23], outRows[31]);
+  zip<16>(outRows[0], outRows[16], outRows[0], outRows[16]);
+  zip<16>(outRows[8], outRows[24], outRows[8], outRows[24]);
+  zip<16>(outRows[4], outRows[20], outRows[4], outRows[20]);
+  zip<16>(outRows[12], outRows[28], outRows[12], outRows[28]);
+  zip<16>(outRows[2], outRows[18], outRows[2], outRows[18]);
+  zip<16>(outRows[10], outRows[26], outRows[10], outRows[26]);
+  zip<16>(outRows[6], outRows[22], outRows[6], outRows[22]);
+  zip<16>(outRows[14], outRows[30], outRows[14], outRows[30]);
+  zip<16>(outRows[1], outRows[17], outRows[1], outRows[17]);
+  zip<16>(outRows[9], outRows[25], outRows[9], outRows[25]);
+  zip<16>(outRows[5], outRows[21], outRows[5], outRows[21]);
+  zip<16>(outRows[13], outRows[29], outRows[13], outRows[29]);
+  zip<16>(outRows[3], outRows[19], outRows[3], outRows[19]);
+  zip<16>(outRows[11], outRows[27], outRows[11], outRows[27]);
+  zip<16>(outRows[7], outRows[23], outRows[7], outRows[23]);
+  zip<16>(outRows[15], outRows[31], outRows[15], outRows[31]);
+  std::swap(outRows[1], outRows[16]);
+  std::swap(outRows[2], outRows[8]);
+  std::swap(outRows[3], outRows[24]);
+  std::swap(outRows[5], outRows[20]);
+  std::swap(outRows[6], outRows[12]);
+  std::swap(outRows[7], outRows[28]);
+  std::swap(outRows[9], outRows[18]);
+  std::swap(outRows[11], outRows[26]);
+  std::swap(outRows[13], outRows[22]);
+  std::swap(outRows[15], outRows[30]);
+  std::swap(outRows[19], outRows[25]);
+  std::swap(outRows[23], outRows[29]);
+}
 
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplc(
@@ -260,171 +449,6 @@ static SIMD_INLINE void transpose1inplc(
   std::swap(outRows[43], outRows[53]);
   std::swap(outRows[47], outRows[61]);
   std::swap(outRows[55], outRows[59]);
-}
-
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose1inplc(
-  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
-  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<32>)
-{
-  zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
-  zip<1>(inRows[2], inRows[3], outRows[2], outRows[3]);
-  zip<1>(inRows[4], inRows[5], outRows[4], outRows[5]);
-  zip<1>(inRows[6], inRows[7], outRows[6], outRows[7]);
-  zip<1>(inRows[8], inRows[9], outRows[8], outRows[9]);
-  zip<1>(inRows[10], inRows[11], outRows[10], outRows[11]);
-  zip<1>(inRows[12], inRows[13], outRows[12], outRows[13]);
-  zip<1>(inRows[14], inRows[15], outRows[14], outRows[15]);
-  zip<1>(inRows[16], inRows[17], outRows[16], outRows[17]);
-  zip<1>(inRows[18], inRows[19], outRows[18], outRows[19]);
-  zip<1>(inRows[20], inRows[21], outRows[20], outRows[21]);
-  zip<1>(inRows[22], inRows[23], outRows[22], outRows[23]);
-  zip<1>(inRows[24], inRows[25], outRows[24], outRows[25]);
-  zip<1>(inRows[26], inRows[27], outRows[26], outRows[27]);
-  zip<1>(inRows[28], inRows[29], outRows[28], outRows[29]);
-  zip<1>(inRows[30], inRows[31], outRows[30], outRows[31]);
-  zip<2>(outRows[0], outRows[2], outRows[0], outRows[2]);
-  zip<2>(outRows[1], outRows[3], outRows[1], outRows[3]);
-  zip<2>(outRows[4], outRows[6], outRows[4], outRows[6]);
-  zip<2>(outRows[5], outRows[7], outRows[5], outRows[7]);
-  zip<2>(outRows[8], outRows[10], outRows[8], outRows[10]);
-  zip<2>(outRows[9], outRows[11], outRows[9], outRows[11]);
-  zip<2>(outRows[12], outRows[14], outRows[12], outRows[14]);
-  zip<2>(outRows[13], outRows[15], outRows[13], outRows[15]);
-  zip<2>(outRows[16], outRows[18], outRows[16], outRows[18]);
-  zip<2>(outRows[17], outRows[19], outRows[17], outRows[19]);
-  zip<2>(outRows[20], outRows[22], outRows[20], outRows[22]);
-  zip<2>(outRows[21], outRows[23], outRows[21], outRows[23]);
-  zip<2>(outRows[24], outRows[26], outRows[24], outRows[26]);
-  zip<2>(outRows[25], outRows[27], outRows[25], outRows[27]);
-  zip<2>(outRows[28], outRows[30], outRows[28], outRows[30]);
-  zip<2>(outRows[29], outRows[31], outRows[29], outRows[31]);
-  zip<4>(outRows[0], outRows[4], outRows[0], outRows[4]);
-  zip<4>(outRows[2], outRows[6], outRows[2], outRows[6]);
-  zip<4>(outRows[1], outRows[5], outRows[1], outRows[5]);
-  zip<4>(outRows[3], outRows[7], outRows[3], outRows[7]);
-  zip<4>(outRows[8], outRows[12], outRows[8], outRows[12]);
-  zip<4>(outRows[10], outRows[14], outRows[10], outRows[14]);
-  zip<4>(outRows[9], outRows[13], outRows[9], outRows[13]);
-  zip<4>(outRows[11], outRows[15], outRows[11], outRows[15]);
-  zip<4>(outRows[16], outRows[20], outRows[16], outRows[20]);
-  zip<4>(outRows[18], outRows[22], outRows[18], outRows[22]);
-  zip<4>(outRows[17], outRows[21], outRows[17], outRows[21]);
-  zip<4>(outRows[19], outRows[23], outRows[19], outRows[23]);
-  zip<4>(outRows[24], outRows[28], outRows[24], outRows[28]);
-  zip<4>(outRows[26], outRows[30], outRows[26], outRows[30]);
-  zip<4>(outRows[25], outRows[29], outRows[25], outRows[29]);
-  zip<4>(outRows[27], outRows[31], outRows[27], outRows[31]);
-  zip<8>(outRows[0], outRows[8], outRows[0], outRows[8]);
-  zip<8>(outRows[4], outRows[12], outRows[4], outRows[12]);
-  zip<8>(outRows[2], outRows[10], outRows[2], outRows[10]);
-  zip<8>(outRows[6], outRows[14], outRows[6], outRows[14]);
-  zip<8>(outRows[1], outRows[9], outRows[1], outRows[9]);
-  zip<8>(outRows[5], outRows[13], outRows[5], outRows[13]);
-  zip<8>(outRows[3], outRows[11], outRows[3], outRows[11]);
-  zip<8>(outRows[7], outRows[15], outRows[7], outRows[15]);
-  zip<8>(outRows[16], outRows[24], outRows[16], outRows[24]);
-  zip<8>(outRows[20], outRows[28], outRows[20], outRows[28]);
-  zip<8>(outRows[18], outRows[26], outRows[18], outRows[26]);
-  zip<8>(outRows[22], outRows[30], outRows[22], outRows[30]);
-  zip<8>(outRows[17], outRows[25], outRows[17], outRows[25]);
-  zip<8>(outRows[21], outRows[29], outRows[21], outRows[29]);
-  zip<8>(outRows[19], outRows[27], outRows[19], outRows[27]);
-  zip<8>(outRows[23], outRows[31], outRows[23], outRows[31]);
-  zip<16>(outRows[0], outRows[16], outRows[0], outRows[16]);
-  zip<16>(outRows[8], outRows[24], outRows[8], outRows[24]);
-  zip<16>(outRows[4], outRows[20], outRows[4], outRows[20]);
-  zip<16>(outRows[12], outRows[28], outRows[12], outRows[28]);
-  zip<16>(outRows[2], outRows[18], outRows[2], outRows[18]);
-  zip<16>(outRows[10], outRows[26], outRows[10], outRows[26]);
-  zip<16>(outRows[6], outRows[22], outRows[6], outRows[22]);
-  zip<16>(outRows[14], outRows[30], outRows[14], outRows[30]);
-  zip<16>(outRows[1], outRows[17], outRows[1], outRows[17]);
-  zip<16>(outRows[9], outRows[25], outRows[9], outRows[25]);
-  zip<16>(outRows[5], outRows[21], outRows[5], outRows[21]);
-  zip<16>(outRows[13], outRows[29], outRows[13], outRows[29]);
-  zip<16>(outRows[3], outRows[19], outRows[3], outRows[19]);
-  zip<16>(outRows[11], outRows[27], outRows[11], outRows[27]);
-  zip<16>(outRows[7], outRows[23], outRows[7], outRows[23]);
-  zip<16>(outRows[15], outRows[31], outRows[15], outRows[31]);
-  std::swap(outRows[1], outRows[16]);
-  std::swap(outRows[2], outRows[8]);
-  std::swap(outRows[3], outRows[24]);
-  std::swap(outRows[5], outRows[20]);
-  std::swap(outRows[6], outRows[12]);
-  std::swap(outRows[7], outRows[28]);
-  std::swap(outRows[9], outRows[18]);
-  std::swap(outRows[11], outRows[26]);
-  std::swap(outRows[13], outRows[22]);
-  std::swap(outRows[15], outRows[30]);
-  std::swap(outRows[19], outRows[25]);
-  std::swap(outRows[23], outRows[29]);
-}
-
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose1inplc(
-  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
-  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>)
-{
-  zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
-  zip<1>(inRows[2], inRows[3], outRows[2], outRows[3]);
-  zip<1>(inRows[4], inRows[5], outRows[4], outRows[5]);
-  zip<1>(inRows[6], inRows[7], outRows[6], outRows[7]);
-  zip<1>(inRows[8], inRows[9], outRows[8], outRows[9]);
-  zip<1>(inRows[10], inRows[11], outRows[10], outRows[11]);
-  zip<1>(inRows[12], inRows[13], outRows[12], outRows[13]);
-  zip<1>(inRows[14], inRows[15], outRows[14], outRows[15]);
-  zip<2>(outRows[0], outRows[2], outRows[0], outRows[2]);
-  zip<2>(outRows[1], outRows[3], outRows[1], outRows[3]);
-  zip<2>(outRows[4], outRows[6], outRows[4], outRows[6]);
-  zip<2>(outRows[5], outRows[7], outRows[5], outRows[7]);
-  zip<2>(outRows[8], outRows[10], outRows[8], outRows[10]);
-  zip<2>(outRows[9], outRows[11], outRows[9], outRows[11]);
-  zip<2>(outRows[12], outRows[14], outRows[12], outRows[14]);
-  zip<2>(outRows[13], outRows[15], outRows[13], outRows[15]);
-  zip<4>(outRows[0], outRows[4], outRows[0], outRows[4]);
-  zip<4>(outRows[2], outRows[6], outRows[2], outRows[6]);
-  zip<4>(outRows[1], outRows[5], outRows[1], outRows[5]);
-  zip<4>(outRows[3], outRows[7], outRows[3], outRows[7]);
-  zip<4>(outRows[8], outRows[12], outRows[8], outRows[12]);
-  zip<4>(outRows[10], outRows[14], outRows[10], outRows[14]);
-  zip<4>(outRows[9], outRows[13], outRows[9], outRows[13]);
-  zip<4>(outRows[11], outRows[15], outRows[11], outRows[15]);
-  zip<8>(outRows[0], outRows[8], outRows[0], outRows[8]);
-  zip<8>(outRows[4], outRows[12], outRows[4], outRows[12]);
-  zip<8>(outRows[2], outRows[10], outRows[2], outRows[10]);
-  zip<8>(outRows[6], outRows[14], outRows[6], outRows[14]);
-  zip<8>(outRows[1], outRows[9], outRows[1], outRows[9]);
-  zip<8>(outRows[5], outRows[13], outRows[5], outRows[13]);
-  zip<8>(outRows[3], outRows[11], outRows[3], outRows[11]);
-  zip<8>(outRows[7], outRows[15], outRows[7], outRows[15]);
-  std::swap(outRows[1], outRows[8]);
-  std::swap(outRows[2], outRows[4]);
-  std::swap(outRows[3], outRows[12]);
-  std::swap(outRows[5], outRows[10]);
-  std::swap(outRows[7], outRows[14]);
-  std::swap(outRows[11], outRows[13]);
-}
-
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose1inplc(
-  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
-  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>)
-{
-  zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
-  zip<1>(inRows[2], inRows[3], outRows[2], outRows[3]);
-  zip<1>(inRows[4], inRows[5], outRows[4], outRows[5]);
-  zip<1>(inRows[6], inRows[7], outRows[6], outRows[7]);
-  zip<2>(outRows[0], outRows[2], outRows[0], outRows[2]);
-  zip<2>(outRows[1], outRows[3], outRows[1], outRows[3]);
-  zip<2>(outRows[4], outRows[6], outRows[4], outRows[6]);
-  zip<2>(outRows[5], outRows[7], outRows[5], outRows[7]);
-  zip<4>(outRows[0], outRows[4], outRows[0], outRows[4]);
-  zip<4>(outRows[2], outRows[6], outRows[2], outRows[6]);
-  zip<4>(outRows[1], outRows[5], outRows[1], outRows[5]);
-  zip<4>(outRows[3], outRows[7], outRows[3], outRows[7]);
-  std::swap(outRows[1], outRows[4]);
-  std::swap(outRows[3], outRows[6]);
 }
 
 template <typename T, int SIMD_WIDTH>
@@ -1143,6 +1167,170 @@ static SIMD_INLINE void transpose1inplcLane(
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<2>)
+{
+  zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose2inplc(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<4>)
+{
+  zip<1>(inRows[0], inRows[2], outRows[0], outRows[2]);
+  zip<1>(inRows[1], inRows[3], outRows[1], outRows[3]);
+  zip<1>(outRows[0], outRows[1], outRows[0], outRows[1]);
+  zip<1>(outRows[2], outRows[3], outRows[2], outRows[3]);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose2inplc(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>)
+{
+  zip<1>(inRows[0], inRows[4], outRows[0], outRows[4]);
+  zip<1>(inRows[1], inRows[5], outRows[1], outRows[5]);
+  zip<1>(inRows[2], inRows[6], outRows[2], outRows[6]);
+  zip<1>(inRows[3], inRows[7], outRows[3], outRows[7]);
+  zip<1>(outRows[0], outRows[2], outRows[0], outRows[2]);
+  zip<1>(outRows[4], outRows[6], outRows[4], outRows[6]);
+  zip<1>(outRows[1], outRows[3], outRows[1], outRows[3]);
+  zip<1>(outRows[5], outRows[7], outRows[5], outRows[7]);
+  zip<1>(outRows[0], outRows[1], outRows[0], outRows[1]);
+  zip<1>(outRows[2], outRows[3], outRows[2], outRows[3]);
+  zip<1>(outRows[4], outRows[5], outRows[4], outRows[5]);
+  zip<1>(outRows[6], outRows[7], outRows[6], outRows[7]);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose2inplc(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>)
+{
+  zip<1>(inRows[0], inRows[8], outRows[0], outRows[8]);
+  zip<1>(inRows[1], inRows[9], outRows[1], outRows[9]);
+  zip<1>(inRows[2], inRows[10], outRows[2], outRows[10]);
+  zip<1>(inRows[3], inRows[11], outRows[3], outRows[11]);
+  zip<1>(inRows[4], inRows[12], outRows[4], outRows[12]);
+  zip<1>(inRows[5], inRows[13], outRows[5], outRows[13]);
+  zip<1>(inRows[6], inRows[14], outRows[6], outRows[14]);
+  zip<1>(inRows[7], inRows[15], outRows[7], outRows[15]);
+  zip<1>(outRows[0], outRows[4], outRows[0], outRows[4]);
+  zip<1>(outRows[8], outRows[12], outRows[8], outRows[12]);
+  zip<1>(outRows[1], outRows[5], outRows[1], outRows[5]);
+  zip<1>(outRows[9], outRows[13], outRows[9], outRows[13]);
+  zip<1>(outRows[2], outRows[6], outRows[2], outRows[6]);
+  zip<1>(outRows[10], outRows[14], outRows[10], outRows[14]);
+  zip<1>(outRows[3], outRows[7], outRows[3], outRows[7]);
+  zip<1>(outRows[11], outRows[15], outRows[11], outRows[15]);
+  zip<1>(outRows[0], outRows[2], outRows[0], outRows[2]);
+  zip<1>(outRows[4], outRows[6], outRows[4], outRows[6]);
+  zip<1>(outRows[8], outRows[10], outRows[8], outRows[10]);
+  zip<1>(outRows[12], outRows[14], outRows[12], outRows[14]);
+  zip<1>(outRows[1], outRows[3], outRows[1], outRows[3]);
+  zip<1>(outRows[5], outRows[7], outRows[5], outRows[7]);
+  zip<1>(outRows[9], outRows[11], outRows[9], outRows[11]);
+  zip<1>(outRows[13], outRows[15], outRows[13], outRows[15]);
+  zip<1>(outRows[0], outRows[1], outRows[0], outRows[1]);
+  zip<1>(outRows[2], outRows[3], outRows[2], outRows[3]);
+  zip<1>(outRows[4], outRows[5], outRows[4], outRows[5]);
+  zip<1>(outRows[6], outRows[7], outRows[6], outRows[7]);
+  zip<1>(outRows[8], outRows[9], outRows[8], outRows[9]);
+  zip<1>(outRows[10], outRows[11], outRows[10], outRows[11]);
+  zip<1>(outRows[12], outRows[13], outRows[12], outRows[13]);
+  zip<1>(outRows[14], outRows[15], outRows[14], outRows[15]);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose2inplc(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
+  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<32>)
+{
+  zip<1>(inRows[0], inRows[16], outRows[0], outRows[16]);
+  zip<1>(inRows[1], inRows[17], outRows[1], outRows[17]);
+  zip<1>(inRows[2], inRows[18], outRows[2], outRows[18]);
+  zip<1>(inRows[3], inRows[19], outRows[3], outRows[19]);
+  zip<1>(inRows[4], inRows[20], outRows[4], outRows[20]);
+  zip<1>(inRows[5], inRows[21], outRows[5], outRows[21]);
+  zip<1>(inRows[6], inRows[22], outRows[6], outRows[22]);
+  zip<1>(inRows[7], inRows[23], outRows[7], outRows[23]);
+  zip<1>(inRows[8], inRows[24], outRows[8], outRows[24]);
+  zip<1>(inRows[9], inRows[25], outRows[9], outRows[25]);
+  zip<1>(inRows[10], inRows[26], outRows[10], outRows[26]);
+  zip<1>(inRows[11], inRows[27], outRows[11], outRows[27]);
+  zip<1>(inRows[12], inRows[28], outRows[12], outRows[28]);
+  zip<1>(inRows[13], inRows[29], outRows[13], outRows[29]);
+  zip<1>(inRows[14], inRows[30], outRows[14], outRows[30]);
+  zip<1>(inRows[15], inRows[31], outRows[15], outRows[31]);
+  zip<1>(outRows[0], outRows[8], outRows[0], outRows[8]);
+  zip<1>(outRows[16], outRows[24], outRows[16], outRows[24]);
+  zip<1>(outRows[1], outRows[9], outRows[1], outRows[9]);
+  zip<1>(outRows[17], outRows[25], outRows[17], outRows[25]);
+  zip<1>(outRows[2], outRows[10], outRows[2], outRows[10]);
+  zip<1>(outRows[18], outRows[26], outRows[18], outRows[26]);
+  zip<1>(outRows[3], outRows[11], outRows[3], outRows[11]);
+  zip<1>(outRows[19], outRows[27], outRows[19], outRows[27]);
+  zip<1>(outRows[4], outRows[12], outRows[4], outRows[12]);
+  zip<1>(outRows[20], outRows[28], outRows[20], outRows[28]);
+  zip<1>(outRows[5], outRows[13], outRows[5], outRows[13]);
+  zip<1>(outRows[21], outRows[29], outRows[21], outRows[29]);
+  zip<1>(outRows[6], outRows[14], outRows[6], outRows[14]);
+  zip<1>(outRows[22], outRows[30], outRows[22], outRows[30]);
+  zip<1>(outRows[7], outRows[15], outRows[7], outRows[15]);
+  zip<1>(outRows[23], outRows[31], outRows[23], outRows[31]);
+  zip<1>(outRows[0], outRows[4], outRows[0], outRows[4]);
+  zip<1>(outRows[8], outRows[12], outRows[8], outRows[12]);
+  zip<1>(outRows[16], outRows[20], outRows[16], outRows[20]);
+  zip<1>(outRows[24], outRows[28], outRows[24], outRows[28]);
+  zip<1>(outRows[1], outRows[5], outRows[1], outRows[5]);
+  zip<1>(outRows[9], outRows[13], outRows[9], outRows[13]);
+  zip<1>(outRows[17], outRows[21], outRows[17], outRows[21]);
+  zip<1>(outRows[25], outRows[29], outRows[25], outRows[29]);
+  zip<1>(outRows[2], outRows[6], outRows[2], outRows[6]);
+  zip<1>(outRows[10], outRows[14], outRows[10], outRows[14]);
+  zip<1>(outRows[18], outRows[22], outRows[18], outRows[22]);
+  zip<1>(outRows[26], outRows[30], outRows[26], outRows[30]);
+  zip<1>(outRows[3], outRows[7], outRows[3], outRows[7]);
+  zip<1>(outRows[11], outRows[15], outRows[11], outRows[15]);
+  zip<1>(outRows[19], outRows[23], outRows[19], outRows[23]);
+  zip<1>(outRows[27], outRows[31], outRows[27], outRows[31]);
+  zip<1>(outRows[0], outRows[2], outRows[0], outRows[2]);
+  zip<1>(outRows[4], outRows[6], outRows[4], outRows[6]);
+  zip<1>(outRows[8], outRows[10], outRows[8], outRows[10]);
+  zip<1>(outRows[12], outRows[14], outRows[12], outRows[14]);
+  zip<1>(outRows[16], outRows[18], outRows[16], outRows[18]);
+  zip<1>(outRows[20], outRows[22], outRows[20], outRows[22]);
+  zip<1>(outRows[24], outRows[26], outRows[24], outRows[26]);
+  zip<1>(outRows[28], outRows[30], outRows[28], outRows[30]);
+  zip<1>(outRows[1], outRows[3], outRows[1], outRows[3]);
+  zip<1>(outRows[5], outRows[7], outRows[5], outRows[7]);
+  zip<1>(outRows[9], outRows[11], outRows[9], outRows[11]);
+  zip<1>(outRows[13], outRows[15], outRows[13], outRows[15]);
+  zip<1>(outRows[17], outRows[19], outRows[17], outRows[19]);
+  zip<1>(outRows[21], outRows[23], outRows[21], outRows[23]);
+  zip<1>(outRows[25], outRows[27], outRows[25], outRows[27]);
+  zip<1>(outRows[29], outRows[31], outRows[29], outRows[31]);
+  zip<1>(outRows[0], outRows[1], outRows[0], outRows[1]);
+  zip<1>(outRows[2], outRows[3], outRows[2], outRows[3]);
+  zip<1>(outRows[4], outRows[5], outRows[4], outRows[5]);
+  zip<1>(outRows[6], outRows[7], outRows[6], outRows[7]);
+  zip<1>(outRows[8], outRows[9], outRows[8], outRows[9]);
+  zip<1>(outRows[10], outRows[11], outRows[10], outRows[11]);
+  zip<1>(outRows[12], outRows[13], outRows[12], outRows[13]);
+  zip<1>(outRows[14], outRows[15], outRows[14], outRows[15]);
+  zip<1>(outRows[16], outRows[17], outRows[16], outRows[17]);
+  zip<1>(outRows[18], outRows[19], outRows[18], outRows[19]);
+  zip<1>(outRows[20], outRows[21], outRows[20], outRows[21]);
+  zip<1>(outRows[22], outRows[23], outRows[22], outRows[23]);
+  zip<1>(outRows[24], outRows[25], outRows[24], outRows[25]);
+  zip<1>(outRows[26], outRows[27], outRows[26], outRows[27]);
+  zip<1>(outRows[28], outRows[29], outRows[28], outRows[29]);
+  zip<1>(outRows[30], outRows[31], outRows[30], outRows[31]);
+}
+
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE void transpose2inplc(
+  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<64>)
 {
   zip<1>(inRows[0], inRows[32], outRows[0], outRows[32]);
@@ -1337,151 +1525,6 @@ static SIMD_INLINE void transpose2inplc(
   zip<1>(outRows[58], outRows[59], outRows[58], outRows[59]);
   zip<1>(outRows[60], outRows[61], outRows[60], outRows[61]);
   zip<1>(outRows[62], outRows[63], outRows[62], outRows[63]);
-}
-
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose2inplc(
-  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
-  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<32>)
-{
-  zip<1>(inRows[0], inRows[16], outRows[0], outRows[16]);
-  zip<1>(inRows[1], inRows[17], outRows[1], outRows[17]);
-  zip<1>(inRows[2], inRows[18], outRows[2], outRows[18]);
-  zip<1>(inRows[3], inRows[19], outRows[3], outRows[19]);
-  zip<1>(inRows[4], inRows[20], outRows[4], outRows[20]);
-  zip<1>(inRows[5], inRows[21], outRows[5], outRows[21]);
-  zip<1>(inRows[6], inRows[22], outRows[6], outRows[22]);
-  zip<1>(inRows[7], inRows[23], outRows[7], outRows[23]);
-  zip<1>(inRows[8], inRows[24], outRows[8], outRows[24]);
-  zip<1>(inRows[9], inRows[25], outRows[9], outRows[25]);
-  zip<1>(inRows[10], inRows[26], outRows[10], outRows[26]);
-  zip<1>(inRows[11], inRows[27], outRows[11], outRows[27]);
-  zip<1>(inRows[12], inRows[28], outRows[12], outRows[28]);
-  zip<1>(inRows[13], inRows[29], outRows[13], outRows[29]);
-  zip<1>(inRows[14], inRows[30], outRows[14], outRows[30]);
-  zip<1>(inRows[15], inRows[31], outRows[15], outRows[31]);
-  zip<1>(outRows[0], outRows[8], outRows[0], outRows[8]);
-  zip<1>(outRows[16], outRows[24], outRows[16], outRows[24]);
-  zip<1>(outRows[1], outRows[9], outRows[1], outRows[9]);
-  zip<1>(outRows[17], outRows[25], outRows[17], outRows[25]);
-  zip<1>(outRows[2], outRows[10], outRows[2], outRows[10]);
-  zip<1>(outRows[18], outRows[26], outRows[18], outRows[26]);
-  zip<1>(outRows[3], outRows[11], outRows[3], outRows[11]);
-  zip<1>(outRows[19], outRows[27], outRows[19], outRows[27]);
-  zip<1>(outRows[4], outRows[12], outRows[4], outRows[12]);
-  zip<1>(outRows[20], outRows[28], outRows[20], outRows[28]);
-  zip<1>(outRows[5], outRows[13], outRows[5], outRows[13]);
-  zip<1>(outRows[21], outRows[29], outRows[21], outRows[29]);
-  zip<1>(outRows[6], outRows[14], outRows[6], outRows[14]);
-  zip<1>(outRows[22], outRows[30], outRows[22], outRows[30]);
-  zip<1>(outRows[7], outRows[15], outRows[7], outRows[15]);
-  zip<1>(outRows[23], outRows[31], outRows[23], outRows[31]);
-  zip<1>(outRows[0], outRows[4], outRows[0], outRows[4]);
-  zip<1>(outRows[8], outRows[12], outRows[8], outRows[12]);
-  zip<1>(outRows[16], outRows[20], outRows[16], outRows[20]);
-  zip<1>(outRows[24], outRows[28], outRows[24], outRows[28]);
-  zip<1>(outRows[1], outRows[5], outRows[1], outRows[5]);
-  zip<1>(outRows[9], outRows[13], outRows[9], outRows[13]);
-  zip<1>(outRows[17], outRows[21], outRows[17], outRows[21]);
-  zip<1>(outRows[25], outRows[29], outRows[25], outRows[29]);
-  zip<1>(outRows[2], outRows[6], outRows[2], outRows[6]);
-  zip<1>(outRows[10], outRows[14], outRows[10], outRows[14]);
-  zip<1>(outRows[18], outRows[22], outRows[18], outRows[22]);
-  zip<1>(outRows[26], outRows[30], outRows[26], outRows[30]);
-  zip<1>(outRows[3], outRows[7], outRows[3], outRows[7]);
-  zip<1>(outRows[11], outRows[15], outRows[11], outRows[15]);
-  zip<1>(outRows[19], outRows[23], outRows[19], outRows[23]);
-  zip<1>(outRows[27], outRows[31], outRows[27], outRows[31]);
-  zip<1>(outRows[0], outRows[2], outRows[0], outRows[2]);
-  zip<1>(outRows[4], outRows[6], outRows[4], outRows[6]);
-  zip<1>(outRows[8], outRows[10], outRows[8], outRows[10]);
-  zip<1>(outRows[12], outRows[14], outRows[12], outRows[14]);
-  zip<1>(outRows[16], outRows[18], outRows[16], outRows[18]);
-  zip<1>(outRows[20], outRows[22], outRows[20], outRows[22]);
-  zip<1>(outRows[24], outRows[26], outRows[24], outRows[26]);
-  zip<1>(outRows[28], outRows[30], outRows[28], outRows[30]);
-  zip<1>(outRows[1], outRows[3], outRows[1], outRows[3]);
-  zip<1>(outRows[5], outRows[7], outRows[5], outRows[7]);
-  zip<1>(outRows[9], outRows[11], outRows[9], outRows[11]);
-  zip<1>(outRows[13], outRows[15], outRows[13], outRows[15]);
-  zip<1>(outRows[17], outRows[19], outRows[17], outRows[19]);
-  zip<1>(outRows[21], outRows[23], outRows[21], outRows[23]);
-  zip<1>(outRows[25], outRows[27], outRows[25], outRows[27]);
-  zip<1>(outRows[29], outRows[31], outRows[29], outRows[31]);
-  zip<1>(outRows[0], outRows[1], outRows[0], outRows[1]);
-  zip<1>(outRows[2], outRows[3], outRows[2], outRows[3]);
-  zip<1>(outRows[4], outRows[5], outRows[4], outRows[5]);
-  zip<1>(outRows[6], outRows[7], outRows[6], outRows[7]);
-  zip<1>(outRows[8], outRows[9], outRows[8], outRows[9]);
-  zip<1>(outRows[10], outRows[11], outRows[10], outRows[11]);
-  zip<1>(outRows[12], outRows[13], outRows[12], outRows[13]);
-  zip<1>(outRows[14], outRows[15], outRows[14], outRows[15]);
-  zip<1>(outRows[16], outRows[17], outRows[16], outRows[17]);
-  zip<1>(outRows[18], outRows[19], outRows[18], outRows[19]);
-  zip<1>(outRows[20], outRows[21], outRows[20], outRows[21]);
-  zip<1>(outRows[22], outRows[23], outRows[22], outRows[23]);
-  zip<1>(outRows[24], outRows[25], outRows[24], outRows[25]);
-  zip<1>(outRows[26], outRows[27], outRows[26], outRows[27]);
-  zip<1>(outRows[28], outRows[29], outRows[28], outRows[29]);
-  zip<1>(outRows[30], outRows[31], outRows[30], outRows[31]);
-}
-
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose2inplc(
-  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
-  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>)
-{
-  zip<1>(inRows[0], inRows[8], outRows[0], outRows[8]);
-  zip<1>(inRows[1], inRows[9], outRows[1], outRows[9]);
-  zip<1>(inRows[2], inRows[10], outRows[2], outRows[10]);
-  zip<1>(inRows[3], inRows[11], outRows[3], outRows[11]);
-  zip<1>(inRows[4], inRows[12], outRows[4], outRows[12]);
-  zip<1>(inRows[5], inRows[13], outRows[5], outRows[13]);
-  zip<1>(inRows[6], inRows[14], outRows[6], outRows[14]);
-  zip<1>(inRows[7], inRows[15], outRows[7], outRows[15]);
-  zip<1>(outRows[0], outRows[4], outRows[0], outRows[4]);
-  zip<1>(outRows[8], outRows[12], outRows[8], outRows[12]);
-  zip<1>(outRows[1], outRows[5], outRows[1], outRows[5]);
-  zip<1>(outRows[9], outRows[13], outRows[9], outRows[13]);
-  zip<1>(outRows[2], outRows[6], outRows[2], outRows[6]);
-  zip<1>(outRows[10], outRows[14], outRows[10], outRows[14]);
-  zip<1>(outRows[3], outRows[7], outRows[3], outRows[7]);
-  zip<1>(outRows[11], outRows[15], outRows[11], outRows[15]);
-  zip<1>(outRows[0], outRows[2], outRows[0], outRows[2]);
-  zip<1>(outRows[4], outRows[6], outRows[4], outRows[6]);
-  zip<1>(outRows[8], outRows[10], outRows[8], outRows[10]);
-  zip<1>(outRows[12], outRows[14], outRows[12], outRows[14]);
-  zip<1>(outRows[1], outRows[3], outRows[1], outRows[3]);
-  zip<1>(outRows[5], outRows[7], outRows[5], outRows[7]);
-  zip<1>(outRows[9], outRows[11], outRows[9], outRows[11]);
-  zip<1>(outRows[13], outRows[15], outRows[13], outRows[15]);
-  zip<1>(outRows[0], outRows[1], outRows[0], outRows[1]);
-  zip<1>(outRows[2], outRows[3], outRows[2], outRows[3]);
-  zip<1>(outRows[4], outRows[5], outRows[4], outRows[5]);
-  zip<1>(outRows[6], outRows[7], outRows[6], outRows[7]);
-  zip<1>(outRows[8], outRows[9], outRows[8], outRows[9]);
-  zip<1>(outRows[10], outRows[11], outRows[10], outRows[11]);
-  zip<1>(outRows[12], outRows[13], outRows[12], outRows[13]);
-  zip<1>(outRows[14], outRows[15], outRows[14], outRows[15]);
-}
-
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE void transpose2inplc(
-  const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
-  Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>)
-{
-  zip<1>(inRows[0], inRows[4], outRows[0], outRows[4]);
-  zip<1>(inRows[1], inRows[5], outRows[1], outRows[5]);
-  zip<1>(inRows[2], inRows[6], outRows[2], outRows[6]);
-  zip<1>(inRows[3], inRows[7], outRows[3], outRows[7]);
-  zip<1>(outRows[0], outRows[2], outRows[0], outRows[2]);
-  zip<1>(outRows[4], outRows[6], outRows[4], outRows[6]);
-  zip<1>(outRows[1], outRows[3], outRows[1], outRows[3]);
-  zip<1>(outRows[5], outRows[7], outRows[5], outRows[7]);
-  zip<1>(outRows[0], outRows[1], outRows[0], outRows[1]);
-  zip<1>(outRows[2], outRows[3], outRows[2], outRows[3]);
-  zip<1>(outRows[4], outRows[5], outRows[4], outRows[5]);
-  zip<1>(outRows[6], outRows[7], outRows[6], outRows[7]);
 }
 
 template <typename T, int SIMD_WIDTH>
@@ -2380,3 +2423,5 @@ static SIMD_INLINE void transpose2inplcLane(
 } // namespace ext
 } // namespace internal
 } // namespace simd
+
+#endif // SIMD_VEC_EXT_TRANSPOSE_AUTOGEN_H_

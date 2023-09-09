@@ -119,7 +119,9 @@ struct MySIMDStruct {
 
 ## Formatting
 
-The code is formatted with `clang-format` (https://clang.llvm.org/docs/ClangFormat.html) using the configuration file `.clang-format`. To format the code, run
+The code is formatted with `clang-format` version 15 or newer (https://clang.llvm.org/docs/ClangFormat.html, https://releases.llvm.org/download.html) using the configuration file `.clang-format`.
+
+To format the code, run
 
 ```shell
 $ make format

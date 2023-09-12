@@ -304,7 +304,7 @@ doc docs docu documentation doxygen dox doxy:
 # 04. Mar 23 (Jonas Keller): added rule for generating single header file
 # uses quom (https://github.com/Viatorus/quom)
 .PHONY: single-header
-single-header:
+single-header: gen-transpose-autogen
 	@echo "generating tsimd single header file"
 	@./generateSingleHeader.sh $(tsimd_single_header_file)
 	@echo "single header written to $(tsimd_single_header_file)"

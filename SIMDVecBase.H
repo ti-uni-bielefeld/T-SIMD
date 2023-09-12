@@ -35,32 +35,14 @@
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
-
-#include <cstdint>
-#include <type_traits>
-
-#ifdef SIMDVEC_SANDBOX
-
-// test templates
-#include "SIMDVecBaseImplSandbox.H"
-
-#else // SIMDVEC_SANDBOX
-
-// architecture-dependent files:
-
-// Intel
-#ifdef SIMDVEC_INTEL_ENABLE
 #include "SIMDVecBaseImplIntel16.H"
 #include "SIMDVecBaseImplIntel32.H"
 #include "SIMDVecBaseImplIntel64.H"
-#endif // SIMDVEC_INTEL_ENABLE
-
-// ARM NEON
-#ifdef SIMDVEC_NEON_ENABLE
 #include "SIMDVecBaseImplNEON16.H"
-#endif // SIMDVEC_NEON_ENABLE
+#include "SIMDVecBaseImplSandbox.H"
 
-#endif // else SIMDVEC_SANDBOX
+#include <cstdint>
+#include <type_traits>
 
 namespace simd {
 /**

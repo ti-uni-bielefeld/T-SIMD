@@ -64,7 +64,8 @@
 #include <cstdint>
 #include <type_traits>
 
-#ifdef SIMDVEC_NEON_ENABLE
+#if defined(SIMDVEC_NEON_ENABLE) && defined(_SIMD_VEC_16_AVAIL_) &&            \
+  !defined(SIMDVEC_SANDBOX)
 
 namespace simd {
 namespace internal {
@@ -2549,6 +2550,6 @@ static SIMD_INLINE Vec<Float, 16> iota(OutputType<Float>, Integer<16>)
 } // namespace internal
 } // namespace simd
 
-#endif // SIMDVEC_NEON_ENABLE
+#endif
 
 #endif // SIMD_VEC_BASE_IMPL_NEON_16_H_

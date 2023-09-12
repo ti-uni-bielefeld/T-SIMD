@@ -49,7 +49,8 @@
 #include <cstdint>
 #include <type_traits>
 
-#ifdef __AVX512F__
+#if defined(SIMDVEC_INTEL_ENABLE) && defined(_SIMD_VEC_64_AVAIL_) &&           \
+  !defined(SIMDVEC_SANDBOX)
 
 namespace simd {
 
@@ -4593,6 +4594,6 @@ static SIMD_INLINE Vec<Float, 64> iota(OutputType<Float>, Integer<64>)
 } // namespace internal
 } // namespace simd
 
-#endif // __AVX512F__
+#endif
 
 #endif // SIMD_VEC_BASE_IMPL_INTEL_64_H_

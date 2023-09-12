@@ -287,9 +287,16 @@ platform_dirs:
 dep:
 	@echo -n
 
+# 12. Sep 23 (Jonas Keller): added check for clang-format version
+.PHONY: check-clang-format-version
+check-clang-format-version:
+	@clang-format --version | grep -q "version 1[6-9]\|version [2-9][0-9]" \
+		|| ( echo "error: clang-format version 16 or higher required (found:" \
+		`clang-format --version` ")" ; exit 1 )
+
 # 10. Feb 23 (Jonas Keller): added format rule
 .PHONY: format
-format:
+format: check-clang-format-version
 	@echo "formatting all .C and .H files"
 	@clang-format -i *.C *.H
 
@@ -312,7 +319,7 @@ single-header: gen-transpose-autogen
 # 06. Sep 23 (Jonas Keller): added rule for autogenerating transpose functions
 transpose_autogen_file = SIMDVecExtTransposeAutogen.H
 .PHONY: gen-transpose-autogen
-gen-transpose-autogen:
+gen-transpose-autogen: check-clang-format-version
 	@echo "generating $(transpose_autogen_file)"
 	@./transpose_inplace_autogen.tcl | clang-format > $(transpose_autogen_file)
 

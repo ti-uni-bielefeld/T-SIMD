@@ -108,8 +108,7 @@ SIMDVEC_NEON(Float, float32, 4, 2)
   struct NEON_T##x1_t                                                          \
   {                                                                            \
     NEON_T##_t val[1];                                                         \
-    NEON_T##x1_t()                                                             \
-    {}                                                                         \
+    NEON_T##x1_t() {}                                                          \
     NEON_T##x1_t(const NEON_T##_t &x)                                          \
     {                                                                          \
       val[0] = x;                                                              \

@@ -424,7 +424,10 @@ struct TestLoad
       // load from page1 at pageOffset
       SerialVec<T, SIMD_WIDTH> vecSerial;
       for (int i = 0; i < vecSerial.elems; ++i) {
-        vecSerial[i] = static_cast<const T *>(loadLocSerial)[i];
+        // volatile to prevent compiler from optimizing, since some versions of
+        // gcc erroneously optimize this with an aligned load despite
+        // loadLocSerial not necessarily being aligned
+        vecSerial[i] = static_cast<volatile const T *>(loadLocSerial)[i];
       }
       const auto vecSIMD = SerialVec<T, SIMD_WIDTH>::fromVec(
         FCT<T, SIMD_WIDTH>::load(static_cast<const T *>(loadLocSIMD)));
@@ -470,8 +473,11 @@ struct TestMaskLoad
       // load from page1 at pageOffset
       SerialVec<T, SIMD_WIDTH> vecSerial;
       for (int i = 0; i < vecSerial.elems; ++i) {
+        // volatile to prevent compiler from optimizing, since some versions of
+        // gcc erroneously optimize this with an aligned load despite
+        // loadLocSerial not necessarily being aligned
         vecSerial[i] =
-          mask[i] ? static_cast<const T *>(loadLocSerial)[i] : src[i];
+          mask[i] ? static_cast<volatile const T *>(loadLocSerial)[i] : src[i];
       }
       const auto vecSIMD =
         SerialVec<T, SIMD_WIDTH>::fromVec(FCT<T, SIMD_WIDTH>::mask_load(
@@ -521,7 +527,11 @@ struct TestMaskZLoad
       // load from page1 at pageOffset
       SerialVec<T, SIMD_WIDTH> vecSerial;
       for (int i = 0; i < vecSerial.elems; ++i) {
-        vecSerial[i] = mask[i] ? static_cast<const T *>(loadLocSerial)[i] : 0;
+        // volatile to prevent compiler from optimizing, since some versions of
+        // gcc erroneously optimize this with an aligned load despite
+        // loadLocSerial not necessarily being aligned
+        vecSerial[i] =
+          mask[i] ? static_cast<volatile const T *>(loadLocSerial)[i] : 0;
       }
       const auto vecSIMD =
         SerialVec<T, SIMD_WIDTH>::fromVec(FCT<T, SIMD_WIDTH>::maskz_load(

@@ -231,7 +231,7 @@ template <typename T>
 static T getRandomSpecialValue()
 {
   std::vector<T> specialValues = internal::specialValues<T>();
-  return specialValues[((double) rand() / RAND_MAX) * specialValues.size()];
+  return specialValues[rand() % specialValues.size()];
 }
 
 // returns a special value with 1/16 probability and a random value otherwise

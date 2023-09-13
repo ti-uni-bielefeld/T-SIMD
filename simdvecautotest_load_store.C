@@ -119,7 +119,7 @@ long getRandomPageOffset(const long alignment = 1)
 {
   // get random number between 0 and getPageSize() - SIMD_WIDTH - 1 with
   // alignment
-  const long preAlignment = std::rand() % (getPageSize() - SIMD_WIDTH - 1);
+  const long preAlignment = std::rand() % (getPageSize() - SIMD_WIDTH);
   return (preAlignment / alignment) * alignment;
 }
 
@@ -134,7 +134,7 @@ long getRandomPageOffsetWithMask(const SerialMask<T, SIMD_WIDTH> &mask,
 
   // get random number between 0 and getPageSize() - numBytes - 1 with
   // alignment
-  const long preAlignment = std::rand() % (getPageSize() - numBytes - 1);
+  const long preAlignment = std::rand() % (getPageSize() - numBytes);
   return (preAlignment / alignment) * alignment;
 }
 

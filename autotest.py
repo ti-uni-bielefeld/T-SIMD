@@ -72,6 +72,14 @@ def generate_test_configs():
             print(f"WARNING: compiler \"{compiler}\" not found, skipping")
             continue
 
+        test_configs.append({
+            "compiler": compiler,
+            "opt_flags": "-O0",
+            "arch_flags": "",
+            "sandbox_defines": "-DSIMDVEC_SANDBOX",
+            "emulator": "",
+        })
+
         for opt_flags in [
             # "-O0", compiling with -O0 takes an unreasonable amount ram (like up to 70 GB (wtf?))
             #"-O1",
@@ -100,6 +108,7 @@ def generate_test_configs():
                     "compiler": compiler,
                     "opt_flags": opt_flags,
                     "arch_flags": arch_flags,
+                    "sandbox_defines": "",
                     "emulator": get_required_emulator(arch_flags),
                 })
 
@@ -108,7 +117,7 @@ def generate_test_configs():
 
 def run_test(test_config):
     print(f"Running test: {test_config}")
-    name = f"{test_config['compiler']}_{test_config['opt_flags']}_{test_config['arch_flags']}"
+    name = f"{test_config['compiler']}_{test_config['opt_flags']}_{test_config['arch_flags']}_{test_config['sandbox_defines']}"
     name = name.replace(" ", "")
 
     build_dir = f"{TMP_BUILD_DIR}/{name}"
@@ -117,7 +126,7 @@ def run_test(test_config):
     if not os.path.exists(build_dir):
         os.makedirs(build_dir)
 
-    build_command = f"make build_dir=\"{build_dir}\" compiler=\"{test_config['compiler']}\" optflags=\"{test_config['opt_flags']}\" flags_arch=\"{test_config['arch_flags']}\" all_tsimd autotest"
+    build_command = f"make build_dir=\"{build_dir}\" compiler=\"{test_config['compiler']}\" optflags=\"{test_config['opt_flags']}\" flags_arch=\"{test_config['arch_flags']}\" sandbox_defines=\"{test_config['sandbox_defines']}\" all_tsimd autotest"
 
     log_file_compile = f"{LOG_DIR}/{name}_compile.log"
     os.system(
@@ -125,18 +134,19 @@ def run_test(test_config):
 
     os.system(f"{build_command} >> {log_file_compile} 2>&1")
 
-    log_file_test0 = f"{LOG_DIR}/{name}_test0.log"
-    os.system(
-        f"{test_config['emulator']} {build_dir}/simdvecautotest0 \"\" 10000 > {log_file_test0} 2>&1 || echo \"ERROR: simdvecautotest0 failed\" >> {log_file_test0}")
-    log_file_test1 = f"{LOG_DIR}/{name}_test1.log"
-    os.system(
-        f"{test_config['emulator']} {build_dir}/simdvecautotest1 \"\" 10000 > {log_file_test1} 2>&1 || echo \"ERROR: simdvecautotest1 failed\" >> {log_file_test1}")
-    log_file_testM = f"{LOG_DIR}/{name}_testM.log"
-    os.system(
-        f"{test_config['emulator']} {build_dir}/simdvecautotestM \"\" 10000 > {log_file_testM} 2>&1 || echo \"ERROR: simdvecautotestM failed\" >> {log_file_testM}")
-    log_file_test_load_store = f"{LOG_DIR}/{name}_test_load_store.log"
-    os.system(
-        f"{test_config['emulator']} {build_dir}/simdvecautotest_load_store 10000 > {log_file_test_load_store} 2>&1 || echo \"ERROR: simdvecautotest_load_store failed\" >> {log_file_test_load_store}")
+    if test_config["sandbox_defines"] == "":
+        log_file_test0 = f"{LOG_DIR}/{name}_test0.log"
+        os.system(
+            f"{test_config['emulator']} {build_dir}/simdvecautotest0 \"\" 10000 > {log_file_test0} 2>&1 || echo \"ERROR: simdvecautotest0 failed\" >> {log_file_test0}")
+        log_file_test1 = f"{LOG_DIR}/{name}_test1.log"
+        os.system(
+            f"{test_config['emulator']} {build_dir}/simdvecautotest1 \"\" 10000 > {log_file_test1} 2>&1 || echo \"ERROR: simdvecautotest1 failed\" >> {log_file_test1}")
+        log_file_testM = f"{LOG_DIR}/{name}_testM.log"
+        os.system(
+            f"{test_config['emulator']} {build_dir}/simdvecautotestM \"\" 10000 > {log_file_testM} 2>&1 || echo \"ERROR: simdvecautotestM failed\" >> {log_file_testM}")
+        log_file_test_load_store = f"{LOG_DIR}/{name}_test_load_store.log"
+        os.system(
+            f"{test_config['emulator']} {build_dir}/simdvecautotest_load_store 10000 > {log_file_test_load_store} 2>&1 || echo \"ERROR: simdvecautotest_load_store failed\" >> {log_file_test_load_store}")
 
     os.system(f"rm -r {build_dir}")
 

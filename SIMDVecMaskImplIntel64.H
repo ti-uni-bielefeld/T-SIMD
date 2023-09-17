@@ -43,7 +43,8 @@
 #include <cstdint>
 #include <cstring>
 
-#ifdef __AVX512F__
+#if defined(SIMDVEC_INTEL_ENABLE) && defined(_SIMD_VEC_64_AVAIL_) &&           \
+  !defined(SIMDVEC_SANDBOX)
 
 namespace simd {
 #define CLASS_MASK(TYPE, MASK_SIZE)                                            \
@@ -1729,6 +1730,6 @@ static SIMD_INLINE Mask<T, 64> kcmpeq(const Mask<T, 64> &a,
 } // namespace internal
 } // namespace simd
 
-#endif // __AVX512F__
+#endif
 
 #endif // SIMD_VEC_MASK_IMPL_INTEL_64_H_

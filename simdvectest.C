@@ -1283,7 +1283,7 @@ int main()
   fwaddmul(inVecs, inVecs, 0.5, 43.21, outVecs);
 
   Vecs<4, Float, SW> vecs;
-  Float buffer[Vecs<4, Float, SW>::elements] SIMD_ATTR_ALIGNED(SW);
+  Float buffer[Vecs<4, Float, SW>::elements] SIMD_ATTR_ALIGNED(SW) = {0};
   load(buffer, vecs);
   loadu(buffer, vecs);
   store(buffer, vecs);

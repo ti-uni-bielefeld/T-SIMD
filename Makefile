@@ -240,7 +240,7 @@ all_build_files = $(all_objects) $(all_binaries) $(depend_files) \
 .PHONY: clean
 clean:
 ifneq ($(wildcard $(build_dir)),)
-	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, backup files, single header file and html/ documentation directory
+	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, backup files, single header file and doc_html/ documentation directory
 	@$(RM) $(addprefix $(build_dir)/,$(all_build_files)) $(build_dir)/*~ >$(NULL) 2>&1
 	@$(RMDIR_R) $(build_dir)/doc_html >$(NULL) 2>&1
 ifneq ($(build_dir),.)
@@ -287,9 +287,16 @@ platform_dirs:
 dep:
 	@echo -n
 
+# 12. Sep 23 (Jonas Keller): added check for clang-format version
+.PHONY: check-clang-format-version
+check-clang-format-version:
+	@clang-format --version | grep -q "version 1[6-9]\|version [2-9][0-9]" \
+		|| ( echo "error: clang-format version 16 or higher required (found:" \
+		`clang-format --version` ")" ; exit 1 )
+
 # 10. Feb 23 (Jonas Keller): added format rule
 .PHONY: format
-format:
+format: check-clang-format-version
 	@echo "formatting all .C and .H files"
 	@clang-format -i *.C *.H
 
@@ -304,7 +311,7 @@ doc docs docu documentation doxygen dox doxy:
 # 04. Mar 23 (Jonas Keller): added rule for generating single header file
 # uses quom (https://github.com/Viatorus/quom)
 .PHONY: single-header
-single-header:
+single-header: gen-transpose-autogen
 	@echo "generating tsimd single header file"
 	@./generateSingleHeader.sh $(tsimd_single_header_file)
 	@echo "single header written to $(tsimd_single_header_file)"
@@ -312,7 +319,7 @@ single-header:
 # 06. Sep 23 (Jonas Keller): added rule for autogenerating transpose functions
 transpose_autogen_file = SIMDVecExtTransposeAutogen.H
 .PHONY: gen-transpose-autogen
-gen-transpose-autogen:
+gen-transpose-autogen: check-clang-format-version
 	@echo "generating $(transpose_autogen_file)"
 	@./transpose_inplace_autogen.tcl | clang-format > $(transpose_autogen_file)
 

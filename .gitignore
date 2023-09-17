@@ -13,6 +13,7 @@ latex/
 *.ii
 *.s
 *.d
+*.tar.gz
 nativetest
 simdmasktest
 simdRadixSortGeneric

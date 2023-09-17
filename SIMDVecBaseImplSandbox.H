@@ -34,6 +34,7 @@
 
 // TODO: should this only contain level 0 functions?
 
+#include "SIMDAlloc.H"
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
@@ -298,11 +299,12 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack(const Vec<T, SIMD_WIDTH> &,
 }
 
 // unpack16
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <int PART, int BYTES, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack16(const Vec<T, SIMD_WIDTH> &,
-                                               const Vec<T, SIMD_WIDTH> &)
+                                               const Vec<T, SIMD_WIDTH> &,
+                                               Part<PART>, Bytes<BYTES>)
 {
-  printf("unpack16<PART=%d,NUM_ELEMS=%d,%s,%d>(V,V)\n", PART, NUM_ELEMS,
+  printf("unpack16<PART=%d,BYTES=%d,%s,%d>(V,V)\n", PART, BYTES,
          TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }

@@ -48,7 +48,8 @@
 #include <limits>
 #include <type_traits>
 
-#ifdef __SSE2__
+#if defined(SIMDVEC_INTEL_ENABLE) && defined(_SIMD_VEC_16_AVAIL_) &&           \
+  !defined(SIMDVEC_SANDBOX)
 
 namespace simd {
 
@@ -4232,6 +4233,6 @@ static SIMD_INLINE Vec<Double, 16> iota(OutputType<Double>, Integer<16>)
 } // namespace internal
 } // namespace simd
 
-#endif // __SSE2__
+#endif
 
 #endif // SIMD_VEC_BASE_IMPL_INTEL_16_H_

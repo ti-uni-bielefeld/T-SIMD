@@ -47,7 +47,8 @@
 #include <limits>
 #include <type_traits>
 
-#ifdef __AVX__
+#if defined(SIMDVEC_INTEL_ENABLE) && defined(_SIMD_VEC_32_AVAIL_) &&           \
+  !defined(SIMDVEC_SANDBOX)
 
 namespace simd {
 
@@ -5472,6 +5473,6 @@ static SIMD_INLINE Vec<Double, 32> iota(OutputType<Double>, Integer<32>)
 } // namespace internal
 } // namespace simd
 
-#endif // __AVX__
+#endif
 
 #endif // SIMD_VEC_BASE_IMPL_INTEL_32_H_

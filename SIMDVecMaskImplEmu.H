@@ -101,12 +101,11 @@ mask_add(const Vec<Float, SIMD_WIDTH> &src,
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
 #include "SIMDVecBase.H"
-
-#ifdef SIMDVEC_INTEL_ENABLE
 #include "SIMDVecMaskImplIntel64.H"
-#endif // SIMDVEC_INTEL_ENABLE
 
 #include <cstdint>
+
+#ifndef SIMDVEC_SANDBOX
 
 namespace simd {
 // 05. Feb 23 (Jonas Keller): introduced generic emulated Mask class using the
@@ -729,5 +728,7 @@ static SIMD_INLINE bool kcmpeq(const Mask<T, SIMD_WIDTH> &a,
 } // namespace mask
 } // namespace internal
 } // namespace simd
+
+#endif // SIMDVEC_SANDBOX
 
 #endif // SIMD_VEC_MASK_IMPL_EMU_H_

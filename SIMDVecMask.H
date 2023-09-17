@@ -35,23 +35,11 @@
 #include "SIMDDefs.H"
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
-
-#include <cstdint>
-
-#ifdef SIMDVEC_SANDBOX
-
-// test templates
+#include "SIMDVecMaskImplEmu.H"
+#include "SIMDVecMaskImplIntel64.H"
 #include "SIMDVecMaskImplSandbox.H"
 
-#else // SIMDVEC_SANDBOX
-
-#ifdef SIMDVEC_INTEL_ENABLE
-#include "SIMDVecMaskImplIntel64.H"
-#endif // SIMDVEC_INTEL_ENABLE
-
-#include "SIMDVecMaskImplEmu.H"
-
-#endif // else SIMDVEC_SANDBOX
+#include <cstdint>
 
 namespace simd {
 

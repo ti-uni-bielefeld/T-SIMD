@@ -2,7 +2,7 @@
 
 ## Generating the documentation
 
-Generating the documentation requires `doxygen` 1.9.7 or later (https://www.doxygen.nl) (earlier versions may work, but have not been tested).
+Generating the documentation requires `doxygen` 1.9.8 or later (https://www.doxygen.nl) (earlier versions may work, but have not been tested).
 
 To generate the documentation, run
 

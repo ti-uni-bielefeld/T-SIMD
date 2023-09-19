@@ -54,10 +54,17 @@ The following preprocessor definitions can be defined to change the behavior of 
 - `MAX_SIMD_WIDTH` : This macro can be used to limit the maximum vector width that **T-SIMD** will use. Must be an integer of at least 16.
 - `SIMDVEC_SANDBOX` : If this macro is defined, **T-SIMD** functions will not execute their intended operations, but instead will print what function was called to the standard output. This is useful for debugging purposes.
 
+# Double-Precision Support {#double-precision-support}
+
+**T-SIMD** only supports double-precision floating-point numbers on architectures that support double-precision floating-point numbers in their vector instruction sets. At the moment, the only architecture that does not support double-precision floating-point numbers is ARMv7 or older. 
+
+Whether double-precision floating-point numbers are supported can be determined by checking whether the `SIMD_DOUBLE` macro is defined.
+
 # Differences on Different Architectures {#differences-on-different-architectures}
 
 **T-SIMD** tries to behave as similar as possible on different architectures. However, there are some differences that are due to the different instruction sets and the different implementations of the intrinsics. The following list gives an overview of the differences:
 
+- As mentioned in the section [Double-Precision Support](@ref double-precision-support), double-precision floating-point numbers are not supported on ARMv7 or older.
 - Denormalized floating-point numbers are flushed to zero on ARMv7. This is not the case on all other supported architectures.
 - The `simd::div` and `simd::sqrt` functions are approximations on ARM in contrast to the exact results on all other supported architectures.
 - Converting from floating-point to integer values results in slightly different results on ARM.

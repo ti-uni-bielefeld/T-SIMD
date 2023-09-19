@@ -258,9 +258,13 @@ constexpr const T &max(const T &a, const T &b)
  */
 template <typename Tout, typename Tin>
 using BigEnoughFloat =
+#ifdef SIMD_DOUBLE
   typename std::conditional<internal::vec::max(sizeof(Tout), sizeof(Tin)) <=
                               sizeof(Float),
                             Float, Double>::type;
+#else
+  Float;
+#endif
 
 // 22. Jan 23 (Jonas Keller): removed primary template functions, as they are
 // not needed anymore due to a wrapper layer

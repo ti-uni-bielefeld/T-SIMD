@@ -358,7 +358,9 @@ struct TestFloat
   static void test(int repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_DOUBLE
     Tester<Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
   }
 };
 
@@ -438,7 +440,9 @@ struct TestFloatTI
   static void test(int repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_DOUBLE
     Tester<Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
   }
 };
 
@@ -524,7 +528,9 @@ struct TestFloatTII
   static void test(int repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_DOUBLE
     Tester<Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
   }
 };
 
@@ -591,7 +597,9 @@ struct TestAllTT
     testAllSeconds<Short>(repeats, pattern);
     testAllSeconds<Int>(repeats, pattern);
     testAllSeconds<Float>(repeats, pattern);
+#ifdef SIMD_DOUBLE
     testAllSeconds<Double>(repeats, pattern);
+#endif
   }
 
 private:
@@ -604,7 +612,9 @@ private:
     Tester<T1, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<T1, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<T1, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_DOUBLE
     Tester<T1, Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
   }
 };
 
@@ -636,7 +646,9 @@ struct TestAllTTSameSize
     Tester<Int, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Float, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Float, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_DOUBLE
     Tester<Double, Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
   }
 };
 

@@ -565,7 +565,9 @@ void testAll(const int reps)
   TEST<Word, SIMD_WIDTH, FCT>::test(reps);
   TEST<Int, SIMD_WIDTH, FCT>::test(reps);
   TEST<Float, SIMD_WIDTH, FCT>::test(reps);
+#ifdef SIMD_DOUBLE
   TEST<Double, SIMD_WIDTH, FCT>::test(reps);
+#endif
 }
 
 const auto SW = NATIVE_SIMD_WIDTH;

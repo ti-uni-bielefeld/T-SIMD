@@ -24,6 +24,7 @@
 // ===========================================================================
 
 // 02. Mar 23 (Jonas Keller): added doxygen documentation
+// 13. May 23 (Jonas Keller): added Double support
 
 #pragma once
 #ifndef SIMD_TYPES_H_
@@ -56,7 +57,8 @@ using SignedByte = int8_t;   ///< Signed 8-bit integer
 using Word       = uint16_t; ///< Unsigned 16-bit integer
 using Short      = int16_t;  ///< Signed 16-bit integer
 using Int        = int32_t;  ///< Signed 32-bit integer
-using Float      = float; ///< Single-precision floating point number (32-bit)
+using Float      = float;  ///< Single-precision floating point number (32-bit)
+using Double     = double; ///< Double-precision floating point number (64-bit)
 /** @} */
 
 /// @cond
@@ -75,10 +77,19 @@ using Float      = float; ///< Single-precision floating point number (32-bit)
   ([]() -> ::simd::Float {                                                     \
     static_assert(sizeof(::simd::Float) == sizeof(::simd::Int),                \
                   "Float and Int must have the same size");                    \
-    ::simd::Int i = ~(::simd::Int(0));                                         \
+    ::simd::Int i = SIMDINT_TRUE;                                              \
     ::simd::Float f;                                                           \
     ::std::memcpy(&f, &i, sizeof(::simd::Float));                              \
     return f;                                                                  \
+  }())
+#define SIMDDOUBLE_TRUE                                                        \
+  ([]() -> ::simd::Double {                                                    \
+    static_assert(sizeof(::simd::Double) == sizeof(::simd::Int) * 2,           \
+                  "Double must be twice the size of Int");                     \
+    ::simd::Int i[2] = {SIMDINT_TRUE, SIMDINT_TRUE};                           \
+    ::simd::Double d;                                                          \
+    ::std::memcpy(&d, i, sizeof(::simd::Double));                              \
+    return d;                                                                  \
   }())
 
 #define SIMDBYTE_MIN       (::std::numeric_limits<Byte>::lowest())
@@ -87,6 +98,7 @@ using Float      = float; ///< Single-precision floating point number (32-bit)
 #define SIMDSHORT_MIN      (::std::numeric_limits<Short>::lowest())
 #define SIMDINT_MIN        (::std::numeric_limits<Int>::lowest())
 #define SIMDFLOAT_MIN      (::std::numeric_limits<Float>::lowest())
+#define SIMDDOUBLE_MIN     (::std::numeric_limits<Double>::lowest())
 
 #define SIMDBYTE_MAX       (::std::numeric_limits<Byte>::max())
 #define SIMDSIGNEDBYTE_MAX (::std::numeric_limits<SignedByte>::max())
@@ -94,6 +106,8 @@ using Float      = float; ///< Single-precision floating point number (32-bit)
 #define SIMDSHORT_MAX      (::std::numeric_limits<Short>::max())
 #define SIMDINT_MAX        (::std::numeric_limits<Int>::max())
 #define SIMDFLOAT_MAX      (::std::numeric_limits<Float>::max())
+#define SIMDDOUBLE_MAX     (::std::numeric_limits<Double>::max())
+
 // 0x7fffff80
 #define MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 2147483520.0f
 /// @endcond
@@ -228,10 +242,23 @@ struct TypeInfo<Float>
   static constexpr SIMD_INLINE const char *format() { return ".9g"; }
   static constexpr SIMD_INLINE const char *defaultFormat() { return "%.9g "; }
   static SIMD_INLINE Float trueval() { return SIMDFLOAT_TRUE; }
-  using NextLargerType = Float; // no larger float type than Float
+  using NextLargerType = Double;
   using UnsignedType   = Float; // no unsigned float type
   using SignedType     = Float;
 };
+
+template <>
+struct TypeInfo<Double>
+{
+  static constexpr SIMD_INLINE const char *name() { return "Double"; };
+  static constexpr SIMD_INLINE const char *format() { return ".17g"; };
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%.17g "; };
+  static SIMD_INLINE Double trueval() { return SIMDDOUBLE_TRUE; }
+  using NextLargerType = Double; // no larger double type than Double
+  using UnsignedType   = Double; // no unsigned double type
+  using SignedType     = Double;
+};
+
 } // namespace types
 } // namespace internal
 

@@ -25,6 +25,7 @@
 
 // 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
 // namespace
+// 13. May 23 (Jonas Keller): added Double support
 
 #pragma once
 #ifndef SIMD_VEC_AUTO_TEST_WRAPPER_H_
@@ -1537,9 +1538,11 @@ struct Fdivmul
   static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE Float randomizeInputFloat()
+  using Tfloat = BigEnoughFloat<Tout, Tin>;
+
+  static SIMD_INLINE Tfloat randomizeInputFloat()
   {
-    return getRandomOrSpecialValueRanges<Float>();
+    return getRandomOrSpecialValueRanges<Tfloat>();
   }
 
   static SIMD_INLINE void randomizeInput1(SerialVec<Tin, SIMD_WIDTH> &vec)
@@ -1555,7 +1558,7 @@ struct Fdivmul
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsNum[numInVecs],
                                 const VEC<Tin, SIMD_WIDTH> vecsDenom[numInVecs],
-                                double fac,
+                                Tfloat fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fdivmul(vecsNum, vecsDenom, fac, vecsOut);
@@ -1575,9 +1578,11 @@ struct Fmul
   static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE Float randomizeInputFloat()
+  using Tfloat = BigEnoughFloat<Tout, Tin>;
+
+  static SIMD_INLINE Tfloat randomizeInputFloat()
   {
-    return getRandomOrSpecialValueRanges<Float>();
+    return getRandomOrSpecialValueRanges<Tfloat>();
   }
 
   // 03. Aug 22 (Jonas Keller):
@@ -1590,7 +1595,7 @@ struct Fmul
 
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
-                                double fac,
+                                Tfloat fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fmul(vecsIn, fac, vecsOut);
@@ -1610,9 +1615,11 @@ struct Faddmul
   static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE Float randomizeInputFloat()
+  using Tfloat = BigEnoughFloat<Tout, Tin>;
+
+  static SIMD_INLINE Tfloat randomizeInputFloat()
   {
-    return getRandomOrSpecialValueRanges<Float>();
+    return getRandomOrSpecialValueRanges<Tfloat>();
   }
 
   // 03. Aug 22 (Jonas Keller):
@@ -1625,7 +1632,7 @@ struct Faddmul
 
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
-                                double off, double fac,
+                                Tfloat off, Tfloat fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     faddmul(vecsIn, off, fac, vecsOut);
@@ -1645,9 +1652,11 @@ struct Fmuladd
   static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE Float randomizeInputFloat()
+  using Tfloat = BigEnoughFloat<Tout, Tin>;
+
+  static SIMD_INLINE Tfloat randomizeInputFloat()
   {
-    return getRandomOrSpecialValueRanges<Float>();
+    return getRandomOrSpecialValueRanges<Tfloat>();
   }
 
   // 03. Aug 22 (Jonas Keller):
@@ -1660,7 +1669,7 @@ struct Fmuladd
 
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
-                                double off, double fac,
+                                Tfloat off, Tfloat fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fmuladd(vecsIn, fac, off, vecsOut);
@@ -1680,9 +1689,11 @@ struct Fwaddmul
   static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
   static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
-  static SIMD_INLINE Float randomizeInputFloat()
+  using Tfloat = BigEnoughFloat<Tout, Tin>;
+
+  static SIMD_INLINE Tfloat randomizeInputFloat()
   {
-    return getRandomOrSpecialValueRanges<Float>();
+    return getRandomOrSpecialValueRanges<Tfloat>();
   }
 
   static SIMD_INLINE void randomizeInput1(SerialVec<Tin, SIMD_WIDTH> &vec)
@@ -1698,7 +1709,7 @@ struct Fwaddmul
   template <template <typename, int> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn1[numInVecs],
                                 const VEC<Tin, SIMD_WIDTH> vecsIn2[numInVecs],
-                                double w, double fac,
+                                Tfloat w, Tfloat fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
   {
     fwaddmul(vecsIn1, vecsIn2, w, fac, vecsOut);

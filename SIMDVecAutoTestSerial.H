@@ -26,6 +26,7 @@
 
 // 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
 // namespace
+// 13. May 23 (Jonas Keller): added Double support
 
 #pragma once
 #ifndef SIMD_VEC_AUTO_TEST_SERIAL_H_
@@ -48,6 +49,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <functional>
+#include <limits>
 #include <type_traits>
 
 // design considerations
@@ -77,7 +79,7 @@ namespace auto_test {
 template <typename T, int SIMD_WIDTH>
 struct SerialVec
 {
-  static constexpr int elements = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr int elements = SIMD_WIDTH / sizeof(T);
   static constexpr int elems    = elements;
   static constexpr int bytes    = SIMD_WIDTH;
 
@@ -342,27 +344,25 @@ static SIMD_INLINE T _add(T a, T b)
 // 09. Mar 23 (Jonas Keller): removed special case of _adds for Int that made
 // _adds not be saturated for Int on Intel
 
-// Byte, SignedByte, Word, Short, Int
-template <typename T>
+// integer types
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE T _adds(T a, T b)
 {
   using BiggerInt = int64_t;
-  static_assert(std::is_integral<T>::value, "T must be an integer type");
   static_assert(std::is_signed<BiggerInt>::value, "BiggerInt must be signed");
   static_assert(sizeof(BiggerInt) > sizeof(T),
                 "BiggerInt must be bigger than T for saturation to work");
   auto tmp = BiggerInt(a) + BiggerInt(b);
-  if (tmp > BiggerInt(TypeInfo<T>::max())) {
-    return TypeInfo<T>::max();
-  } else if (tmp < BiggerInt(TypeInfo<T>::min())) {
-    return TypeInfo<T>::min();
-  } else {
-    return T(tmp);
-  }
+  // clamp tmp between min and max
+  tmp = std::min(tmp, BiggerInt(TypeInfo<T>::max()));
+  tmp = std::max(tmp, BiggerInt(TypeInfo<T>::min()));
+  return T(tmp);
 }
 
-// Float: not saturated
-static SIMD_INLINE Float _adds(Float a, Float b)
+// floating point types (not saturated)
+template <typename T, SIMD_ENABLE_IF(std::is_floating_point<T>::value),
+          typename = void>
+static SIMD_INLINE T _adds(T a, T b)
 {
   return daz_neon(daz_neon(a) + daz_neon(b));
 }
@@ -384,27 +384,25 @@ static SIMD_INLINE T _sub(T a, T b)
 // 09. Mar 23 (Jonas Keller): removed special case of _subs for Int that made
 // _subs not be saturated for Int on Intel
 
-// Byte, SignedByte, Word, Short, Int
-template <typename T>
+// integer types
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE T _subs(T a, T b)
 {
   using BiggerInt = int64_t;
-  static_assert(std::is_integral<T>::value, "T must be an integer type");
   static_assert(std::is_signed<BiggerInt>::value, "BiggerInt must be signed");
   static_assert(sizeof(BiggerInt) > sizeof(T),
                 "BiggerInt must be bigger than T for saturation to work");
   auto tmp = BiggerInt(a) - BiggerInt(b);
-  if (tmp > BiggerInt(TypeInfo<T>::max())) {
-    return TypeInfo<T>::max();
-  } else if (tmp < BiggerInt(TypeInfo<T>::min())) {
-    return TypeInfo<T>::min();
-  } else {
-    return T(tmp);
-  }
+  // clamp tmp between min and max
+  tmp = std::min(tmp, BiggerInt(TypeInfo<T>::max()));
+  tmp = std::max(tmp, BiggerInt(TypeInfo<T>::min()));
+  return T(tmp);
 }
 
-// Float: not saturated
-static SIMD_INLINE Float _subs(Float a, Float b)
+// floating point types (not saturated)
+template <typename T, SIMD_ENABLE_IF(std::is_floating_point<T>::value),
+          typename = void>
+static SIMD_INLINE T _subs(T a, T b)
 {
   return daz_neon(daz_neon(a) - daz_neon(b));
 }
@@ -415,30 +413,40 @@ static SIMD_INLINE Int _cvts_f2i(Float a)
 #if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
   // special way to avoid overflow case
   Float clip = MAX_POS_FLOAT_CONVERTIBLE_TO_INT32;
-  return Int(std::min(clip, ::rintf(a)));
+  return Int(std::min(clip, std::rintf(a)));
 #elif defined(SIMDVEC_NEON_ENABLE)
-  return Int(::trunc(a));
+  return Int(std::trunc(a));
 #else
 #error "unknown architecture"
 #endif
 }
 
-// just convert
-static SIMD_INLINE Float _cvts_i2f(Int a)
+static SIMD_INLINE Int _cvts_f2i(Double a)
 {
-  return Float(a);
+  if (std::isnan(a)) return std::numeric_limits<Int>::min();
+#if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
+  // special way to avoid overflow case
+  Double clip = std::numeric_limits<Int>::max();
+  return Int(std::min(clip, std::rint(a)));
+#elif defined(SIMDVEC_NEON_ENABLE)
+  return Int(std::trunc(a));
+#else
+#error "unknown architecture"
+#endif
 }
 
 // -------------------------------------------------------------------------
 // _mul / _div
 // -------------------------------------------------------------------------
 
-static SIMD_INLINE Float _mul(Float a, Float b)
+template <typename T>
+static SIMD_INLINE T _mul(T a, T b)
 {
   return daz_neon(daz_neon(a) * daz_neon(b));
 }
 
-static SIMD_INLINE Float _div(Float a, Float b)
+template <typename T>
+static SIMD_INLINE T _div(T a, T b)
 {
   return daz_neon(daz_neon(a) / daz_neon(b));
 }
@@ -450,6 +458,7 @@ static SIMD_INLINE Float _div(Float a, Float b)
 template <typename T>
 static SIMD_INLINE T _min(T a, T b)
 {
+  static_assert(std::is_integral<T>::value, "");
   return std::min(a, b);
 }
 
@@ -458,15 +467,26 @@ static SIMD_INLINE Float _min(Float a, Float b)
   return daz_neon(fminf(daz_neon(a), daz_neon(b)));
 }
 
+static SIMD_INLINE Double _min(Double a, Double b)
+{
+  return daz_neon(fmin(daz_neon(a), daz_neon(b)));
+}
+
 template <typename T>
 static SIMD_INLINE T _max(T a, T b)
 {
+  static_assert(std::is_integral<T>::value, "");
   return std::max(a, b);
 }
 
 static SIMD_INLINE Float _max(Float a, Float b)
 {
   return daz_neon(fmaxf(daz_neon(a), daz_neon(b)));
+}
+
+static SIMD_INLINE Double _max(Double a, Double b)
+{
+  return daz_neon(fmax(daz_neon(a), daz_neon(b)));
 }
 
 // -------------------------------------------------------------------------
@@ -511,58 +531,64 @@ static SIMD_INLINE Word _abs(Word a)
 static SIMD_INLINE Float _abs(Float a)
 {
   // no daz also on NEON
-  return fabsf(a);
+  return std::fabs(a);
+}
+
+static SIMD_INLINE Double _abs(Double a)
+{
+  // no daz also on NEON
+  return std::fabs(a);
 }
 
 // -------------------------------------------------------------------------
 // _packs
 // -------------------------------------------------------------------------
 
-using ::simd::internal::OutputType;
-
 // also accepts same-size input and output types
 
-// from integer types to integer types
-template <typename Tout, typename T>
-static SIMD_INLINE Tout _packs(T in, OutputType<Tout>)
-{
-  T minv = T(TypeInfo<Tout>::min());
-  T maxv = T(TypeInfo<Tout>::max());
-  return (in >= minv) ? ((in <= maxv) ? Tout(in) : Tout(maxv)) : Tout(minv);
-}
-
-// from integer type to same integer type
-template <typename T>
-static SIMD_INLINE T _packs(T in, OutputType<T>)
-{
-  return in;
-}
-
-// from Int to Float
-static SIMD_INLINE Float _packs(Int in, OutputType<Float>)
-{
-  return _cvts_i2f(in);
-}
-
-// from Float to integer types
-template <typename Tout>
-static SIMD_INLINE Tout _packs(Float in, OutputType<Tout>)
-{
-  // via Int
-  return _packs(_cvts_f2i(in), OutputType<Tout>());
-}
-
-// from Float to Float (otherwise ambiguous)
-static SIMD_INLINE Float _packs(Float in, OutputType<Float>)
-{
-  return in;
-}
-
-// hub
-template <typename Tout, typename Tin>
+// for most cases
+template <typename Tout, typename Tin,
+          SIMD_ENABLE_IF(sizeof(Tout) < sizeof(Tin) &&
+                         std::is_integral<Tin>::value)>
 static SIMD_INLINE Tout _packs(Tin in)
 {
-  return _packs(in, OutputType<Tout>());
+  Tin minv = Tin(TypeInfo<Tout>::min());
+  Tin maxv = Tin(TypeInfo<Tout>::max());
+  if (in > maxv) { return Tout(maxv); }
+  if (in < minv) { return Tout(minv); }
+  return Tout(in);
+}
+
+template <typename Tout, typename Tin,
+          SIMD_ENABLE_IF(sizeof(Tout) == sizeof(Tin) &&
+                         std::is_integral<Tin>::value),
+          typename = void>
+static SIMD_INLINE Tout _packs(Tin in)
+{
+  return Tout(in);
+}
+
+// from floating point to integer types
+template <typename Tout, typename Tin,
+          SIMD_ENABLE_IF(sizeof(Tout) <= sizeof(Tin) &&
+                         std::is_integral<Tout>::value &&
+                         std::is_floating_point<Tin>::value),
+          typename = void, typename = void>
+static SIMD_INLINE Tout _packs(Tin in)
+{
+  // via Int
+  return _packs<Tout>(_cvts_f2i(in));
+}
+
+// from floating point to floating point types
+template <typename Tout, typename Tin,
+          SIMD_ENABLE_IF(sizeof(Tout) <= sizeof(Tin) &&
+                         std::is_floating_point<Tout>::value &&
+                         std::is_floating_point<Tin>::value),
+          typename = void, typename = void, typename = void>
+static SIMD_INLINE Tout _packs(Tin in)
+{
+  return Tout(in);
 }
 
 // -------------------------------------------------------------------------
@@ -571,87 +597,37 @@ static SIMD_INLINE Tout _packs(Tin in)
 
 // also accepts same-size input and output types
 
-// from integer types to integer types
-template <typename Tout, typename Tin>
-static SIMD_INLINE Tout _extend(Tin in, OutputType<Tout>)
+// for most cases
+template <typename Tout, typename Tin,
+          SIMD_ENABLE_IF(sizeof(Tout) >= sizeof(Tin))>
+static SIMD_INLINE Tout _extend(Tin in)
 {
   return Tout(in);
 }
 
-// from integer type to same-size integer type
-template <typename T>
-static SIMD_INLINE T _extend(T in, OutputType<T>)
-{
-  return in;
-}
-
 // Float -> Int
-static SIMD_INLINE Int _extend(Float in, OutputType<Int>)
+template <>
+SIMD_INLINE Int _extend(Float in)
 {
   return _cvts_f2i(in);
-}
-
-// Int -> Float
-static SIMD_INLINE Float _extend(Int in, OutputType<Float>)
-{
-  return _cvts_i2f(in);
-}
-
-// Float -> Float (otherwise ambiguous)
-static SIMD_INLINE Float _extend(Float in, OutputType<Float>)
-{
-  return in;
-}
-
-// hub
-template <typename Tout, typename Tin>
-static SIMD_INLINE Tout _extend(Tin in)
-{
-  return _extend(in, OutputType<Tout>());
 }
 
 // -------------------------------------------------------------------------
 // _convert
 // -------------------------------------------------------------------------
 
-using ::simd::internal::CompareEqual;
-using ::simd::internal::CompareGreater;
-using ::simd::internal::CompareLess;
-using ::simd::internal::CompareTypes;
-
-template <typename Tout, typename Tin>
-static SIMD_INLINE Tout _convert(CompareLess, OutputType<Tout>, Tin in)
+template <typename Tout, typename Tin,
+          SIMD_ENABLE_IF(sizeof(Tout) <= sizeof(Tin))>
+static SIMD_INLINE Tout _convert(Tin in)
 {
   return _packs<Tout>(in);
 }
 
-template <typename Tout, typename Tin>
-static SIMD_INLINE Tout _convert(CompareEqual, OutputType<Tout>, Tin in)
-{
-  return in;
-}
-
-static SIMD_INLINE Int _convert(CompareEqual, OutputType<Int>, Float in)
-{
-  return _cvts_f2i(in);
-}
-
-static SIMD_INLINE Float _convert(CompareEqual, OutputType<Float>, Int in)
-{
-  return _cvts_i2f(in);
-}
-
-template <typename Tout, typename Tin>
-static SIMD_INLINE Tout _convert(CompareGreater, OutputType<Tout>, Tin in)
-{
-  return Tout(in);
-}
-
-// hub
-template <typename Tout, typename Tin>
+template <typename Tout, typename Tin,
+          SIMD_ENABLE_IF(sizeof(Tout) > sizeof(Tin)), typename = void>
 static SIMD_INLINE Tout _convert(Tin in)
 {
-  return _convert(CompareTypes<Tout, Tin>(), OutputType<Tout>(), in);
+  return Tout(in);
 }
 
 // =========================================================================
@@ -835,7 +811,8 @@ struct Deductor<SerialVec>
 private:
   // int2msb
   // integer types
-  template <int SIMD_WIDTH, typename T>
+  template <int SIMD_WIDTH, typename T,
+            SIMD_ENABLE_IF(std::is_integral<T>::value)>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _int2msb(const uint64_t a, T)
   {
     T highestBit = T(T(1) << (sizeof(T) * 8 - 1));
@@ -850,6 +827,13 @@ private:
                                                            Float)
   {
     return reinterpret<Float>(_int2msb<SIMD_WIDTH>(a, Int()));
+  }
+  // Double
+  template <int SIMD_WIDTH>
+  static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> _int2msb(const uint64_t a,
+                                                            Double)
+  {
+    return reinterpret<Double>(_int2msb<SIMD_WIDTH>(a, uint64_t()));
   }
 };
 
@@ -882,7 +866,7 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> cvts(
   const SerialVec<Int, SIMD_WIDTH> &a)
 {
   SerialVec<Float, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _cvts_i2f(a[i]);
+  for (int i = 0; i < c.elements; i++) c[i] = Float(a[i]);
   return c;
 }
 
@@ -966,36 +950,39 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> neg(
   return c;
 }
 
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> mul(
-  const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> mul(
+  const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
-  SerialVec<Float, SIMD_WIDTH> c;
+  SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = _mul(a[i], b[i]);
   return c;
 }
 
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> div(
-  const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div(
+  const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
-  SerialVec<Float, SIMD_WIDTH> c;
+  SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = _div(a[i], b[i]);
   return c;
 }
 
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> ceil(
-  const SerialVec<Float, SIMD_WIDTH> &a)
+// floating point version
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_floating_point<T>::value)>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ceil(
+  const SerialVec<T, SIMD_WIDTH> &a)
 {
-  SerialVec<Float, SIMD_WIDTH> c;
+  SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = std::ceil(daz_neon(a[i]));
   return c;
 }
 
 // 25. Mar 23 (Jonas Keller): added ceil for integer types
 // do nothing for integer types
-template <typename T, int SIMD_WIDTH>
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_integral<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ceil(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
@@ -1003,18 +990,21 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ceil(
   return a;
 }
 
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> floor(
-  const SerialVec<Float, SIMD_WIDTH> &a)
+// floating point version
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_floating_point<T>::value)>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> floor(
+  const SerialVec<T, SIMD_WIDTH> &a)
 {
-  SerialVec<Float, SIMD_WIDTH> c;
+  SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++) c[i] = std::floor(daz_neon(a[i]));
   return c;
 }
 
 // 25. Mar 23 (Jonas Keller): added floor for integer types
 // do nothing for integer types
-template <typename T, int SIMD_WIDTH>
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_integral<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> floor(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
@@ -1022,24 +1012,26 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> floor(
   return a;
 }
 
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> round(
-  const SerialVec<Float, SIMD_WIDTH> &a)
+// floating point version
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_floating_point<T>::value)>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> round(
+  const SerialVec<T, SIMD_WIDTH> &a)
 {
 #if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
-  SerialVec<Float, SIMD_WIDTH> c;
+  SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++)
     // std::round has different behavior
-    c[i] = ::rintf(a[i]);
+    c[i] = std::rint(a[i]);
   return c;
 #elif defined(SIMDVEC_NEON_ENABLE)
   // I'm not sure about this one, this is at least the NEON
   // implementation of the workaround if vrndq is missing;
   // also not sure whether daz_neon() is required
-  SerialVec<Float, SIMD_WIDTH> c;
+  SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++)
     // std::round has different behavior
-    c[i] = std::floor(daz_neon(a[i]) + 0.5f);
+    c[i] = std::floor(daz_neon(a[i]) + T(0.5));
   return c;
 #else
 #error "unknown architecture"
@@ -1048,7 +1040,8 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> round(
 
 // 25. Mar 23 (Jonas Keller): added round for integer types
 // do nothing for integer types
-template <typename T, int SIMD_WIDTH>
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_integral<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> round(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
@@ -1056,18 +1049,21 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> round(
   return a;
 }
 
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> truncate(
-  const SerialVec<Float, SIMD_WIDTH> &a)
+// floating point version
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_floating_point<T>::value)>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> truncate(
+  const SerialVec<T, SIMD_WIDTH> &a)
 {
-  SerialVec<Float, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = ::truncf(daz_neon(a[i]));
+  SerialVec<T, SIMD_WIDTH> c;
+  for (int i = 0; i < c.elements; i++) c[i] = std::trunc(daz_neon(a[i]));
   return c;
 }
 
 // 25. Mar 23 (Jonas Keller): added truncate for integer types
 // do nothing for integer types
-template <typename T, int SIMD_WIDTH>
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_integral<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> truncate(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
@@ -1078,50 +1074,50 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> truncate(
 // 02. Oct 22 (Jonas Keller): added rcp and rsqrt
 
 // NOTE: hardware implementation is not known
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> rcp(
-  const SerialVec<Float, SIMD_WIDTH> &a)
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> rcp(
+  const SerialVec<T, SIMD_WIDTH> &a)
 {
-  SerialVec<Float, SIMD_WIDTH> c;
+  SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++)
 #if defined(SIMDVEC_INTEL_ENABLE) &&                                           \
   (defined(__SSE__) || defined(__AVX__) || defined(__AVX2__)) &&               \
   !defined(__AVX512F__)
     // sse and avx version of rcp treats denormals as zero, in the input
     // and output
-    c[i] = daz(1.0f / daz(a[i]));
+    c[i] = daz(T(1.0) / daz(a[i]));
 #else
     // TODO: is daz_neon() required here?
-    c[i] = daz_neon(1.0f / daz_neon(a[i]));
+    c[i] = daz_neon(T(1.0) / daz_neon(a[i]));
 #endif
   return c;
 }
 
 // NOTE: hardware implementation is not known
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> rsqrt(
-  const SerialVec<Float, SIMD_WIDTH> &a)
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> rsqrt(
+  const SerialVec<T, SIMD_WIDTH> &a)
 {
-  SerialVec<Float, SIMD_WIDTH> c;
+  SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++)
 #if defined(SIMDVEC_INTEL_ENABLE) &&                                           \
   (defined(__SSE__) || defined(__AVX__) || defined(__AVX2__)) &&               \
   !defined(__AVX512F__)
     // sse and avx version of rsqrt treats denormals as zero, in the input
     // and output
-    c[i] = daz(1.0f / std::sqrt(daz(a[i])));
+    c[i] = daz(T(1.0) / std::sqrt(daz(a[i])));
 #else
     // TODO: is daz_neon() required here?
-    c[i] = daz_neon(1.0f / std::sqrt(daz_neon(a[i])));
+    c[i] = daz_neon(T(1.0) / std::sqrt(daz_neon(a[i])));
 #endif
   return c;
 }
 
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> sqrt(
-  const SerialVec<Float, SIMD_WIDTH> &a)
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> sqrt(
+  const SerialVec<T, SIMD_WIDTH> &a)
 {
-  SerialVec<Float, SIMD_WIDTH> c;
+  SerialVec<T, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++)
     c[i] = daz_neon(std::sqrt(daz_neon(a[i])));
   return c;
@@ -1154,7 +1150,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> abs(
   return c;
 }
 
-// negate a, where b is negative (Float only)
+// negate a, where b is negative (Float)
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
 template <int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> sign(
@@ -1169,6 +1165,22 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> sign(
     // examine sign bit
     c[i] = (intB[i] & 0x80000000) ? -a[i] : a[i];
     // c[i] = (b[i] < 0.0f) ? -a[i] : a[i];
+  }
+  return c;
+}
+
+// negate a, where b is negative (Double)
+// note: contrary to IEEE 754, this function considers -0.0 to be negative
+template <int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> sign(
+  const SerialVec<Double, SIMD_WIDTH> &a,
+  const SerialVec<Double, SIMD_WIDTH> &b)
+{
+  SerialVec<Double, SIMD_WIDTH> c;
+  SerialVec<uint64_t, SIMD_WIDTH> intB = reinterpret<uint64_t>(b);
+  for (int i = 0; i < c.elements; i++) {
+    // examine sign bit
+    c[i] = (intB[i] & 0x8000000000000000) ? -a[i] : a[i];
   }
   return c;
 }
@@ -1240,10 +1252,26 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> absDiff(
   return c;
 }
 
+template <int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> absDiff(
+  const SerialVec<Double, SIMD_WIDTH> &a,
+  const SerialVec<Double, SIMD_WIDTH> &b)
+{
+  SerialVec<Double, SIMD_WIDTH> c;
+  for (int i = 0; i < c.elements; i++) {
+    Double a_i = daz_neon(a[i]);
+    Double b_i = daz_neon(b[i]);
+    c[i]       = daz_neon((a_i > b_i) ? (a_i - b_i) : (b_i - a_i));
+  }
+  return c;
+}
+
 template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> unpack(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
+  static_assert(PART == 0 || PART == 1, "");
+  static_assert(NUM_ELEMS <= SerialVec<T, SIMD_WIDTH>::elems / 2, "");
   SerialVec<T, SIMD_WIDTH> c;
   int i0 = PART * c.elements / 2, ie = i0 + c.elements / 2;
   for (int i = i0, k = 0; i < ie; i += NUM_ELEMS) {
@@ -1720,6 +1748,15 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_and(
   return SerialVec<Float, SIMD_WIDTH>(bit_and(ai, bi));
 }
 
+template <int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_and(
+  const SerialVec<Double, SIMD_WIDTH> &a,
+  const SerialVec<Double, SIMD_WIDTH> &b)
+{
+  SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
+  return SerialVec<Double, SIMD_WIDTH>(bit_and(ai, bi));
+}
+
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_or(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
@@ -1735,6 +1772,15 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_or(
 {
   SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
   return SerialVec<Float, SIMD_WIDTH>(bit_or(ai, bi));
+}
+
+template <int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_or(
+  const SerialVec<Double, SIMD_WIDTH> &a,
+  const SerialVec<Double, SIMD_WIDTH> &b)
+{
+  SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
+  return SerialVec<Double, SIMD_WIDTH>(bit_or(ai, bi));
 }
 
 template <typename T, int SIMD_WIDTH>
@@ -1754,6 +1800,15 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_andnot(
   return SerialVec<Float, SIMD_WIDTH>(bit_andnot(ai, bi));
 }
 
+template <int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_andnot(
+  const SerialVec<Double, SIMD_WIDTH> &a,
+  const SerialVec<Double, SIMD_WIDTH> &b)
+{
+  SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
+  return SerialVec<Double, SIMD_WIDTH>(bit_andnot(ai, bi));
+}
+
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_xor(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
@@ -1771,6 +1826,15 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_xor(
   return SerialVec<Float, SIMD_WIDTH>(bit_xor(ai, bi));
 }
 
+template <int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_xor(
+  const SerialVec<Double, SIMD_WIDTH> &a,
+  const SerialVec<Double, SIMD_WIDTH> &b)
+{
+  SerialVec<Int, SIMD_WIDTH> ai(a), bi(b);
+  return SerialVec<Double, SIMD_WIDTH>(bit_xor(ai, bi));
+}
+
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_not(
   const SerialVec<T, SIMD_WIDTH> &a)
@@ -1786,6 +1850,14 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_not(
 {
   SerialVec<Int, SIMD_WIDTH> ai(a);
   return SerialVec<Float, SIMD_WIDTH>(bit_not(ai));
+}
+
+template <int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_not(
+  const SerialVec<Double, SIMD_WIDTH> &a)
+{
+  SerialVec<Int, SIMD_WIDTH> ai(a);
+  return SerialVec<Double, SIMD_WIDTH>(bit_not(ai));
 }
 
 // int types except Int
@@ -1820,6 +1892,18 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> avg(
   return c;
 }
 
+// Double
+template <int SIMD_WIDTH>
+static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> avg(
+  const SerialVec<Double, SIMD_WIDTH> &a,
+  const SerialVec<Double, SIMD_WIDTH> &b)
+{
+  SerialVec<Double, SIMD_WIDTH> c;
+  for (int i = 0; i < c.elements; i++)
+    c[i] = daz_neon(0.5 * (daz_neon(a[i]) + daz_neon(b[i])));
+  return c;
+}
+
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE bool test_all_zeros(const SerialVec<T, SIMD_WIDTH> &a)
 {
@@ -1836,6 +1920,13 @@ static SIMD_INLINE bool test_all_zeros(const SerialVec<T, SIMD_WIDTH> &a)
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
 template <int SIMD_WIDTH>
 static SIMD_INLINE bool test_all_zeros(const SerialVec<Float, SIMD_WIDTH> &a)
+{
+  return test_all_zeros(reinterpret<Int>(a));
+}
+
+// note: contrary to IEEE 754, this function considers -0.0 to be negative
+template <int SIMD_WIDTH>
+static SIMD_INLINE int test_all_zeros(const SerialVec<Double, SIMD_WIDTH> &a)
 {
   return test_all_zeros(reinterpret<Int>(a));
 }
@@ -1859,6 +1950,13 @@ static SIMD_INLINE bool test_all_ones(const SerialVec<T, SIMD_WIDTH> &a)
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
 template <int SIMD_WIDTH>
 static SIMD_INLINE bool test_all_ones(const SerialVec<Float, SIMD_WIDTH> &a)
+{
+  return test_all_ones(reinterpret<Int>(a));
+}
+
+// note: contrary to IEEE 754, this function considers -0.0 to be negative
+template <int SIMD_WIDTH>
+static SIMD_INLINE int test_all_ones(const SerialVec<Double, SIMD_WIDTH> &a)
 {
   return test_all_ones(reinterpret<Int>(a));
 }
@@ -1925,14 +2023,19 @@ static SIMD_INLINE void convert(
     }
 }
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin,
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fdivmul(
   const SerialVec<Tin, SIMD_WIDTH> vecsNum[numInVecs<Tout, Tin>()],
   const SerialVec<Tin, SIMD_WIDTH> vecsDenom[numInVecs<Tout, Tin>()],
-  double fac, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
+  Tfloat fac, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
+  static_assert(TypeInfo<Tfloat>::isFloatingPoint,
+                "Tfloat must be a floating point type");
+  static_assert(sizeof(Tin) <= sizeof(Tfloat),
+                "Tin must be smaller than Tfloat");
+  static_assert(sizeof(Tout) <= sizeof(Tfloat),
+                "Tout must be smaller than Tfloat");
   const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
@@ -1942,19 +2045,49 @@ static SIMD_INLINE void fdivmul(
       int outVec  = outIdx / numOutElems;
       int outElem = outIdx % numOutElems;
       vecsOut[outVec][outElem] =
-        _packs<Tout>(_mul(_div(_extend<Float>(vecsNum[inVec][inElem]),
-                               _extend<Float>(vecsDenom[inVec][inElem])),
-                          static_cast<Float>(fac)));
+        _packs<Tout>(_mul(_div(_extend<Tfloat>(vecsNum[inVec][inElem]),
+                               _extend<Tfloat>(vecsDenom[inVec][inElem])),
+                          fac));
     }
 }
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin,
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fmul(
-  const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double fac,
+  const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat fac,
   SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
+  static_assert(TypeInfo<Tfloat>::isFloatingPoint,
+                "Tfloat must be a floating point type");
+  static_assert(sizeof(Tin) <= sizeof(Tfloat),
+                "Tin must be smaller than Tfloat");
+  static_assert(sizeof(Tout) <= sizeof(Tfloat),
+                "Tout must be smaller than Tfloat");
+  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  int outIdx            = 0;
+  for (int inVec = 0; inVec < numInVecs; inVec++)
+    for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
+      int outVec  = outIdx / numOutElems;
+      int outElem = outIdx % numOutElems;
+      vecsOut[outVec][outElem] =
+        _packs<Tout>(_mul(_extend<Tfloat>(vecsIn[inVec][inElem]), fac));
+    }
+}
+
+template <typename Tout, typename Tin,
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+static SIMD_INLINE void faddmul(
+  const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat off,
+  Tfloat fac, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
+{
+  static_assert(TypeInfo<Tfloat>::isFloatingPoint,
+                "Tfloat must be a floating point type");
+  static_assert(sizeof(Tin) <= sizeof(Tfloat),
+                "Tin must be smaller than Tfloat");
+  static_assert(sizeof(Tout) <= sizeof(Tfloat),
+                "Tout must be smaller than Tfloat");
   const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
@@ -1964,38 +2097,22 @@ static SIMD_INLINE void fmul(
       int outVec               = outIdx / numOutElems;
       int outElem              = outIdx % numOutElems;
       vecsOut[outVec][outElem] = _packs<Tout>(
-        _mul(_extend<Float>(vecsIn[inVec][inElem]), static_cast<Float>(fac)));
+        _mul(_add(_extend<Tfloat>(vecsIn[inVec][inElem]), off), fac));
     }
 }
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static SIMD_INLINE void faddmul(
-  const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double off,
-  double fac, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
-{
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
-  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  int outIdx            = 0;
-  for (int inVec = 0; inVec < numInVecs; inVec++)
-    for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
-      int outVec               = outIdx / numOutElems;
-      int outElem              = outIdx % numOutElems;
-      vecsOut[outVec][outElem] = _packs<Tout>(_mul(
-        _add(_extend<Float>(vecsIn[inVec][inElem]), static_cast<Float>(off)),
-        static_cast<Float>(fac)));
-    }
-}
-
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin,
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fmuladd(
-  const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double fac,
-  double off, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
+  const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat fac,
+  Tfloat off, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
+  static_assert(TypeInfo<Tfloat>::isFloatingPoint,
+                "Tfloat must be a floating point type");
+  static_assert(sizeof(Tin) <= sizeof(Tfloat),
+                "Tin must be smaller than Tfloat");
+  static_assert(sizeof(Tout) <= sizeof(Tfloat),
+                "Tout must be smaller than Tfloat");
   const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
@@ -2004,35 +2121,39 @@ static SIMD_INLINE void fmuladd(
     for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
       int outVec               = outIdx / numOutElems;
       int outElem              = outIdx % numOutElems;
-      vecsOut[outVec][outElem] = _packs<Tout>(_add(
-        _mul(_extend<Float>(vecsIn[inVec][inElem]), static_cast<Float>(fac)),
-        static_cast<Float>(off)));
+      vecsOut[outVec][outElem] = _packs<Tout>(
+        _add(_mul(_extend<Tfloat>(vecsIn[inVec][inElem]), fac), off));
     }
 }
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin,
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fwaddmul(
   const SerialVec<Tin, SIMD_WIDTH> vecsIn1[numInVecs<Tout, Tin>()],
-  const SerialVec<Tin, SIMD_WIDTH> vecsIn2[numInVecs<Tout, Tin>()], double w,
-  double fac, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
+  const SerialVec<Tin, SIMD_WIDTH> vecsIn2[numInVecs<Tout, Tin>()], Tfloat w,
+  Tfloat fac, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  SIMD_STATIC_ASSERT(sizeof(Tin) <= sizeof(Float));
-  SIMD_STATIC_ASSERT(sizeof(Tout) <= sizeof(Float));
+  static_assert(TypeInfo<Tfloat>::isFloatingPoint,
+                "Tfloat must be a floating point type");
+  static_assert(sizeof(Tin) <= sizeof(Tfloat),
+                "Tin must be smaller than Tfloat");
+  static_assert(sizeof(Tout) <= sizeof(Tfloat),
+                "Tout must be smaller than Tfloat");
   const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
   const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
   const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
   int outIdx            = 0;
   for (int inVec = 0; inVec < numInVecs; inVec++)
     for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
-      int outVec               = outIdx / numOutElems;
-      int outElem              = outIdx % numOutElems;
-      float inF1               = _extend<Float>(vecsIn1[inVec][inElem]);
-      float inF2               = _extend<Float>(vecsIn2[inVec][inElem]);
-      vecsOut[outVec][outElem] = _packs<Tout>(
-        _mul(static_cast<Float>(fac),
-             _add(inF2, _mul(static_cast<Float>(w), _sub(inF1, inF2)))));
+      int outVec  = outIdx / numOutElems;
+      int outElem = outIdx % numOutElems;
+      Tfloat inF1 = _extend<Tfloat>(vecsIn1[inVec][inElem]);
+      Tfloat inF2 = _extend<Tfloat>(vecsIn2[inVec][inElem]);
+      vecsOut[outVec][outElem] =
+        _packs<Tout>(_mul(fac, _add(inF2, _mul(w, _sub(inF1, inF2)))));
     }
 }
+
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadd(
   const SerialVec<T, SIMD_WIDTH> v[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2227,35 +2348,30 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> avgru(
   return avg(a, b);
 }
 
-// int types except Int
-template <typename T, int SIMD_WIDTH>
+// int types
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_integral<T>::value)>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> avgrd(
+  const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
+{
+  using BiggerInt = int64_t;
+  static_assert(sizeof(T) < sizeof(BiggerInt),
+                "avgrd: T must be smaller than int64_t");
+  SerialVec<T, SIMD_WIDTH> c;
+  for (int i = 0; i < c.elements; i++)
+    c[i] = (BiggerInt(a[i]) + BiggerInt(b[i])) >> 1;
+  return c;
+}
+
+// floating point types
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_floating_point<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> avgrd(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = (Int(a[i]) + Int(b[i])) >> 1;
-  return c;
-}
-
-// Int
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Int, SIMD_WIDTH> avgrd(
-  const SerialVec<Int, SIMD_WIDTH> &a, const SerialVec<Int, SIMD_WIDTH> &b)
-{
-  SerialVec<Int, SIMD_WIDTH> c;
   for (int i = 0; i < c.elements; i++)
-    c[i] = (uint64_t(a[i]) + uint64_t(b[i])) >> 1;
-  return c;
-}
-
-// Float
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> avgrd(
-  const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
-{
-  SerialVec<Float, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
-    c[i] = daz_neon(0.5f * (daz_neon(a[i]) + daz_neon(b[i])));
+    c[i] = daz_neon((daz_neon(a[i]) + daz_neon(b[i])) / 2.0);
   return c;
 }
 
@@ -2275,27 +2391,30 @@ static SIMD_INLINE SerialVec<Tout, SIMD_WIDTH> packs(
 }
 
 // integer types
-template <typename T, int SIMD_WIDTH>
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div2r0(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = T(::trunc(double(a[i]) / 2.0));
+  for (int i = 0; i < c.elements; i++) c[i] = T(std::trunc(double(a[i]) / 2.0));
   return c;
 }
 
-// Float
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> div2r0(
-  const SerialVec<Float, SIMD_WIDTH> &a)
+// floating point types
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_floating_point<T>::value), typename = void>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div2r0(
+  const SerialVec<T, SIMD_WIDTH> &a)
 {
-  SerialVec<Float, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = daz_neon(daz_neon(a[i]) / 2.0f);
+  SerialVec<T, SIMD_WIDTH> c;
+  for (int i = 0; i < c.elements; i++) c[i] = daz_neon(daz_neon(a[i]) / 2.0);
   return c;
 }
 
 // integer types
-template <typename T, int SIMD_WIDTH>
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div2rd(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
@@ -2304,13 +2423,14 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div2rd(
   return c;
 }
 
-// Float
-template <int SIMD_WIDTH>
-static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> div2rd(
-  const SerialVec<Float, SIMD_WIDTH> &a)
+// floating point types
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_floating_point<T>::value), typename = void>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div2rd(
+  const SerialVec<T, SIMD_WIDTH> &a)
 {
-  SerialVec<Float, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = daz_neon(daz_neon(a[i]) / 2.0f);
+  SerialVec<T, SIMD_WIDTH> c;
+  for (int i = 0; i < c.elements; i++) c[i] = daz_neon(daz_neon(a[i]) / 2.0);
   return c;
 }
 
@@ -2336,6 +2456,13 @@ template <int SIMD_WIDTH>
 static SIMD_INLINE uint64_t msb2int(const SerialVec<Float, SIMD_WIDTH> &a)
 {
   return msb2int(reinterpret<Int>(a));
+}
+
+// Double
+template <int SIMD_WIDTH>
+static SIMD_INLINE uint64_t msb2int(const SerialVec<Double, SIMD_WIDTH> &a)
+{
+  return msb2int(reinterpret<uint64_t>(a));
 }
 
 } // namespace auto_test

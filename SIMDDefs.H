@@ -113,6 +113,11 @@
 #error "no SIMD support detected"
 #endif
 
+// determine double support
+#if defined(SIMDVEC_INTEL_ENABLE) || defined(__aarch64__)
+#define SIMD_DOUBLE 1
+#endif
+
 // set NATIVE_SIMD_WIDTH to be at most MAX_SIMD_WIDTH
 #ifdef MAX_SIMD_WIDTH
 #if NATIVE_SIMD_WIDTH > MAX_SIMD_WIDTH

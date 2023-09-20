@@ -31,6 +31,8 @@
 // template-parameter shall be the name of a class template or an
 // alias template, expressed as id-expression.
 
+// 13. May 23 (Jonas Keller): added tests for Double versions of functions
+
 #include "SIMDVecAll.H"
 #include "SIMDVecAutoTest.H"
 #include "SIMDVecAutoTestWrapper.H"
@@ -106,18 +108,19 @@ int main(int argc, char *argv[])
 #if SIMDVEC_INTEL_ENABLE
 #if (defined(__SSE__) || defined(__AVX__)) && !defined(__AVX512F__)
   // for sse and avx the relative error is 1.5*2^-12
-  Unary<Float, SW, Rcp, CmpRelError<15, -1, -12>>::test(repeats1, pattern);
-  Unary<Float, SW, Rsqrt, CmpRelError<15, -1, -12>>::test(repeats1, pattern);
+  TestFloat<Unary, SW, Rcp, CmpRelError<15, -1, -12>>::test(repeats1, pattern);
+  TestFloat<Unary, SW, Rsqrt, CmpRelError<15, -1, -12>>::test(repeats1,
+                                                              pattern);
 #elif defined(__AVX512F__)
   // for avx512 the relative error is 2^-14
-  Unary<Float, SW, Rcp, CmpRelError<1, 0, -14>>::test(repeats1, pattern);
-  Unary<Float, SW, Rsqrt, CmpRelError<1, 0, -14>>::test(repeats1, pattern);
+  TestFloat<Unary, SW, Rcp, CmpRelError<1, 0, -14>>::test(repeats1, pattern);
+  TestFloat<Unary, SW, Rsqrt, CmpRelError<1, 0, -14>>::test(repeats1, pattern);
 #endif
 #else
   // TODO: rcp and rsqrt are approximations on NEON, figure out max relative
   // error
-  Unary<Float, SW, Rcp>::test(repeats1, pattern);
-  Unary<Float, SW, Rsqrt>::test(repeats1, pattern);
+  TestFloat<Unary, SW, Rcp>::test(repeats1, pattern);
+  TestFloat<Unary, SW, Rsqrt>::test(repeats1, pattern);
 #endif
   TestAll<Binary, SW, Min>::test(repeats1, pattern);
   TestAll<Binary, SW, Max>::test(repeats1, pattern);
@@ -141,6 +144,10 @@ int main(int argc, char *argv[])
   BinaryTemplateType<Byte, Short, SW, Packs>::test(repeats1, pattern);
   BinaryTemplateType<Word, Int, SW, Packs>::test(repeats1, pattern);
   BinaryTemplateType<Word, Float, SW, Packs>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  BinaryTemplateType<Float, Double, SW, Packs>::test(repeats1, pattern);
+  BinaryTemplateType<Int, Double, SW, Packs>::test(repeats1, pattern);
+#endif
   UnaryArrayTemplateType<SignedByte, SignedByte, SW, Extend>::test(repeats1,
                                                                    pattern);
   UnaryArrayTemplateType<Short, SignedByte, SW, Extend>::test(repeats1,
@@ -148,21 +155,41 @@ int main(int argc, char *argv[])
   UnaryArrayTemplateType<Int, SignedByte, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, SignedByte, SW, Extend>::test(repeats1,
                                                               pattern);
+#ifdef SIMD_DOUBLE
+  UnaryArrayTemplateType<Double, SignedByte, SW, Extend>::test(repeats1,
+                                                               pattern);
+#endif
   UnaryArrayTemplateType<Byte, Byte, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Short, Byte, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Word, Byte, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Int, Byte, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, Byte, SW, Extend>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  UnaryArrayTemplateType<Double, Byte, SW, Extend>::test(repeats1, pattern);
+#endif
   UnaryArrayTemplateType<Short, Short, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Int, Short, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, Short, SW, Extend>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  UnaryArrayTemplateType<Double, Short, SW, Extend>::test(repeats1, pattern);
+#endif
   UnaryArrayTemplateType<Word, Word, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Int, Word, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, Word, SW, Extend>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  UnaryArrayTemplateType<Double, Word, SW, Extend>::test(repeats1, pattern);
+#endif
   UnaryArrayTemplateType<Int, Int, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, Int, SW, Extend>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  UnaryArrayTemplateType<Double, Int, SW, Extend>::test(repeats1, pattern);
+#endif
   UnaryArrayTemplateType<Int, Float, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, Float, SW, Extend>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  UnaryArrayTemplateType<Double, Float, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Double, Double, SW, Extend>::test(repeats1, pattern);
+#endif
   TestIntTI<UnaryTemplateIntMinToMax, SW, Srai>::test(repeats1, pattern);
   TestIntTI<UnaryTemplateIntMinToMax, SW, Srli>::test(repeats1, pattern);
   TestIntTI<UnaryTemplateIntMinToMax, SW, Slli>::test(repeats1, pattern);

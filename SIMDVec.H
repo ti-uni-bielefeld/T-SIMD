@@ -34,6 +34,10 @@
 #define SIMD_VEC_H_
 
 #include "SIMDDefs.H"
+#include "SIMDTypes.H"
+
+#include <algorithm>
+#include <type_traits>
 
 /**
  * @brief Namespace for T-SIMD.
@@ -229,6 +233,38 @@ static constexpr SIMD_INLINE int numSIMDVecsElements()
   return (sizeof(Tout) > sizeof(Tin)) ? Vec<Tin, SIMD_WIDTH>::elems :
                                         Vec<Tout, SIMD_WIDTH>::elems;
 }
+
+// 13. May 23 (Jonas Keller): added BigEnoughFloat
+
+namespace internal {
+namespace vec {
+// std::max is not constexpr in C++11, so we need to provide our own, since
+// we need it in a constexpr context
+template <typename T>
+constexpr const T &max(const T &a, const T &b)
+{
+  return (a < b) ? b : a;
+}
+} // namespace vec
+} // namespace internal
+
+/**
+ * @ingroup group_fops
+ * @brief Smallest floating point type that is at least as big as the
+ * input and output types.
+ *
+ * @tparam Tout output type
+ * @tparam Tin input type
+ */
+template <typename Tout, typename Tin>
+using BigEnoughFloat =
+#ifdef SIMD_DOUBLE
+  typename std::conditional<internal::vec::max(sizeof(Tout), sizeof(Tin)) <=
+                              sizeof(Float),
+                            Float, Double>::type;
+#else
+  Float;
+#endif
 
 // 22. Jan 23 (Jonas Keller): removed primary template functions, as they are
 // not needed anymore due to a wrapper layer

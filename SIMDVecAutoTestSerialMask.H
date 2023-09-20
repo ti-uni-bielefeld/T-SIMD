@@ -25,6 +25,8 @@
 
 // 22. Jan 23 (Jonas Keller): moved auto test related stuff into auto_test
 // namespace
+// 13. May 23 (Jonas Keller): added support for 2- and 1-bit masks in oder
+// to support larger data sizes
 
 #pragma once
 #ifndef SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_
@@ -42,6 +44,16 @@ namespace auto_test {
 
 template <int Bits>
 struct _UInt;
+template <>
+struct _UInt<1>
+{
+  using type = uint8_t;
+};
+template <>
+struct _UInt<2>
+{
+  using type = uint8_t;
+};
 template <>
 struct _UInt<4>
 {
@@ -79,7 +91,9 @@ struct UInt
 private:
   typename _UInt<Bits>::type maskValue(typename _UInt<Bits>::type x) const
   {
-    static_assert(Bits >= 4 && Bits <= 64, "");
+    static_assert(Bits >= 1 && Bits <= 64, "");
+    if (Bits == 1) { return x & 0x01; }
+    if (Bits == 2) { return x & 0x03; }
     if (Bits == 4) { return x & 0x0f; }
     return x;
   }
@@ -95,6 +109,16 @@ template <>
 UInt<4> getRandomUInt<4>()
 {
   return rand() & 0xF;
+}
+template <>
+UInt<2> getRandomUInt<2>()
+{
+  return rand() & 0x3;
+}
+template <>
+UInt<1> getRandomUInt<1>()
+{
+  return rand() & 0x1;
 }
 
 // 26. Nov 22 (Jonas Keller): Removed implicit conversion from SerialMask to

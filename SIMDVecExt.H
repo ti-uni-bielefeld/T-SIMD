@@ -36,6 +36,8 @@
 // etc. and moved them into the internal namespace and added a hub function
 // <base_name> that wraps the fastest version
 
+// 13. May 23 (Jonas Keller): added Double support
+
 #pragma once
 #ifndef SIMD_VEC_EXT_H_
 #define SIMD_VEC_EXT_H_
@@ -52,6 +54,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <string>
+#include <type_traits>
 
 namespace simd {
 namespace internal {
@@ -551,6 +554,29 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[4],
   return packs<Tout>(packs<Short>(a[0], a[1]), packs<Short>(a[2], a[3]));
 }
 
+// two stages from Double
+
+template <typename Tout, int SIMD_WIDTH>
+static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(
+  const Vec<Double, SIMD_WIDTH> a[4], OutputType<Tout>, Compression<4>)
+{
+  // always via Int
+  return packs<Tout>(packs<Int>(a[0], a[1]), packs<Int>(a[2], a[3]));
+}
+
+// three stages
+
+template <typename Tout, typename Tin, int SIMD_WIDTH>
+static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[8],
+                                               OutputType<Tout>, Compression<8>)
+{
+  // always via Short
+  // assuming Tin is Double:
+  static_assert(std::is_same<Tin, Double>::value,
+                "currently only supported for Tin == Double");
+  return packs<Tout>(packs<Short>(a), packs<Short>(a + 4));
+}
+
 // special case: int <-> float
 
 template <int SIMD_WIDTH>
@@ -687,32 +713,32 @@ static SIMD_INLINE void convert(
 // internal helper functions for float-based operations:
 namespace internal {
 namespace ext {
-template <typename Tin, typename Tout>
-static constexpr SIMD_INLINE int numFloatVecs()
+template <typename Tin, typename Tout, typename Tfloat>
+static constexpr SIMD_INLINE int numCalcVecs()
 {
-  static_assert(numInVecs<Tout, Tin>() * sizeof(Float) / sizeof(Tin) ==
-                  numOutVecs<Tout, Tin>() * sizeof(Float) / sizeof(Tout),
-                "numFloatVecs() must be equal for input and output");
-  return numInVecs<Tout, Tin>() * sizeof(Float) / sizeof(Tin);
+  static_assert(numInVecs<Tout, Tin>() * sizeof(Tfloat) / sizeof(Tin) ==
+                  numOutVecs<Tout, Tin>() * sizeof(Tfloat) / sizeof(Tout),
+                "numCalcVecs() must be equal for input and output");
+  return numInVecs<Tout, Tin>() * sizeof(Tfloat) / sizeof(Tin);
 }
 
-template <typename Tin, typename Tout, int SIMD_WIDTH>
+template <typename Tin, typename Tout, typename Tfloat, int SIMD_WIDTH>
 static SIMD_INLINE void extendInToFloat(
   const Vec<Tin, SIMD_WIDTH> inVecs[numInVecs<Tout, Tin>()],
-  Vec<Float, SIMD_WIDTH> floatVecs[numFloatVecs<Tout, Tin>()])
+  Vec<Tfloat, SIMD_WIDTH> floatVecs[numCalcVecs<Tout, Tin, Tfloat>()])
 {
   for (int i = 0; i < numInVecs<Tout, Tin>(); ++i) {
-    extend(inVecs[i], &floatVecs[i * sizeof(Float) / sizeof(Tin)]);
+    extend(inVecs[i], &floatVecs[i * sizeof(Tfloat) / sizeof(Tin)]);
   }
 }
 
-template <typename Tin, typename Tout, int SIMD_WIDTH>
+template <typename Tin, typename Tout, typename Tfloat, int SIMD_WIDTH>
 static SIMD_INLINE void packsOutFromFloat(
-  const Vec<Float, SIMD_WIDTH> floatVecs[numFloatVecs<Tout, Tin>()],
+  const Vec<Tfloat, SIMD_WIDTH> floatVecs[numCalcVecs<Tout, Tin, Tfloat>()],
   Vec<Tout, SIMD_WIDTH> outVecs[numOutVecs<Tout, Tin>()])
 {
   for (int i = 0; i < numOutVecs<Tout, Tin>(); ++i) {
-    outVecs[i] = packs<Tout>(&floatVecs[i * sizeof(Float) / sizeof(Tout)]);
+    outVecs[i] = packs<Tout>(&floatVecs[i * sizeof(Tfloat) / sizeof(Tout)]);
   }
 }
 } // namespace ext
@@ -735,30 +761,35 @@ static SIMD_INLINE void packsOutFromFloat(
  * @brief Divides Vec's element-wise, then multiplies with a constant factor in
  * floating point arithmetic.
  *
+ * @tparam Tfloat the floating point type to perform the calculation in.
+ * Defaults to @ref BigEnoughFloat<Tout, Tin>
  * @param[in] vecsNum numerator Vec's
  * @param[in] vecsDenom denominator Vec's
  * @param fac factor to multiply with
  * @param[out] vecsOut output Vec's
  * @sa numInVecs(), numOutVecs()
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin,
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fdivmul(
   const Vec<Tin, SIMD_WIDTH> vecsNum[numInVecs<Tout, Tin>()],
-  const Vec<Tin, SIMD_WIDTH> vecsDenom[numInVecs<Tout, Tin>()], double fac,
+  const Vec<Tin, SIMD_WIDTH> vecsDenom[numInVecs<Tout, Tin>()], Tfloat fac,
   Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  static_assert(sizeof(Tin) <= sizeof(Float), "");
-  static_assert(sizeof(Tout) <= sizeof(Float), "");
-  constexpr auto nFloatVecs = internal::ext::numFloatVecs<Tout, Tin>();
-  const auto facF           = set1<Float, SIMD_WIDTH>(fac);
-  Vec<Float, SIMD_WIDTH> numF[nFloatVecs], denomF[nFloatVecs], resF[nFloatVecs];
+  static_assert(sizeof(Tin) <= sizeof(Tfloat), "");
+  static_assert(sizeof(Tout) <= sizeof(Tfloat), "");
+  constexpr auto nFloatVecs = internal::ext::numCalcVecs<Tout, Tin, Tfloat>();
+  const auto facVec         = set1<Tfloat, SIMD_WIDTH>(fac);
+  Vec<Tfloat, SIMD_WIDTH> numF[nFloatVecs], denomF[nFloatVecs],
+    resF[nFloatVecs];
   internal::ext::extendInToFloat<Tin, Tout>(vecsNum, numF);
   internal::ext::extendInToFloat<Tin, Tout>(vecsDenom, denomF);
   for (std::size_t i = 0; i < nFloatVecs; i++) {
-    resF[i] = mul(div(numF[i], denomF[i]), facF);
+    resF[i] = mul(div(numF[i], denomF[i]), facVec);
   }
   internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
+
 // ---------------------------------------------------------------------------
 // divide, apply multidimensional sigmoid and then multiply with float
 // constant in float arithmetic (derived from fdivmul)
@@ -906,25 +937,30 @@ static SIMD_INLINE void fdivMsigmoidmul(
 // 15. Mar 23 (Jonas Keller): fused the three cases
 
 /**
- * @brief Multiplies Vec's element-wise with a float constant in float
- * arithmetic.
+ * @brief Multiplies Vec's element-wise with a floating point constant in
+ * floating point arithmetic.
  *
+ * @tparam Tfloat the floating point type to perform the calculation in.
+ * Defaults to @ref BigEnoughFloat<Tout, Tin>
  * @param[in] vecsIn input Vec's
  * @param fac factor
  * @param[out] vecsOut output Vec's
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin,
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fmul(
-  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double fac,
+  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat fac,
   Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  static_assert(sizeof(Tin) <= sizeof(Float), "");
-  static_assert(sizeof(Tout) <= sizeof(Float), "");
-  constexpr auto nFloatVecs = internal::ext::numFloatVecs<Tout, Tin>();
-  const auto facF           = set1<Float, SIMD_WIDTH>(fac);
-  Vec<Float, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
+  static_assert(sizeof(Tin) <= sizeof(Tfloat), "");
+  static_assert(sizeof(Tout) <= sizeof(Tfloat), "");
+  constexpr auto nFloatVecs = internal::ext::numCalcVecs<Tout, Tin, Tfloat>();
+  const auto facVec         = set1<Tfloat, SIMD_WIDTH>(fac);
+  Vec<Tfloat, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
   internal::ext::extendInToFloat<Tin, Tout>(vecsIn, inF);
-  for (std::size_t i = 0; i < nFloatVecs; i++) { resF[i] = mul(inF[i], facF); }
+  for (std::size_t i = 0; i < nFloatVecs; i++) {
+    resF[i] = mul(inF[i], facVec);
+  }
   internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
 
@@ -935,28 +971,31 @@ static SIMD_INLINE void fmul(
 // 15. Mar 23 (Jonas Keller): fused the three cases
 
 /**
- * @brief Adds a float constant to the elements of Vec's, then multiplies with
- * a float constant in floating point arithmetic
+ * @brief Adds a floating point constant to the elements of Vec's, then
+ * multiplies with a floating point constant in floating point arithmetic
  *
+ * @tparam Tfloat the floating point type to perform the calculation in.
+ * Defaults to @ref BigEnoughFloat<Tout, Tin>
  * @param[in] vecsIn input Vec's
  * @param off float constant to add
  * @param fac float constant to multiply with
  * @param[out] vecsOut output Vec's
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin,
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void faddmul(
-  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double off,
-  double fac, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
+  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat off,
+  Tfloat fac, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  static_assert(sizeof(Tin) <= sizeof(Float), "");
-  static_assert(sizeof(Tout) <= sizeof(Float), "");
-  constexpr auto nFloatVecs = internal::ext::numFloatVecs<Tout, Tin>();
-  const auto offF           = set1<Float, SIMD_WIDTH>(off);
-  const auto facF           = set1<Float, SIMD_WIDTH>(fac);
-  Vec<Float, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
+  static_assert(sizeof(Tin) <= sizeof(Tfloat), "");
+  static_assert(sizeof(Tout) <= sizeof(Tfloat), "");
+  constexpr auto nFloatVecs = internal::ext::numCalcVecs<Tout, Tin, Tfloat>();
+  const auto offVec         = set1<Tfloat, SIMD_WIDTH>(off);
+  const auto facVec         = set1<Tfloat, SIMD_WIDTH>(fac);
+  Vec<Tfloat, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
   internal::ext::extendInToFloat<Tin, Tout>(vecsIn, inF);
   for (std::size_t i = 0; i < nFloatVecs; i++) {
-    resF[i] = mul(add(inF[i], offF), facF);
+    resF[i] = mul(add(inF[i], offVec), facVec);
   }
   internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
@@ -970,28 +1009,31 @@ static SIMD_INLINE void faddmul(
 // 15. Mar 23 (Jonas Keller): fused the three cases
 
 /**
- * @brief Multiplies the elements of Vec's with a float constant, then adds a
- * float constant in floating point arithmetic
+ * @brief Multiplies the elements of Vec's with a floating point constant, then
+ * adds a floating point constant in floating point arithmetic
  *
+ * @tparam Tfloat the floating point type to perform the calculation in.
+ * Defaults to @ref BigEnoughFloat<Tout, Tin>
  * @param[in] vecsIn input Vec's
  * @param fac float constant to multiply with
  * @param off float constant to add
  * @param[out] vecsOut output Vec's
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin,
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fmuladd(
-  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], double fac,
-  double off, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
+  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat fac,
+  Tfloat off, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  static_assert(sizeof(Tin) <= sizeof(Float), "");
-  static_assert(sizeof(Tout) <= sizeof(Float), "");
-  constexpr auto nFloatVecs = internal::ext::numFloatVecs<Tout, Tin>();
-  const auto facF           = set1<Float, SIMD_WIDTH>(fac);
-  const auto offF           = set1<Float, SIMD_WIDTH>(off);
-  Vec<Float, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
+  static_assert(sizeof(Tin) <= sizeof(Tfloat), "");
+  static_assert(sizeof(Tout) <= sizeof(Tfloat), "");
+  constexpr auto nFloatVecs = internal::ext::numCalcVecs<Tout, Tin, Tfloat>();
+  const auto facVec         = set1<Tfloat, SIMD_WIDTH>(fac);
+  const auto offVec         = set1<Tfloat, SIMD_WIDTH>(off);
+  Vec<Tfloat, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
   internal::ext::extendInToFloat<Tin, Tout>(vecsIn, inF);
   for (std::size_t i = 0; i < nFloatVecs; i++) {
-    resF[i] = add(mul(inF[i], facF), offF);
+    resF[i] = add(mul(inF[i], facVec), offVec);
   }
   internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
@@ -1014,28 +1056,31 @@ static SIMD_INLINE void fmuladd(
  * <tt>out = fac * (w * v1 + (1 - w) * v2)</tt>
  * (implemented as <tt>out = fac * (v2 + w * (v1 - v2))</tt>).
  *
+ * @tparam Tfloat the floating point type to perform the calculation in.
+ * Defaults to @ref BigEnoughFloat<Tout, Tin>
  * @param[in] vecsIn1 first input Vec's
  * @param[in] vecsIn2 second input Vec's
  * @param w interpolation weight
  * @param fac scaling factor
  * @param[out] vecsOut output Vec's
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin,
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fwaddmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn1[numInVecs<Tout, Tin>()],
-  const Vec<Tin, SIMD_WIDTH> vecsIn2[numInVecs<Tout, Tin>()], double w,
-  double fac, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
+  const Vec<Tin, SIMD_WIDTH> vecsIn2[numInVecs<Tout, Tin>()], Tfloat w,
+  Tfloat fac, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
-  static_assert(sizeof(Tin) <= sizeof(Float), "");
-  static_assert(sizeof(Tout) <= sizeof(Float), "");
-  constexpr auto nFloatVecs = internal::ext::numFloatVecs<Tout, Tin>();
-  const auto wF             = set1<Float, SIMD_WIDTH>(w);
-  const auto facF           = set1<Float, SIMD_WIDTH>(fac);
-  Vec<Float, SIMD_WIDTH> inF1[nFloatVecs], inF2[nFloatVecs], resF[nFloatVecs];
+  static_assert(sizeof(Tin) <= sizeof(Tfloat), "");
+  static_assert(sizeof(Tout) <= sizeof(Tfloat), "");
+  constexpr auto nFloatVecs = internal::ext::numCalcVecs<Tout, Tin, Tfloat>();
+  const auto wVec           = set1<Tfloat, SIMD_WIDTH>(w);
+  const auto facVec         = set1<Tfloat, SIMD_WIDTH>(fac);
+  Vec<Tfloat, SIMD_WIDTH> inF1[nFloatVecs], inF2[nFloatVecs], resF[nFloatVecs];
   internal::ext::extendInToFloat<Tin, Tout>(vecsIn1, inF1);
   internal::ext::extendInToFloat<Tin, Tout>(vecsIn2, inF2);
   for (std::size_t i = 0; i < nFloatVecs; i++) {
-    resF[i] = mul(facF, add(inF2[i], mul(wF, sub(inF1[i], inF2[i]))));
+    resF[i] = mul(facVec, add(inF2[i], mul(wVec, sub(inF1[i], inF2[i]))));
   }
   internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
@@ -1537,7 +1582,8 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avgru(const Vec<T, SIMD_WIDTH> &a,
 namespace internal {
 namespace ext {
 // int types
-template <typename T, int SIMD_WIDTH>
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
@@ -1549,11 +1595,12 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
 }
 
 // NOTE: no rounding for floating-point types
-template <int SIMD_WIDTH>
-static SIMD_INLINE Vec<Float, SIMD_WIDTH> avgrd(const Vec<Float, SIMD_WIDTH> &a,
-                                                const Vec<Float, SIMD_WIDTH> &b)
+template <typename T, int SIMD_WIDTH,
+          SIMD_ENABLE_IF(std::is_floating_point<T>::value), typename = void>
+static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
+                                            const Vec<T, SIMD_WIDTH> &b)
 {
-  return mul(add(a, b), set1<Float, SIMD_WIDTH>(0.5));
+  return mul(add(a, b), set1<T, SIMD_WIDTH>(0.5));
 }
 } // namespace ext
 } // namespace internal
@@ -1622,6 +1669,14 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> div2r0(
 {
   return mul(set1<Float, SIMD_WIDTH>(0.5f), a);
 }
+
+// NOTE: no rounding for double
+template <int SIMD_WIDTH>
+static SIMD_INLINE Vec<Double, SIMD_WIDTH> div2r0(
+  const Vec<Double, SIMD_WIDTH> &a)
+{
+  return mul(set1<Double, SIMD_WIDTH>(0.5), a);
+}
 } // namespace ext
 } // namespace internal
 
@@ -1688,6 +1743,14 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> div2rd(
 {
   return mul(set1<Float, SIMD_WIDTH>(0.5f), a);
 }
+
+// NOTE: no rounding for double
+template <int SIMD_WIDTH>
+static SIMD_INLINE Vec<Double, SIMD_WIDTH> div2rd(
+  const Vec<Double, SIMD_WIDTH> &a)
+{
+  return mul(set1<Double, SIMD_WIDTH>(0.5), a);
+}
 } // namespace ext
 } // namespace internal
 
@@ -1709,7 +1772,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> div2rd(const Vec<T, SIMD_WIDTH> &a)
 }
 
 // ===========================================================================
-// sign function (Float only)
+// sign function (Float and Double only)
 // ===========================================================================
 
 // contributed by Benedikt Volkmer
@@ -1717,20 +1780,23 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> div2rd(const Vec<T, SIMD_WIDTH> &a)
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
 
 /**
- * @brief Negates the elements of a Vec of Float's where the
- * corresponding element of a second Vec of Float's is negative.
- * @note Contrary to IEEE 754, this function considers -0.0f to be negative.
+ * @brief Negates the elements of a Vec of floating-point numbers where the
+ * corresponding element of a second Vec of floating-point numbers is negative.
+ * @note Contrary to IEEE 754, this function considers -0.0 to be negative.
  *
- * @param a Vec of Float's to be negated
- * @param b Vec of Float's that determines which elements of a are negated
- * @return resulting Vec of Float's
+ * @param a Vec of floating-point numbers to be negated
+ * @param b Vec of floating-point numbers that determines which elements of a
+ * are negated
+ * @return resulting Vec of floating-point numbers
  */
-template <int SIMD_WIDTH>
-static SIMD_INLINE Vec<Float, SIMD_WIDTH> sign(const Vec<Float, SIMD_WIDTH> &a,
-                                               const Vec<Float, SIMD_WIDTH> &b)
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE Vec<T, SIMD_WIDTH> sign(const Vec<T, SIMD_WIDTH> &a,
+                                           const Vec<T, SIMD_WIDTH> &b)
 {
+  static_assert(std::is_floating_point<T>::value,
+                "sign() is only available for floating-point types");
   // -0.0F aka. 0x80000000 aka. 1000...b
-  return bit_xor(a, bit_and(set1<Float, SIMD_WIDTH>(-0.0F), b));
+  return bit_xor(a, bit_and(set1<T, SIMD_WIDTH>(T(-0.0)), b));
 }
 
 // ===========================================================================
@@ -1765,31 +1831,11 @@ static SIMD_INLINE Vec<Word, SIMD_WIDTH> absDiff(
 
 // Use these overloads of the function template if Type is signed
 
-template <int SIMD_WIDTH>
-static SIMD_INLINE Vec<SignedByte, SIMD_WIDTH> absDiff(
-  const Vec<SignedByte, SIMD_WIDTH> &v1, const Vec<SignedByte, SIMD_WIDTH> &v2)
+template <typename T, int SIMD_WIDTH>
+static SIMD_INLINE Vec<T, SIMD_WIDTH> absDiff(const Vec<T, SIMD_WIDTH> &v1,
+                                              const Vec<T, SIMD_WIDTH> &v2)
 {
-  return abs(sub(v1, v2));
-}
-
-template <int SIMD_WIDTH>
-static SIMD_INLINE Vec<Short, SIMD_WIDTH> absDiff(
-  const Vec<Short, SIMD_WIDTH> &v1, const Vec<Short, SIMD_WIDTH> &v2)
-{
-  return abs(sub(v1, v2));
-}
-
-template <int SIMD_WIDTH>
-static SIMD_INLINE Vec<Int, SIMD_WIDTH> absDiff(const Vec<Int, SIMD_WIDTH> &v1,
-                                                const Vec<Int, SIMD_WIDTH> &v2)
-{
-  return abs(sub(v1, v2));
-}
-
-template <int SIMD_WIDTH>
-static SIMD_INLINE Vec<Float, SIMD_WIDTH> absDiff(
-  const Vec<Float, SIMD_WIDTH> &v1, const Vec<Float, SIMD_WIDTH> &v2)
-{
+  static_assert(std::is_signed<T>::value, "");
   return abs(sub(v1, v2));
 }
 } // namespace ext
@@ -3243,28 +3289,27 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity(IsFloatingPoint<false>)
 // here we need set1()
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<Float, SIMD_WIDTH> setmin(IsIntIsSigned<false, true>)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin(IsIntIsSigned<false, true>)
 {
-  return set1<Float, SIMD_WIDTH>(TypeInfo<Float>::min());
+  return set1<T, SIMD_WIDTH>(TypeInfo<T>::min());
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<Float, SIMD_WIDTH> setmax(IsIntIsSigned<false, true>)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax(IsIntIsSigned<false, true>)
 {
-  return set1<Float, SIMD_WIDTH>(TypeInfo<Float>::max());
+  return set1<T, SIMD_WIDTH>(TypeInfo<T>::max());
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<Float, SIMD_WIDTH> setunity(IsFloatingPoint<true>)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity(IsFloatingPoint<true>)
 {
-  return set1<Float, SIMD_WIDTH>(1.0f);
+  return set1<T, SIMD_WIDTH>(T(1.0));
 }
 
 template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE Vec<Float, SIMD_WIDTH> setnegunity(
-  IsIntIsSigned<false, true>)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity(IsIntIsSigned<false, true>)
 {
-  return set1<Float, SIMD_WIDTH>(-1.0f);
+  return set1<T, SIMD_WIDTH>(T(-1.0));
 }
 } // namespace ext
 } // namespace internal

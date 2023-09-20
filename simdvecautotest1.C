@@ -33,6 +33,8 @@
 // template-parameter shall be the name of a class template or an
 // alias template, expressed as id-expression.
 
+// 13. May 23 (Jonas Keller): added tests for Double versions of functions
+
 #include "SIMDDefs.H"
 #include "SIMDVecAll.H"
 #include "SIMDVecAutoTest.H"
@@ -86,46 +88,131 @@ int main(int argc, char *argv[])
   // ------------------------------------------------------------------------
 
   // TODO: multi-vector store and load
+  // TODO: load*_store*
+
+  ArrayTemplateType<SignedByte, SignedByte, SW, PacksMulti>::test(repeats1,
+                                                                  pattern);
+  ArrayTemplateType<SignedByte, Short, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<SignedByte, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<SignedByte, Float, SW, PacksMulti>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  ArrayTemplateType<SignedByte, Double, SW, PacksMulti>::test(repeats1,
+                                                              pattern);
+#endif
+  ArrayTemplateType<Byte, Short, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Byte, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Byte, Float, SW, PacksMulti>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  ArrayTemplateType<Byte, Double, SW, PacksMulti>::test(repeats1, pattern);
+#endif
+  ArrayTemplateType<Short, Short, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Short, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Short, Float, SW, PacksMulti>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  ArrayTemplateType<Short, Double, SW, PacksMulti>::test(repeats1, pattern);
+#endif
+  ArrayTemplateType<Word, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Word, Float, SW, PacksMulti>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  ArrayTemplateType<Word, Double, SW, PacksMulti>::test(repeats1, pattern);
+#endif
+  ArrayTemplateType<Int, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Int, Float, SW, PacksMulti>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  ArrayTemplateType<Int, Double, SW, PacksMulti>::test(repeats1, pattern);
+#endif
+  ArrayTemplateType<Float, Int, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Float, Float, SW, PacksMulti>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  ArrayTemplateType<Float, Double, SW, PacksMulti>::test(repeats1, pattern);
+  ArrayTemplateType<Double, Double, SW, PacksMulti>::test(repeats1, pattern);
+#endif
+
+  // Convert: commented out tests are not supported
+  // TODO: support those?
   ArrayArrayVoidTemplateType<SignedByte, SignedByte, SW, Convert>::test(
     repeats1, pattern);
-  ArrayArrayVoidTemplateType<Short, SignedByte, SW, Convert>::test(repeats1,
-                                                                   pattern);
-  ArrayArrayVoidTemplateType<Int, SignedByte, SW, Convert>::test(repeats1,
-                                                                 pattern);
-  ArrayArrayVoidTemplateType<Float, SignedByte, SW, Convert>::test(repeats1,
-                                                                   pattern);
-  ArrayArrayVoidTemplateType<Byte, Byte, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Short, Byte, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Word, Byte, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Int, Byte, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Float, Byte, SW, Convert>::test(repeats1, pattern);
+  // ArrayArrayVoidTemplateType<SignedByte, Byte, SW, Convert>::test(r, p);
   ArrayArrayVoidTemplateType<SignedByte, Short, SW, Convert>::test(repeats1,
                                                                    pattern);
-  ArrayArrayVoidTemplateType<Byte, Short, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Short, Short, SW, Convert>::test(repeats1,
-                                                              pattern);
-  ArrayArrayVoidTemplateType<Int, Short, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Float, Short, SW, Convert>::test(repeats1,
-                                                              pattern);
-  ArrayArrayVoidTemplateType<Word, Word, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Int, Word, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Float, Word, SW, Convert>::test(repeats1, pattern);
+  // ArrayArrayVoidTemplateType<SignedByte, Word, SW, Convert>::test(r, p);
   ArrayArrayVoidTemplateType<SignedByte, Int, SW, Convert>::test(repeats1,
                                                                  pattern);
-  ArrayArrayVoidTemplateType<Byte, Int, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Short, Int, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Word, Int, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Int, Int, SW, Convert>::test(repeats1, pattern);
-  ArrayArrayVoidTemplateType<Float, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<SignedByte, Float, SW, Convert>::test(repeats1,
                                                                    pattern);
+#ifdef SIMD_DOUBLE
+  ArrayArrayVoidTemplateType<SignedByte, Double, SW, Convert>::test(repeats1,
+                                                                    pattern);
+#endif
+  // ArrayArrayVoidTemplateType<Byte, SignedByte, SW, Convert>::test(r, p);
+  ArrayArrayVoidTemplateType<Byte, Byte, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Byte, Short, SW, Convert>::test(repeats1, pattern);
+  // ArrayArrayVoidTemplateType<Byte, Word, SW, Convert>::test(r, p);
+  ArrayArrayVoidTemplateType<Byte, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Byte, Float, SW, Convert>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  ArrayArrayVoidTemplateType<Byte, Double, SW, Convert>::test(repeats1,
+                                                              pattern);
+#endif
+  ArrayArrayVoidTemplateType<Short, SignedByte, SW, Convert>::test(repeats1,
+                                                                   pattern);
+  ArrayArrayVoidTemplateType<Short, Byte, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Short, Short, SW, Convert>::test(repeats1,
+                                                              pattern);
+  // ArrayArrayVoidTemplateType<Short, Word, SW, Convert>::test(r, p);
+  ArrayArrayVoidTemplateType<Short, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Short, Float, SW, Convert>::test(repeats1,
                                                               pattern);
+#ifdef SIMD_DOUBLE
+  ArrayArrayVoidTemplateType<Short, Double, SW, Convert>::test(repeats1,
+                                                               pattern);
+#endif
+  // ArrayArrayVoidTemplateType<Word, SignedByte, SW, Convert>::test(r, p);
+  ArrayArrayVoidTemplateType<Word, Byte, SW, Convert>::test(repeats1, pattern);
+  // ArrayArrayVoidTemplateType<Word, Short, SW, Convert>::test(r, p);
+  ArrayArrayVoidTemplateType<Word, Word, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Word, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Word, Float, SW, Convert>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  ArrayArrayVoidTemplateType<Word, Double, SW, Convert>::test(repeats1,
+                                                              pattern);
+#endif
+  ArrayArrayVoidTemplateType<Int, SignedByte, SW, Convert>::test(repeats1,
+                                                                 pattern);
+  ArrayArrayVoidTemplateType<Int, Byte, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Int, Short, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Int, Word, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Int, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Int, Float, SW, Convert>::test(repeats1, pattern);
+#ifdef SIMD_DOUBLE
+  ArrayArrayVoidTemplateType<Int, Double, SW, Convert>::test(repeats1, pattern);
+#endif
+  ArrayArrayVoidTemplateType<Float, SignedByte, SW, Convert>::test(repeats1,
+                                                                   pattern);
+  ArrayArrayVoidTemplateType<Float, Byte, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Float, Short, SW, Convert>::test(repeats1,
+                                                              pattern);
+  ArrayArrayVoidTemplateType<Float, Word, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Float, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Float, Float, SW, Convert>::test(repeats1,
                                                               pattern);
+#ifdef SIMD_DOUBLE
+  ArrayArrayVoidTemplateType<Float, Double, SW, Convert>::test(repeats1,
+                                                               pattern);
+  ArrayArrayVoidTemplateType<Double, SignedByte, SW, Convert>::test(repeats1,
+                                                                    pattern);
+  ArrayArrayVoidTemplateType<Double, Byte, SW, Convert>::test(repeats1,
+                                                              pattern);
+  ArrayArrayVoidTemplateType<Double, Short, SW, Convert>::test(repeats1,
+                                                               pattern);
+  ArrayArrayVoidTemplateType<Double, Word, SW, Convert>::test(repeats1,
+                                                              pattern);
+  ArrayArrayVoidTemplateType<Double, Int, SW, Convert>::test(repeats1, pattern);
+  ArrayArrayVoidTemplateType<Double, Float, SW, Convert>::test(repeats1,
+                                                               pattern);
+  ArrayArrayVoidTemplateType<Double, Double, SW, Convert>::test(repeats1,
+                                                                pattern);
+#endif
   // NOTE: errors occur in fdivmul on NEON since div is an approximation
   TestAllTT<ArrayArrayDoubleArrayVoidTemplateType, SW, Fdivmul>::test(repeats1,
                                                                       pattern);
@@ -188,31 +275,14 @@ int main(int argc, char *argv[])
     repeats1, pattern);
   TestAll<Binary, SW, Avgru>::test(repeats1, pattern);
   TestAll<Binary, SW, Avgrd>::test(repeats1, pattern);
-  TestAll<Nullary, SW, Setones>::test(1, pattern);
-  TestAll<Nullary, SW, Setmin>::test(1, pattern);
-  TestAll<Nullary, SW, Setmax>::test(1, pattern);
-  TestSigned<Nullary, SW, Setnegunity>::test(1, pattern);
-  TestAll<Nullary, SW, Setunity>::test(1, pattern);
-  ArrayTemplateType<SignedByte, SignedByte, SW, PacksMulti>::test(repeats1,
-                                                                  pattern);
-  ArrayTemplateType<SignedByte, Short, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Byte, Short, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Short, Short, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<SignedByte, Int, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Byte, Int, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Short, Int, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Word, Int, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Int, Int, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Float, Int, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<SignedByte, Float, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Byte, Float, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Short, Float, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Word, Float, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Int, Float, SW, PacksMulti>::test(repeats1, pattern);
-  ArrayTemplateType<Float, Float, SW, PacksMulti>::test(repeats1, pattern);
+  TestAll<Nullary, SW, Setones>::test(repeats1, pattern);
+  TestAll<Nullary, SW, Setmin>::test(repeats1, pattern);
+  TestAll<Nullary, SW, Setmax>::test(repeats1, pattern);
+  TestSigned<Nullary, SW, Setnegunity>::test(repeats1, pattern);
+  TestAll<Nullary, SW, Setunity>::test(repeats1, pattern);
   TestAll<Unary, SW, Div2r0>::test(repeats1, pattern);
   TestAll<Unary, SW, Div2rd>::test(repeats1, pattern);
-  Binary<Float, SW, Sign>::test(repeats1, pattern);
+  TestFloat<Binary, SW, Sign>::test(repeats1, pattern);
   TestAll<Binary, SW, AbsDiff>::test(repeats1, pattern);
   // TODO: operators
   // TODO: Vecs

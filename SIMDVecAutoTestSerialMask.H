@@ -36,6 +36,7 @@
 #include "SIMDVecAutoTestSerial.H"
 #include "SIMDVecMask.H"
 
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 
@@ -149,13 +150,13 @@ struct SerialMask
   operator UInt<bits>() const { return mask; }
   operator typename _UInt<bits>::type() const { return mask; }
 
-  bool operator[](const uint8_t i) const
+  bool operator[](const size_t i) const
   {
     if (i >= bits) { return false; }
     return (mask & (UInt<bits>(1) << i)) != 0;
   }
 
-  void setTrue(const uint8_t i)
+  void setTrue(const size_t i)
   {
     if (i < bits) { mask = mask | (UInt<bits>(1) << i); }
   }

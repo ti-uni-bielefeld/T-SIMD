@@ -51,7 +51,7 @@ using namespace auto_test;
 // SW = SIMD width = number of bytes in a single SIMD vector
 #define SW NATIVE_SIMD_WIDTH
 
-enum { REPEATS1 = 100000 };
+static constexpr size_t REPEATS1 = 100000;
 
 // ===========================================================================
 // main
@@ -59,13 +59,12 @@ enum { REPEATS1 = 100000 };
 
 int main(int argc, char *argv[])
 {
-  srand(time(nullptr));
-  // default values
-  size_t repeats1     = REPEATS1;
-  std::string pattern = "";
-  // overwrite default values from command line
-  if (argc >= 2) pattern = argv[1];
-  if (argc == 3) repeats1 = atoi(argv[2]);
+  srand(static_cast<unsigned int>(time(nullptr)));
+
+  const std::string pattern = argc >= 2 ? argv[1] : "";
+  const size_t repeats1 =
+    argc >= 3 ? static_cast<size_t>(atoi(argv[2])) : REPEATS1;
+
   printf("pattern \"%s\", repeats1 = %zu\n", pattern.c_str(), repeats1);
 
   // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<Byte>());

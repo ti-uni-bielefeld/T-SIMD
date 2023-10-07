@@ -41,11 +41,15 @@
 using namespace simd;
 using namespace auto_test;
 
-long getPageSize()
+size_t getPageSize()
 {
-  // buffer page size so that we don't have to call sysconf() every time
-  static long page_size = -1;
-  if (page_size == -1) { page_size = sysconf(_SC_PAGESIZE); }
+  // Buffer page size so that we don't have to call sysconf() every time.
+  // PAGESIZE must not be less than 1 according to POSIX, so we can use 0 as
+  // indicator that the page size has not been set yet.
+  static size_t page_size = 0;
+  if (page_size == 0) {
+    page_size = static_cast<size_t>(sysconf(_SC_PAGESIZE));
+  }
   return page_size;
 }
 
@@ -85,7 +89,7 @@ struct TestPages
 
   void *getPage1() const { return page1; }
   void *getPage2() const { return page2; }
-  long getPageSize() const { return ::getPageSize(); }
+  size_t getPageSize() const { return ::getPageSize(); }
 
 private:
   void *page1;
@@ -115,17 +119,18 @@ SerialMask<T, SIMD_WIDTH> getRandomSerialMask()
 }
 
 template <size_t SIMD_WIDTH>
-long getRandomPageOffset(const long alignment = 1)
+size_t getRandomPageOffset(const size_t alignment = 1)
 {
   // get random number between 0 and getPageSize() - SIMD_WIDTH - 1 with
   // alignment
-  const long preAlignment = std::rand() % (getPageSize() - SIMD_WIDTH);
+  const size_t preAlignment =
+    static_cast<size_t>(std::rand()) % (getPageSize() - SIMD_WIDTH);
   return (preAlignment / alignment) * alignment;
 }
 
 template <typename T, size_t SIMD_WIDTH>
-long getRandomPageOffsetWithMask(const SerialMask<T, SIMD_WIDTH> &mask,
-                                 const long alignment = 1)
+size_t getRandomPageOffsetWithMask(const SerialMask<T, SIMD_WIDTH> &mask,
+                                   const size_t alignment = 1)
 {
   size_t numElems = mask.bits;
   while (numElems >= 1 && !mask[numElems - 1]) { --numElems; }
@@ -134,7 +139,8 @@ long getRandomPageOffsetWithMask(const SerialMask<T, SIMD_WIDTH> &mask,
 
   // get random number between 0 and getPageSize() - numBytes - 1 with
   // alignment
-  const long preAlignment = std::rand() % (getPageSize() - numBytes);
+  const size_t preAlignment =
+    static_cast<size_t>(std::rand()) % (getPageSize() - numBytes);
   return (preAlignment / alignment) * alignment;
 }
 
@@ -142,16 +148,16 @@ void printPageDiff(const void *const pageSerial, const void *const pageSIMD)
 {
   const auto page1Bytes = static_cast<const unsigned char *>(pageSerial);
   const auto page2Bytes = static_cast<const unsigned char *>(pageSIMD);
-  for (long i = 0; i < getPageSize(); ++i) {
+  for (size_t i = 0; i < getPageSize(); ++i) {
     if (page1Bytes[i] != page2Bytes[i]) {
       std::cout << "Difference at byte " << i << std::endl;
       std::cout << "Page Serial:" << std::endl;
-      for (long j = i - 10; j < i + 10; ++j) {
+      for (size_t j = i - 10; j < i + 10; ++j) {
         std::cout << std::hex << static_cast<uint>(page1Bytes[j]) << " ";
       }
       std::cout << std::endl;
       std::cout << "Page SIMD:" << std::endl;
-      for (long j = i - 10; j < i + 10; ++j) {
+      for (size_t j = i - 10; j < i + 10; ++j) {
         std::cout << std::hex << static_cast<uint>(page2Bytes[j]) << " ";
       }
       std::cout << std::endl;
@@ -576,10 +582,11 @@ const auto SW = NATIVE_SIMD_WIDTH;
 int main(int argc, char *argv[])
 {
   // number of repetitions
-  const size_t reps = argc >= 2 ? std::atoi(argv[1]) : 10000;
+  const size_t reps =
+    argc >= 2 ? static_cast<size_t>(std::atol(argv[1])) : 10000;
 
   // seed random number generator
-  std::srand(time(nullptr));
+  std::srand(static_cast<unsigned int>(time(nullptr)));
 
   // set up signal handler for SIGSEGV
   {

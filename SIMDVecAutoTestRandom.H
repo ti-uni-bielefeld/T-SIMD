@@ -30,13 +30,13 @@ static SIMD_INLINE T getRandom();
 template <>
 SIMD_INLINE Byte getRandom<Byte>()
 {
-  return rand() & 0xff;
+  return std::rand() & 0xff;
 }
 
 template <>
 SIMD_INLINE SignedByte getRandom<SignedByte>()
 {
-  return rand() & 0xff;
+  return static_cast<SignedByte>(std::rand() & 0xff);
 }
 
 template <>
@@ -129,6 +129,13 @@ SIMD_INLINE uint64_t getRandom<uint64_t>()
   return i;
 }
 
+// 07. Oct 23 (Jonas Keller): added getRandom for uint32_t
+template <>
+SIMD_INLINE uint32_t getRandom<uint32_t>()
+{
+  return internal::bit_cast<uint32_t>(getRandom<Int>());
+}
+
 // =========================================================================
 // random numbers in different ranges
 // =========================================================================
@@ -173,10 +180,9 @@ template <>
 SIMD_INLINE Float getRandomRanges<Float>()
 {
   // generate 23 bit mantissa and sign bit (with zero exponent, c = 127)
-  Int i = (getRandom<Int>() & 0x807fffff) | 0x3f800000;
+  const uint32_t i = (getRandom<uint32_t>() & 0x807fffff) | 0x3f800000;
   // f12 is a float from [1,2)
-  Float f12;
-  memcpy(&f12, &i, 4);
+  const Float f12 = internal::bit_cast<Float>(i);
   // generate random exponent from [0,31]
   if (rand() & 0x01) return ldexpf(f12, rand() & 0x1f);
   // or just return completely random float
@@ -269,13 +275,20 @@ std::vector<uint64_t> specialValues<uint64_t>()
   constexpr auto max = std::numeric_limits<uint64_t>::max();
   return {0, 1, max / 2, max - 1, max};
 }
+
+template <>
+std::vector<uint32_t> specialValues<uint32_t>()
+{
+  constexpr auto max = std::numeric_limits<uint32_t>::max();
+  return {0, 1, max / 2, max - 1, max};
+}
 } // namespace internal
 
 template <typename T>
 static T getRandomSpecialValue()
 {
   std::vector<T> specialValues = internal::specialValues<T>();
-  return specialValues[rand() % specialValues.size()];
+  return specialValues[static_cast<size_t>(std::rand()) % specialValues.size()];
 }
 
 // returns a special value with 1/16 probability and a random value otherwise
@@ -332,10 +345,10 @@ template <>
 SIMD_INLINE Float getRandomOrSpecialValueRanges<Float>()
 {
   // generate 23 bit mantissa and sign bit (with zero exponent, c = 127)
-  Int i = (getRandomOrSpecialValue<Int>() & 0x807fffff) | 0x3f800000;
+  const uint32_t i =
+    (getRandomOrSpecialValue<uint32_t>() & 0x807fffff) | 0x3f800000;
   // f12 is a float from [1,2)
-  Float f12;
-  memcpy(&f12, &i, 4);
+  const Float f12 = ::simd::internal::bit_cast<Float>(i);
   // generate random exponent from [0,31]
   if (rand() & 0x01) return ldexpf(f12, rand() & 0x1f);
   // or just return completely random float

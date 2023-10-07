@@ -205,7 +205,6 @@ int main(int argc, char *argv[])
   TestAll<Binary, SW, Hsubs>::test(repeats1, pattern);
   TestAllTI<UnaryTemplateIntMinToMax, SW, Srle>::test(repeats1, pattern);
   TestAllTI<UnaryTemplateIntMinToMax, SW, Slle>::test(repeats1, pattern);
-  TestAll<UnaryScalarT, SW, Elem0>::test(repeats1, pattern);
   TestAllTI<BinaryTemplateIntMinToMax, SW, Alignre>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle>::test(repeats1, pattern);
   TestAllTTSameSize<TernaryConditionTemplateType, SW, Ifelse>::test(repeats1,

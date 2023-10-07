@@ -467,7 +467,6 @@ using namespace simd;
     print(FORMAT, in);                                                         \
     puts("");                                                                  \
     printf("in[" #IDX "] = " FORMAT "\n", extract<IDX>(in));                   \
-    printf("elem0 = " FORMAT "\n", elem0(in));                                 \
   }
 
 #define MIN_MAX(TYPE, FORMAT, INIT0, INIT1)                                    \
@@ -697,7 +696,7 @@ using namespace simd;
       for (TYPE j = loLimit; j <= hiLimit; j++) {                              \
         b = set1<TYPE, SW>(j);                                                 \
         r = AVGFCT(a, b);                                                      \
-        printf(FORMAT, elem0(r));                                              \
+        printf(FORMAT, extract<0>(r));                                         \
       }                                                                        \
       printf("  |  " FORMAT "\n", i);                                          \
     }                                                                          \
@@ -869,7 +868,7 @@ int main()
   SLLE_SRLE(Byte, "%02x ", 0, 32);
   SLLE_SRLE(Float, "%2g ", 0, 2);
 
-  puts("\n*********** test of extract and elem0 ************\n");
+  puts("\n*********** test of extract ************\n");
 
   EXTRACT(Byte, "%02x ", 10, 3);
   EXTRACT(Word, "%02x ", 10, 3);

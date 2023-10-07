@@ -1556,12 +1556,6 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> slle(
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE T elem0(const SerialVec<T, SIMD_WIDTH> &a)
-{
-  return a[0];
-}
-
 template <int IMM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> alignre(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)

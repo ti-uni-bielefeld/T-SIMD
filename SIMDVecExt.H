@@ -1186,7 +1186,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(
 // these operations are not fully parallel!
 
 // example: SIMD_WIDTH = 16, T = float
-// elem0(Horizontal1<float,16,2>::_hadd(v));
+// extract<0>(Horizontal1<float,16,2>::_hadd(v));
 //       u = Horizontal1<float,16,1>::_hadd(v);
 //           hadd(v, v)
 //       hadd(u, u)
@@ -1254,7 +1254,7 @@ struct Horizontal1<T, SIMD_WIDTH, 1>
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE T hadd(const Vec<T, SIMD_WIDTH> &v)
 {
-  return elem0(
+  return extract<0>(
     internal::ext::Horizontal1<T, SIMD_WIDTH,
                                SIMD_WIDTH / sizeof(T) / 2>::_hadd(v));
 }
@@ -1270,7 +1270,7 @@ static SIMD_INLINE T hadd(const Vec<T, SIMD_WIDTH> &v)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE T hadds(const Vec<T, SIMD_WIDTH> &v)
 {
-  return elem0(
+  return extract<0>(
     internal::ext::Horizontal1<T, SIMD_WIDTH,
                                SIMD_WIDTH / sizeof(T) / 2>::_hadds(v));
 }
@@ -1284,7 +1284,7 @@ static SIMD_INLINE T hadds(const Vec<T, SIMD_WIDTH> &v)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE T hmin(const Vec<T, SIMD_WIDTH> &v)
 {
-  return elem0(
+  return extract<0>(
     internal::ext::Horizontal1<T, SIMD_WIDTH,
                                SIMD_WIDTH / sizeof(T) / 2>::_hmin(v));
 }
@@ -1298,7 +1298,7 @@ static SIMD_INLINE T hmin(const Vec<T, SIMD_WIDTH> &v)
 template <typename T, int SIMD_WIDTH>
 static SIMD_INLINE T hmax(const Vec<T, SIMD_WIDTH> &v)
 {
-  return elem0(
+  return extract<0>(
     internal::ext::Horizontal1<T, SIMD_WIDTH,
                                SIMD_WIDTH / sizeof(T) / 2>::_hmax(v));
 }

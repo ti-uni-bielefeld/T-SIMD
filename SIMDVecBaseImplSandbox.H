@@ -480,14 +480,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> slle(const Vec<T, SIMD_WIDTH> &)
   return Vec<T, SIMD_WIDTH>();
 }
 
-// extraction of lowest element
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE T elem0(const Vec<T, SIMD_WIDTH> &)
-{
-  printf("elem0<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
-  return T(0);
-}
-
 // alignr (with number of elements in imm):
 template <int IMM, typename T, int SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &,

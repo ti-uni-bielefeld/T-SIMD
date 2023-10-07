@@ -2901,49 +2901,6 @@ static SIMD_INLINE Vec<Double, 16> slle(const Vec<Double, 16> &a)
 }
 
 // ---------------------------------------------------------------------------
-// extraction of element 0
-// ---------------------------------------------------------------------------
-
-static SIMD_INLINE Byte elem0(const Vec<Byte, 16> &a)
-{
-  SIMD_RETURN_REINTERPRET_INT(Byte, _mm_cvtsi128_si32(a), 0);
-}
-
-static SIMD_INLINE SignedByte elem0(const Vec<SignedByte, 16> &a)
-{
-  SIMD_RETURN_REINTERPRET_INT(SignedByte, _mm_cvtsi128_si32(a), 0);
-}
-
-static SIMD_INLINE Word elem0(const Vec<Word, 16> &a)
-{
-  SIMD_RETURN_REINTERPRET_INT(Word, _mm_cvtsi128_si32(a), 0);
-}
-
-static SIMD_INLINE Short elem0(const Vec<Short, 16> &a)
-{
-  SIMD_RETURN_REINTERPRET_INT(Short, _mm_cvtsi128_si32(a), 0);
-}
-
-static SIMD_INLINE Int elem0(const Vec<Int, 16> &a)
-{
-  // TODO: elem0: is conversion from return type int so Int always safe?
-  return _mm_cvtsi128_si32(a);
-}
-
-static SIMD_INLINE Float elem0(const Vec<Float, 16> &a)
-{
-  SIMD_RETURN_REINTERPRET_INT(Float, _mm_cvtsi128_si32(_mm_castps_si128(a)), 0);
-}
-
-static SIMD_INLINE Double elem0(const Vec<Double, 16> &a)
-{
-  Double res;
-  long long i = _mm_cvtsi128_si64(_mm_castpd_si128(a));
-  memcpy(&res, &i, sizeof(Double));
-  return res;
-}
-
-// ---------------------------------------------------------------------------
 // alignre
 // ---------------------------------------------------------------------------
 

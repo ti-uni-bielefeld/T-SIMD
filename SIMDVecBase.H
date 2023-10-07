@@ -1070,23 +1070,6 @@ static SIMD_INLINE T extract(const Vec<T, SIMD_WIDTH> &a)
 
 /**
  * @ingroup group_extract
- * @brief Extracts the lowest element of a Vec.
- *
- * Semantically equivalent to @c extract<0>(a) , but may be more efficient.
- *
- * @sa extract()
- *
- * @param a Vec to extract from
- * @return lowest element of the Vec
- */
-template <typename T, int SIMD_WIDTH>
-static SIMD_INLINE T elem0(const Vec<T, SIMD_WIDTH> &a)
-{
-  return internal::base::elem0(a);
-}
-
-/**
- * @ingroup group_extract
  * @brief Extracts a 16-byte lane from a Vec as a Vec < T, 16 >.
  *
  * @tparam LANE_INDEX lane to extract Must be in the range [0, @p SIMD_WIDTH /

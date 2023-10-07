@@ -3395,56 +3395,6 @@ static SIMD_INLINE Vec<T, 64> hsubs(const Vec<T, 64> &a, const Vec<T, 64> &b)
 }
 
 // ---------------------------------------------------------------------------
-// extraction of element 0 v
-// ---------------------------------------------------------------------------
-
-static SIMD_INLINE Byte elem0(const Vec<Byte, 64> &a)
-{
-  SIMD_RETURN_REINTERPRET_INT(Byte,
-                              _mm_cvtsi128_si32(_mm512_castsi512_si128(a)), 0);
-}
-
-static SIMD_INLINE SignedByte elem0(const Vec<SignedByte, 64> &a)
-{
-  SIMD_RETURN_REINTERPRET_INT(SignedByte,
-                              _mm_cvtsi128_si32(_mm512_castsi512_si128(a)), 0);
-}
-
-static SIMD_INLINE Word elem0(const Vec<Word, 64> &a)
-{
-  SIMD_RETURN_REINTERPRET_INT(Word,
-                              _mm_cvtsi128_si32(_mm512_castsi512_si128(a)), 0);
-}
-
-static SIMD_INLINE Short elem0(const Vec<Short, 64> &a)
-{
-  SIMD_RETURN_REINTERPRET_INT(Short,
-                              _mm_cvtsi128_si32(_mm512_castsi512_si128(a)), 0);
-}
-
-static SIMD_INLINE Int elem0(const Vec<Int, 64> &a)
-{
-  // TODO: elem0: is conversion from return type int so Int always safe?
-  return _mm_cvtsi128_si32(_mm512_castsi512_si128(a));
-}
-
-static SIMD_INLINE Float elem0(const Vec<Float, 64> &a)
-{
-  SIMD_RETURN_REINTERPRET_INT(
-    Float, _mm_cvtsi128_si32(_mm512_castsi512_si128(_mm512_castps_si512(a))),
-    0);
-}
-
-static SIMD_INLINE Double elem0(const Vec<Double, 64> &a)
-{
-  const uint64_t intRes =
-    _mm_cvtsi128_si64(_mm512_castsi512_si128(_mm512_castpd_si512(a)));
-  Double res;
-  memcpy(&res, &intRes, sizeof(res));
-  return res;
-}
-
-// ---------------------------------------------------------------------------
 // permute_64_16: permutation of 128-bit lanes, two sources v
 // ---------------------------------------------------------------------------
 

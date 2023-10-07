@@ -1005,23 +1005,6 @@ struct Slle
   }
 };
 
-template <typename T, int SIMD_WIDTH>
-struct Elem0
-{
-  static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("elem0"); }
-
-  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
-  {
-    vec.randomize();
-  }
-
-  template <template <typename, int> class VEC>
-  static SIMD_INLINE T apply(const VEC<T, SIMD_WIDTH> &a)
-  {
-    return elem0(a);
-  }
-};
-
 template <int IMM, typename T, int SIMD_WIDTH>
 struct Alignre
 {

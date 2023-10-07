@@ -122,6 +122,13 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> not_(const Vec<T, SIMD_WIDTH> &a)
   return bit_not(a);
 }
 
+/// Alias for extract<0>(). @deprecated Use extract<0>() instead.
+template <typename T, size_t SIMD_WIDTH>
+static SIMD_INLINE T elem0(const Vec<T, SIMD_WIDTH> &a)
+{
+  return extract<0>(a);
+}
+
 /// Alias for Vec<T, SIMD_WIDTH>::elems. @deprecated Use Vec::elems instead.
 template <typename T, int SIMD_WIDTH>
 static constexpr SIMD_INLINE int numSIMDVecElements()

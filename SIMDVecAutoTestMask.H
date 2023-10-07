@@ -1009,7 +1009,7 @@ struct TesterBinaryBoolK
       }
     }
     struct timespec end = getTimeSpecMonotonic();
-    long int time       = timeSpecDiffUsec(end, start);
+    long int time       = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
 };
@@ -1060,7 +1060,7 @@ struct TesterUnaryBoolK
       }
     }
     struct timespec end = getTimeSpecMonotonic();
-    long int time       = timeSpecDiffUsec(end, start);
+    long int time       = timeSpecDiffNsec(end, start);
     printTimeStats(time, repeats);
   }
 };

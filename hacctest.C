@@ -33,11 +33,11 @@ int main()
 {
   srand48(time(NULL));
 
-  constexpr int elems = simd::Vec<T, SW>::elems;
+  constexpr auto elems = simd::Vec<T, SW>::elems;
   T array[FACTOR * elems][elems];
-  for (int i = 0; i < FACTOR * elems; i++) {
+  for (size_t i = 0; i < FACTOR * elems; i++) {
     T s = 0;
-    for (int j = 0; j < elems; j++) {
+    for (size_t j = 0; j < elems; j++) {
       array[i][j] = T(drand48() * 4);
       s += array[i][j];
     }
@@ -46,9 +46,9 @@ int main()
   puts("");
 
   simd::HAcc<simd::HAdd, T, SW> hAcc;
-  // const int num = elems;
-  const int num = elems - 2;
-  for (int i = 0; i < num; i++) {
+  // const auto num = elems;
+  const auto num = elems - 2;
+  for (size_t i = 0; i < num; i++) {
     const simd::Vec<T, SW> v = simd::loadu<SW>(array[i]);
     hAcc.push(v);
   }
@@ -59,16 +59,16 @@ int main()
   }
 
   T sum[FACTOR * elems];
-  for (int i = 0; i < FACTOR * elems; i++) sum[i] = T(0);
+  for (size_t i = 0; i < FACTOR * elems; i++) sum[i] = T(0);
   simd::HAccStore<simd::HAdd, T, SW> hAccStore(sum);
-  // const int num2 = FACTOR * elems;
-  const int num2 = (FACTOR - 1) * elems - 2;
-  for (int i = 0; i < num2; i++) {
+  // const auto num2 = FACTOR * elems;
+  const auto num2 = (FACTOR - 1) * elems - 2;
+  for (size_t i = 0; i < num2; i++) {
     const simd::Vec<T, SW> v = simd::loadu<SW>(array[i]);
     hAccStore.push(v);
   }
   hAccStore.finish();
-  for (int i = 0; i < FACTOR * elems; i++) printf("%d,", sum[i]);
+  for (size_t i = 0; i < FACTOR * elems; i++) printf("%d,", sum[i]);
   puts("");
 
   return 0;

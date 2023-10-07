@@ -42,7 +42,7 @@
 namespace simd {
 namespace auto_test {
 
-template <int Bits>
+template <size_t Bits>
 struct _UInt;
 template <>
 struct _UInt<1>
@@ -80,7 +80,7 @@ struct _UInt<64>
   using type = uint64_t;
 };
 
-template <int Bits>
+template <size_t Bits>
 struct UInt
 {
   typename _UInt<Bits>::type value;
@@ -99,7 +99,7 @@ private:
   }
 };
 
-template <int Bits>
+template <size_t Bits>
 UInt<Bits> getRandomUInt()
 {
   return getRandomUInt<Bits / 2>() | UInt<Bits>(getRandomUInt<Bits / 2>())
@@ -126,10 +126,10 @@ UInt<1> getRandomUInt<1>()
 // This is to make sure the right functions are called when using SerialVec
 // in the autotests.
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct SerialMask
 {
-  static constexpr int bits = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr size_t bits = Vec<T, SIMD_WIDTH>::elems;
   UInt<bits> mask;
 
   SerialMask() : mask(0) {}
@@ -141,7 +141,7 @@ struct SerialMask
     // avoids comparison with TypeInfo::trueval, which fails for
     // Float (NaN)
     SerialVec<T, SIMD_WIDTH> negX = bit_not(x);
-    for (int i = 0; i < x.elements; i++) {
+    for (size_t i = 0; i < x.elements; i++) {
       if (negX[i] == T(0)) { mask = mask | (UInt<bits>(1) << i); }
     }
   }
@@ -192,31 +192,31 @@ struct SerialMask
 // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
 // mask_set_true/false_low/high.
 
-template <template <typename, int> class MASK>
+template <template <typename, size_t> class MASK>
 struct MaskDeductor;
 
 template <>
 struct MaskDeductor<Mask>
 {
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static Mask<T, SIMD_WIDTH> _mask_set_true_low(const unsigned int x)
   {
     return mask_set_true_low<T, SIMD_WIDTH>(x);
   }
 
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static Mask<T, SIMD_WIDTH> _mask_set_true_high(const unsigned int x)
   {
     return mask_set_true_high<T, SIMD_WIDTH>(x);
   }
 
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static Mask<T, SIMD_WIDTH> _mask_set_false_low(const unsigned int x)
   {
     return mask_set_false_low<T, SIMD_WIDTH>(x);
   }
 
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static Mask<T, SIMD_WIDTH> _mask_set_false_high(const unsigned int x)
   {
     return mask_set_false_high<T, SIMD_WIDTH>(x);
@@ -226,7 +226,7 @@ struct MaskDeductor<Mask>
 template <>
 struct MaskDeductor<SerialMask>
 {
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SerialMask<T, SIMD_WIDTH> _mask_set_true_low(const unsigned int x)
   {
     if (x >= SerialMask<T, SIMD_WIDTH>::bits) {
@@ -238,7 +238,7 @@ struct MaskDeductor<SerialMask>
     return result;
   }
 
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SerialMask<T, SIMD_WIDTH> _mask_set_true_high(const unsigned int x)
   {
     if (x >= SerialMask<T, SIMD_WIDTH>::bits) {
@@ -253,33 +253,33 @@ struct MaskDeductor<SerialMask>
     return result;
   }
 
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SerialMask<T, SIMD_WIDTH> _mask_set_false_low(const unsigned int x)
   {
     return ~_mask_set_true_low<T, SIMD_WIDTH>(x);
   }
 
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SerialMask<T, SIMD_WIDTH> _mask_set_false_high(const unsigned int x)
   {
     return ~_mask_set_true_high<T, SIMD_WIDTH>(x);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialVec<T, SIMD_WIDTH> mask_ifelse(
   const SerialMask<T, SIMD_WIDTH> &cond,
   const SerialVec<T, SIMD_WIDTH> &trueVal,
   const SerialVec<T, SIMD_WIDTH> &falseVal)
 {
   SerialVec<T, SIMD_WIDTH> result;
-  for (int i = 0; i < result.elements; i++) {
+  for (size_t i = 0; i < result.elements; i++) {
     result[i] = cond[i] ? trueVal[i] : falseVal[i];
   }
   return result;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialVec<T, SIMD_WIDTH> mask_ifelsezero(
   const SerialMask<T, SIMD_WIDTH> &cond,
   const SerialVec<T, SIMD_WIDTH> &trueVal)
@@ -288,7 +288,7 @@ static SerialVec<T, SIMD_WIDTH> mask_ifelsezero(
                      Deductor<SerialVec>::_setzero<T, SIMD_WIDTH>());
 }
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename T, size_t SIMD_WIDTH>
 static SerialVec<Tout, SIMD_WIDTH> mask_cvts(
   const SerialVec<Tout, SIMD_WIDTH> &src, const SerialMask<T, SIMD_WIDTH> &k,
   const SerialVec<T, SIMD_WIDTH> &a)
@@ -296,14 +296,14 @@ static SerialVec<Tout, SIMD_WIDTH> mask_cvts(
   return mask_ifelse(SerialMask<Tout, SIMD_WIDTH>(k.mask), cvts(a), src);
 }
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename T, size_t SIMD_WIDTH>
 static SerialVec<Tout, SIMD_WIDTH> maskz_cvts(
   const SerialMask<T, SIMD_WIDTH> &k, const SerialVec<T, SIMD_WIDTH> &a)
 {
   return mask_cvts(Deductor<SerialVec>::_setzero<Tout, SIMD_WIDTH>(), k, a);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialVec<T, SIMD_WIDTH> mask_set1(const SerialVec<T, SIMD_WIDTH> &src,
                                           const SerialMask<T, SIMD_WIDTH> &k,
                                           const T a)
@@ -311,33 +311,33 @@ static SerialVec<T, SIMD_WIDTH> mask_set1(const SerialVec<T, SIMD_WIDTH> &src,
   return mask_ifelse(k, Deductor<SerialVec>::_set1<T, SIMD_WIDTH>(a), src);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialVec<T, SIMD_WIDTH> maskz_set1(const SerialMask<T, SIMD_WIDTH> &k,
                                            const T a)
 {
   return mask_set1(Deductor<SerialVec>::_setzero<T, SIMD_WIDTH>(), k, a);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialVec<T, SIMD_WIDTH> mask_loadu(const SerialVec<T, SIMD_WIDTH> &src,
                                            const SerialMask<T, SIMD_WIDTH> &k,
                                            const T *p)
 {
   SerialVec<T, SIMD_WIDTH> result;
-  for (int i = 0; i < result.elements; i++) {
+  for (size_t i = 0; i < result.elements; i++) {
     result[i] = k[i] ? p[i] : src[i];
   }
   return result;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialVec<T, SIMD_WIDTH> maskz_loadu(const SerialMask<T, SIMD_WIDTH> &k,
                                             const T *p)
 {
   return mask_loadu(Deductor<SerialVec>::_setzero<T, SIMD_WIDTH>(), k, p);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialVec<T, SIMD_WIDTH> mask_load(const SerialVec<T, SIMD_WIDTH> &src,
                                           const SerialMask<T, SIMD_WIDTH> &k,
                                           const T *p)
@@ -346,7 +346,7 @@ static SerialVec<T, SIMD_WIDTH> mask_load(const SerialVec<T, SIMD_WIDTH> &src,
   return mask_loadu(src, k, p);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialVec<T, SIMD_WIDTH> maskz_load(const SerialMask<T, SIMD_WIDTH> &k,
                                            const T *p)
 {
@@ -354,16 +354,16 @@ static SerialVec<T, SIMD_WIDTH> maskz_load(const SerialMask<T, SIMD_WIDTH> &k,
   return maskz_loadu(k, p);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static void mask_storeu(T *const p, const SerialMask<T, 64> &k,
                         const SerialVec<T, 64> &a)
 {
-  for (int i = 0; i < a.elements; i++) {
+  for (size_t i = 0; i < a.elements; i++) {
     if (k[i]) { p[i] = a[i]; }
   }
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static void mask_store(T *const p, const SerialMask<T, 64> &k,
                        const SerialVec<T, 64> &a)
 {
@@ -372,7 +372,7 @@ static void mask_store(T *const p, const SerialMask<T, 64> &k,
 }
 
 #define GENERATE_SERIAL_MASK_UNARY_NAME(OP, OP_NAME)                           \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   static SerialVec<T, SIMD_WIDTH> mask_##OP_NAME(                              \
     const SerialVec<T, SIMD_WIDTH> &src, const SerialMask<T, SIMD_WIDTH> &k,   \
     const SerialVec<T, SIMD_WIDTH> &a)                                         \
@@ -383,7 +383,7 @@ static void mask_store(T *const p, const SerialMask<T, 64> &k,
 #define GENERATE_SERIAL_MASK_UNARY(OP) GENERATE_SERIAL_MASK_UNARY_NAME(OP, OP)
 
 #define GENERATE_SERIAL_MASKZ_UNARY_NAME(OP, OP_NAME)                          \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   static SerialVec<T, SIMD_WIDTH> maskz_##OP_NAME(                             \
     const SerialMask<T, SIMD_WIDTH> &k, const SerialVec<T, SIMD_WIDTH> &a)     \
   {                                                                            \
@@ -401,7 +401,7 @@ static void mask_store(T *const p, const SerialMask<T, 64> &k,
   GENERATE_SERIAL_MASKZ_UNARY(OP)
 
 #define GENERATE_SERIAL_MASK_UNARY_TI(OP)                                      \
-  template <int IMM, typename T, int SIMD_WIDTH>                               \
+  template <size_t IMM, typename T, size_t SIMD_WIDTH>                         \
   static SerialVec<T, SIMD_WIDTH> mask_##OP(                                   \
     const SerialVec<T, SIMD_WIDTH> &src, const SerialMask<T, SIMD_WIDTH> &k,   \
     const SerialVec<T, SIMD_WIDTH> &a)                                         \
@@ -410,7 +410,7 @@ static void mask_store(T *const p, const SerialMask<T, 64> &k,
   }
 
 #define GENERATE_SERIAL_MASKZ_UNARY_TI(OP)                                     \
-  template <int IMM, typename T, int SIMD_WIDTH>                               \
+  template <size_t IMM, typename T, size_t SIMD_WIDTH>                         \
   static SerialVec<T, SIMD_WIDTH> maskz_##OP(                                  \
     const SerialMask<T, SIMD_WIDTH> &k, const SerialVec<T, SIMD_WIDTH> &a)     \
   {                                                                            \
@@ -422,7 +422,7 @@ static void mask_store(T *const p, const SerialMask<T, 64> &k,
   GENERATE_SERIAL_MASKZ_UNARY_TI(OP)
 
 #define GENERATE_SERIAL_MASK_BINARY_NAME(OP, OP_NAME)                          \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   static SerialVec<T, SIMD_WIDTH> mask_##OP_NAME(                              \
     const SerialVec<T, SIMD_WIDTH> &src, const SerialMask<T, SIMD_WIDTH> &k,   \
     const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)      \
@@ -433,7 +433,7 @@ static void mask_store(T *const p, const SerialMask<T, 64> &k,
 #define GENERATE_SERIAL_MASK_BINARY(OP) GENERATE_SERIAL_MASK_BINARY_NAME(OP, OP)
 
 #define GENERATE_SERIAL_MASKZ_BINARY_NAME(OP, OP_NAME)                         \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   static SerialVec<T, SIMD_WIDTH> maskz_##OP_NAME(                             \
     const SerialMask<T, SIMD_WIDTH> &k, const SerialVec<T, SIMD_WIDTH> &a,     \
     const SerialVec<T, SIMD_WIDTH> &b)                                         \
@@ -498,14 +498,14 @@ GENERATE_SERIAL_MASK_MASKZ_BINARY(hsubs)
 // that only take two vector parameters and no mask parameter
 
 #define GENERATE_SERIAL_MASK_CMP(OP)                                           \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   static SerialMask<T, SIMD_WIDTH> mask_##OP(                                  \
     const SerialMask<T, SIMD_WIDTH> &k, const SerialVec<T, SIMD_WIDTH> &a,     \
     const SerialVec<T, SIMD_WIDTH> &b)                                         \
   {                                                                            \
     return mask_ifelsezero(k, OP(a, b));                                       \
   }                                                                            \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   static SerialMask<T, SIMD_WIDTH> mask_##OP(                                  \
     const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)      \
   {                                                                            \
@@ -521,16 +521,16 @@ GENERATE_SERIAL_MASK_CMP(cmpneq)
 
 GENERATE_SERIAL_MASK_MASKZ_BINARY(avg)
 
-template <typename T, int SIMD_WIDTH>
-static int mask_test_all_zeros(const SerialMask<T, SIMD_WIDTH> &k,
-                               const SerialVec<T, SIMD_WIDTH> &a)
+template <typename T, size_t SIMD_WIDTH>
+static bool mask_test_all_zeros(const SerialMask<T, SIMD_WIDTH> &k,
+                                const SerialVec<T, SIMD_WIDTH> &a)
 {
   return test_all_zeros(mask_ifelsezero(k, a));
 }
 
-template <typename T, int SIMD_WIDTH>
-static int mask_test_all_ones(const SerialMask<T, SIMD_WIDTH> &k,
-                              const SerialVec<T, SIMD_WIDTH> &a)
+template <typename T, size_t SIMD_WIDTH>
+static bool mask_test_all_ones(const SerialMask<T, SIMD_WIDTH> &k,
+                               const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> ones;
   ones.setones();
@@ -538,7 +538,7 @@ static int mask_test_all_ones(const SerialMask<T, SIMD_WIDTH> &k,
 }
 
 #define GENERATE_SERIAL_BINARY_K(OP_NAME, OP)                                  \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   static SerialMask<T, SIMD_WIDTH> OP_NAME(const SerialMask<T, SIMD_WIDTH> &a, \
                                            const SerialMask<T, SIMD_WIDTH> &b) \
   {                                                                            \
@@ -552,41 +552,41 @@ GENERATE_SERIAL_BINARY_K(kxor, a ^ b)
 GENERATE_SERIAL_BINARY_K(kxnor, ~(a ^ b))
 GENERATE_SERIAL_BINARY_K(kadd, a + b)
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialMask<T, SIMD_WIDTH> knot(const SerialMask<T, SIMD_WIDTH> &a)
 {
   return ~a;
 }
 
-template <unsigned int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SerialMask<T, SIMD_WIDTH> kshiftli(const SerialMask<T, SIMD_WIDTH> &a)
 {
-  if (IMM >= SerialMask<T, SIMD_WIDTH>::bits) { return 0; }
+  if (COUNT >= SerialMask<T, SIMD_WIDTH>::bits) { return 0; }
   // we checked that IMM is not too large above, disable warning
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshift-count-overflow"
 #ifdef __INTEL_COMPILER
 #pragma warning(suppress : 63) // shift count is too large
 #endif
-  return a << IMM;
+  return a << COUNT;
 #pragma GCC diagnostic pop
 }
 
-template <unsigned int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SerialMask<T, SIMD_WIDTH> kshiftri(const SerialMask<T, SIMD_WIDTH> &a)
 {
-  if (IMM >= SerialMask<T, SIMD_WIDTH>::bits) { return 0; }
+  if (COUNT >= SerialMask<T, SIMD_WIDTH>::bits) { return 0; }
   // we checked that IMM is not too large above, disable warning
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshift-count-overflow"
 #ifdef __INTEL_COMPILER
 #pragma warning(suppress : 63) // shift count is too large
 #endif
-  return a >> IMM;
+  return a >> COUNT;
 #pragma GCC diagnostic pop
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialMask<T, SIMD_WIDTH> kshiftli(const SerialMask<T, SIMD_WIDTH> &a,
                                           unsigned int count)
 {
@@ -594,7 +594,7 @@ static SerialMask<T, SIMD_WIDTH> kshiftli(const SerialMask<T, SIMD_WIDTH> &a,
   return a << count;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SerialMask<T, SIMD_WIDTH> kshiftri(const SerialMask<T, SIMD_WIDTH> &a,
                                           unsigned int count)
 {
@@ -604,7 +604,7 @@ static SerialMask<T, SIMD_WIDTH> kshiftri(const SerialMask<T, SIMD_WIDTH> &a,
 
 // 25. Aug 23 (Jonas Keller): added kcmpneq
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static bool kcmpeq(const SerialMask<T, SIMD_WIDTH> &a,
                    const SerialMask<T, SIMD_WIDTH> &b)
 {
@@ -613,14 +613,14 @@ static bool kcmpeq(const SerialMask<T, SIMD_WIDTH> &a,
 
 // 25. Aug 23 (Jonas Keller): added ktest_all_ones and ktest_all_zeros
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static bool ktest_all_ones(const SerialMask<T, SIMD_WIDTH> &a)
 {
   return a ==
          SerialMask<T, SIMD_WIDTH>(~UInt<SerialMask<T, SIMD_WIDTH>::bits>(0));
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static bool ktest_all_zeros(const SerialMask<T, SIMD_WIDTH> &a)
 {
   return a == SerialMask<T, SIMD_WIDTH>(0);

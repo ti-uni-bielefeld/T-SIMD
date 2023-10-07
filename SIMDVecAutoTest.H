@@ -63,6 +63,7 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -73,11 +74,11 @@ namespace simd {
 namespace auto_test {
 
 // how many error cases should be printed to stdout
-#define PRINT_ERRORS 1
+static constexpr size_t PRINT_ERRORS = 1;
 
 // 14. Nov 22 (Jonas Keller): added SIMD_TIME_MEASUREMENT_UNROLL
 // how many iterations of the time measurement loop should be unrolled
-#define SIMD_TIME_MEASUREMENT_UNROLL 16
+static constexpr size_t SIMD_TIME_MEASUREMENT_UNROLL = 16;
 
 // 15. Mar 23 (Jonas Keller): added ONLY_TIME_MEASUREMENT
 // if true, only time measurements are performed, no correctness checks, which
@@ -100,21 +101,21 @@ void printError(const std::string &fct, const std::string &args)
   fflush(stdout);
 }
 
-void printErrorStats(int errors, int trials)
+void printErrorStats(size_t errors, size_t trials)
 {
   if (errors > 0)
-    printf("---------- %d errors / %d trials ----------\n", errors, trials);
+    printf("---------- %zu errors / %zu trials ----------\n", errors, trials);
 }
 
-void printTimeStats(long int time, int trials)
+void printTimeStats(long int time, size_t trials)
 {
   // the "manual" loop unrolling in the time measurement loop rounds the
   // number of iterations down to a multiple of SIMD_TIME_MEASUREMENT_UNROLL,
   // so, to reflect that, the same has to be done with trials
   trials =
     (trials / SIMD_TIME_MEASUREMENT_UNROLL) * SIMD_TIME_MEASUREMENT_UNROLL;
-  double avg = (double) time / (double) trials;
-  printf("---------- avg. time: %f ns (%d trials) ----------\n", avg, trials);
+  const double avg = (double) time / (double) trials;
+  printf("---------- avg. time: %f ns (%zu trials) ----------\n", avg, trials);
 }
 
 // ===========================================================================
@@ -248,20 +249,20 @@ struct CmpEqual
     return (std::abs(expected) == 0.0) && (std::abs(actual) == 0.0);
   }
 
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static bool cmpVec(SerialVec<T, SIMD_WIDTH> &expected,
                      SerialVec<T, SIMD_WIDTH> &actual)
   {
     if (memcmp(&expected, &actual, sizeof(SerialVec<T, SIMD_WIDTH>)) == 0) {
       return true;
     }
-    for (int i = 0; i < SerialVec<T, SIMD_WIDTH>::elems; ++i) {
+    for (size_t i = 0; i < SerialVec<T, SIMD_WIDTH>::elems; ++i) {
       if (!cmpScalar(expected[i], actual[i])) { return false; }
     }
     return true;
   }
 
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static bool cmpVec(SerialVec<T, SIMD_WIDTH> &expected,
                      Vec<T, SIMD_WIDTH> &actual)
   {
@@ -297,7 +298,7 @@ struct CmpRelError
     return relErr <= maxRelErr;
   }
 
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static bool cmpVec(SerialVec<T, SIMD_WIDTH> &expected,
                      SerialVec<T, SIMD_WIDTH> &actual)
   {
@@ -305,13 +306,13 @@ struct CmpRelError
                sizeof(SerialVec<T, SIMD_WIDTH>)) == 0) {
       return true;
     }
-    for (int i = 0; i < SerialVec<T, SIMD_WIDTH>::elems; ++i) {
+    for (size_t i = 0; i < SerialVec<T, SIMD_WIDTH>::elems; ++i) {
       if (!cmpScalar(expected[i], actual[i])) { return false; }
     }
     return true;
   }
 
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static bool cmpVec(SerialVec<T, SIMD_WIDTH> &expected,
                      Vec<T, SIMD_WIDTH> &actual)
   {
@@ -325,12 +326,13 @@ struct CmpRelError
 // tests for different type combinations: no additional template argument
 // ===========================================================================
 
-template <
-  template <typename, int, template <typename, int> class, class> class Tester,
-  int SIMD_WIDTH, template <typename, int> class FCT, class CMP = CmpEqual>
+template <template <typename, size_t, template <typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH, template <typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestSignedInt
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     Tester<SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
@@ -338,24 +340,26 @@ struct TestSignedInt
   }
 };
 
-template <
-  template <typename, int, template <typename, int> class, class> class Tester,
-  int SIMD_WIDTH, template <typename, int> class FCT, class CMP = CmpEqual>
+template <template <typename, size_t, template <typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH, template <typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestUnsignedInt
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     Tester<Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
-template <
-  template <typename, int, template <typename, int> class, class> class Tester,
-  int SIMD_WIDTH, template <typename, int> class FCT, class CMP = CmpEqual>
+template <template <typename, size_t, template <typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH, template <typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestFloat
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
 #ifdef SIMD_DOUBLE
@@ -364,36 +368,39 @@ struct TestFloat
   }
 };
 
-template <
-  template <typename, int, template <typename, int> class, class> class Tester,
-  int SIMD_WIDTH, template <typename, int> class FCT, class CMP = CmpEqual>
+template <template <typename, size_t, template <typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH, template <typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestInt
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TestSignedInt<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     TestUnsignedInt<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
-template <
-  template <typename, int, template <typename, int> class, class> class Tester,
-  int SIMD_WIDTH, template <typename, int> class FCT, class CMP = CmpEqual>
+template <template <typename, size_t, template <typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH, template <typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestSigned
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TestSignedInt<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     TestFloat<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
-template <
-  template <typename, int, template <typename, int> class, class> class Tester,
-  int SIMD_WIDTH, template <typename, int> class FCT, class CMP = CmpEqual>
+template <template <typename, size_t, template <typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH, template <typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestAll
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TestInt<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     TestFloat<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
@@ -404,13 +411,14 @@ struct TestAll
 // tests for different type combinations: one additional int template argument
 // ===========================================================================
 
-template <template <typename, int, template <int, typename, int> class, class>
-          class Tester,
-          int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, typename, size_t> class, class>
+  class Tester,
+  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestSignedIntTI
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     Tester<SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
@@ -418,26 +426,28 @@ struct TestSignedIntTI
   }
 };
 
-template <template <typename, int, template <int, typename, int> class, class>
-          class Tester,
-          int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, typename, size_t> class, class>
+  class Tester,
+  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestUnsignedIntTI
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     Tester<Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
-template <template <typename, int, template <int, typename, int> class, class>
-          class Tester,
-          int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, typename, size_t> class, class>
+  class Tester,
+  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestFloatTI
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
 #ifdef SIMD_DOUBLE
@@ -446,39 +456,42 @@ struct TestFloatTI
   }
 };
 
-template <template <typename, int, template <int, typename, int> class, class>
-          class Tester,
-          int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, typename, size_t> class, class>
+  class Tester,
+  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestIntTI
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TestSignedIntTI<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     TestUnsignedIntTI<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
-template <template <typename, int, template <int, typename, int> class, class>
-          class Tester,
-          int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, typename, size_t> class, class>
+  class Tester,
+  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestSignedTI
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TestSignedIntTI<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     TestFloatTI<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
-template <template <typename, int, template <int, typename, int> class, class>
-          class Tester,
-          int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, typename, size_t> class, class>
+  class Tester,
+  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestAllTI
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TestIntTI<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     TestFloatTI<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
@@ -489,14 +502,15 @@ struct TestAllTI
 // tests for different type combinations: two additional int template args.
 // ===========================================================================
 
-template <
-  template <typename, int, template <int, int, typename, int> class, class>
-  class Tester,
-  int SIMD_WIDTH, template <int, int, typename, int> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t,
+                    template <size_t, size_t, typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH,
+          template <size_t, size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestSignedIntTII
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     Tester<SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
@@ -504,28 +518,30 @@ struct TestSignedIntTII
   }
 };
 
-template <
-  template <typename, int, template <int, int, typename, int> class, class>
-  class Tester,
-  int SIMD_WIDTH, template <int, int, typename, int> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t,
+                    template <size_t, size_t, typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH,
+          template <size_t, size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestUnsignedIntTII
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     Tester<Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
-template <
-  template <typename, int, template <int, int, typename, int> class, class>
-  class Tester,
-  int SIMD_WIDTH, template <int, int, typename, int> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t,
+                    template <size_t, size_t, typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH,
+          template <size_t, size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestFloatTII
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
 #ifdef SIMD_DOUBLE
@@ -534,42 +550,45 @@ struct TestFloatTII
   }
 };
 
-template <
-  template <typename, int, template <int, int, typename, int> class, class>
-  class Tester,
-  int SIMD_WIDTH, template <int, int, typename, int> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t,
+                    template <size_t, size_t, typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH,
+          template <size_t, size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestIntTII
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TestSignedIntTII<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     TestUnsignedIntTII<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
-template <
-  template <typename, int, template <int, int, typename, int> class, class>
-  class Tester,
-  int SIMD_WIDTH, template <int, int, typename, int> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t,
+                    template <size_t, size_t, typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH,
+          template <size_t, size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestSignedTII
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TestSignedIntTII<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     TestFloatTII<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
   }
 };
 
-template <
-  template <typename, int, template <int, int, typename, int> class, class>
-  class Tester,
-  int SIMD_WIDTH, template <int, int, typename, int> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t,
+                    template <size_t, size_t, typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH,
+          template <size_t, size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestAllTII
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TestIntTII<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     TestFloatTII<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
@@ -580,16 +599,16 @@ struct TestAllTII
 // test for different type combinations: one additional template type arg.
 // ===========================================================================
 
-template <template <typename, typename, int,
-                    template <typename, typename, int> class, class>
+template <template <typename, typename, size_t,
+                    template <typename, typename, size_t> class, class>
           class Tester,
-          int SIMD_WIDTH, template <typename, typename, int> class FCT,
+          size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TestAllTT
 {
   // 26. Nov 22 (Jonas Keller): Added testAllSeconds to make this easier to
   // read and make sure that all types are tested.
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     testAllSeconds<Byte>(repeats, pattern);
     testAllSeconds<SignedByte>(repeats, pattern);
@@ -604,7 +623,7 @@ struct TestAllTT
 
 private:
   template <typename T1>
-  static void testAllSeconds(int repeats, const std::string &pattern)
+  static void testAllSeconds(size_t repeats, const std::string &pattern)
   {
     Tester<T1, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<T1, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
@@ -624,14 +643,14 @@ private:
 
 // 07. Feb (Jonas Keller): Added TestAllTTSameSize
 
-template <template <typename, typename, int,
-                    template <typename, typename, int> class, class>
+template <template <typename, typename, size_t,
+                    template <typename, typename, size_t> class, class>
           class Tester,
-          int SIMD_WIDTH, template <typename, typename, int> class FCT,
+          size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TestAllTTSameSize
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     Tester<Byte, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Byte, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
@@ -656,13 +675,13 @@ struct TestAllTTSameSize
 // test of nullary commands
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct Nullary
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "";
+    const std::string args = "";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> cs, cp;
     const char *fmt = TypeInfo<T>::defaultFormat();
@@ -671,8 +690,8 @@ struct Nullary
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         cs = FCT<T, SIMD_WIDTH>::template apply<SerialVec>();
         cp.setVec(FCT<T, SIMD_WIDTH>::template apply<Vec>());
         if (!CMP::cmpVec(cs, cp)) {
@@ -688,8 +707,8 @@ struct Nullary
       printErrorStats(errors, trials);
 #endif
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           Vec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::template apply<Vec>();
           doNotOptimize(res);
         }
@@ -705,13 +724,13 @@ struct Nullary
 // test of unary commands
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct Unary
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v";
+    const std::string args = "v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, cs, cp;
     const char *fmt = TypeInfo<T>::defaultFormat();
@@ -720,8 +739,8 @@ struct Unary
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<T, SIMD_WIDTH>::apply(a);
         cp.setVec(FCT<T, SIMD_WIDTH>::apply(a.getVec()));
@@ -740,8 +759,8 @@ struct Unary
 #endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<T, SIMD_WIDTH> res =
             FCT<T, SIMD_WIDTH>::template apply<Vec>(input);
@@ -759,13 +778,13 @@ struct Unary
 // test of commands with scalar input and vector result
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct Scalar
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "s";
+    const std::string args = "s";
 #if !ONLY_TIME_MEASUREMENT
     T a;
     SerialVec<T, SIMD_WIDTH> cs, cp;
@@ -775,8 +794,8 @@ struct Scalar
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         a  = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
         cs = FCT<T, SIMD_WIDTH>::template apply<SerialVec>(a);
         cp.setVec(FCT<T, SIMD_WIDTH>::template apply<Vec>(a));
@@ -795,8 +814,8 @@ struct Scalar
 #endif
       T input               = T();
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<T, SIMD_WIDTH> res =
             FCT<T, SIMD_WIDTH>::template apply<Vec>(input);
@@ -816,13 +835,13 @@ struct Scalar
 
 // 09. Oct 22 (Jonas Keller): added ScalarUInt64
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct ScalarUInt64
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "s";
+    const std::string args = "s";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> cs, cp;
     uint64_t a;
@@ -833,8 +852,8 @@ struct ScalarUInt64
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         a  = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
         cs = FCT<T, SIMD_WIDTH>::template apply<SerialVec>(a);
         cp.setVec(FCT<T, SIMD_WIDTH>::template apply<Vec>(a));
@@ -853,8 +872,8 @@ struct ScalarUInt64
 #endif
       uint64_t input        = uint64_t();
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<T, SIMD_WIDTH> res =
             FCT<T, SIMD_WIDTH>::template apply<Vec>(input);
@@ -873,13 +892,13 @@ struct ScalarUInt64
 // ===========================================================================
 
 // vector if type T, scalar result of type TRES
-template <typename TRES, typename T, int SIMD_WIDTH,
-          template <typename, int> class FCT, class CMP = CmpEqual>
+template <typename TRES, typename T, size_t SIMD_WIDTH,
+          template <typename, size_t> class FCT, class CMP = CmpEqual>
 struct UnaryScalar
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v";
+    const std::string args = "v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     TRES cs, cp;
@@ -890,8 +909,8 @@ struct UnaryScalar
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<T, SIMD_WIDTH>::apply(a);
         cp = FCT<T, SIMD_WIDTH>::apply(a.getVec());
@@ -910,8 +929,8 @@ struct UnaryScalar
 #endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           TRES res = FCT<T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
@@ -924,24 +943,19 @@ struct UnaryScalar
   }
 };
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct UnaryScalarT : public UnaryScalar<T, T, SIMD_WIDTH, FCT, CMP>
 {};
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
-          class CMP = CmpEqual>
-struct UnaryScalarInt : public UnaryScalar<int, T, SIMD_WIDTH, FCT, CMP>
-{};
-
 // 17. Sep 22 (Jonas Keller): added UnaryScalarUInt64
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct UnaryScalarUInt64
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v";
+    const std::string args = "v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     uint64_t cs, cp;
@@ -952,8 +966,8 @@ struct UnaryScalarUInt64
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<T, SIMD_WIDTH>::apply(a);
         cp = FCT<T, SIMD_WIDTH>::apply(a.getVec());
@@ -972,8 +986,59 @@ struct UnaryScalarUInt64
 #endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+          doNotOptimize(input);
+          uint64_t res = FCT<T, SIMD_WIDTH>::apply(input);
+          doNotOptimize(res);
+        }
+      }
+      struct timespec end = getTimeSpecMonotonic();
+      long int time       = timeSpecDiffNsec(end, start);
+      printTimeStats(time, repeats);
+    }
+  }
+};
+
+// 07. Oct 23 (Jonas Keller): added UnaryScalarBool
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
+          class CMP = CmpEqual>
+struct UnaryScalarBool
+{
+  static void test(size_t repeats, const std::string &pattern)
+  {
+    const std::string args = "v";
+#if !ONLY_TIME_MEASUREMENT
+    SerialVec<T, SIMD_WIDTH> a;
+    const char *fmt    = TypeInfo<T>::defaultFormat();
+    const char *fmtRes = "%d";
+#endif
+    std::string name = FCT<T, SIMD_WIDTH>::name();
+    if (name.find(pattern) != std::string::npos) {
+      printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
+        FCT<T, SIMD_WIDTH>::randomizeInput(a);
+        const bool cs = FCT<T, SIMD_WIDTH>::apply(a);
+        const bool cp = FCT<T, SIMD_WIDTH>::apply(a.getVec());
+        if (!CMP::cmpScalar(cs, cp)) {
+          errors++;
+          if (errors <= PRINT_ERRORS) {
+            printError(name, args);
+            PRINT(fmt, a);
+            PRINTVAL(fmtRes, cs);
+            PRINTVAL(fmtRes, cp);
+          }
+          EXIT;
+        }
+      }
+      printErrorStats(errors, trials);
+#endif
+      Vec<T, SIMD_WIDTH> input;
+      struct timespec start = getTimeSpecMonotonic();
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           uint64_t res = FCT<T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
@@ -992,13 +1057,13 @@ struct UnaryScalarUInt64
 
 // 19. Dec 22 (Jonas Keller): added UnaryUInt8
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct UnaryUInt8
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v";
+    const std::string args = "v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     SerialVec<T, SIMD_WIDTH> cs, cp;
@@ -1010,8 +1075,8 @@ struct UnaryUInt8
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
         b  = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
         cs = FCT<T, SIMD_WIDTH>::apply(a, b);
@@ -1032,8 +1097,8 @@ struct UnaryUInt8
 #endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input, 0);
           doNotOptimize(res);
@@ -1050,13 +1115,13 @@ struct UnaryUInt8
 // test of unary commands with single type template parameter
 // ===========================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct UnaryTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v";
+    const std::string args = "v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     SerialVec<Tout, SIMD_WIDTH> cs, cp;
@@ -1067,8 +1132,8 @@ struct UnaryTemplateType
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<Tout, T, SIMD_WIDTH>::apply(a);
         cp.setVec(FCT<Tout, T, SIMD_WIDTH>::apply(a.getVec()));
@@ -1087,8 +1152,8 @@ struct UnaryTemplateType
 #endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<Tout, SIMD_WIDTH> res = FCT<Tout, T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
@@ -1105,13 +1170,13 @@ struct UnaryTemplateType
 // test of unary commands with single int template parameter and scalar res.
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, int I, int N,
-          template <int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t N,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct UnaryTemplateIntScalar
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v";
+    const std::string args = "v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     T cp, cs;
@@ -1121,8 +1186,8 @@ struct UnaryTemplateIntScalar
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<I, T, SIMD_WIDTH>::apply(a);
         cp = FCT<I, T, SIMD_WIDTH>::apply(a.getVec());
@@ -1141,8 +1206,8 @@ struct UnaryTemplateIntScalar
 #endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           T res = FCT<I, T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
@@ -1158,18 +1223,18 @@ struct UnaryTemplateIntScalar
 };
 
 // end of recursion at I = maxI
-template <typename T, int SIMD_WIDTH, int N,
-          template <int, typename, int> class FCT, class CMP>
+template <typename T, size_t SIMD_WIDTH, size_t N,
+          template <size_t, typename, size_t> class FCT, class CMP>
 struct UnaryTemplateIntScalar<T, SIMD_WIDTH, N, N, FCT, CMP>
 {
-  static void test(int, const std::string &) {}
+  static void test(size_t, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct UnaryTemplateIntScalarMinToMax
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     UnaryTemplateIntScalar<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
                            FCT<1, T, SIMD_WIDTH>::maxI, FCT,
@@ -1181,13 +1246,13 @@ struct UnaryTemplateIntScalarMinToMax
 // test of unary commands with single int template parameter and vector res.
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, int I, int N,
-          template <int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t N,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct UnaryTemplateInt
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v";
+    const std::string args = "v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, cp, cs;
     const char *fmt = TypeInfo<T>::defaultFormat();
@@ -1196,8 +1261,8 @@ struct UnaryTemplateInt
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<I, T, SIMD_WIDTH>::apply(a);
         cp.setVec(FCT<I, T, SIMD_WIDTH>::apply(a.getVec()));
@@ -1216,8 +1281,8 @@ struct UnaryTemplateInt
 #endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<T, SIMD_WIDTH> res = FCT<I, T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
@@ -1233,18 +1298,18 @@ struct UnaryTemplateInt
 };
 
 // end of recursion at I = maxI
-template <typename T, int SIMD_WIDTH, int N,
-          template <int, typename, int> class FCT, class CMP>
+template <typename T, size_t SIMD_WIDTH, size_t N,
+          template <size_t, typename, size_t> class FCT, class CMP>
 struct UnaryTemplateInt<T, SIMD_WIDTH, N, N, FCT, CMP>
 {
-  static void test(int, const std::string &) {}
+  static void test(size_t, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct UnaryTemplateIntMinToMax
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     UnaryTemplateInt<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
                      FCT<1, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
@@ -1259,13 +1324,13 @@ struct UnaryTemplateIntMinToMax
 // 10. Oct 22 (Jonas Keller):
 // added UnaryTemplateInt16 and UnaryTemplateInt16MinToMax
 
-template <typename T, int SIMD_WIDTH, int I, int N,
-          template <int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t N,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct UnaryTemplateInt16
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v";
+    const std::string args = "v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     SerialVec<T, 16> cp, cs;
@@ -1275,8 +1340,8 @@ struct UnaryTemplateInt16
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
         cs = FCT<I, T, SIMD_WIDTH>::apply(a);
         cp.setVec(FCT<I, T, SIMD_WIDTH>::apply(a.getVec()));
@@ -1295,8 +1360,8 @@ struct UnaryTemplateInt16
 #endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<T, 16> res = FCT<I, T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
@@ -1312,18 +1377,18 @@ struct UnaryTemplateInt16
 };
 
 // end of recursion at I = maxI
-template <typename T, int SIMD_WIDTH, int N,
-          template <int, typename, int> class FCT, class CMP>
+template <typename T, size_t SIMD_WIDTH, size_t N,
+          template <size_t, typename, size_t> class FCT, class CMP>
 struct UnaryTemplateInt16<T, SIMD_WIDTH, N, N, FCT, CMP>
 {
-  static void test(int, const std::string &) {}
+  static void test(size_t, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct UnaryTemplateInt16MinToMax
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     UnaryTemplateInt16<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
                        FCT<1, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
@@ -1335,13 +1400,13 @@ struct UnaryTemplateInt16MinToMax
 // test of binary commands
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct Binary
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v,v";
+    const std::string args = "v,v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, b, cs, cp;
     const char *fmt = TypeInfo<T>::defaultFormat();
@@ -1350,8 +1415,8 @@ struct Binary
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<T, SIMD_WIDTH>::randomizeInput(a);
         FCT<T, SIMD_WIDTH>::randomizeInput(b);
         cs = FCT<T, SIMD_WIDTH>::apply(a, b);
@@ -1372,8 +1437,8 @@ struct Binary
 #endif
       Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
           Vec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input1, input2);
@@ -1391,13 +1456,13 @@ struct Binary
 // test of binary commands with single type template parameter
 // ===========================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct BinaryTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v,v";
+    const std::string args = "v,v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, b;
     SerialVec<Tout, SIMD_WIDTH> cs, cp;
@@ -1408,8 +1473,8 @@ struct BinaryTemplateType
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(b);
         cs = FCT<Tout, T, SIMD_WIDTH>::apply(a, b);
@@ -1430,8 +1495,8 @@ struct BinaryTemplateType
 #endif
       Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
           Vec<Tout, SIMD_WIDTH> res =
@@ -1450,14 +1515,14 @@ struct BinaryTemplateType
 // test of commands with unary in and array out w. single type template param.
 // ===========================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct UnaryArrayTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args   = "v,*v";
-    const int nOutVecs = sizeof(Tout) / sizeof(T);
+    const std::string args = "v,*v";
+    const size_t nOutVecs  = sizeof(Tout) / sizeof(T);
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a;
     const char *fmt    = TypeInfo<T>::defaultFormat();
@@ -1472,13 +1537,13 @@ struct UnaryArrayTemplateType
       std::vector<Vec<Tout, SIMD_WIDTH>,
                   typename Vec<Tout, SIMD_WIDTH>::allocator>
         _cp(nOutVecs);
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<Tout, T, SIMD_WIDTH>::apply(a, cs.data());
         FCT<Tout, T, SIMD_WIDTH>::apply(a.getVec(), _cp.data());
         bool foundError = false;
-        for (int io = 0; io < nOutVecs; io++) {
+        for (size_t io = 0; io < nOutVecs; io++) {
           cp[io].setVec(_cp[io]);
           if (!CMP::cmpVec(cs[io], cp[io])) foundError = true;
         }
@@ -1487,7 +1552,7 @@ struct UnaryArrayTemplateType
           if (errors <= PRINT_ERRORS) {
             printError(name, args);
             PRINT(fmt, a);
-            for (int io = 0; io < nOutVecs; io++) {
+            for (size_t io = 0; io < nOutVecs; io++) {
               PRINT(fmtOut, cs[io]);
               PRINT(fmtOut, cp[io]);
             }
@@ -1499,8 +1564,8 @@ struct UnaryArrayTemplateType
 #endif
       Vec<T, SIMD_WIDTH> input;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<Tout, SIMD_WIDTH> res[nOutVecs];
           FCT<Tout, T, SIMD_WIDTH>::apply(input, res);
@@ -1518,14 +1583,14 @@ struct UnaryArrayTemplateType
 // test of commands with array in and vector out
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct Array
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args  = "*v";
-    const int nInVecs = FCT<T, SIMD_WIDTH>::nInputs;
+    const std::string args = "*v";
+    const size_t nInVecs   = FCT<T, SIMD_WIDTH>::nInputs;
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> cs, cp;
     const char *fmt = TypeInfo<T>::defaultFormat();
@@ -1538,9 +1603,9 @@ struct Array
       std::vector<SerialVec<T, SIMD_WIDTH>> a(nInVecs);
       std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
         _a(nInVecs);
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
-        for (int j = 0; j < nInVecs; j++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
+        for (size_t j = 0; j < nInVecs; j++) {
           FCT<T, SIMD_WIDTH>::randomizeInput(a[j]);
           _a[j] = a[j].getVec();
         }
@@ -1550,7 +1615,7 @@ struct Array
           errors++;
           if (errors <= PRINT_ERRORS) {
             printError(name, args);
-            for (int j = 0; j < nInVecs; j++) PRINT(fmt, a[j]);
+            for (size_t j = 0; j < nInVecs; j++) PRINT(fmt, a[j]);
             PRINT(fmt, cs);
             PRINT(fmt, cp);
           }
@@ -1561,8 +1626,8 @@ struct Array
 #endif
       Vec<T, SIMD_WIDTH> input[nInVecs];
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<T, SIMD_WIDTH> res = FCT<T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
@@ -1579,14 +1644,14 @@ struct Array
 // test of commands with array in and vector out w. single templ. type param.
 // ===========================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct ArrayTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args  = "*v";
-    const int nInVecs = FCT<Tout, T, SIMD_WIDTH>::nInputs;
+    const std::string args = "*v";
+    const size_t nInVecs   = FCT<Tout, T, SIMD_WIDTH>::nInputs;
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<Tout, SIMD_WIDTH> cs, cp;
     const char *fmt    = TypeInfo<T>::defaultFormat();
@@ -1600,9 +1665,9 @@ struct ArrayTemplateType
       std::vector<SerialVec<T, SIMD_WIDTH>> a(nInVecs);
       std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
         _a(nInVecs);
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
-        for (int j = 0; j < nInVecs; j++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
+        for (size_t j = 0; j < nInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a[j]);
           _a[j] = a[j].getVec();
         }
@@ -1612,7 +1677,7 @@ struct ArrayTemplateType
           errors++;
           if (errors <= PRINT_ERRORS) {
             printError(name, args);
-            for (int j = 0; j < nInVecs; j++) PRINT(fmt, a[j]);
+            for (size_t j = 0; j < nInVecs; j++) PRINT(fmt, a[j]);
             PRINT(fmtOut, cs);
             PRINT(fmtOut, cp);
           }
@@ -1623,8 +1688,8 @@ struct ArrayTemplateType
 #endif
       Vec<T, SIMD_WIDTH> input[nInVecs];
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<Tout, SIMD_WIDTH> res = FCT<Tout, T, SIMD_WIDTH>::apply(input);
           doNotOptimize(res);
@@ -1641,14 +1706,14 @@ struct ArrayTemplateType
 // test of void commands with array in and array out
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct ArrayArrayVoid
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "*v,*v";
-    const int n      = SIMD_WIDTH / sizeof(T);
+    const std::string args = "*v,*v";
+    const size_t n         = SIMD_WIDTH / sizeof(T);
 #if !ONLY_TIME_MEASUREMENT
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
@@ -1660,9 +1725,9 @@ struct ArrayArrayVoid
       std::vector<SerialVec<T, SIMD_WIDTH>> as(n), cs(n), cp(n);
       std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
         _ap(n), _cp(n);
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
-        for (int j = 0; j < n; j++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
+        for (size_t j = 0; j < n; j++) {
           FCT<T, SIMD_WIDTH>::randomizeInput(as[j]);
           _ap[j] = as[j].getVec();
         }
@@ -1671,7 +1736,7 @@ struct ArrayArrayVoid
         FCT<T, SIMD_WIDTH>::apply(_ap.data(), _cp.data());
         // compare results
         bool equal = true;
-        for (int j = 0; j < n; j++) {
+        for (size_t j = 0; j < n; j++) {
           // assign Vec -> SerialVec
           cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
@@ -1681,9 +1746,9 @@ struct ArrayArrayVoid
           if (errors <= PRINT_ERRORS) {
             printError(name, args);
             // input copy
-            for (int j = 0; j < n; j++) PRINT(fmt, as[j]);
+            for (size_t j = 0; j < n; j++) PRINT(fmt, as[j]);
             // output
-            for (int j = 0; j < n; j++) {
+            for (size_t j = 0; j < n; j++) {
               PRINT(fmt, cs[j]);
               PRINT(fmt, cp[j]);
             }
@@ -1695,8 +1760,8 @@ struct ArrayArrayVoid
 #endif
       Vec<T, SIMD_WIDTH> input[n];
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<T, SIMD_WIDTH> res[n];
           FCT<T, SIMD_WIDTH>::apply(input, res);
@@ -1714,15 +1779,15 @@ struct ArrayArrayVoid
 // test of void commands with array in and array out and single templ. type p.
 // ===========================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct ArrayArrayVoidTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args     = "*v,*v";
-    const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
-    const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
+    const std::string args  = "*v,*v";
+    const size_t numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
+    const size_t numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
 #if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
@@ -1739,9 +1804,9 @@ struct ArrayArrayVoidTemplateType
       std::vector<Vec<Tout, SIMD_WIDTH>,
                   typename Vec<Tout, SIMD_WIDTH>::allocator>
         _cp(numOutVecs);
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
-        for (int j = 0; j < numInVecs; j++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
+        for (size_t j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput(as[j]);
           _ap[j] = as[j].getVec();
         }
@@ -1750,7 +1815,7 @@ struct ArrayArrayVoidTemplateType
         FCT<Tout, T, SIMD_WIDTH>::apply(_ap.data(), _cp.data());
         // compare results
         bool equal = true;
-        for (int j = 0; j < numOutVecs; j++) {
+        for (size_t j = 0; j < numOutVecs; j++) {
           // assign Vec -> SerialVec
           cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
@@ -1760,9 +1825,9 @@ struct ArrayArrayVoidTemplateType
           if (errors <= PRINT_ERRORS) {
             printError(name, args);
             // input
-            for (int j = 0; j < numInVecs; j++) PRINT(fmt, as[j]);
+            for (size_t j = 0; j < numInVecs; j++) PRINT(fmt, as[j]);
             // output
-            for (int j = 0; j < numOutVecs; j++) {
+            for (size_t j = 0; j < numOutVecs; j++) {
               PRINT(fmtOut, cs[j]);
               PRINT(fmtOut, cp[j]);
             }
@@ -1774,8 +1839,8 @@ struct ArrayArrayVoidTemplateType
 #endif
       Vec<T, SIMD_WIDTH> input[numInVecs];
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           Vec<Tout, SIMD_WIDTH> res[numOutVecs];
           FCT<Tout, T, SIMD_WIDTH>::apply(input, res);
@@ -1793,15 +1858,15 @@ struct ArrayArrayVoidTemplateType
 // test of void cmds. w. 1 array and float in, array out, single templ. type p.
 // ===========================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct ArrayDoubleArrayVoidTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args     = "*v,s,*v";
-    const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
-    const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
+    const std::string args  = "*v,s,*v";
+    const size_t numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
+    const size_t numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
 #if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
@@ -1818,10 +1883,10 @@ struct ArrayDoubleArrayVoidTemplateType
       std::vector<Vec<Tout, SIMD_WIDTH>,
                   typename Vec<Tout, SIMD_WIDTH>::allocator>
         _cp(numOutVecs);
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         const auto d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
-        for (int j = 0; j < numInVecs; j++) {
+        for (size_t j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput(as[j]);
           _ap[j] = as[j].getVec();
         }
@@ -1830,7 +1895,7 @@ struct ArrayDoubleArrayVoidTemplateType
         FCT<Tout, T, SIMD_WIDTH>::apply(_ap.data(), d, _cp.data());
         // compare results
         bool equal = true;
-        for (int j = 0; j < numOutVecs; j++) {
+        for (size_t j = 0; j < numOutVecs; j++) {
           // assign Vec -> SerialVec
           cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
@@ -1841,9 +1906,9 @@ struct ArrayDoubleArrayVoidTemplateType
             printError(name, args);
             // input
             printf("d = %g\n", d);
-            for (int j = 0; j < numInVecs; j++) PRINT(fmt, as[j]);
+            for (size_t j = 0; j < numInVecs; j++) PRINT(fmt, as[j]);
             // output
-            for (int j = 0; j < numOutVecs; j++) {
+            for (size_t j = 0; j < numOutVecs; j++) {
               PRINT(fmtOut, cs[j]);
               PRINT(fmtOut, cp[j]);
             }
@@ -1856,8 +1921,8 @@ struct ArrayDoubleArrayVoidTemplateType
       Vec<T, SIMD_WIDTH> input[numInVecs];
       double inputD         = 1.0;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           doNotOptimize(inputD);
           Vec<Tout, SIMD_WIDTH> res[numOutVecs];
@@ -1876,15 +1941,15 @@ struct ArrayDoubleArrayVoidTemplateType
 // test void cmds. w. 1 array and 2 float in, array out, single templ. type p.
 // ===========================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct ArrayDoubleDoubleArrayVoidTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args     = "*v,s,s,*v";
-    const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
-    const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
+    const std::string args  = "*v,s,s,*v";
+    const size_t numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
+    const size_t numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
 #if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
@@ -1901,11 +1966,11 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
       std::vector<Vec<Tout, SIMD_WIDTH>,
                   typename Vec<Tout, SIMD_WIDTH>::allocator>
         _cp(numOutVecs);
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         const auto d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         const auto d2 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
-        for (int j = 0; j < numInVecs; j++) {
+        for (size_t j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput(as[j]);
           _ap[j] = as[j].getVec();
         }
@@ -1914,7 +1979,7 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
         FCT<Tout, T, SIMD_WIDTH>::apply(_ap.data(), d1, d2, _cp.data());
         // compare results
         bool equal = true;
-        for (int j = 0; j < numOutVecs; j++) {
+        for (size_t j = 0; j < numOutVecs; j++) {
           // assign Vec -> SerialVec
           cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
@@ -1925,9 +1990,9 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
             printError(name, args);
             // input
             printf("d1 = %g, d2 = %g\n", d1, d2);
-            for (int j = 0; j < numInVecs; j++) PRINT(fmt, as[j]);
+            for (size_t j = 0; j < numInVecs; j++) PRINT(fmt, as[j]);
             // output
-            for (int j = 0; j < numOutVecs; j++) {
+            for (size_t j = 0; j < numOutVecs; j++) {
               PRINT(fmtOut, cs[j]);
               PRINT(fmtOut, cp[j]);
             }
@@ -1940,8 +2005,8 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
       Vec<T, SIMD_WIDTH> input[numInVecs];
       double inputD1 = 1.0, inputD2 = 1.0;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           doNotOptimize(inputD1);
           doNotOptimize(inputD2);
@@ -1961,15 +2026,15 @@ struct ArrayDoubleDoubleArrayVoidTemplateType
 // test of void cmds. w. 2 arrays and float in, array out, single templ. type p.
 // ===========================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct ArrayArrayDoubleArrayVoidTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args     = "*v,*v,s,*v";
-    const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
-    const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
+    const std::string args  = "*v,*v,s,*v";
+    const size_t numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
+    const size_t numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
 #if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
@@ -1986,10 +2051,10 @@ struct ArrayArrayDoubleArrayVoidTemplateType
       std::vector<Vec<Tout, SIMD_WIDTH>,
                   typename Vec<Tout, SIMD_WIDTH>::allocator>
         _cp(numOutVecs);
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         const auto d = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
-        for (int j = 0; j < numInVecs; j++) {
+        for (size_t j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput1(as[j]);
           _ap[j] = as[j].getVec();
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput2(bs[j]);
@@ -2000,7 +2065,7 @@ struct ArrayArrayDoubleArrayVoidTemplateType
         FCT<Tout, T, SIMD_WIDTH>::apply(_ap.data(), _bp.data(), d, _cp.data());
         // compare results
         bool equal = true;
-        for (int j = 0; j < numOutVecs; j++) {
+        for (size_t j = 0; j < numOutVecs; j++) {
           // assign Vec -> SerialVec
           cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
@@ -2011,12 +2076,12 @@ struct ArrayArrayDoubleArrayVoidTemplateType
             printError(name, args);
             // input
             printf("d = %g\n", d);
-            for (int j = 0; j < numInVecs; j++) {
+            for (size_t j = 0; j < numInVecs; j++) {
               PRINT(fmt, as[j]);
               PRINT(fmt, bs[j]);
             }
             // output
-            for (int j = 0; j < numOutVecs; j++) {
+            for (size_t j = 0; j < numOutVecs; j++) {
               PRINT(fmtOut, cs[j]);
               PRINT(fmtOut, cp[j]);
             }
@@ -2029,8 +2094,8 @@ struct ArrayArrayDoubleArrayVoidTemplateType
       Vec<T, SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
       double inputD         = 1.0;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
           doNotOptimize(inputD);
@@ -2050,15 +2115,15 @@ struct ArrayArrayDoubleArrayVoidTemplateType
 // test void cmds. w. 2 arrays and 2 float in, array out, single templ. type p.
 // ===========================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct ArrayArrayDoubleDoubleArrayVoidTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args     = "*v,*v,s,s,*v";
-    const int numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
-    const int numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
+    const std::string args  = "*v,*v,s,s,*v";
+    const size_t numInVecs  = FCT<Tout, T, SIMD_WIDTH>::numInVecs;
+    const size_t numOutVecs = FCT<Tout, T, SIMD_WIDTH>::numOutVecs;
 #if !ONLY_TIME_MEASUREMENT
     const char *fmt    = TypeInfo<T>::defaultFormat();
     const char *fmtOut = TypeInfo<Tout>::defaultFormat();
@@ -2075,11 +2140,11 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
       std::vector<Vec<Tout, SIMD_WIDTH>,
                   typename Vec<Tout, SIMD_WIDTH>::allocator>
         _cp(numOutVecs);
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         const auto d1 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
         const auto d2 = FCT<Tout, T, SIMD_WIDTH>::randomizeInputFloat();
-        for (int j = 0; j < numInVecs; j++) {
+        for (size_t j = 0; j < numInVecs; j++) {
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput1(as[j]);
           _ap[j] = as[j].getVec();
           FCT<Tout, T, SIMD_WIDTH>::randomizeInput2(bs[j]);
@@ -2092,7 +2157,7 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
                                         _cp.data());
         // compare results
         bool equal = true;
-        for (int j = 0; j < numOutVecs; j++) {
+        for (size_t j = 0; j < numOutVecs; j++) {
           // assign Vec -> SerialVec
           cp[j].setVec(_cp[j]);
           if (!CMP::cmpVec(cs[j], cp[j])) equal = false;
@@ -2103,12 +2168,12 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
             printError(name, args);
             // input
             printf("d1 = %g, d2 = %g\n", d1, d2);
-            for (int j = 0; j < numInVecs; j++) {
+            for (size_t j = 0; j < numInVecs; j++) {
               PRINT(fmt, as[j]);
               PRINT(fmt, bs[j]);
             }
             // output
-            for (int j = 0; j < numOutVecs; j++) {
+            for (size_t j = 0; j < numOutVecs; j++) {
               PRINT(fmtOut, cs[j]);
               PRINT(fmtOut, cp[j]);
             }
@@ -2121,8 +2186,8 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
       Vec<T, SIMD_WIDTH> input1[numInVecs], input2[numInVecs];
       double inputD1 = 1.0, inputD2 = 1.0;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
           doNotOptimize(inputD1);
@@ -2144,14 +2209,14 @@ struct ArrayArrayDoubleDoubleArrayVoidTemplateType
 // test of void commands with array in/out and single int template parameters
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, int I, int N,
-          template <int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t N,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct ArrayVoidTemplateInt
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args  = "*v";
-    const int numVecs = FCT<I, T, SIMD_WIDTH>::numVecs;
+    const std::string args = "*v";
+    const size_t numVecs   = FCT<I, T, SIMD_WIDTH>::numVecs;
 #if !ONLY_TIME_MEASUREMENT
     const char *fmt = TypeInfo<T>::defaultFormat();
 #endif
@@ -2164,9 +2229,9 @@ struct ArrayVoidTemplateInt
         a(numVecs);
       std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
         _ap(numVecs);
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
-        for (int j = 0; j < numVecs; j++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
+        for (size_t j = 0; j < numVecs; j++) {
           FCT<N, T, SIMD_WIDTH>::randomizeInput(as[j]);
           _ap[j] = as[j].getVec();
           // make a copy of the input
@@ -2177,7 +2242,7 @@ struct ArrayVoidTemplateInt
         FCT<I, T, SIMD_WIDTH>::apply(_ap.data());
         // compare results
         bool equal = true;
-        for (int j = 0; j < numVecs; j++) {
+        for (size_t j = 0; j < numVecs; j++) {
           // assign Vec -> SerialVec
           ap[j].setVec(_ap[j]);
           if (!CMP::cmpVec(as[j], ap[j])) equal = false;
@@ -2187,9 +2252,9 @@ struct ArrayVoidTemplateInt
           if (errors <= PRINT_ERRORS) {
             printError(name, args);
             // input copy
-            for (int j = 0; j < numVecs; j++) PRINT(fmt, a[j]);
+            for (size_t j = 0; j < numVecs; j++) PRINT(fmt, a[j]);
             // output
-            for (int j = 0; j < numVecs; j++) {
+            for (size_t j = 0; j < numVecs; j++) {
               PRINT(fmt, as[j]);
               PRINT(fmt, ap[j]);
             }
@@ -2201,8 +2266,8 @@ struct ArrayVoidTemplateInt
 #endif
       Vec<T, SIMD_WIDTH> input[numVecs];
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input);
           FCT<I, T, SIMD_WIDTH>::apply(input);
           doNotOptimize(input);
@@ -2217,18 +2282,18 @@ struct ArrayVoidTemplateInt
   }
 };
 
-template <typename T, int SIMD_WIDTH, int N,
-          template <int, typename, int> class FCT, class CMP>
+template <typename T, size_t SIMD_WIDTH, size_t N,
+          template <size_t, typename, size_t> class FCT, class CMP>
 struct ArrayVoidTemplateInt<T, SIMD_WIDTH, N, N, FCT, CMP>
 {
-  static void test(int, const std::string &) {}
+  static void test(size_t, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct ArrayVoidTemplateIntMinToMax
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     ArrayVoidTemplateInt<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
                          FCT<1, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
@@ -2240,13 +2305,13 @@ struct ArrayVoidTemplateIntMinToMax
 // test of binary commands with single int template parameter and vector res.
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, int I, int N,
-          template <int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t N,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct BinaryTemplateInt
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v,v";
+    const std::string args = "v,v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, b, cp, cs;
     const char *fmt = TypeInfo<T>::defaultFormat();
@@ -2255,8 +2320,8 @@ struct BinaryTemplateInt
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<I, T, SIMD_WIDTH>::randomizeInput(b);
         cs = FCT<I, T, SIMD_WIDTH>::apply(a, b);
@@ -2277,8 +2342,8 @@ struct BinaryTemplateInt
 #endif
       Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
           Vec<T, SIMD_WIDTH> result =
@@ -2296,18 +2361,18 @@ struct BinaryTemplateInt
 };
 
 // end of recursion at I = maxI
-template <typename T, int SIMD_WIDTH, int N,
-          template <int, typename, int> class FCT, class CMP>
+template <typename T, size_t SIMD_WIDTH, size_t N,
+          template <size_t, typename, size_t> class FCT, class CMP>
 struct BinaryTemplateInt<T, SIMD_WIDTH, N, N, FCT, CMP>
 {
-  static void test(int, const std::string &) {}
+  static void test(size_t, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct BinaryTemplateIntMinToMax
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     BinaryTemplateInt<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
                       FCT<1, T, SIMD_WIDTH>::maxI, FCT, CMP>::test(repeats,
@@ -2319,13 +2384,13 @@ struct BinaryTemplateIntMinToMax
 // test of binary commands with two vector outputs and int template arg.
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, int I, int IMAX,
-          template <int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t IMAX,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct BinaryBinaryTemplateInt
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v,v,v&,v&";
+    const std::string args = "v,v,v&,v&";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, b, cs, cp, ds, dp;
     Vec<T, SIMD_WIDTH> _cp, _dp;
@@ -2335,8 +2400,8 @@ struct BinaryBinaryTemplateInt
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<I, T, SIMD_WIDTH>::randomizeInput(b);
         FCT<I, T, SIMD_WIDTH>::apply(a, b, cs, ds);
@@ -2361,8 +2426,8 @@ struct BinaryBinaryTemplateInt
 #endif
       Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
           Vec<T, SIMD_WIDTH> result1, result2;
@@ -2381,18 +2446,18 @@ struct BinaryBinaryTemplateInt
 };
 
 // end of recursion at I = IMAX
-template <typename T, int SIMD_WIDTH, int IMAX,
-          template <int, typename, int> class FCT, class CMP>
+template <typename T, size_t SIMD_WIDTH, size_t IMAX,
+          template <size_t, typename, size_t> class FCT, class CMP>
 struct BinaryBinaryTemplateInt<T, SIMD_WIDTH, IMAX, IMAX, FCT, CMP>
 {
-  static void test(int, const std::string &) {}
+  static void test(size_t, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct BinaryBinaryTemplateIntMinToMax
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     BinaryBinaryTemplateInt<T, SIMD_WIDTH, FCT<1, T, SIMD_WIDTH>::minI,
                             FCT<1, T, SIMD_WIDTH>::maxI, FCT,
@@ -2404,13 +2469,14 @@ struct BinaryBinaryTemplateIntMinToMax
 // test of binary commands with two int template parameters and vector res.
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH, int I, int IMAX, int J, int JMAX,
-          template <int, int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t IMAX, size_t J,
+          size_t JMAX, template <size_t, size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct BinaryTemplateIntInt
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v,v";
+    const std::string args = "v,v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, b, cp, cs;
     const char *fmt = TypeInfo<T>::defaultFormat();
@@ -2419,8 +2485,8 @@ struct BinaryTemplateIntInt
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<I, J, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<I, J, T, SIMD_WIDTH>::randomizeInput(b);
         cs = FCT<I, J, T, SIMD_WIDTH>::apply(a, b);
@@ -2441,8 +2507,8 @@ struct BinaryTemplateIntInt
 #endif
       Vec<T, SIMD_WIDTH> input1, input2;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
           Vec<T, SIMD_WIDTH> result =
@@ -2462,18 +2528,19 @@ struct BinaryTemplateIntInt
 
 // end of recursion at J = JMAX for arbitrary I
 // assumes that I changes fastest and J changes slowest
-template <typename T, int SIMD_WIDTH, int I, int IMAX, int JMAX,
-          template <int, int, typename, int> class FCT, class CMP>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t IMAX, size_t JMAX,
+          template <size_t, size_t, typename, size_t> class FCT, class CMP>
 struct BinaryTemplateIntInt<T, SIMD_WIDTH, I, IMAX, JMAX, JMAX, FCT, CMP>
 {
-  static void test(int, const std::string &) {}
+  static void test(size_t, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH,
-          template <int, int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH,
+          template <size_t, size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct BinaryTemplateIntIntMinToMax
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     BinaryTemplateIntInt<
       T, SIMD_WIDTH, FCT<0, 0, T, SIMD_WIDTH>::minI,
@@ -2486,13 +2553,13 @@ struct BinaryTemplateIntIntMinToMax
 // test of ternary commands with condition arg. & single type template param.
 // ===========================================================================
 
-template <typename Tcond, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tcond, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct TernaryConditionTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
-    std::string args = "v,v,v";
+    const std::string args = "v,v,v";
 #if !ONLY_TIME_MEASUREMENT
     SerialVec<T, SIMD_WIDTH> a, b;
     SerialVec<Tcond, SIMD_WIDTH> cond;
@@ -2504,8 +2571,8 @@ struct TernaryConditionTemplateType
     if (name.find(pattern) != std::string::npos) {
       printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-      int errors = 0, trials = 0;
-      for (int i = 0; i < repeats; i++, trials++) {
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
         FCT<Tcond, T, SIMD_WIDTH>::randomizeCond(cond);
         FCT<Tcond, T, SIMD_WIDTH>::randomizeInput(a);
         FCT<Tcond, T, SIMD_WIDTH>::randomizeInput(b);
@@ -2530,8 +2597,8 @@ struct TernaryConditionTemplateType
       Vec<T, SIMD_WIDTH> input1, input2;
       Vec<Tcond, SIMD_WIDTH> inputCond;
       struct timespec start = getTimeSpecMonotonic();
-      for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-        for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
           doNotOptimize(input1);
           doNotOptimize(input2);
           doNotOptimize(inputCond);

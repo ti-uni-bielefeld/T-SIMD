@@ -71,19 +71,19 @@ namespace auto_test {
 // argument
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterMaskUnary
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,m,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> src, a;
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(src);
@@ -113,8 +113,8 @@ struct TesterMaskUnary
     Vec<T, SIMD_WIDTH> inputSrc, input;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
         doNotOptimize(input);
         doNotOptimize(inputMask);
@@ -133,19 +133,19 @@ struct TesterMaskUnary
 // test for masked functions with a mask and one regular vector argument
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterMaskZUnary
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a;
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
@@ -171,8 +171,8 @@ struct TesterMaskZUnary
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
         Vec<T, SIMD_WIDTH> result =
@@ -191,19 +191,19 @@ struct TesterMaskZUnary
 // arguments
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterMaskBinary
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,m,v,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> src, a, b;
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(src);
@@ -235,8 +235,8 @@ struct TesterMaskBinary
     Vec<T, SIMD_WIDTH> inputSrc, input1, input2;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
         doNotOptimize(input1);
         doNotOptimize(input2);
@@ -256,19 +256,19 @@ struct TesterMaskBinary
 // test for masked functions with a mask and two regular vector arguments
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterMaskZBinary
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a, b;
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
@@ -297,8 +297,8 @@ struct TesterMaskZBinary
     Vec<T, SIMD_WIDTH> input1, input2;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
         doNotOptimize(input2);
         doNotOptimize(inputMask);
@@ -317,19 +317,19 @@ struct TesterMaskZBinary
 // test for masked functions with one mask and two vector arguments
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterMaskConditionBinary
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a, b;
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
@@ -358,8 +358,8 @@ struct TesterMaskConditionBinary
     Vec<T, SIMD_WIDTH> input1, input2;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
         doNotOptimize(input2);
         doNotOptimize(inputMask);
@@ -378,19 +378,19 @@ struct TesterMaskConditionBinary
 // test for masked functions with one mask and one vector argument
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterMaskConditionUnary
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a;
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
@@ -416,8 +416,8 @@ struct TesterMaskConditionUnary
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
         Vec<T, SIMD_WIDTH> result =
@@ -436,19 +436,19 @@ struct TesterMaskConditionUnary
 // argument and one type template parameter
 // =============================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct TesterMaskUnaryTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,m,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<Tout, SIMD_WIDTH> src;
       SerialVec<T, SIMD_WIDTH> a;
       SerialMask<T, SIMD_WIDTH> k;
@@ -480,8 +480,8 @@ struct TesterMaskUnaryTemplateType
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
         doNotOptimize(input);
         doNotOptimize(inputMask);
@@ -501,19 +501,19 @@ struct TesterMaskUnaryTemplateType
 // and one type template parameter
 // =============================================================================
 
-template <typename Tout, typename T, int SIMD_WIDTH,
-          template <typename, typename, int> class FCT, class CMP = CmpEqual>
+template <typename Tout, typename T, size_t SIMD_WIDTH,
+          template <typename, typename, size_t> class FCT, class CMP = CmpEqual>
 struct TesterMaskZUnaryTemplateType
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<Tout, T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a;
       SerialMask<T, SIMD_WIDTH> k;
       FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
@@ -540,8 +540,8 @@ struct TesterMaskZUnaryTemplateType
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
         Vec<Tout, SIMD_WIDTH> result =
@@ -559,19 +559,19 @@ struct TesterMaskZUnaryTemplateType
 // test for masked functions with a vector src, a mask and one scalar argument
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterMaskScalar
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,m,s";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> src;
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(src);
@@ -601,8 +601,8 @@ struct TesterMaskScalar
     Mask<T, SIMD_WIDTH> inputMask;
     T inputScalar         = T();
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputSrc);
         doNotOptimize(input);
         doNotOptimize(inputMask);
@@ -622,19 +622,19 @@ struct TesterMaskScalar
 // test for masked functions with a mask and one scalar argument
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterMaskZScalar
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,s";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       T a = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
@@ -660,8 +660,8 @@ struct TesterMaskZScalar
     Mask<T, SIMD_WIDTH> inputMask;
     T inputScalar         = T();
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
         doNotOptimize(inputScalar);
         Vec<T, SIMD_WIDTH> result =
@@ -680,19 +680,19 @@ struct TesterMaskZScalar
 // a mask
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterMaskCmp
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
       SerialVec<T, SIMD_WIDTH> a, b;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
@@ -722,8 +722,8 @@ struct TesterMaskCmp
     Vec<T, SIMD_WIDTH> input1, input2;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
         doNotOptimize(input2);
         doNotOptimize(inputMask);
@@ -744,19 +744,19 @@ struct TesterMaskCmp
 // test for functions with two vector arguments that return a mask
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterCmpMask
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a, b;
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
       FCT<T, SIMD_WIDTH>::randomizeInput(b);
@@ -781,8 +781,8 @@ struct TesterCmpMask
 
     Vec<T, SIMD_WIDTH> input1, input2;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input1);
         doNotOptimize(input2);
         Mask<T, SIMD_WIDTH> result =
@@ -798,28 +798,29 @@ struct TesterCmpMask
 
 // =============================================================================
 // test for masked functions with a mask and one vector argument that returns
-// an int
+// a bool
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
-struct TesterMaskUnaryInt
+struct TesterMaskUnaryBool
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
       SerialVec<T, SIMD_WIDTH> a;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
-      int cs = FCT<T, SIMD_WIDTH>::template apply(k, a);
-      int cp = FCT<T, SIMD_WIDTH>::template apply(k.getMask(), a.getVec());
+      const bool cs = FCT<T, SIMD_WIDTH>::template apply(k, a);
+      const bool cp =
+        FCT<T, SIMD_WIDTH>::template apply(k.getMask(), a.getVec());
       if (!CMP::cmpScalar(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -838,11 +839,11 @@ struct TesterMaskUnaryInt
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
-        int result = FCT<T, SIMD_WIDTH>::template apply(inputMask, input);
+        size_t result = FCT<T, SIMD_WIDTH>::template apply(inputMask, input);
         doNotOptimize(result);
       }
     }
@@ -856,19 +857,19 @@ struct TesterMaskUnaryInt
 // test for unary mask functions
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterUnaryK
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       SerialMask<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::template apply(k);
@@ -890,8 +891,8 @@ struct TesterUnaryK
 
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
         Mask<T, SIMD_WIDTH> result =
           FCT<T, SIMD_WIDTH>::template apply(inputMask);
@@ -908,19 +909,19 @@ struct TesterUnaryK
 // test for binary mask functions
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterBinaryK
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,m";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k, l;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       FCT<T, SIMD_WIDTH>::randomizeInput(l);
@@ -944,8 +945,8 @@ struct TesterBinaryK
 
     Mask<T, SIMD_WIDTH> inputMask1, inputMask2;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask1);
         doNotOptimize(inputMask2);
         Mask<T, SIMD_WIDTH> result =
@@ -963,22 +964,22 @@ struct TesterBinaryK
 // test for binary mask functions with bool return type
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterBinaryBoolK
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,m";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
+    size_t errors = 0, trials = 0;
     SerialMask<T, SIMD_WIDTH> k, l;
     FCT<T, SIMD_WIDTH>::randomizeInput(k);
     FCT<T, SIMD_WIDTH>::randomizeInput(l);
-    for (int i = 0; i < repeats; i++, trials++) {
+    for (size_t i = 0; i < repeats; i++, trials++) {
       bool cs = FCT<T, SIMD_WIDTH>::template apply(k, l);
       bool cp = FCT<T, SIMD_WIDTH>::template apply(k.getMask(), l.getMask());
       if (!CMP::cmpScalar(cs, cp)) {
@@ -998,8 +999,8 @@ struct TesterBinaryBoolK
 
     Mask<T, SIMD_WIDTH> inputMask1, inputMask2;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / 1000; i++) {
-      for (int j = 0; j < 1000; j++) {
+    for (size_t i = 0; i < repeats / 1000; i++) {
+      for (size_t j = 0; j < 1000; j++) {
         doNotOptimize(inputMask1);
         doNotOptimize(inputMask2);
         bool result =
@@ -1017,11 +1018,11 @@ struct TesterBinaryBoolK
 // test for unary mask functions with bool return type
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterUnaryBoolK
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
 
@@ -1029,10 +1030,10 @@ struct TesterUnaryBoolK
     std::string args = "m";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
+    size_t errors = 0, trials = 0;
     SerialMask<T, SIMD_WIDTH> k;
     FCT<T, SIMD_WIDTH>::randomizeInput(k);
-    for (int i = 0; i < repeats; i++, trials++) {
+    for (size_t i = 0; i < repeats; i++, trials++) {
       bool cs = FCT<T, SIMD_WIDTH>::template apply(k);
       bool cp = FCT<T, SIMD_WIDTH>::template apply(k.getMask());
       if (!CMP::cmpScalar(cs, cp)) {
@@ -1051,8 +1052,8 @@ struct TesterUnaryBoolK
 
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / 1000; i++) {
-      for (int j = 0; j < 1000; j++) {
+    for (size_t i = 0; i < repeats / 1000; i++) {
+      for (size_t j = 0; j < 1000; j++) {
         doNotOptimize(inputMask);
         bool result = FCT<T, SIMD_WIDTH>::template apply(inputMask);
         doNotOptimize(result);
@@ -1069,19 +1070,19 @@ struct TesterUnaryBoolK
 // with one int template parameter
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, int I, int IMAX,
-          template <int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t IMAX,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct TesterMaskUnaryTI
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "v,m,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> src, a;
       SerialMask<T, SIMD_WIDTH> k;
       FCT<I, T, SIMD_WIDTH>::randomizeInput(src);
@@ -1111,8 +1112,8 @@ struct TesterMaskUnaryTI
     Vec<T, SIMD_WIDTH> input, inputSrc;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputSrc);
         doNotOptimize(inputMask);
@@ -1131,18 +1132,18 @@ struct TesterMaskUnaryTI
 };
 
 // end of recursion at I = IMAX
-template <typename T, int SIMD_WIDTH, int IMAX,
-          template <int, typename, int> class FCT, class CMP>
+template <typename T, size_t SIMD_WIDTH, size_t IMAX,
+          template <size_t, typename, size_t> class FCT, class CMP>
 struct TesterMaskUnaryTI<T, SIMD_WIDTH, IMAX, IMAX, FCT, CMP>
 {
-  static void test(int, const std::string &) {}
+  static void test(size_t, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct TesterMaskUnaryTIMinToMax
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TesterMaskUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
                       FCT<0, T, SIMD_WIDTH>::maxI, FCT>::test(repeats, pattern);
@@ -1154,19 +1155,19 @@ struct TesterMaskUnaryTIMinToMax
 // with one int template parameter
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, int I, int IMAX,
-          template <int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t IMAX,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct TesterMaskZUnaryTI
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m,v";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialVec<T, SIMD_WIDTH> a;
       SerialMask<T, SIMD_WIDTH> k;
       FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
@@ -1192,8 +1193,8 @@ struct TesterMaskZUnaryTI
     Vec<T, SIMD_WIDTH> input;
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
         Vec<T, SIMD_WIDTH> result =
@@ -1211,18 +1212,18 @@ struct TesterMaskZUnaryTI
 };
 
 // end of recursion at I = IMAX
-template <typename T, int SIMD_WIDTH, int IMAX,
-          template <int, typename, int> class FCT, class CMP>
+template <typename T, size_t SIMD_WIDTH, size_t IMAX,
+          template <size_t, typename, size_t> class FCT, class CMP>
 struct TesterMaskZUnaryTI<T, SIMD_WIDTH, IMAX, IMAX, FCT, CMP>
 {
-  static void test(int, const std::string &) {}
+  static void test(size_t, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct TesterMaskZUnaryTIMinToMax
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TesterMaskZUnaryTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
                        FCT<0, T, SIMD_WIDTH>::maxI, FCT>::test(repeats,
@@ -1234,19 +1235,19 @@ struct TesterMaskZUnaryTIMinToMax
 // test for unary mask functions with one int template parameter
 // =============================================================================
 
-template <typename T, int SIMD_WIDTH, int I, int IMAX,
-          template <int, typename, int> class FCT, class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH, size_t I, size_t IMAX,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct TesterUnaryKTI
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<I, T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "m";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
       FCT<I, T, SIMD_WIDTH>::randomizeInput(k);
       SerialMask<T, SIMD_WIDTH> cs = FCT<I, T, SIMD_WIDTH>::template apply(k);
@@ -1268,8 +1269,8 @@ struct TesterUnaryKTI
 
     Mask<T, SIMD_WIDTH> inputMask;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
         Mask<T, SIMD_WIDTH> result =
           FCT<I, T, SIMD_WIDTH>::template apply(inputMask);
@@ -1286,18 +1287,18 @@ struct TesterUnaryKTI
 };
 
 // end of recursion at I = IMAX
-template <typename T, int SIMD_WIDTH, int IMAX,
-          template <int, typename, int> class FCT, class CMP>
+template <typename T, size_t SIMD_WIDTH, size_t IMAX,
+          template <size_t, typename, size_t> class FCT, class CMP>
 struct TesterUnaryKTI<T, SIMD_WIDTH, IMAX, IMAX, FCT, CMP>
 {
-  static void test(int, const std::string &) {}
+  static void test(size_t, const std::string &) {}
 };
 
-template <typename T, int SIMD_WIDTH, template <int, typename, int> class FCT,
-          class CMP = CmpEqual>
+template <typename T, size_t SIMD_WIDTH,
+          template <size_t, typename, size_t> class FCT, class CMP = CmpEqual>
 struct TesterUnaryKTIMinToMax
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     TesterUnaryKTI<T, SIMD_WIDTH, FCT<0, T, SIMD_WIDTH>::minI,
                    FCT<0, T, SIMD_WIDTH>::maxI, FCT>::test(repeats, pattern);
@@ -1305,19 +1306,19 @@ struct TesterUnaryKTIMinToMax
 };
 
 // 28. Dec 22 (Jonas Keller): added TesterIntToMask
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT,
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TesterIntToMask
 {
-  static void test(int repeats, const std::string &pattern)
+  static void test(size_t repeats, const std::string &pattern)
   {
     std::string name = FCT<T, SIMD_WIDTH>::name();
     if (name.find(pattern) == std::string::npos) { return; }
     std::string args = "i";
     printInfo(name, args);
 #if !ONLY_TIME_MEASUREMENT
-    int errors = 0, trials = 0;
-    for (int i = 0; i < repeats; i++, trials++) {
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
       unsigned int k = FCT<T, SIMD_WIDTH>::randomizeInputUInt();
       SerialMask<T, SIMD_WIDTH> cs =
         FCT<T, SIMD_WIDTH>::template apply<SerialMask>(k);
@@ -1339,8 +1340,8 @@ struct TesterIntToMask
 
     int input             = 0;
     struct timespec start = getTimeSpecMonotonic();
-    for (int i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
-      for (int j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         Mask<T, SIMD_WIDTH> result =
           FCT<T, SIMD_WIDTH>::template apply<Mask>(input);

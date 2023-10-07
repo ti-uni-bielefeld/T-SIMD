@@ -27,6 +27,7 @@
 #ifndef SIMD_DEFS_H_
 #define SIMD_DEFS_H_
 
+#include <cstring>
 #include <iostream>
 
 // TODO: implement and test for other compilers
@@ -185,14 +186,36 @@
   } u;                                                                         \
   u.i = SOURCE;                                                                \
   return u.v[RETELEM];
-#else
-// ========== solution with memcpy ==========
+#elif 0
+// ========== solution with memcpy in a macro ==========
 // recommended, hopefully optimized away
 #define SIMD_RETURN_REINTERPRET_INT(NEWTYPE, SOURCE, RETELEM)                  \
   NEWTYPE v[sizeof(Int) / sizeof(NEWTYPE)];                                    \
   Int i = SOURCE;                                                              \
   memcpy(v, &i, sizeof(v));                                                    \
   return v[RETELEM];
+#else
+// ========== solution with memcpy in a function ==========
+namespace simd {
+namespace internal {
+template <typename Tout, typename Tin>
+SIMD_INLINE Tout bit_cast(Tin in)
+{
+  static_assert(std::is_trivially_copyable<Tout>::value,
+                "Tout must be trivially copyable");
+  static_assert(std::is_trivially_copyable<Tin>::value,
+                "Tin must be trivially copyable");
+  Tout out;
+  // set out to zero for padding in case sizeof(in) < sizeof(out)
+  std::memset(&out, 0, sizeof(out));
+  std::memcpy(&out, &in, std::min(sizeof(in), sizeof(out)));
+  return out;
+}
+} // namespace internal
+} // namespace simd
+#define SIMD_RETURN_REINTERPRET_INT(NEWTYPE, SOURCE, RETELEM)                  \
+  static_assert(RETELEM == 0, "");                                             \
+  return ::simd::internal::bit_cast<NEWTYPE>(SOURCE);
 #endif
 
 // macros for handling multiples of a power of 2
@@ -213,14 +236,26 @@
 // are required to hold NDATA elements
 // FLOOR: number of completely filled SIMD vectors (excess elements may exist)
 // CEIL: number of SIMD vectors required to hold all elements (some unused)
-#define SIMD_VECTORS_FLOOR(NSIMD, NDATA) (unsigned(NDATA) / unsigned(NSIMD))
+#define SIMD_VECTORS_FLOOR(NSIMD, NDATA) (size_t(NDATA) / size_t(NSIMD))
 #define SIMD_VECTORS_CEIL(NSIMD, NDATA)                                        \
-  ((unsigned(NDATA) + (unsigned(NSIMD) - 1u)) / unsigned(NSIMD))
+  ((size_t(NDATA) + (size_t(NSIMD) - 1ul)) / size_t(NSIMD))
 
 // 29. Mar 23 (Jonas Keller): added SIMD_ENABLE_IF macro
 
 // macros to make enable_if SFINAE more convenient and readable
 #define SIMD_ENABLE_IF(EXPR) typename = typename std::enable_if<(EXPR)>::type
+
+// 26. Sep 23 (Jonas Keller): added SIMD_IF_CONSTEXPR macro
+
+// Macro for if's that can be evaluated at compile time.
+// Defined as "if constexpr" in C++17, otherwise as a regular "if".
+// If "constexpr if" is not available the compiler should still optimize the
+// regular "if" away since the condition is known at compile time.
+#ifdef __cpp_if_constexpr
+#define SIMD_IF_CONSTEXPR if constexpr
+#else
+#define SIMD_IF_CONSTEXPR if
+#endif
 
 // 08. Apr 23 (Jonas Keller): added SIMD_CHECK_ALIGNMENT macro
 

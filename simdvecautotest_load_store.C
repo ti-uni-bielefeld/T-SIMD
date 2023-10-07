@@ -98,7 +98,7 @@ void fillPageWithRandomData(void *page)
                   std::bind(std::rand));
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 SerialVec<T, SIMD_WIDTH> getRandomSerialVec()
 {
   SerialVec<T, SIMD_WIDTH> sVec;
@@ -106,7 +106,7 @@ SerialVec<T, SIMD_WIDTH> getRandomSerialVec()
   return sVec;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 SerialMask<T, SIMD_WIDTH> getRandomSerialMask()
 {
   SerialMask<T, SIMD_WIDTH> sMask;
@@ -114,7 +114,7 @@ SerialMask<T, SIMD_WIDTH> getRandomSerialMask()
   return sMask;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 long getRandomPageOffset(const long alignment = 1)
 {
   // get random number between 0 and getPageSize() - SIMD_WIDTH - 1 with
@@ -123,14 +123,14 @@ long getRandomPageOffset(const long alignment = 1)
   return (preAlignment / alignment) * alignment;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 long getRandomPageOffsetWithMask(const SerialMask<T, SIMD_WIDTH> &mask,
                                  const long alignment = 1)
 {
-  int numElems = mask.bits;
+  size_t numElems = mask.bits;
   while (numElems >= 1 && !mask[numElems - 1]) { --numElems; }
 
-  int numBytes = numElems * sizeof(T);
+  const size_t numBytes = numElems * sizeof(T);
 
   // get random number between 0 and getPageSize() - numBytes - 1 with
   // alignment
@@ -161,28 +161,28 @@ void printPageDiff(const void *const pageSerial, const void *const pageSIMD)
   std::cout << "Pages are equal." << std::endl;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 void printVec(const SerialVec<T, SIMD_WIDTH> &vec)
 {
-  for (int i = 0; i < vec.elems; ++i) { std::cout << vec[i] << " "; }
+  for (size_t i = 0; i < vec.elems; ++i) { std::cout << vec[i] << " "; }
   std::cout << std::endl;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 void printMask(const SerialMask<T, SIMD_WIDTH> &mask)
 {
-  for (int i = 0; i < mask.bits; ++i) { std::cout << mask[i] << " "; }
+  for (size_t i = 0; i < mask.bits; ++i) { std::cout << mask[i] << " "; }
   std::cout << std::endl;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 std::string makeName(const std::string name)
 {
   return name + "<" + std::string(TypeInfo<T>::name()) + "," +
          std::to_string(SIMD_WIDTH) + ">";
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Store
 {
   static constexpr long alignment = Vec<T, SIMD_WIDTH>::bytes;
@@ -193,7 +193,7 @@ struct Store
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct StoreU
 {
   static constexpr long alignment = 1;
@@ -204,7 +204,7 @@ struct StoreU
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct StreamStore
 {
   static constexpr long alignment = Vec<T, SIMD_WIDTH>::bytes;
@@ -215,7 +215,7 @@ struct StreamStore
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct MaskStore
 {
   static constexpr long alignment = Vec<T, SIMD_WIDTH>::bytes;
@@ -227,7 +227,7 @@ struct MaskStore
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct MaskStoreU
 {
   static constexpr long alignment = 1;
@@ -239,7 +239,7 @@ struct MaskStoreU
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Load
 {
   static constexpr long alignment = Vec<T, SIMD_WIDTH>::bytes;
@@ -250,7 +250,7 @@ struct Load
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct LoadU
 {
   static constexpr long alignment = 1;
@@ -261,7 +261,7 @@ struct LoadU
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct MaskLoad
 {
   static constexpr long alignment = Vec<T, SIMD_WIDTH>::bytes;
@@ -274,7 +274,7 @@ struct MaskLoad
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct MaskLoadU
 {
   static constexpr long alignment = 1;
@@ -287,7 +287,7 @@ struct MaskLoadU
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct MaskZLoad
 {
   static constexpr long alignment = Vec<T, SIMD_WIDTH>::bytes;
@@ -299,7 +299,7 @@ struct MaskZLoad
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct MaskZLoadU
 {
   static constexpr long alignment = 1;
@@ -311,14 +311,14 @@ struct MaskZLoadU
   }
 };
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT>
 struct TestStore
 {
-  static void test(const int reps)
+  static void test(const size_t reps)
   {
     std::cout << "Testing " << FCT<T, SIMD_WIDTH>::name() << std::endl;
     const TestPages testPagesSerial, testPagesSIMD;
-    for (int i = 0; i < reps; i++) {
+    for (size_t i = 0; i < reps; i++) {
       fillPageWithRandomData(testPagesSerial.getPage1());
       std::memcpy(testPagesSIMD.getPage1(), testPagesSerial.getPage1(),
                   getPageSize());
@@ -334,7 +334,7 @@ struct TestStore
         static_cast<char *>(testPagesSIMD.getPage1()) + pageOffset;
 
       // write input to page1 at pageOffset
-      for (int i = 0; i < input.elems; ++i) {
+      for (size_t i = 0; i < input.elems; ++i) {
         static_cast<T *>(storeLocSerial)[i] = input[i];
       }
       FCT<T, SIMD_WIDTH>::store(static_cast<T *>(storeLocSIMD), input.getVec());
@@ -354,14 +354,14 @@ struct TestStore
   }
 };
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT>
 struct TestMaskStore
 {
-  static void test(const int reps)
+  static void test(const size_t reps)
   {
     std::cout << "Testing " << FCT<T, SIMD_WIDTH>::name() << std::endl;
     const TestPages testPagesSerial, testPagesSIMD;
-    for (int i = 0; i < reps; i++) {
+    for (size_t i = 0; i < reps; i++) {
       fillPageWithRandomData(testPagesSerial.getPage1());
       std::memcpy(testPagesSIMD.getPage1(), testPagesSerial.getPage1(),
                   getPageSize());
@@ -378,7 +378,7 @@ struct TestMaskStore
         static_cast<char *>(testPagesSIMD.getPage1()) + pageOffset;
 
       // write input to page1 at pageOffset
-      for (int i = 0; i < input.elems; ++i) {
+      for (size_t i = 0; i < input.elems; ++i) {
         if (mask[i]) { static_cast<T *>(storeLocSerial)[i] = input[i]; }
       }
       FCT<T, SIMD_WIDTH>::mask_store(static_cast<T *>(storeLocSIMD),
@@ -401,14 +401,14 @@ struct TestMaskStore
   }
 };
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT>
 struct TestLoad
 {
-  static void test(const int reps)
+  static void test(const size_t reps)
   {
     std::cout << "Testing " << FCT<T, SIMD_WIDTH>::name() << std::endl;
     const TestPages testPagesSerial, testPagesSIMD;
-    for (int i = 0; i < reps; i++) {
+    for (size_t i = 0; i < reps; i++) {
       fillPageWithRandomData(testPagesSerial.getPage1());
       std::memcpy(testPagesSIMD.getPage1(), testPagesSerial.getPage1(),
                   getPageSize());
@@ -423,7 +423,7 @@ struct TestLoad
 
       // load from page1 at pageOffset
       SerialVec<T, SIMD_WIDTH> vecSerial;
-      for (int i = 0; i < vecSerial.elems; ++i) {
+      for (size_t i = 0; i < vecSerial.elems; ++i) {
         // volatile to prevent compiler from optimizing, since some versions of
         // gcc erroneously optimize this with an aligned load despite
         // loadLocSerial not necessarily being aligned
@@ -447,14 +447,14 @@ struct TestLoad
   }
 };
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT>
 struct TestMaskLoad
 {
-  static void test(const int reps)
+  static void test(const size_t reps)
   {
     std::cout << "Testing " << FCT<T, SIMD_WIDTH>::name() << std::endl;
     const TestPages testPagesSerial, testPagesSIMD;
-    for (int i = 0; i < reps; i++) {
+    for (size_t i = 0; i < reps; i++) {
       fillPageWithRandomData(testPagesSerial.getPage1());
       std::memcpy(testPagesSIMD.getPage1(), testPagesSerial.getPage1(),
                   getPageSize());
@@ -472,7 +472,7 @@ struct TestMaskLoad
 
       // load from page1 at pageOffset
       SerialVec<T, SIMD_WIDTH> vecSerial;
-      for (int i = 0; i < vecSerial.elems; ++i) {
+      for (size_t i = 0; i < vecSerial.elems; ++i) {
         // volatile to prevent compiler from optimizing, since some versions of
         // gcc erroneously optimize this with an aligned load despite
         // loadLocSerial not necessarily being aligned
@@ -502,14 +502,14 @@ struct TestMaskLoad
   }
 };
 
-template <typename T, int SIMD_WIDTH, template <typename, int> class FCT>
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT>
 struct TestMaskZLoad
 {
-  static void test(const int reps)
+  static void test(const size_t reps)
   {
     std::cout << "Testing " << FCT<T, SIMD_WIDTH>::name() << std::endl;
     const TestPages testPagesSerial, testPagesSIMD;
-    for (int i = 0; i < reps; i++) {
+    for (size_t i = 0; i < reps; i++) {
       fillPageWithRandomData(testPagesSerial.getPage1());
       std::memcpy(testPagesSIMD.getPage1(), testPagesSerial.getPage1(),
                   getPageSize());
@@ -526,7 +526,7 @@ struct TestMaskZLoad
 
       // load from page1 at pageOffset
       SerialVec<T, SIMD_WIDTH> vecSerial;
-      for (int i = 0; i < vecSerial.elems; ++i) {
+      for (size_t i = 0; i < vecSerial.elems; ++i) {
         // volatile to prevent compiler from optimizing, since some versions of
         // gcc erroneously optimize this with an aligned load despite
         // loadLocSerial not necessarily being aligned
@@ -554,10 +554,11 @@ struct TestMaskZLoad
   }
 };
 
-template <int SIMD_WIDTH,
-          template <typename, int, template <typename, int> class> class TEST,
-          template <typename, int> class FCT>
-void testAll(const int reps)
+template <size_t SIMD_WIDTH,
+          template <typename, size_t, template <typename, size_t> class>
+          class TEST,
+          template <typename, size_t> class FCT>
+void testAll(const size_t reps)
 {
   TEST<Byte, SIMD_WIDTH, FCT>::test(reps);
   TEST<SignedByte, SIMD_WIDTH, FCT>::test(reps);
@@ -575,7 +576,7 @@ const auto SW = NATIVE_SIMD_WIDTH;
 int main(int argc, char *argv[])
 {
   // number of repetitions
-  const int reps = argc >= 2 ? std::atoi(argv[1]) : 10000;
+  const size_t reps = argc >= 2 ? std::atoi(argv[1]) : 10000;
 
   // seed random number generator
   std::srand(time(nullptr));

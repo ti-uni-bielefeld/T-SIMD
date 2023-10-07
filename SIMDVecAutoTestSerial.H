@@ -76,12 +76,12 @@ namespace auto_test {
 // instead. This is to make sure the right functions are called when using
 // SerialVec in the autotests.
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct SerialVec
 {
-  static constexpr int elements = SIMD_WIDTH / sizeof(T);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = SIMD_WIDTH;
+  static constexpr size_t elements = SIMD_WIDTH / sizeof(T);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = SIMD_WIDTH;
 
   T vec[elements] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
 
@@ -105,14 +105,14 @@ struct SerialVec
     y.setVec(x);
     return y;
   }
-  T operator[](int i) const
+  T operator[](size_t i) const
   {
-    if ((i >= 0) && (i < elements)) return vec[i];
+    if (i < elements) return vec[i];
     return T(0);
   }
-  T &operator[](int i)
+  T &operator[](size_t i)
   {
-    assert((i >= 0) && (i < elements));
+    assert(i < elements);
     return vec[i];
   }
   // 29. Nov 22 (Jonas Keller):
@@ -142,9 +142,10 @@ struct SerialVec
     // individually
     if ((rand() & 0x0f) == 0) {
       T value = getRandomOrSpecialValue<T>();
-      for (int i = 0; i < elements; i++) vec[i] = value;
+      for (size_t i = 0; i < elements; i++) vec[i] = value;
     } else {
-      for (int i = 0; i < elements; i++) vec[i] = getRandomOrSpecialValue<T>();
+      for (size_t i = 0; i < elements; i++)
+        vec[i] = getRandomOrSpecialValue<T>();
     }
   }
   void randomizeSorted(SortSlope s)
@@ -178,9 +179,9 @@ struct SerialVec
       T value;
       while ((value = getRandomOrSpecialValue<T>()) < T(0))
         ;
-      for (int i = 0; i < elements; i++) vec[i] = value;
+      for (size_t i = 0; i < elements; i++) vec[i] = value;
     } else {
-      for (int i = 0; i < elements; i++)
+      for (size_t i = 0; i < elements; i++)
         while ((vec[i] = getRandomOrSpecialValue<T>()) < T(0))
           ;
     }
@@ -203,9 +204,9 @@ struct SerialVec
     // individually
     if ((rand() & 0x0f) == 0) {
       T value = getRandomOrSpecialValueRanges<T>();
-      for (int i = 0; i < elements; i++) vec[i] = value;
+      for (size_t i = 0; i < elements; i++) vec[i] = value;
     } else {
-      for (int i = 0; i < elements; i++)
+      for (size_t i = 0; i < elements; i++)
         vec[i] = getRandomOrSpecialValueRanges<T>();
     }
   }
@@ -229,9 +230,9 @@ struct SerialVec
       T value;
       while ((value = getRandomOrSpecialValueRanges<T>()) == T(0))
         ;
-      for (int i = 0; i < elements; i++) vec[i] = value;
+      for (size_t i = 0; i < elements; i++) vec[i] = value;
     } else {
-      for (int i = 0; i < elements; i++)
+      for (size_t i = 0; i < elements; i++)
         while ((vec[i] = getRandomOrSpecialValueRanges<T>()) == T(0))
           ;
     }
@@ -253,17 +254,17 @@ struct SerialVec
         setones();
       }
     } else {
-      for (int i = 0; i < elements; i++)
+      for (size_t i = 0; i < elements; i++)
         vec[i] = (rand() & 0x01) ? TypeInfo<T>::trueval() : T(0);
     }
   }
   void setzero()
   {
-    for (int i = 0; i < elements; i++) vec[i] = T(0);
+    for (size_t i = 0; i < elements; i++) vec[i] = T(0);
   }
   void setones()
   {
-    for (int i = 0; i < elements; i++) vec[i] = TypeInfo<T>::trueval();
+    for (size_t i = 0; i < elements; i++) vec[i] = TypeInfo<T>::trueval();
   }
 };
 
@@ -639,7 +640,7 @@ static SIMD_INLINE Tout _convert(Tin in)
 // arguments, so we have to use this additional layer
 
 // primary template
-template <template <typename, int> class VEC>
+template <template <typename, size_t> class VEC>
 struct Deductor;
 
 // -------------------------------------------------------------------------
@@ -649,65 +650,65 @@ struct Deductor;
 template <>
 struct Deductor<Vec>
 {
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _setzero()
   {
     return setzero<T, SIMD_WIDTH>();
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _setones()
   {
     return setones<T, SIMD_WIDTH>();
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _setmin()
   {
     return setmin<T, SIMD_WIDTH>();
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _setmax()
   {
     return setmax<T, SIMD_WIDTH>();
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _setnegunity()
   {
     return setnegunity<T, SIMD_WIDTH>();
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _setunity()
   {
     return setunity<T, SIMD_WIDTH>();
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _set1(T a)
   {
     return set1<T, SIMD_WIDTH>(a);
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _load(const T *const p)
   {
     return load<SIMD_WIDTH, T>(p);
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _loadu(const T *const p)
   {
     return loadu<SIMD_WIDTH, T>(p);
   }
   // 06. Oct 22 (Jonas Keller): added int2msb
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _int2msb(const uint64_t a)
   {
     return int2msb<T, SIMD_WIDTH>(a);
   }
   // 09. Oct 22 (Jonas Keller): added int2bits
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _int2bits(const uint64_t a)
   {
     return int2bits<T, SIMD_WIDTH>(a);
   }
   // 07. Feb 23 (Jonas Keller): added iota
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _iota()
   {
     return iota<T, SIMD_WIDTH>();
@@ -721,63 +722,63 @@ struct Deductor<Vec>
 template <>
 struct Deductor<SerialVec>
 {
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _setzero()
   {
     SerialVec<T, SIMD_WIDTH> v;
     memset(v.vec, 0x00, SIMD_WIDTH);
     return v;
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _setones()
   {
     SerialVec<T, SIMD_WIDTH> v;
-    for (int i = 0; i < v.elements; i++) v[i] = TypeInfo<T>::trueval();
+    for (size_t i = 0; i < v.elements; i++) v[i] = TypeInfo<T>::trueval();
     return v;
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _setmin()
   {
     SerialVec<T, SIMD_WIDTH> v;
-    for (int i = 0; i < v.elements; i++) v[i] = TypeInfo<T>::min();
+    for (size_t i = 0; i < v.elements; i++) v[i] = TypeInfo<T>::min();
     return v;
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _setmax()
   {
     SerialVec<T, SIMD_WIDTH> v;
-    for (int i = 0; i < v.elements; i++) v[i] = TypeInfo<T>::max();
+    for (size_t i = 0; i < v.elements; i++) v[i] = TypeInfo<T>::max();
     return v;
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _setnegunity()
   {
     SerialVec<T, SIMD_WIDTH> v;
-    for (int i = 0; i < v.elements; i++) v[i] = T(-1);
+    for (size_t i = 0; i < v.elements; i++) v[i] = T(-1);
     return v;
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _setunity()
   {
     SerialVec<T, SIMD_WIDTH> v;
-    for (int i = 0; i < v.elements; i++) v[i] = T(1);
+    for (size_t i = 0; i < v.elements; i++) v[i] = T(1);
     return v;
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _set1(T a)
   {
     SerialVec<T, SIMD_WIDTH> v;
-    for (int i = 0; i < v.elements; i++) v[i] = a;
+    for (size_t i = 0; i < v.elements; i++) v[i] = a;
     return v;
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _load(const T *const p)
   {
     SerialVec<T, SIMD_WIDTH> v;
     memcpy(v.vec, p, SIMD_WIDTH);
     return v;
   }
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _loadu(const T *const p)
   {
     SerialVec<T, SIMD_WIDTH> v;
@@ -785,51 +786,51 @@ struct Deductor<SerialVec>
     return v;
   }
   // 08. Oct 22 (Jonas Keller): added int2msb
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _int2msb(const uint64_t a)
   {
     return _int2msb<SIMD_WIDTH>(a, T());
   }
   // 09. Oct 22 (Jonas Keller): added int2bits
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _int2bits(const uint64_t a)
   {
     SerialVec<T, SIMD_WIDTH> v;
-    for (int i = 0; i < v.elements; i++)
+    for (size_t i = 0; i < v.elements; i++)
       v[i] = (a >> i) & 1 ? TypeInfo<T>::trueval() : T(0);
     return v;
   }
   // 07. Feb 23 (Jonas Keller): added iota
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _iota()
   {
     SerialVec<T, SIMD_WIDTH> v;
-    for (int i = 0; i < v.elements; i++) { v[i] = T(i); }
+    for (size_t i = 0; i < v.elements; i++) { v[i] = T(i); }
     return v;
   }
 
 private:
   // int2msb
   // integer types
-  template <int SIMD_WIDTH, typename T,
+  template <size_t SIMD_WIDTH, typename T,
             SIMD_ENABLE_IF(std::is_integral<T>::value)>
   static SIMD_INLINE SerialVec<T, SIMD_WIDTH> _int2msb(const uint64_t a, T)
   {
     T highestBit = T(T(1) << (sizeof(T) * 8 - 1));
     SerialVec<T, SIMD_WIDTH> result;
-    for (int i = 0; i < result.elements; i++)
+    for (size_t i = 0; i < result.elements; i++)
       result[i] = (a & (uint64_t(1) << i)) ? highestBit : 0;
     return result;
   }
   // Float
-  template <int SIMD_WIDTH>
+  template <size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> _int2msb(const uint64_t a,
                                                            Float)
   {
     return reinterpret<Float>(_int2msb<SIMD_WIDTH>(a, Int()));
   }
   // Double
-  template <int SIMD_WIDTH>
+  template <size_t SIMD_WIDTH>
   static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> _int2msb(const uint64_t a,
                                                             Double)
   {
@@ -841,7 +842,7 @@ private:
 // template functions
 // =========================================================================
 
-template <typename Tdst, typename Tsrc, int SIMD_WIDTH>
+template <typename Tdst, typename Tsrc, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Tdst, SIMD_WIDTH> reinterpret(
   const SerialVec<Tsrc, SIMD_WIDTH> &a)
 {
@@ -851,137 +852,137 @@ static SIMD_INLINE SerialVec<Tdst, SIMD_WIDTH> reinterpret(
 }
 
 // float -> int
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Int, SIMD_WIDTH> cvts(
   const SerialVec<Float, SIMD_WIDTH> &a)
 {
   SerialVec<Int, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _cvts_f2i(a[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = _cvts_f2i(a[i]);
   return c;
 }
 
 // int -> float
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> cvts(
   const SerialVec<Int, SIMD_WIDTH> &a)
 {
   SerialVec<Float, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = Float(a[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = Float(a[i]);
   return c;
 }
 
 // hub (just for compatibility with Vec version which has
 // primary template)
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Tout, SIMD_WIDTH> cvts(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   return cvts(a);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const SerialVec<T, SIMD_WIDTH> &v)
 {
   memcpy(p, v.vec, SIMD_WIDTH);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void storeu(T *const p, const SerialVec<T, SIMD_WIDTH> &v)
 {
   store(p, v);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void stream_store(T *const p,
                                      const SerialVec<T, SIMD_WIDTH> &v)
 {
   store(p, v);
 }
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t INDEX, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T extract(const SerialVec<T, SIMD_WIDTH> &a)
 {
-  return a[IMM];
+  return a[INDEX];
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> add(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _add(a[i], b[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = _add(a[i], b[i]);
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> adds(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _adds(a[i], b[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = _adds(a[i], b[i]);
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> sub(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _sub(a[i], b[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = _sub(a[i], b[i]);
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> subs(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _subs(a[i], b[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = _subs(a[i], b[i]);
   return c;
 }
 
 // no daz also on NEON
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> neg(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = -a[i];
+  for (size_t i = 0; i < c.elements; i++) c[i] = -a[i];
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> mul(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _mul(a[i], b[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = _mul(a[i], b[i]);
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _div(a[i], b[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = _div(a[i], b[i]);
   return c;
 }
 
 // floating point version
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_floating_point<T>::value)>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ceil(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = std::ceil(daz_neon(a[i]));
+  for (size_t i = 0; i < c.elements; i++) c[i] = std::ceil(daz_neon(a[i]));
   return c;
 }
 
 // 25. Mar 23 (Jonas Keller): added ceil for integer types
 // do nothing for integer types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_integral<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ceil(
   const SerialVec<T, SIMD_WIDTH> &a)
@@ -991,19 +992,19 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ceil(
 }
 
 // floating point version
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_floating_point<T>::value)>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> floor(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = std::floor(daz_neon(a[i]));
+  for (size_t i = 0; i < c.elements; i++) c[i] = std::floor(daz_neon(a[i]));
   return c;
 }
 
 // 25. Mar 23 (Jonas Keller): added floor for integer types
 // do nothing for integer types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_integral<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> floor(
   const SerialVec<T, SIMD_WIDTH> &a)
@@ -1013,14 +1014,14 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> floor(
 }
 
 // floating point version
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_floating_point<T>::value)>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> round(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
 #if defined(SIMDVEC_INTEL_ENABLE) || defined(SIMDVEC_SANDBOX)
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     // std::round has different behavior
     c[i] = std::rint(a[i]);
   return c;
@@ -1029,7 +1030,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> round(
   // implementation of the workaround if vrndq is missing;
   // also not sure whether daz_neon() is required
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     // std::round has different behavior
     c[i] = std::floor(daz_neon(a[i]) + T(0.5));
   return c;
@@ -1040,7 +1041,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> round(
 
 // 25. Mar 23 (Jonas Keller): added round for integer types
 // do nothing for integer types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_integral<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> round(
   const SerialVec<T, SIMD_WIDTH> &a)
@@ -1050,19 +1051,19 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> round(
 }
 
 // floating point version
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_floating_point<T>::value)>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> truncate(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = std::trunc(daz_neon(a[i]));
+  for (size_t i = 0; i < c.elements; i++) c[i] = std::trunc(daz_neon(a[i]));
   return c;
 }
 
 // 25. Mar 23 (Jonas Keller): added truncate for integer types
 // do nothing for integer types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_integral<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> truncate(
   const SerialVec<T, SIMD_WIDTH> &a)
@@ -1074,12 +1075,12 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> truncate(
 // 02. Oct 22 (Jonas Keller): added rcp and rsqrt
 
 // NOTE: hardware implementation is not known
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> rcp(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
 #if defined(SIMDVEC_INTEL_ENABLE) &&                                           \
   (defined(__SSE__) || defined(__AVX__) || defined(__AVX2__)) &&               \
   !defined(__AVX512F__)
@@ -1094,12 +1095,12 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> rcp(
 }
 
 // NOTE: hardware implementation is not known
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> rsqrt(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
 #if defined(SIMDVEC_INTEL_ENABLE) &&                                           \
   (defined(__SSE__) || defined(__AVX__) || defined(__AVX2__)) &&               \
   !defined(__AVX512F__)
@@ -1113,46 +1114,46 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> rsqrt(
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> sqrt(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = daz_neon(std::sqrt(daz_neon(a[i])));
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> min(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _min(a[i], b[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = _min(a[i], b[i]);
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> max(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _max(a[i], b[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = _max(a[i], b[i]);
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> abs(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = _abs(a[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = _abs(a[i]);
   return c;
 }
 
 // negate a, where b is negative (Float)
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> sign(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
@@ -1161,7 +1162,7 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> sign(
   // IEEE 754 defines -0.0f as non-negative, making -0.0f < 0.0f false
   SerialVec<Float, SIMD_WIDTH> c;
   SerialVec<Int, SIMD_WIDTH> intB = reinterpret<Int>(b);
-  for (int i = 0; i < c.elements; i++) {
+  for (size_t i = 0; i < c.elements; i++) {
     // examine sign bit
     c[i] = (intB[i] & 0x80000000) ? -a[i] : a[i];
     // c[i] = (b[i] < 0.0f) ? -a[i] : a[i];
@@ -1171,14 +1172,14 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> sign(
 
 // negate a, where b is negative (Double)
 // note: contrary to IEEE 754, this function considers -0.0 to be negative
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> sign(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
 {
   SerialVec<Double, SIMD_WIDTH> c;
   SerialVec<uint64_t, SIMD_WIDTH> intB = reinterpret<uint64_t>(b);
-  for (int i = 0; i < c.elements; i++) {
+  for (size_t i = 0; i < c.elements; i++) {
     // examine sign bit
     c[i] = (intB[i] & 0x8000000000000000) ? -a[i] : a[i];
   }
@@ -1188,62 +1189,63 @@ static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> sign(
 // for signed integer types (SignedByte, Short, Int)
 // which can overflow in absDiff
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<SignedByte, SIMD_WIDTH> absDiff(
   const SerialVec<SignedByte, SIMD_WIDTH> &a,
   const SerialVec<SignedByte, SIMD_WIDTH> &b)
 {
   SerialVec<SignedByte, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = std::abs(SignedByte(a[i] - b[i]));
+  for (size_t i = 0; i < c.elements; i++)
+    c[i] = std::abs(SignedByte(a[i] - b[i]));
   return c;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Short, SIMD_WIDTH> absDiff(
   const SerialVec<Short, SIMD_WIDTH> &a, const SerialVec<Short, SIMD_WIDTH> &b)
 {
   SerialVec<Short, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = std::abs(Short(a[i] - b[i]));
+  for (size_t i = 0; i < c.elements; i++) c[i] = std::abs(Short(a[i] - b[i]));
   return c;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Int, SIMD_WIDTH> absDiff(
   const SerialVec<Int, SIMD_WIDTH> &a, const SerialVec<Int, SIMD_WIDTH> &b)
 {
   SerialVec<Int, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = std::abs(Int(a[i] - b[i]));
+  for (size_t i = 0; i < c.elements; i++) c[i] = std::abs(Int(a[i] - b[i]));
   return c;
 }
 
 // for all other types (Byte, Word, Float) which can't
 // overflow in absDiff
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Byte, SIMD_WIDTH> absDiff(
   const SerialVec<Byte, SIMD_WIDTH> &a, const SerialVec<Byte, SIMD_WIDTH> &b)
 {
   SerialVec<Byte, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = (a[i] > b[i]) ? (a[i] - b[i]) : (b[i] - a[i]);
   return c;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Word, SIMD_WIDTH> absDiff(
   const SerialVec<Word, SIMD_WIDTH> &a, const SerialVec<Word, SIMD_WIDTH> &b)
 {
   SerialVec<Word, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = (a[i] > b[i]) ? (a[i] - b[i]) : (b[i] - a[i]);
   return c;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> absDiff(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
   SerialVec<Float, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) {
+  for (size_t i = 0; i < c.elements; i++) {
     // 29. Nov 22 (Jonas Keller): applied daz_neon to inputs and result
     Float a_i = daz_neon(a[i]);
     Float b_i = daz_neon(b[i]);
@@ -1252,13 +1254,13 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> absDiff(
   return c;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> absDiff(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
 {
   SerialVec<Double, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) {
+  for (size_t i = 0; i < c.elements; i++) {
     Double a_i = daz_neon(a[i]);
     Double b_i = daz_neon(b[i]);
     c[i]       = daz_neon((a_i > b_i) ? (a_i - b_i) : (b_i - a_i));
@@ -1266,17 +1268,18 @@ static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> absDiff(
   return c;
 }
 
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t PART, size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> unpack(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   static_assert(PART == 0 || PART == 1, "");
   static_assert(NUM_ELEMS <= SerialVec<T, SIMD_WIDTH>::elems / 2, "");
   SerialVec<T, SIMD_WIDTH> c;
-  int i0 = PART * c.elements / 2, ie = i0 + c.elements / 2;
-  for (int i = i0, k = 0; i < ie; i += NUM_ELEMS) {
-    for (int j = 0; j < NUM_ELEMS; j++, k++) c[k] = a[i + j];
-    for (int j = 0; j < NUM_ELEMS; j++, k++) c[k] = b[i + j];
+  const size_t i0 = PART * c.elements / 2;
+  const size_t ie = i0 + c.elements / 2;
+  for (size_t i = i0, k = 0; i < ie; i += NUM_ELEMS) {
+    for (size_t j = 0; j < NUM_ELEMS; j++, k++) c[k] = a[i + j];
+    for (size_t j = 0; j < NUM_ELEMS; j++, k++) c[k] = b[i + j];
   }
   return c;
 }
@@ -1286,34 +1289,34 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> unpack(
 // larger than half of one lane, which forwards to regular unpack
 
 // 128-bit-lane oriented unpack if NUM_ELEMS is at most half of one lane
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH,
+template <size_t PART, size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF((NUM_ELEMS <= SerialVec<T, 16>::elems / 2))>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> unpack16(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
-  constexpr int NUM_LANES = SIMD_WIDTH / 16;
+  constexpr size_t NUM_LANES = SIMD_WIDTH / 16;
   // copy a and b into lanesA and lanesB
   SerialVec<T, 16> lanesA[NUM_LANES];
   SerialVec<T, 16> lanesB[NUM_LANES];
-  for (int i = 0; i < NUM_LANES; i++) {
+  for (size_t i = 0; i < NUM_LANES; i++) {
     memcpy(lanesA[i].vec, &a.vec[i * (16 / sizeof(T))], 16);
     memcpy(lanesB[i].vec, &b.vec[i * (16 / sizeof(T))], 16);
   }
   // apply normal unpack to each lane
   SerialVec<T, 16> lanesResult[NUM_LANES];
-  for (int i = 0; i < NUM_LANES; i++) {
+  for (size_t i = 0; i < NUM_LANES; i++) {
     lanesResult[i] = unpack<PART, NUM_ELEMS>(lanesA[i], lanesB[i]);
   }
   // copy lanesResult into result
   SerialVec<T, SIMD_WIDTH> result;
-  for (int i = 0; i < NUM_LANES; i++) {
+  for (size_t i = 0; i < NUM_LANES; i++) {
     memcpy(&result.vec[i * (16 / sizeof(T))], lanesResult[i].vec, 16);
   }
   return result;
 }
 
 // regular unpack if NUM_ELEMS is more than half of one lane
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH,
+template <size_t PART, size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF((NUM_ELEMS > SerialVec<T, 16>::elems / 2)),
           typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> unpack16(
@@ -1324,16 +1327,16 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> unpack16(
 
 // 10. Oct 22 (Jonas Keller): added extractLane
 // extract a 128-bit lane
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t LANE_INDEX, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, 16> extractLane(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, 16> c;
-  memcpy(c.vec, &a.vec[IMM * (16 / sizeof(T))], 16);
+  memcpy(c.vec, &a.vec[LANE_INDEX * (16 / sizeof(T))], 16);
   return c;
 }
 
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void zip(const SerialVec<T, SIMD_WIDTH> a,
                             const SerialVec<T, SIMD_WIDTH> b,
                             SerialVec<T, SIMD_WIDTH> &c,
@@ -1345,7 +1348,7 @@ static SIMD_INLINE void zip(const SerialVec<T, SIMD_WIDTH> a,
 
 // 10. Oct 22 (Jonas Keller): added zip16
 // 128-bit-lane oriented zip
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void zip16(const SerialVec<T, SIMD_WIDTH> a,
                               const SerialVec<T, SIMD_WIDTH> b,
                               SerialVec<T, SIMD_WIDTH> &c,
@@ -1355,30 +1358,30 @@ static SIMD_INLINE void zip16(const SerialVec<T, SIMD_WIDTH> a,
   d = unpack16<1, NUM_ELEMS>(a, b);
 }
 
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void unzip(const SerialVec<T, SIMD_WIDTH> a,
                               const SerialVec<T, SIMD_WIDTH> b,
                               SerialVec<T, SIMD_WIDTH> &c,
                               SerialVec<T, SIMD_WIDTH> &d)
 {
-  const int n = a.elements, n2 = n / 2;
-  for (int i = 0, k = 0; i < n; i += NUM_ELEMS) {
-    for (int j = 0; j < NUM_ELEMS; j++, k++) {
-      c[k] = (i < n2) ? a[2 * i + j] : b[2 * (i - n2) + j];
-      d[k] =
-        (i < n2) ? a[2 * i + NUM_ELEMS + j] : b[2 * (i - n2) + NUM_ELEMS + j];
+  const size_t halfNumElems = a.elements / 2;
+  for (size_t i = 0, k = 0; i < a.elements; i += NUM_ELEMS) {
+    for (size_t j = 0; j < NUM_ELEMS; j++, k++) {
+      c[k] = (i < halfNumElems) ? a[2 * i + j] : b[2 * (i - halfNumElems) + j];
+      d[k] = (i < halfNumElems) ? a[2 * i + NUM_ELEMS + j] :
+                                  b[2 * (i - halfNumElems) + NUM_ELEMS + j];
     }
   }
 }
 
 // from integer types
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Tout, SIMD_WIDTH> packs(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<Tout, SIMD_WIDTH> c;
-  int ce = c.elements, ce2 = ce / 2;
-  for (int i = 0; i < ce; i++) {
+  const size_t ce2 = c.elements / 2;
+  for (size_t i = 0; i < c.elements; i++) {
     T in = (i < ce2) ? a[i] : b[i - ce2];
     c[i] = _packs<Tout>(in);
   }
@@ -1386,7 +1389,7 @@ static SIMD_INLINE SerialVec<Tout, SIMD_WIDTH> packs(
 }
 
 // from float types
-template <typename Tout, int SIMD_WIDTH>
+template <typename Tout, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Tout, SIMD_WIDTH> packs(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
@@ -1396,18 +1399,18 @@ static SIMD_INLINE SerialVec<Tout, SIMD_WIDTH> packs(
   return packs<Tout>(ai, bi);
 }
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE void extend(
   const SerialVec<Tin, SIMD_WIDTH> &vIn,
   SerialVec<Tout, SIMD_WIDTH> vOut[sizeof(Tout) / sizeof(Tin)])
 {
-  int nOut = SerialVec<Tout, SIMD_WIDTH>::elements;
-  for (int i = 0; i < vIn.elements; i++)
+  const size_t nOut = SerialVec<Tout, SIMD_WIDTH>::elements;
+  for (size_t i = 0; i < vIn.elements; i++)
     vOut[i / nOut][i % nOut] = Tout(vIn[i]);
 }
 
 // float -> int (uses saturating cvts)
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE void extend(const SerialVec<Float, SIMD_WIDTH> &vIn,
                                SerialVec<Int, SIMD_WIDTH> vOut[1])
 {
@@ -1416,7 +1419,7 @@ static SIMD_INLINE void extend(const SerialVec<Float, SIMD_WIDTH> &vIn,
 
 // 19. Dec 22 (Jonas Keller): added sra, srl and sll functions
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> sra(
   const SerialVec<T, SIMD_WIDTH> &a, const uint8_t count)
 {
@@ -1425,12 +1428,12 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> sra(
   // shift, but this is not guaranteed, so we use a workaround
   using U       = typename TypeInfo<T>::UnsignedType;
   U signBitMask = U(1) << (sizeof(T) * 8 - 1);
-  for (int i = 0; i < c.elements; i++) {
+  for (size_t i = 0; i < c.elements; i++) {
     U result = U(a[i]);
     if (count >= sizeof(T) * 8) {
       result = (U(a[i]) & signBitMask) != 0 ? ~U(0) : 0;
     } else {
-      for (int s = 0; s < count; s++) {
+      for (size_t s = 0; s < count; s++) {
         result = (result >> 1) | (result & signBitMask);
       }
     }
@@ -1439,14 +1442,14 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> sra(
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> srl(
   const SerialVec<T, SIMD_WIDTH> &a, const uint8_t count)
 {
   SerialVec<T, SIMD_WIDTH> c;
   // on signed types, we force the compiler to use an unsigned shift
   using U = typename TypeInfo<T>::UnsignedType;
-  for (int i = 0; i < c.elements; i++) {
+  for (size_t i = 0; i < c.elements; i++) {
     if (count >= sizeof(T) * 8) {
       c[i] = 0;
     } else {
@@ -1456,14 +1459,14 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> srl(
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> sll(
   const SerialVec<T, SIMD_WIDTH> &a, const uint8_t count)
 {
   SerialVec<T, SIMD_WIDTH> c;
   // on signed types, we force the compiler to use an unsigned shift
   using U = typename TypeInfo<T>::UnsignedType;
-  for (int i = 0; i < c.elements; i++) {
+  for (size_t i = 0; i < c.elements; i++) {
     if (count >= sizeof(T) * 8) {
       c[i] = 0;
     } else {
@@ -1473,151 +1476,155 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> sll(
   return c;
 }
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> srai(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
-  return sra(a, IMM);
+  return sra(a, COUNT);
 }
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> srli(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
-  return srl(a, IMM);
+  return srl(a, COUNT);
 }
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> slli(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
-  return sll(a, IMM);
+  return sll(a, COUNT);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadd(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  int i = 0, n = c.elements;
-  for (; i < n / 2; i++) c[i] = _add(a[2 * i], a[2 * i + 1]);
-  for (; i < n; i++) c[i] = _add(b[2 * i - n], b[2 * i - n + 1]);
+  const size_t N = c.elements;
+  size_t i       = 0;
+  for (; i < N / 2; i++) c[i] = _add(a[2 * i], a[2 * i + 1]);
+  for (; i < N; i++) c[i] = _add(b[2 * i - N], b[2 * i - N + 1]);
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadds(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  int i = 0, n = c.elements;
-  for (; i < n / 2; i++) c[i] = _adds(a[2 * i], a[2 * i + 1]);
-  for (; i < n; i++) c[i] = _adds(b[2 * i - n], b[2 * i - n + 1]);
+  const size_t N = c.elements;
+  size_t i       = 0;
+  for (; i < N / 2; i++) c[i] = _adds(a[2 * i], a[2 * i + 1]);
+  for (; i < N; i++) c[i] = _adds(b[2 * i - N], b[2 * i - N + 1]);
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hsub(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  int i = 0, n = c.elements;
-  for (; i < n / 2; i++) c[i] = _sub(a[2 * i], a[2 * i + 1]);
-  for (; i < n; i++) c[i] = _sub(b[2 * i - n], b[2 * i - n + 1]);
+  const size_t N = c.elements;
+  size_t i       = 0;
+  for (; i < N / 2; i++) c[i] = _sub(a[2 * i], a[2 * i + 1]);
+  for (; i < N; i++) c[i] = _sub(b[2 * i - N], b[2 * i - N + 1]);
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hsubs(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  int i = 0, n = c.elements;
-  for (; i < n / 2; i++) c[i] = _subs(a[2 * i], a[2 * i + 1]);
-  for (; i < n; i++) c[i] = _subs(b[2 * i - n], b[2 * i - n + 1]);
+  const size_t N = c.elements;
+  size_t i       = 0;
+  for (; i < N / 2; i++) c[i] = _subs(a[2 * i], a[2 * i + 1]);
+  for (; i < N; i++) c[i] = _subs(b[2 * i - N], b[2 * i - N + 1]);
   return c;
 }
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> srle(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = a[i + IMM];
+  for (size_t i = 0; i < c.elements; i++) c[i] = a[i + COUNT];
   return c;
 }
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> slle(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = a[i - IMM];
+  for (size_t i = 0; i < c.elements; i++) c[i] = a[i - COUNT];
   return c;
 }
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> alignre(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  int n = c.elements;
-  for (int i = 0; i < n; i++) {
-    int k = i + IMM;
-    c[i]  = (k >= n) ? a[k - n] : b[k];
+  const size_t N = c.elements;
+  for (size_t i = 0; i < N; i++) {
+    const size_t k = i + COUNT;
+    c[i]           = (k >= N) ? a[k - N] : b[k];
   }
   return c;
 }
 
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle(SerialVec<T, SIMD_WIDTH> v[N])
 {
-  const int n = SerialVec<T, SIMD_WIDTH>::elements;
+  const size_t elems = SerialVec<T, SIMD_WIDTH>::elements;
   SerialVec<T, SIMD_WIDTH> u[N];
   // copy the N input vectors
-  for (int i = 0; i < N; i++) u[i] = v[i];
+  for (size_t i = 0; i < N; i++) u[i] = v[i];
   // swizzle: j, js in [0,n*N)
-  for (int j = 0; j < n * N; j++) {
-    int js            = (j % N) * n + std::floor(j / N);
-    v[js / n][js % n] = u[j / n][j % n];
+  for (size_t j = 0; j < elems * N; j++) {
+    size_t js                 = (j % N) * elems + std::floor(j / N);
+    v[js / elems][js % elems] = u[j / elems][j % elems];
   }
 }
 
 // 15. Oct 22 (Jonas Keller): renamed _swizzle2 to swizzle2
 // 02. Aug 23 (Jonas Keller): renamed swizzle2 to swizzle2_a
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle2_a(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
-  const int n = SerialVec<T, SIMD_WIDTH>::elements, n2 = 2 * n;
+  const size_t n = SerialVec<T, SIMD_WIDTH>::elements, n2 = 2 * n;
   SerialVec<T, SIMD_WIDTH> u[2 * N];
   // copy the 2*N input vectors
-  for (int i = 0; i < 2 * N; i++) u[i] = v[i];
+  for (size_t i = 0; i < 2 * N; i++) u[i] = v[i];
   // swizzle: j, js in [0,2*n*N), copy: [js] <- [j]
-  for (int j = 0; j < n2 * N; j++) {
-    int js            = (j % N) * n2 + std::floor(j / N);
+  for (size_t j = 0; j < n2 * N; j++) {
+    size_t js         = (j % N) * n2 + std::floor(j / N);
     v[js / n][js % n] = u[j / n][j % n];
   }
 }
 
 // 15. Oct 22 (Jonas Keller): renamed _unswizzle2 to unswizzle2
 // 02. Aug 23 (Jonas Keller): renamed unswizzle2 to unswizzle_a
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void unswizzle_a(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
-  const int n = SerialVec<T, SIMD_WIDTH>::elements, n2 = 2 * n;
+  const size_t n = SerialVec<T, SIMD_WIDTH>::elements, n2 = 2 * n;
   SerialVec<T, SIMD_WIDTH> u[2 * N];
   // copy the 2*N input vectors
-  for (int i = 0; i < 2 * N; i++) u[i] = v[i];
+  for (size_t i = 0; i < 2 * N; i++) u[i] = v[i];
   // swizzle: j, js in [0,2*n*N), copy: [j] <- [js]
-  for (int j = 0; j < n2 * N; j++) {
-    int js          = (j % N) * n2 + std::floor(j / N);
+  for (size_t j = 0; j < n2 * N; j++) {
+    size_t js       = (j % N) * n2 + std::floor(j / N);
     v[j / n][j % n] = u[js / n][js % n];
   }
 }
 
 // 07. Feb 23 (Jonas Keller): added swizzle3
 // 02. Aug 23 (Jonas Keller): renamed swizzle3 to swizzle2_b
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle2_b(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
   // does the same thing as swizzle2_a
@@ -1626,7 +1633,7 @@ static SIMD_INLINE void swizzle2_b(SerialVec<T, SIMD_WIDTH> v[2 * N])
 
 // 15. Oct 22 (Jonas Keller): added swizzle4
 // 02. Aug 23 (Jonas Keller): renamed swizzle4 to swizzle2_c
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle2_c(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
   // does the same thing as swizzle2_a
@@ -1635,14 +1642,14 @@ static SIMD_INLINE void swizzle2_c(SerialVec<T, SIMD_WIDTH> v[2 * N])
 
 // 15. Oct 22 (Jonas Keller): added unswizzle4
 // 02. Aug 23 (Jonas Keller): renamed unswizzle4 to unswizzle_b
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void unswizzle_b(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
   // does the same thing as unswizzle_a
   unswizzle_a<N>(v);
 }
 
-template <typename Tcond, typename T, int SIMD_WIDTH>
+template <typename Tcond, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ifelse(
   const SerialVec<Tcond, SIMD_WIDTH> &cond,
   const SerialVec<T, SIMD_WIDTH> &trueVal,
@@ -1653,7 +1660,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ifelse(
   // avoids comparison with TypeInfo::trueval, which fails for
   // Float (NaN)
   SerialVec<Tcond, SIMD_WIDTH> negCond = bit_not(cond);
-  for (int i = 0; i < res.elements; i++)
+  for (size_t i = 0; i < res.elements; i++)
     if (negCond[i] == Tcond(0))
       res[i] = trueVal[i];
     else if (cond[i] == Tcond(0))
@@ -1665,76 +1672,76 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ifelse(
   return res;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> cmplt(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = (a[i] < b[i]) ? TypeInfo<T>::trueval() : 0;
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> cmple(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = (a[i] <= b[i]) ? TypeInfo<T>::trueval() : 0;
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> cmpeq(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = (daz_neon(a[i]) == daz_neon(b[i])) ? TypeInfo<T>::trueval() : 0;
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> cmpge(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = (a[i] >= b[i]) ? TypeInfo<T>::trueval() : 0;
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> cmpgt(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = (a[i] > b[i]) ? TypeInfo<T>::trueval() : 0;
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> cmpneq(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = (daz_neon(a[i]) != daz_neon(b[i])) ? TypeInfo<T>::trueval() : 0;
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_and(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = a[i] & b[i];
+  for (size_t i = 0; i < c.elements; i++) c[i] = a[i] & b[i];
   return c;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_and(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
@@ -1742,7 +1749,7 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_and(
   return SerialVec<Float, SIMD_WIDTH>(bit_and(ai, bi));
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_and(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
@@ -1751,16 +1758,16 @@ static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_and(
   return SerialVec<Double, SIMD_WIDTH>(bit_and(ai, bi));
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_or(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = a[i] | b[i];
+  for (size_t i = 0; i < c.elements; i++) c[i] = a[i] | b[i];
   return c;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_or(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
@@ -1768,7 +1775,7 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_or(
   return SerialVec<Float, SIMD_WIDTH>(bit_or(ai, bi));
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_or(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
@@ -1777,16 +1784,16 @@ static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_or(
   return SerialVec<Double, SIMD_WIDTH>(bit_or(ai, bi));
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_andnot(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = ~a[i] & b[i];
+  for (size_t i = 0; i < c.elements; i++) c[i] = ~a[i] & b[i];
   return c;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_andnot(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
@@ -1794,7 +1801,7 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_andnot(
   return SerialVec<Float, SIMD_WIDTH>(bit_andnot(ai, bi));
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_andnot(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
@@ -1803,16 +1810,16 @@ static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_andnot(
   return SerialVec<Double, SIMD_WIDTH>(bit_andnot(ai, bi));
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_xor(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = a[i] ^ b[i];
+  for (size_t i = 0; i < c.elements; i++) c[i] = a[i] ^ b[i];
   return c;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_xor(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
@@ -1820,7 +1827,7 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_xor(
   return SerialVec<Float, SIMD_WIDTH>(bit_xor(ai, bi));
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_xor(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
@@ -1829,16 +1836,16 @@ static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_xor(
   return SerialVec<Double, SIMD_WIDTH>(bit_xor(ai, bi));
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> bit_not(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = ~a[i];
+  for (size_t i = 0; i < c.elements; i++) c[i] = ~a[i];
   return c;
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_not(
   const SerialVec<Float, SIMD_WIDTH> &a)
 {
@@ -1846,7 +1853,7 @@ static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> bit_not(
   return SerialVec<Float, SIMD_WIDTH>(bit_not(ai));
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_not(
   const SerialVec<Double, SIMD_WIDTH> &a)
 {
@@ -1855,53 +1862,54 @@ static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> bit_not(
 }
 
 // int types except Int
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> avg(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = (Int(a[i]) + Int(b[i]) + 1) >> 1;
+  for (size_t i = 0; i < c.elements; i++)
+    c[i] = (Int(a[i]) + Int(b[i]) + 1) >> 1;
   return c;
 }
 
 // Int
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Int, SIMD_WIDTH> avg(
   const SerialVec<Int, SIMD_WIDTH> &a, const SerialVec<Int, SIMD_WIDTH> &b)
 {
   SerialVec<Int, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = (uint64_t(a[i]) + uint64_t(b[i]) + 1) >> 1;
   return c;
 }
 
 // Float
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Float, SIMD_WIDTH> avg(
   const SerialVec<Float, SIMD_WIDTH> &a, const SerialVec<Float, SIMD_WIDTH> &b)
 {
   SerialVec<Float, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = daz_neon(0.5f * (daz_neon(a[i]) + daz_neon(b[i])));
   return c;
 }
 
 // Double
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Double, SIMD_WIDTH> avg(
   const SerialVec<Double, SIMD_WIDTH> &a,
   const SerialVec<Double, SIMD_WIDTH> &b)
 {
   SerialVec<Double, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = daz_neon(0.5 * (daz_neon(a[i]) + daz_neon(b[i])));
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE bool test_all_zeros(const SerialVec<T, SIMD_WIDTH> &a)
 {
-  for (int i = 0; i < a.elements; i++)
+  for (size_t i = 0; i < a.elements; i++)
     if (a[i] != T(0)) return false;
   return true;
 }
@@ -1912,26 +1920,26 @@ static SIMD_INLINE bool test_all_zeros(const SerialVec<T, SIMD_WIDTH> &a)
 // but we want to treat -0.0f as non-zero
 
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE bool test_all_zeros(const SerialVec<Float, SIMD_WIDTH> &a)
 {
   return test_all_zeros(reinterpret<Int>(a));
 }
 
 // note: contrary to IEEE 754, this function considers -0.0 to be negative
-template <int SIMD_WIDTH>
-static SIMD_INLINE int test_all_zeros(const SerialVec<Double, SIMD_WIDTH> &a)
+template <size_t SIMD_WIDTH>
+static SIMD_INLINE bool test_all_zeros(const SerialVec<Double, SIMD_WIDTH> &a)
 {
   return test_all_zeros(reinterpret<Int>(a));
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE bool test_all_ones(const SerialVec<T, SIMD_WIDTH> &a)
 {
   // avoids comparison with TypeInfo::trueval, which fails for
   // Float (NaN)
   SerialVec<T, SIMD_WIDTH> aNot = bit_not(a);
-  for (int i = 0; i < a.elements; i++)
+  for (size_t i = 0; i < a.elements; i++)
     if (aNot[i] != T(0)) return false;
   return true;
 }
@@ -1942,83 +1950,83 @@ static SIMD_INLINE bool test_all_ones(const SerialVec<T, SIMD_WIDTH> &a)
 // but we want to treat -0.0f as non-zero
 
 // note: contrary to IEEE 754, this function considers -0.0f to be negative
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE bool test_all_ones(const SerialVec<Float, SIMD_WIDTH> &a)
 {
   return test_all_ones(reinterpret<Int>(a));
 }
 
 // note: contrary to IEEE 754, this function considers -0.0 to be negative
-template <int SIMD_WIDTH>
-static SIMD_INLINE int test_all_ones(const SerialVec<Double, SIMD_WIDTH> &a)
+template <size_t SIMD_WIDTH>
+static SIMD_INLINE bool test_all_ones(const SerialVec<Double, SIMD_WIDTH> &a)
 {
   return test_all_ones(reinterpret<Int>(a));
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> reverse(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < a.elements; i++) c[i] = a[a.elements - 1 - i];
+  for (size_t i = 0; i < a.elements; i++) c[i] = a[a.elements - 1 - i];
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T hadd(const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c = a;
-  for (int n = a.elements; n > 1; n = n / 2)
-    for (int i = 0; i < n / 2; i++) c[i] = _add(c[2 * i], c[2 * i + 1]);
+  for (size_t n = a.elements; n > 1; n = n / 2)
+    for (size_t i = 0; i < n / 2; i++) c[i] = _add(c[2 * i], c[2 * i + 1]);
   return c[0];
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T hadds(const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c = a;
-  for (int n = a.elements; n > 1; n = n / 2)
-    for (int i = 0; i < n / 2; i++) c[i] = _adds(c[2 * i], c[2 * i + 1]);
+  for (size_t n = a.elements; n > 1; n = n / 2)
+    for (size_t i = 0; i < n / 2; i++) c[i] = _adds(c[2 * i], c[2 * i + 1]);
   return c[0];
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T hmin(const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c = a;
-  for (int n = a.elements; n > 1; n = n / 2)
-    for (int i = 0; i < n / 2; i++) c[i] = _min(c[2 * i], c[2 * i + 1]);
+  for (size_t n = a.elements; n > 1; n = n / 2)
+    for (size_t i = 0; i < n / 2; i++) c[i] = _min(c[2 * i], c[2 * i + 1]);
   return c[0];
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T hmax(const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c = a;
-  for (int n = a.elements; n > 1; n = n / 2)
-    for (int i = 0; i < n / 2; i++) c[i] = _max(c[2 * i], c[2 * i + 1]);
+  for (size_t n = a.elements; n > 1; n = n / 2)
+    for (size_t i = 0; i < n / 2; i++) c[i] = _max(c[2 * i], c[2 * i + 1]);
   return c[0];
 }
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE void convert(
   const SerialVec<Tin, SIMD_WIDTH> inVecs[numInVecs<Tout, Tin>()],
   SerialVec<Tout, SIMD_WIDTH> outVecs[numOutVecs<Tout, Tin>()])
 {
-  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  int outIdx            = 0;
-  for (int inVec = 0; inVec < numInVecs; inVec++)
-    for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
-      int outVec               = outIdx / numOutElems;
-      int outElem              = outIdx % numOutElems;
+  const size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  const size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  const size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  size_t outIdx            = 0;
+  for (size_t inVec = 0; inVec < numInVecs; inVec++)
+    for (size_t inElem = 0; inElem < numInElems; inElem++, outIdx++) {
+      size_t outVec            = outIdx / numOutElems;
+      size_t outElem           = outIdx % numOutElems;
       outVecs[outVec][outElem] = _convert<Tout>(inVecs[inVec][inElem]);
     }
 }
 
 template <typename Tout, typename Tin,
-          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, size_t SIMD_WIDTH>
 static SIMD_INLINE void fdivmul(
   const SerialVec<Tin, SIMD_WIDTH> vecsNum[numInVecs<Tout, Tin>()],
   const SerialVec<Tin, SIMD_WIDTH> vecsDenom[numInVecs<Tout, Tin>()],
@@ -2030,14 +2038,14 @@ static SIMD_INLINE void fdivmul(
                 "Tin must be smaller than Tfloat");
   static_assert(sizeof(Tout) <= sizeof(Tfloat),
                 "Tout must be smaller than Tfloat");
-  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  int outIdx            = 0;
-  for (int inVec = 0; inVec < numInVecs; inVec++)
-    for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
-      int outVec  = outIdx / numOutElems;
-      int outElem = outIdx % numOutElems;
+  const size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  const size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  const size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  size_t outIdx            = 0;
+  for (size_t inVec = 0; inVec < numInVecs; inVec++)
+    for (size_t inElem = 0; inElem < numInElems; inElem++, outIdx++) {
+      size_t outVec  = outIdx / numOutElems;
+      size_t outElem = outIdx % numOutElems;
       vecsOut[outVec][outElem] =
         _packs<Tout>(_mul(_div(_extend<Tfloat>(vecsNum[inVec][inElem]),
                                _extend<Tfloat>(vecsDenom[inVec][inElem])),
@@ -2046,7 +2054,7 @@ static SIMD_INLINE void fdivmul(
 }
 
 template <typename Tout, typename Tin,
-          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, size_t SIMD_WIDTH>
 static SIMD_INLINE void fmul(
   const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat fac,
   SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
@@ -2057,21 +2065,21 @@ static SIMD_INLINE void fmul(
                 "Tin must be smaller than Tfloat");
   static_assert(sizeof(Tout) <= sizeof(Tfloat),
                 "Tout must be smaller than Tfloat");
-  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  int outIdx            = 0;
-  for (int inVec = 0; inVec < numInVecs; inVec++)
-    for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
-      int outVec  = outIdx / numOutElems;
-      int outElem = outIdx % numOutElems;
+  const size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  const size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  const size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  size_t outIdx            = 0;
+  for (size_t inVec = 0; inVec < numInVecs; inVec++)
+    for (size_t inElem = 0; inElem < numInElems; inElem++, outIdx++) {
+      size_t outVec  = outIdx / numOutElems;
+      size_t outElem = outIdx % numOutElems;
       vecsOut[outVec][outElem] =
         _packs<Tout>(_mul(_extend<Tfloat>(vecsIn[inVec][inElem]), fac));
     }
 }
 
 template <typename Tout, typename Tin,
-          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, size_t SIMD_WIDTH>
 static SIMD_INLINE void faddmul(
   const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat off,
   Tfloat fac, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
@@ -2082,21 +2090,21 @@ static SIMD_INLINE void faddmul(
                 "Tin must be smaller than Tfloat");
   static_assert(sizeof(Tout) <= sizeof(Tfloat),
                 "Tout must be smaller than Tfloat");
-  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  int outIdx            = 0;
-  for (int inVec = 0; inVec < numInVecs; inVec++)
-    for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
-      int outVec               = outIdx / numOutElems;
-      int outElem              = outIdx % numOutElems;
+  const size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  const size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  const size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  size_t outIdx            = 0;
+  for (size_t inVec = 0; inVec < numInVecs; inVec++)
+    for (size_t inElem = 0; inElem < numInElems; inElem++, outIdx++) {
+      size_t outVec            = outIdx / numOutElems;
+      size_t outElem           = outIdx % numOutElems;
       vecsOut[outVec][outElem] = _packs<Tout>(
         _mul(_add(_extend<Tfloat>(vecsIn[inVec][inElem]), off), fac));
     }
 }
 
 template <typename Tout, typename Tin,
-          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, size_t SIMD_WIDTH>
 static SIMD_INLINE void fmuladd(
   const SerialVec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat fac,
   Tfloat off, SerialVec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
@@ -2107,21 +2115,21 @@ static SIMD_INLINE void fmuladd(
                 "Tin must be smaller than Tfloat");
   static_assert(sizeof(Tout) <= sizeof(Tfloat),
                 "Tout must be smaller than Tfloat");
-  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  int outIdx            = 0;
-  for (int inVec = 0; inVec < numInVecs; inVec++)
-    for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
-      int outVec               = outIdx / numOutElems;
-      int outElem              = outIdx % numOutElems;
+  const size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  const size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  const size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  size_t outIdx            = 0;
+  for (size_t inVec = 0; inVec < numInVecs; inVec++)
+    for (size_t inElem = 0; inElem < numInElems; inElem++, outIdx++) {
+      size_t outVec            = outIdx / numOutElems;
+      size_t outElem           = outIdx % numOutElems;
       vecsOut[outVec][outElem] = _packs<Tout>(
         _add(_mul(_extend<Tfloat>(vecsIn[inVec][inElem]), fac), off));
     }
 }
 
 template <typename Tout, typename Tin,
-          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, size_t SIMD_WIDTH>
 static SIMD_INLINE void fwaddmul(
   const SerialVec<Tin, SIMD_WIDTH> vecsIn1[numInVecs<Tout, Tin>()],
   const SerialVec<Tin, SIMD_WIDTH> vecsIn2[numInVecs<Tout, Tin>()], Tfloat w,
@@ -2133,52 +2141,52 @@ static SIMD_INLINE void fwaddmul(
                 "Tin must be smaller than Tfloat");
   static_assert(sizeof(Tout) <= sizeof(Tfloat),
                 "Tout must be smaller than Tfloat");
-  const int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  const int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  const int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
-  int outIdx            = 0;
-  for (int inVec = 0; inVec < numInVecs; inVec++)
-    for (int inElem = 0; inElem < numInElems; inElem++, outIdx++) {
-      int outVec  = outIdx / numOutElems;
-      int outElem = outIdx % numOutElems;
-      Tfloat inF1 = _extend<Tfloat>(vecsIn1[inVec][inElem]);
-      Tfloat inF2 = _extend<Tfloat>(vecsIn2[inVec][inElem]);
+  const size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  const size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  const size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  size_t outIdx            = 0;
+  for (size_t inVec = 0; inVec < numInVecs; inVec++)
+    for (size_t inElem = 0; inElem < numInElems; inElem++, outIdx++) {
+      size_t outVec  = outIdx / numOutElems;
+      size_t outElem = outIdx % numOutElems;
+      Tfloat inF1    = _extend<Tfloat>(vecsIn1[inVec][inElem]);
+      Tfloat inF2    = _extend<Tfloat>(vecsIn2[inVec][inElem]);
       vecsOut[outVec][outElem] =
         _packs<Tout>(_mul(fac, _add(inF2, _mul(w, _sub(inF1, inF2)))));
     }
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadd(
   const SerialVec<T, SIMD_WIDTH> v[SerialVec<T, SIMD_WIDTH>::elems])
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = hadd(v[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = hadd(v[i]);
   return c;
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadds(
   const SerialVec<T, SIMD_WIDTH> v[SerialVec<T, SIMD_WIDTH>::elems])
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = hadds(v[i]);
+  for (size_t i = 0; i < c.elements; i++) c[i] = hadds(v[i]);
   return c;
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose to transpose_a
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_a(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  const int n = SerialVec<T, SIMD_WIDTH>::elements;
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < n; j++) outRows[i][j] = inRows[j][i];
+  const size_t n = SerialVec<T, SIMD_WIDTH>::elements;
+  for (size_t i = 0; i < n; i++)
+    for (size_t j = 0; j < n; j++) outRows[i][j] = inRows[j][i];
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose2 to transpose_e
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_e(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2188,7 +2196,7 @@ static SIMD_INLINE void transpose_e(
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose0 to transpose_b
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_b(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2198,7 +2206,7 @@ static SIMD_INLINE void transpose_b(
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose16 to transpose_c
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_d(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2208,7 +2216,7 @@ static SIMD_INLINE void transpose_d(
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose3 to transpose_f
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_f(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2218,7 +2226,7 @@ static SIMD_INLINE void transpose_f(
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose4 to transpose_g
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_g(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2228,7 +2236,7 @@ static SIMD_INLINE void transpose_g(
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose5 to transpose_h
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_h(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2238,7 +2246,7 @@ static SIMD_INLINE void transpose_h(
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose1_16_t to transpose_c
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_c(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2248,7 +2256,7 @@ static SIMD_INLINE void transpose_c(
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose6_t to transpose_i
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_i(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2260,7 +2268,7 @@ static SIMD_INLINE void transpose_i(
 // 06. Sep 23 (Jonas Keller): added transpose1inplc, transpose2inplc,
 // transpose1inplcLane and transpose2inplcLane
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplc(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2269,7 +2277,7 @@ static SIMD_INLINE void transpose1inplc(
   transpose_a(inRows, outRows);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplc(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2278,7 +2286,7 @@ static SIMD_INLINE void transpose2inplc(
   transpose_a(inRows, outRows);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2287,7 +2295,7 @@ static SIMD_INLINE void transpose1inplcLane(
   transpose_a(inRows, outRows);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
@@ -2296,46 +2304,46 @@ static SIMD_INLINE void transpose2inplcLane(
   transpose_a(inRows, outRows);
 }
 
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH>
+template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void bitonicSort(
   SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  const int n = SerialVec<T, SIMD_WIDTH>::elements;
-  for (int i = 0; i < n; i++)
+  const size_t n = SerialVec<T, SIMD_WIDTH>::elements;
+  for (size_t i = 0; i < n; i++)
     if (SLOPE == SortSlope::ASCENDING)
       std::sort(vecs[i].vec, vecs[i].vec + n, std::less<T>());
     else
       std::sort(vecs[i].vec, vecs[i].vec + n, std::greater<T>());
 }
 
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH>
+template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void bitonicSortSortedPairs(
   SerialVec<T, SIMD_WIDTH> vecs[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  const int n = SerialVec<T, SIMD_WIDTH>::elements;
-  T twovecs[2 * n];
+  const size_t elems = SerialVec<T, SIMD_WIDTH>::elements;
+  T twovecs[2 * elems];
 
-  for (int i = 0; i < n; i += 2) {
+  for (size_t i = 0; i < elems; i += 2) {
     // join two consecutive vectors
-    for (int j = 0; j < n; j++) {
-      twovecs[j]     = vecs[i][j];
-      twovecs[j + n] = vecs[i + 1][j];
+    for (size_t j = 0; j < elems; j++) {
+      twovecs[j]         = vecs[i][j];
+      twovecs[j + elems] = vecs[i + 1][j];
     }
     // sort two vectors together
     if (SLOPE == SortSlope::ASCENDING)
-      std::sort(twovecs, twovecs + 2 * n, std::less<T>());
+      std::sort(twovecs, twovecs + 2 * elems, std::less<T>());
     else
-      std::sort(twovecs, twovecs + 2 * n, std::greater<T>());
+      std::sort(twovecs, twovecs + 2 * elems, std::greater<T>());
     // split two consecutive vectors
-    for (int j = 0; j < n; j++) {
+    for (size_t j = 0; j < elems; j++) {
       vecs[i][j]     = twovecs[j];
-      vecs[i + 1][j] = twovecs[j + n];
+      vecs[i + 1][j] = twovecs[j + elems];
     }
   }
 }
 
 // synonymous to avg
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> avgru(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
@@ -2343,7 +2351,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> avgru(
 }
 
 // int types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> avgrd(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
@@ -2352,32 +2360,32 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> avgrd(
   static_assert(sizeof(T) < sizeof(BiggerInt),
                 "avgrd: T must be smaller than int64_t");
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = (BiggerInt(a[i]) + BiggerInt(b[i])) >> 1;
   return c;
 }
 
 // floating point types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_floating_point<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> avgrd(
   const SerialVec<T, SIMD_WIDTH> &a, const SerialVec<T, SIMD_WIDTH> &b)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++)
+  for (size_t i = 0; i < c.elements; i++)
     c[i] = daz_neon((daz_neon(a[i]) + daz_neon(b[i])) / 2.0);
   return c;
 }
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE SerialVec<Tout, SIMD_WIDTH> packs(
   const SerialVec<Tin, SIMD_WIDTH> a[sizeof(Tin) / sizeof(Tout)])
 {
   SerialVec<Tout, SIMD_WIDTH> c;
-  const int numInVecs = sizeof(Tin) / sizeof(Tout);
-  int k               = 0;
-  for (int i = 0; i < numInVecs; i++)
-    for (int j = 0; j < SerialVec<Tin, SIMD_WIDTH>::elements; j++, k++) {
+  const size_t numInVecs = sizeof(Tin) / sizeof(Tout);
+  size_t k               = 0;
+  for (size_t i = 0; i < numInVecs; i++)
+    for (size_t j = 0; j < SerialVec<Tin, SIMD_WIDTH>::elements; j++, k++) {
       Tin in = a[i][j];
       c[k]   = _packs<Tout>(in);
     }
@@ -2385,46 +2393,48 @@ static SIMD_INLINE SerialVec<Tout, SIMD_WIDTH> packs(
 }
 
 // integer types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div2r0(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = T(std::trunc(double(a[i]) / 2.0));
+  for (size_t i = 0; i < c.elements; i++)
+    c[i] = T(std::trunc(double(a[i]) / 2.0));
   return c;
 }
 
 // floating point types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_floating_point<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div2r0(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = daz_neon(daz_neon(a[i]) / 2.0);
+  for (size_t i = 0; i < c.elements; i++) c[i] = daz_neon(daz_neon(a[i]) / 2.0);
   return c;
 }
 
 // integer types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div2rd(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = T(std::floor(double(a[i]) / 2.0));
+  for (size_t i = 0; i < c.elements; i++)
+    c[i] = T(std::floor(double(a[i]) / 2.0));
   return c;
 }
 
 // floating point types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_floating_point<T>::value), typename = void>
 static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div2rd(
   const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
-  for (int i = 0; i < c.elements; i++) c[i] = daz_neon(daz_neon(a[i]) / 2.0);
+  for (size_t i = 0; i < c.elements; i++) c[i] = daz_neon(daz_neon(a[i]) / 2.0);
   return c;
 }
 
@@ -2435,25 +2445,25 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> div2rd(
 // 27. Aug 22 (Jonas Keller): added msb2int functions
 
 // integer types
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE uint64_t msb2int(const SerialVec<T, SIMD_WIDTH> &a)
 {
   T highestBitMask = T(T(1) << (sizeof(T) * 8 - 1));
   uint64_t result  = 0;
-  for (int i = 0; i < a.elements; i++)
+  for (size_t i = 0; i < a.elements; i++)
     if ((a[i] & highestBitMask) != 0) result |= (uint64_t(1) << i);
   return result;
 }
 
 // Float
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE uint64_t msb2int(const SerialVec<Float, SIMD_WIDTH> &a)
 {
   return msb2int(reinterpret<Int>(a));
 }
 
 // Double
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE uint64_t msb2int(const SerialVec<Double, SIMD_WIDTH> &a)
 {
   return msb2int(reinterpret<uint64_t>(a));

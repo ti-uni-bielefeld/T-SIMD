@@ -93,7 +93,7 @@ set header \
 
 # wrap in internal::ext
 set transposeCoreTemplateHead {
-    template <typename T, int SIMD_WIDTH>
+    template <typename T, size_t SIMD_WIDTH>
     static SIMD_INLINE void %s
     (const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
      Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems],
@@ -102,7 +102,7 @@ set transposeCoreTemplateHead {
 # wrap in internal::ext
 # TODO: namespace ok?
 set transposeHubTemplate {
-    template <typename T, int SIMD_WIDTH>
+    template <typename T, size_t SIMD_WIDTH>
     static SIMD_INLINE void %s
     (const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
      Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -118,7 +118,7 @@ set transposeHubTemplate {
 
 # wrap in internal::ext
 set transposeLaneCoreTemplateHead {
-    template <typename T, int SIMD_WIDTH>
+    template <typename T, size_t SIMD_WIDTH>
     static SIMD_INLINE void %s
     (const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
      Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems],
@@ -128,7 +128,7 @@ set transposeLaneCoreTemplateHead {
 # wrap in internal::ext
 # TODO: namespace ok?
 set transposeLaneHubTemplate {
-    template <typename T, int SIMD_WIDTH>
+    template <typename T, size_t SIMD_WIDTH>
     static SIMD_INLINE void %s
     (const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
      Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])

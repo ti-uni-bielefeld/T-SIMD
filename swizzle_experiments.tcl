@@ -1255,10 +1255,10 @@ if {0} {
             lassign $input inL inH
             # generate input vectors T-SIMD
             puts $f "    Vec<$DATA_TYPE,$SIMD_WIDTH> inL, inH, outL, outH;"
-            puts $f "    constexpr int elems"
+            puts $f "    constexpr size_t elems"
             puts $f "      = Vec<$DATA_TYPE,$SIMD_WIDTH>::elements;"
             puts $f "    $DATA_TYPE inLbuf\[elems\], inHbuf\[elems\];"
-            puts $f "    for (int i = 0; i < elems; i++) \{"
+            puts $f "    for (size_t i = 0; i < elems; i++) \{"
             puts $f "      inLbuf\[i\] = i;"
             puts $f "      inHbuf\[i\] = i + elems;"
             puts $f "    \}"

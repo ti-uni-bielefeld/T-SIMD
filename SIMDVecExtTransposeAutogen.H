@@ -39,7 +39,7 @@ namespace ext {
 // transpose1inplc
 // ==========================================================
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<2>)
@@ -47,7 +47,7 @@ static SIMD_INLINE void transpose1inplc(
   zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<4>)
@@ -59,7 +59,7 @@ static SIMD_INLINE void transpose1inplc(
   std::swap(outRows[1], outRows[2]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>)
@@ -80,7 +80,7 @@ static SIMD_INLINE void transpose1inplc(
   std::swap(outRows[3], outRows[6]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>)
@@ -125,7 +125,7 @@ static SIMD_INLINE void transpose1inplc(
   std::swap(outRows[11], outRows[13]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<32>)
@@ -224,7 +224,7 @@ static SIMD_INLINE void transpose1inplc(
   std::swap(outRows[23], outRows[29]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<64>)
@@ -451,7 +451,7 @@ static SIMD_INLINE void transpose1inplc(
   std::swap(outRows[55], outRows[59]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -463,7 +463,7 @@ static SIMD_INLINE void transpose1inplc(
 // transpose1inplcLane
 // ==========================================================
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>,
@@ -510,7 +510,7 @@ static SIMD_INLINE void transpose1inplcLane(
   // correction steps follow below (if required)
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>, Bytes<16>)
@@ -532,7 +532,7 @@ static SIMD_INLINE void transpose1inplcLane(
   // correction steps follow below (if required)
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<4>, Bytes<16>)
@@ -545,7 +545,7 @@ static SIMD_INLINE void transpose1inplcLane(
   // correction steps follow below (if required)
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<2>, Bytes<16>)
@@ -554,7 +554,7 @@ static SIMD_INLINE void transpose1inplcLane(
   // correction steps follow below (if required)
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<32>,
@@ -655,7 +655,7 @@ static SIMD_INLINE void transpose1inplcLane(
   zip<16>(outRows[15], outRows[31], outRows[15], outRows[31]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>,
@@ -700,7 +700,7 @@ static SIMD_INLINE void transpose1inplcLane(
   zip<8>(outRows[7], outRows[15], outRows[7], outRows[15]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>, Bytes<32>)
@@ -722,7 +722,7 @@ static SIMD_INLINE void transpose1inplcLane(
   zip<4>(outRows[3], outRows[7], outRows[3], outRows[7]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<4>, Bytes<32>)
@@ -734,7 +734,7 @@ static SIMD_INLINE void transpose1inplcLane(
   zip<2>(outRows[1], outRows[3], outRows[1], outRows[3]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<64>,
@@ -975,7 +975,7 @@ static SIMD_INLINE void transpose1inplcLane(
   std::swap(outRows[31], outRows[47]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<32>,
@@ -1080,7 +1080,7 @@ static SIMD_INLINE void transpose1inplcLane(
   std::swap(outRows[15], outRows[23]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>,
@@ -1129,7 +1129,7 @@ static SIMD_INLINE void transpose1inplcLane(
   std::swap(outRows[7], outRows[11]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>, Bytes<64>)
@@ -1151,7 +1151,7 @@ static SIMD_INLINE void transpose1inplcLane(
   std::swap(outRows[3], outRows[5]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose1inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -1164,7 +1164,7 @@ static SIMD_INLINE void transpose1inplcLane(
 // transpose2inplc
 // ==========================================================
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<2>)
@@ -1172,7 +1172,7 @@ static SIMD_INLINE void transpose2inplc(
   zip<1>(inRows[0], inRows[1], outRows[0], outRows[1]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<4>)
@@ -1183,7 +1183,7 @@ static SIMD_INLINE void transpose2inplc(
   zip<1>(outRows[2], outRows[3], outRows[2], outRows[3]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>)
@@ -1202,7 +1202,7 @@ static SIMD_INLINE void transpose2inplc(
   zip<1>(outRows[6], outRows[7], outRows[6], outRows[7]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>)
@@ -1241,7 +1241,7 @@ static SIMD_INLINE void transpose2inplc(
   zip<1>(outRows[14], outRows[15], outRows[14], outRows[15]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<32>)
@@ -1328,7 +1328,7 @@ static SIMD_INLINE void transpose2inplc(
   zip<1>(outRows[30], outRows[31], outRows[30], outRows[31]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<64>)
@@ -1527,7 +1527,7 @@ static SIMD_INLINE void transpose2inplc(
   zip<1>(outRows[62], outRows[63], outRows[62], outRows[63]);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplc(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -1539,7 +1539,7 @@ static SIMD_INLINE void transpose2inplc(
 // transpose2inplcLane
 // ==========================================================
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>,
@@ -1580,7 +1580,7 @@ static SIMD_INLINE void transpose2inplcLane(
   // correction steps follow below (if required)
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>, Bytes<16>)
@@ -1600,7 +1600,7 @@ static SIMD_INLINE void transpose2inplcLane(
   // correction steps follow below (if required)
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<4>, Bytes<16>)
@@ -1612,7 +1612,7 @@ static SIMD_INLINE void transpose2inplcLane(
   // correction steps follow below (if required)
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<2>, Bytes<16>)
@@ -1621,7 +1621,7 @@ static SIMD_INLINE void transpose2inplcLane(
   // correction steps follow below (if required)
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<32>,
@@ -1758,7 +1758,7 @@ static SIMD_INLINE void transpose2inplcLane(
   }
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>,
@@ -1825,7 +1825,7 @@ static SIMD_INLINE void transpose2inplcLane(
   }
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>, Bytes<32>)
@@ -1857,7 +1857,7 @@ static SIMD_INLINE void transpose2inplcLane(
   }
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<4>, Bytes<32>)
@@ -1874,7 +1874,7 @@ static SIMD_INLINE void transpose2inplcLane(
   }
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<64>,
@@ -2173,7 +2173,7 @@ static SIMD_INLINE void transpose2inplcLane(
   }
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<32>,
@@ -2314,7 +2314,7 @@ static SIMD_INLINE void transpose2inplcLane(
   }
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<16>,
@@ -2381,7 +2381,7 @@ static SIMD_INLINE void transpose2inplcLane(
   }
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems], Elements<8>, Bytes<64>)
@@ -2411,7 +2411,7 @@ static SIMD_INLINE void transpose2inplcLane(
   }
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose2inplcLane(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])

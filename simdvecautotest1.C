@@ -61,12 +61,12 @@ int main(int argc, char *argv[])
 {
   srand(time(nullptr));
   // default values
-  int repeats1        = REPEATS1;
+  size_t repeats1     = REPEATS1;
   std::string pattern = "";
   // overwrite default values from command line
   if (argc >= 2) pattern = argv[1];
   if (argc == 3) repeats1 = atoi(argv[2]);
-  printf("pattern \"%s\", repeats1 = %d\n", pattern.c_str(), repeats1);
+  printf("pattern \"%s\", repeats1 = %zu\n", pattern.c_str(), repeats1);
 
   // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<Byte>());
   // for (int i = 0; i<100000; i++) printf("%d\n", getRandom<SignedByte>());

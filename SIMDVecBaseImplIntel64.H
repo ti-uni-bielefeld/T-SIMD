@@ -79,10 +79,10 @@ class Vec<T, 64>
   __m512i zmm = _mm512_setzero_si512();
 
 public:
-  using Type                    = T;
-  static constexpr int elements = 64 / sizeof(T);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = 64;
+  using Type                       = T;
+  static constexpr size_t elements = 64 / sizeof(T);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = 64;
 
   Vec() = default;
   Vec(const __m512i &x) { zmm = x; }
@@ -123,10 +123,10 @@ class Vec<Float, 64>
   __m512 zmm = _mm512_setzero_ps();
 
 public:
-  using Type                    = Float;
-  static constexpr int elements = 64 / sizeof(Float);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = 64;
+  using Type                       = Float;
+  static constexpr size_t elements = 64 / sizeof(Float);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = 64;
 
   Vec() = default;
   Vec(const __m512 &x) { zmm = x; }
@@ -169,10 +169,10 @@ class Vec<Double, 64>
   __m512d zmm;
 
 public:
-  using Type                    = Double;
-  static constexpr int elements = 64 / sizeof(Double);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = 64;
+  using Type                       = Double;
+  static constexpr size_t elements = 64 / sizeof(Double);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = 64;
 
   Vec() = default;
   Vec(const __m512d &x) { zmm = x; }
@@ -216,359 +216,6 @@ namespace base {
 // wrapper functions and inlined them directly into where they were used
 
 // ---------------------------------------------------------------------------
-// element-wise shifts v
-// ---------------------------------------------------------------------------
-
-#ifdef __AVX512BW__
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_slli_epi16(__m512i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm512_slli_epi16(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_slli_epi16(__m512i,
-                                              IsPosInRange<true, false>)
-{
-  return _mm512_setzero_si512();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_slli_epi16(__m512i a)
-{
-  return x_mm512_slli_epi16<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// ----------
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srli_epi16(__m512i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm512_srli_epi16(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srli_epi16(__m512i,
-                                              IsPosInRange<true, false>)
-{
-  return _mm512_setzero_si512();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srli_epi16(__m512i a)
-{
-  return x_mm512_srli_epi16<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// ----------
-
-// 16. Oct 22 (Jonas Keller): added x_mm512_srai_epi8
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srai_epi8(__m512i a,
-                                             IsPosInRange<true, true>)
-{
-  __m512i odd    = _mm512_srai_epi16(a, IMM);
-  __m512i even   = _mm512_srai_epi16(_mm512_slli_epi16(a, 8), IMM + 8);
-  __mmask64 mask = __mmask64(0x5555555555555555);
-  return _mm512_mask_blend_epi8(mask, odd, even);
-}
-
-// positive and out of range: maximal shift
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srai_epi8(__m512i a,
-                                             IsPosInRange<true, false>)
-{
-  // result should be all ones if a is negative, all zeros otherwise
-  return _mm512_movm_epi8(_mm512_cmplt_epi8_mask(a, _mm512_setzero_si512()));
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srai_epi8(__m512i a)
-{
-  return x_mm512_srai_epi8<IMM>(a, IsPosInGivenRange<7, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srai_epi16(__m512i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm512_srai_epi16(a, IMM);
-}
-
-// positive and out of range: maximal shift
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srai_epi16(__m512i a,
-                                              IsPosInRange<true, false>)
-{
-  return _mm512_srai_epi16(a, 15);
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srai_epi16(__m512i a)
-{
-  return x_mm512_srai_epi16<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-#endif
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_slli_epi32(__m512i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm512_slli_epi32(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_slli_epi32(__m512i,
-                                              IsPosInRange<true, false>)
-{
-  return _mm512_setzero_si512();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_slli_epi32(__m512i a)
-{
-  return x_mm512_slli_epi32<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-// ----------
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srli_epi32(__m512i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm512_srli_epi32(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srli_epi32(__m512i,
-                                              IsPosInRange<true, false>)
-{
-  return _mm512_setzero_si512();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srli_epi32(__m512i a)
-{
-  return x_mm512_srli_epi32<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-// ----------
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srai_epi32(__m512i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm512_srai_epi32(a, IMM);
-}
-
-// positive and out of range: maximal shift
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srai_epi32(__m512i a,
-                                              IsPosInRange<true, false>)
-{
-  return _mm512_srai_epi32(a, 31);
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_srai_epi32(__m512i a)
-{
-  return x_mm512_srai_epi32<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-// ---------------------------------------------------------------------------
-// extract 128-bit-lane as Vec<T, 16>
-// ---------------------------------------------------------------------------
-
-// contributed by Adam Marschall
-
-// generalized extract of 128-bit-lanes (IMM = 0..3)
-// all integer versions
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 64> &a)
-{
-  return _mm512_extracti32x4_epi32(a, IMM);
-}
-
-// generalized extract of 128-bit-lanes (IMM = 0..3)
-// float versions
-template <int IMM>
-static SIMD_INLINE Vec<Float, 16> extractLane(const Vec<Float, 64> &a)
-{
-  return _mm512_extractf32x4_ps(a, IMM);
-}
-
-// generalized extract of 128-bit-lanes (IMM = 0..3)
-// double versions
-template <int IMM>
-static SIMD_INLINE Vec<Double, 16> extractLane(const Vec<Double, 64> &a)
-{
-#ifdef __AVX512DQ__
-  return _mm512_extractf64x2_pd(a, IMM);
-#else
-  return _mm_castps_pd(_mm512_extractf32x4_ps(_mm512_castpd_ps(a), IMM));
-#endif
-}
-
-// ---------------------------------------------------------------------------
-// extract v
-// ---------------------------------------------------------------------------
-
-// _mm512_extract_epi/_ps etc. don't exist, we emulate that
-// NOTE: even in AVX, that was internally done in the extract intrinsics:
-// e.g. avxintrin.h:
-// int _mm256_extract_epi16 (__m256i __X, int const __N)
-// {
-//   __m128i __Y = _mm256_extractf128_si256 (__X, __N >> 3);
-//   return _mm_extract_epi16 (__Y, __N % 8);
-// }
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_epi16(__m512i a,
-                                             IsPosInRange<true, true>)
-{
-  return x_mm_extract_epi16<(IMM % 8)>(_mm512_extracti32x4_epi32(a, IMM >> 3));
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_epi16(__m512i, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_epi16(__m512i a)
-{
-  // 32 * epi16
-  return x_mm512_extract_epi16<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-// ----------
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_epi8(__m512i a, IsPosInRange<true, true>)
-{
-  return _mm_extract_epi8(_mm512_extracti32x4_epi32(a, IMM >> 4), IMM % 16);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_epi8(__m512i, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_epi8(__m512i a)
-{
-  // 64 * epi8
-  return x_mm512_extract_epi8<IMM>(a, IsPosInGivenRange<64, IMM>());
-}
-
-// ----------
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_epi32(__m512i a,
-                                             IsPosInRange<true, true>)
-{
-  // TODO: extract: is conversion from return type int to Int always safe?
-  return _mm_extract_epi32(_mm512_extracti32x4_epi32(a, IMM >> 2), IMM % 4);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_epi32(__m512i, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_epi32(__m512i a)
-{
-  // 16 * epi32
-  return x_mm512_extract_epi32<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// ----------
-
-// we stick to the weird definition of returning an int instead of float
-
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_ps(__m512 a, IsPosInRange<true, true>)
-{
-  // TODO: extract: is conversion from return type int to Int always safe?
-  return _mm_extract_ps(_mm512_extractf32x4_ps(a, IMM >> 2), IMM % 4);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_ps(__m512, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE int x_mm512_extract_ps(__m512 a)
-{
-  // 16 * epi32
-  return x_mm512_extract_ps<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE long long x_mm512_extract_epi64(__m512i a,
-                                                   IsPosInRange<true, true>)
-{
-  return _mm_extract_epi64(_mm512_extracti32x4_epi32(a, (IMM >> 1)), IMM % 2);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE long long x_mm512_extract_epi64(__m512i,
-                                                   IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE long long x_mm512_extract_epi64(__m512i a)
-{
-  // 8 * epi64
-  return x_mm512_extract_epi64<IMM>(a, IsPosInGivenRange<8, IMM>());
-}
-
-// ---------------------------------------------------------------------------
 // alignr v
 // ---------------------------------------------------------------------------
 
@@ -576,40 +223,21 @@ static SIMD_INLINE long long x_mm512_extract_epi64(__m512i a)
 // with static_assert, since we don't need the range handling anymore,
 // we just assert that IMM is in range
 
+template <size_t COUNT>
+static SIMD_INLINE __m512i x_mm512_alignr_epi8(__m512i h, __m512i l)
+{
+  static_assert(COUNT < 32, "");
 #ifdef __AVX512BW__
-
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_alignr_epi8(__m512i h, __m512i l)
-{
-  static_assert(IMM >= 0 && IMM < 32, "");
-  return _mm512_alignr_epi8(h, l, IMM);
-}
-
+  return _mm512_alignr_epi8(h, l, COUNT);
 #else
-
-// non-avx512bw workarounds
-// (easy since AVX512BW instructions operate on lanes anyhow)
-
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_alignr_epi8(__m512i h, __m512i l)
-{
-  static_assert(IMM >= 0 && IMM < 32, "");
+  // non-avx512bw workarounds
+  // (easy since AVX512BW instructions operate on lanes anyhow)
   const __m256i lo = _mm256_alignr_epi8(_mm512_castsi512_si256(h),
-                                        _mm512_castsi512_si256(l), IMM);
+                                        _mm512_castsi512_si256(l), COUNT);
   const __m256i hi = _mm256_alignr_epi8(_mm512_extracti64x4_epi64(h, 1),
-                                        _mm512_extracti64x4_epi64(l, 1), IMM);
+                                        _mm512_extracti64x4_epi64(l, 1), COUNT);
   return _mm512_inserti64x4(_mm512_castsi256_si512(lo), hi, 1);
-}
-
 #endif
-
-// ---------------------------------------------------------------------------
-// insert 16 byte vector a all 4 lanes of a 64 byte vector v
-// ---------------------------------------------------------------------------
-
-static SIMD_INLINE __m512i x_mm512_duplicate_si128(__m128i a)
-{
-  return _mm512_broadcast_i32x4(a);
 }
 
 // ---------------------------------------------------------------------------
@@ -631,22 +259,6 @@ static SIMD_INLINE __m512i x_mm512_evenodd8x64_epi64(__m512i a)
 }
 
 // ---------------------------------------------------------------------------
-// unpack of 2 ps v
-// ---------------------------------------------------------------------------
-
-static SIMD_INLINE __m512 x_mm512_unpacklo_2ps(__m512 a, __m512 b)
-{
-  return _mm512_castpd_ps(
-    _mm512_unpacklo_pd(_mm512_castps_pd(a), _mm512_castps_pd(b)));
-}
-
-static SIMD_INLINE __m512 x_mm512_unpackhi_2ps(__m512 a, __m512 b)
-{
-  return _mm512_castpd_ps(
-    _mm512_unpackhi_pd(_mm512_castps_pd(a), _mm512_castps_pd(b)));
-}
-
-// ---------------------------------------------------------------------------
 // binary functions with non-avx512bw workarounds v
 // ---------------------------------------------------------------------------
 
@@ -662,10 +274,10 @@ static SIMD_INLINE __m512 x_mm512_unpackhi_2ps(__m512 a, __m512 b)
 #define SIMD_X_BW_INT_BINFCT_64(INTRIN)                                        \
   static SIMD_INLINE __m512i x_mm512_##INTRIN(__m512i a, __m512i b)            \
   {                                                                            \
-    __m256i lo =                                                               \
+    const __m256i lo =                                                         \
       _mm256_##INTRIN(_mm512_castsi512_si256(a), _mm512_castsi512_si256(b));   \
-    __m256i hi = _mm256_##INTRIN(_mm512_extracti64x4_epi64(a, 1),              \
-                                 _mm512_extracti64x4_epi64(b, 1));             \
+    const __m256i hi = _mm256_##INTRIN(_mm512_extracti64x4_epi64(a, 1),        \
+                                       _mm512_extracti64x4_epi64(b, 1));       \
     return _mm512_inserti64x4(_mm512_castsi256_si512(lo), hi, 1);              \
   }
 #endif
@@ -711,63 +323,6 @@ static SIMD_INLINE __m512i x_mm512_movm_epi64(__mmask8 k)
 #else
   return _mm512_maskz_mov_epi64(k, _mm512_set1_epi64(-1));
 #endif
-}
-
-// ---------------------------------------------------------------------------
-// x_mm512_set_epi8, x_mm512_set_epi16 v
-// ---------------------------------------------------------------------------
-
-// 14. May 23 (Jonas Keller): added x_mm512_set_epi8 and x_mm512_set_epi16
-
-// _mm512_set_epi8 and _mm512_set_epi16 are not available in some gcc versions
-// so we use _mm512_set_epi32 to emulate them
-
-static SIMD_INLINE __m512i x_mm512_set_epi8(
-  char b63, char b62, char b61, char b60, char b59, char b58, char b57,
-  char b56, char b55, char b54, char b53, char b52, char b51, char b50,
-  char b49, char b48, char b47, char b46, char b45, char b44, char b43,
-  char b42, char b41, char b40, char b39, char b38, char b37, char b36,
-  char b35, char b34, char b33, char b32, char b31, char b30, char b29,
-  char b28, char b27, char b26, char b25, char b24, char b23, char b22,
-  char b21, char b20, char b19, char b18, char b17, char b16, char b15,
-  char b14, char b13, char b12, char b11, char b10, char b9, char b8, char b7,
-  char b6, char b5, char b4, char b3, char b2, char b1, char b0)
-{
-  return _mm512_set_epi32(
-    (int) b63 << 24 | (int) b62 << 16 | (int) b61 << 8 | (int) b60,
-    (int) b59 << 24 | (int) b58 << 16 | (int) b57 << 8 | (int) b56,
-    (int) b55 << 24 | (int) b54 << 16 | (int) b53 << 8 | (int) b52,
-    (int) b51 << 24 | (int) b50 << 16 | (int) b49 << 8 | (int) b48,
-    (int) b47 << 24 | (int) b46 << 16 | (int) b45 << 8 | (int) b44,
-    (int) b43 << 24 | (int) b42 << 16 | (int) b41 << 8 | (int) b40,
-    (int) b39 << 24 | (int) b38 << 16 | (int) b37 << 8 | (int) b36,
-    (int) b35 << 24 | (int) b34 << 16 | (int) b33 << 8 | (int) b32,
-    (int) b31 << 24 | (int) b30 << 16 | (int) b29 << 8 | (int) b28,
-    (int) b27 << 24 | (int) b26 << 16 | (int) b25 << 8 | (int) b24,
-    (int) b23 << 24 | (int) b22 << 16 | (int) b21 << 8 | (int) b20,
-    (int) b19 << 24 | (int) b18 << 16 | (int) b17 << 8 | (int) b16,
-    (int) b15 << 24 | (int) b14 << 16 | (int) b13 << 8 | (int) b12,
-    (int) b11 << 24 | (int) b10 << 16 | (int) b9 << 8 | (int) b8,
-    (int) b7 << 24 | (int) b6 << 16 | (int) b5 << 8 | (int) b4,
-    (int) b3 << 24 | (int) b2 << 16 | (int) b1 << 8 | (int) b0);
-}
-
-static SIMD_INLINE __m512i x_mm512_set_epi16(
-  short w31, short w30, short w29, short w28, short w27, short w26, short w25,
-  short w24, short w23, short w22, short w21, short w20, short w19, short w18,
-  short w17, short w16, short w15, short w14, short w13, short w12, short w11,
-  short w10, short w9, short w8, short w7, short w6, short w5, short w4,
-  short w3, short w2, short w1, short w0)
-{
-  return _mm512_set_epi32(
-    (int) w31 << 16 | (int) w30, (int) w29 << 16 | (int) w28,
-    (int) w27 << 16 | (int) w26, (int) w25 << 16 | (int) w24,
-    (int) w23 << 16 | (int) w22, (int) w21 << 16 | (int) w20,
-    (int) w19 << 16 | (int) w18, (int) w17 << 16 | (int) w16,
-    (int) w15 << 16 | (int) w14, (int) w13 << 16 | (int) w12,
-    (int) w11 << 16 | (int) w10, (int) w9 << 16 | (int) w8,
-    (int) w7 << 16 | (int) w6, (int) w5 << 16 | (int) w4,
-    (int) w3 << 16 | (int) w2, (int) w1 << 16 | (int) w0);
 }
 
 // ###########################################################################
@@ -1096,50 +651,97 @@ static SIMD_INLINE void stream_store(Double *const p, const Vec<Double, 64> &a)
 // extract v
 // ---------------------------------------------------------------------------
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Byte extract(const Vec<Byte, 64> &a)
 {
-  return x_mm512_extract_epi8<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 64) {
+    return _mm_extract_epi8(_mm512_extracti32x4_epi32(a, COUNT >> 4),
+                            COUNT % 16);
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE SignedByte extract(const Vec<SignedByte, 64> &a)
 {
-  return x_mm512_extract_epi8<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 64) {
+    return _mm_extract_epi8(_mm512_extracti32x4_epi32(a, COUNT >> 4),
+                            COUNT % 16);
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Word extract(const Vec<Word, 64> &a)
 {
-  return x_mm512_extract_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm_extract_epi16(_mm512_extracti32x4_epi32(a, COUNT >> 3),
+                             COUNT % 8);
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Short extract(const Vec<Short, 64> &a)
 {
-  return x_mm512_extract_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm_extract_epi16(_mm512_extracti32x4_epi32(a, COUNT >> 3),
+                             COUNT % 8);
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Int extract(const Vec<Int, 64> &a)
 {
-  // TODO: extract: is conversion from return type int to Int always safe?
-  return x_mm512_extract_epi32<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm_extract_epi32(_mm512_extracti32x4_epi32(a, COUNT >> 2),
+                             COUNT % 4);
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Float extract(const Vec<Float, 64> &a)
 {
-  SIMD_RETURN_REINTERPRET_INT(Float, x_mm512_extract_ps<IMM>(a), 0);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return ::simd::internal::bit_cast<Float>(
+      _mm_extract_ps(_mm512_extractf32x4_ps(a, COUNT >> 2), COUNT % 4));
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Double extract(const Vec<Double, 64> &a)
 {
-  const uint64_t resInt = x_mm512_extract_epi64<IMM>(_mm512_castpd_si512(a));
-  Double res;
-  memcpy(&res, &resInt, sizeof(res));
-  return res;
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    return ::simd::internal::bit_cast<Double>(_mm_extract_epi64(
+      _mm512_extracti32x4_epi32(_mm512_castpd_si512(a), COUNT >> 1),
+      COUNT % 2));
+  } else {
+    return 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// extract 128-bit-lane as Vec<T, 16>
+// ---------------------------------------------------------------------------
+
+// contributed by Adam Marschall
+
+// generalized extract of 128-bit-lanes (LANE_INDEX = 0..3)
+template <size_t LANE_INDEX, typename T>
+static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 64> &a)
+{
+  const auto intA           = reinterpret(a, OutputType<Int>());
+  const Vec<Int, 16> intRes = _mm512_extracti32x4_epi32(intA, LANE_INDEX);
+  return reinterpret(intRes, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
@@ -1252,16 +854,16 @@ static SIMD_INLINE Vec<Int, 64> adds(const Vec<Int, 64> &a,
   // Hacker's Delight, 2-13 Overflow Detection: "Signed integer overflow of
   // addition occurs if and only if the operands have the same sign and the
   // sum has a sign opposite to that of the operands."
-  __m512i sum             = _mm512_add_epi32(a, b);
-  __m512i opsHaveDiffSign = _mm512_xor_si512(a, b);
-  __m512i sumHasDiffSign  = _mm512_xor_si512(a, sum);
+  const __m512i sum             = _mm512_add_epi32(a, b);
+  const __m512i opsHaveDiffSign = _mm512_xor_si512(a, b);
+  const __m512i sumHasDiffSign  = _mm512_xor_si512(a, sum);
   // indicates when an overflow has occurred
-  __m512i overflow =
+  const __m512i overflow =
     _mm512_srai_epi32(_mm512_andnot_si512(opsHaveDiffSign, sumHasDiffSign), 31);
   // saturated sum for if overflow occurred (0x7FFFFFFF=max positive int, when
   // sign of a (and thus b as well) is 0, 0x80000000=min negative int, when sign
   // of a (and thus b as well) is 1)
-  __m512i saturatedSum =
+  const __m512i saturatedSum =
     _mm512_xor_si512(_mm512_srai_epi32(a, 31), _mm512_set1_epi32(0x7FFFFFFF));
   // return saturated sum if overflow occurred, otherwise return sum
   return _mm512_or_si512(_mm512_andnot_si512(overflow, sum),
@@ -1392,16 +994,16 @@ static SIMD_INLINE Vec<Int, 64> subs(const Vec<Int, 64> &a,
   // Hacker's Delight, 2-13 Overflow Detection: "[...] overflow in the final
   // value of x−y [...] occurs if and only if x and y have opposite signs and
   // the sign of x−y [...] is opposite to that of x [...]"
-  __m512i diff            = _mm512_sub_epi32(a, b);
-  __m512i opsHaveDiffSign = _mm512_xor_si512(a, b);
-  __m512i diffHasDiffSign = _mm512_xor_si512(a, diff);
+  const __m512i diff            = _mm512_sub_epi32(a, b);
+  const __m512i opsHaveDiffSign = _mm512_xor_si512(a, b);
+  const __m512i diffHasDiffSign = _mm512_xor_si512(a, diff);
   // indicates when an overflow has occurred
-  __m512i overflow =
+  const __m512i overflow =
     _mm512_srai_epi32(_mm512_and_si512(opsHaveDiffSign, diffHasDiffSign), 31);
   // saturated diff for if overflow occurred (0x7FFFFFFF=max positive int, when
   // sign of a (and thus b as well) is 0, 0x80000000=min negative int, when sign
   // of a (and thus b as well) is 1)
-  __m512i saturatedDiff =
+  const __m512i saturatedDiff =
     _mm512_xor_si512(_mm512_srai_epi32(a, 31), _mm512_set1_epi32(0x7FFFFFFF));
   // return saturated diff if overflow occurred, otherwise return diff
   return _mm512_or_si512(_mm512_andnot_si512(overflow, diff),
@@ -1456,12 +1058,16 @@ static SIMD_INLINE Vec<Int, 64> neg(const Vec<Int, 64> &a)
 
 static SIMD_INLINE Vec<Float, 64> neg(const Vec<Float, 64> &a)
 {
-  return _mm512_sub_ps(_mm512_setzero_ps(), a);
+  // xor has better latency than sub
+  return _mm512_castsi512_ps(
+    _mm512_xor_si512(_mm512_set1_epi32(0x80000000), _mm512_castps_si512(a)));
 }
 
 static SIMD_INLINE Vec<Double, 64> neg(const Vec<Double, 64> &a)
 {
-  return _mm512_sub_pd(_mm512_setzero_pd(), a);
+  // xor has better latency than sub
+  return _mm512_castsi512_pd(_mm512_xor_si512(
+    _mm512_set1_epi64(0x8000000000000000), _mm512_castpd_si512(a)));
 }
 
 // ---------------------------------------------------------------------------
@@ -1828,73 +1434,41 @@ static SIMD_INLINE Vec<Double, 64> abs(const Vec<Double, 64> &a)
 // unpacklo v (with permutex2var)
 // ---------------------------------------------------------------------------
 
+// integer version
+template <typename T>
+static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b,
+                                     Part<0>, Bytes<1>)
+{
 #ifdef __AVX512VBMI__
-
-// integer version
-template <typename T>
-static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b,
-                                     Part<0>, Bytes<1>)
-{
   // element order high to low for idx
-  // 95,31,94,30,93,29,92,28,
-  // 91,27,90,26,89,25,88,24,
-  // 87,23,86,22,85,21,84,20,
-  // 83,19,82,18,81,17,80,16,
-  // 79,15,78,14,77,13,76,12,
-  // 75,11,74,10,73, 9,72, 8,
-  // 71, 7,70, 6,69, 5,68, 4,
-  // 67, 3,66, 2,65, 1,64, 0
-  __m512i idx = _mm512_set_epi32(
-    0x5f1f5e1e, 0x5d1d5c1c, 0x5b1b5a1a, 0x59195818, 0x57175616, 0x55155414,
-    0x53135212, 0x51115010, 0x4f0f4e0e, 0x4d0d4c0c, 0x4b0b4a0a, 0x49094808,
-    0x47074606, 0x45054404, 0x43034202, 0x41014000);
+  __m512i idx = _mm512_set_epi8(
+    95, 31, 94, 30, 93, 29, 92, 28, 91, 27, 90, 26, 89, 25, 88, 24, 87, 23, 86,
+    22, 85, 21, 84, 20, 83, 19, 82, 18, 81, 17, 80, 16, 79, 15, 78, 14, 77, 13,
+    76, 12, 75, 11, 74, 10, 73, 9, 72, 8, 71, 7, 70, 6, 69, 5, 68, 4, 67, 3, 66,
+    2, 65, 1, 64, 0);
   return _mm512_permutex2var_epi8(a, idx, b);
-}
-
 #else
-
-// integer version
-template <typename T>
-static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b,
-                                     Part<0>, Bytes<1>)
-{
   return x_mm512_unpacklo_epi8(x_mm512_transpose8x64_epi64(a),
                                x_mm512_transpose8x64_epi64(b));
-}
-
 #endif
-
-#ifdef __AVX512BW__
-
-// integer version
-template <typename T>
-static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b,
-                                     Part<0>, Bytes<2>)
-{
-  // element order high to low for idx
-  // 47,15,46,14,45,13,44,12,
-  // 43,11,42,10,41, 9,40, 8,
-  // 39, 7,38, 6,37, 5,36, 4,
-  // 35, 3,34, 2,33, 1,32, 0
-  __m512i idx = _mm512_set_epi32(
-    0x002f000f, 0x002e000e, 0x002d000d, 0x002c000c, 0x002b000b, 0x002a000a,
-    0x00290009, 0x00280008, 0x00270007, 0x00260006, 0x00250005, 0x00240004,
-    0x00230003, 0x00220002, 0x00210001, 0x00200000);
-  return _mm512_permutex2var_epi16(a, idx, b);
 }
 
-#else
-
 // integer version
 template <typename T>
 static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b,
                                      Part<0>, Bytes<2>)
 {
+#ifdef __AVX512BW__
+  // element order high to low for idx
+  __m512i idx =
+    _mm512_set_epi16(47, 15, 46, 14, 45, 13, 44, 12, 43, 11, 42, 10, 41, 9, 40,
+                     8, 39, 7, 38, 6, 37, 5, 36, 4, 35, 3, 34, 2, 33, 1, 32, 0);
+  return _mm512_permutex2var_epi16(a, idx, b);
+#else
   return x_mm512_unpacklo_epi16(x_mm512_transpose8x64_epi64(a),
                                 x_mm512_transpose8x64_epi64(b));
-}
-
 #endif
+}
 
 // integer version
 template <typename T>
@@ -2004,73 +1578,41 @@ static SIMD_INLINE Vec<Double, 64> unpack(const Vec<Double, 64> &a,
 // unpackhi v (with permutex2var)
 // ---------------------------------------------------------------------------
 
+// integer version
+template <typename T>
+static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b,
+                                     Part<1>, Bytes<1>)
+{
 #ifdef __AVX512VBMI__
-
-// integer version
-template <typename T>
-static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b,
-                                     Part<1>, Bytes<1>)
-{
   // element order high to low for idx
-  // 127,63,126,62,125,61,124,60,
-  // 123,59,122,58,121,57,120,56,
-  // 119,55,118,54,117,53,116,52,
-  // 115,51,114,50,113,49,112,48,
-  // 111,47,110,46,109,45,108,44,
-  // 107,43,106,42,105,41,104,40,
-  // 103,39,102,38,101,37,100,36,
-  //  99,35, 98,34, 97,33, 96,32
-  __m512i idx = _mm512_set_epi32(
-    0x7f3f7e3e, 0x7d3d7c3c, 0x7b3b7a3a, 0x79397838, 0x77377636, 0x75357434,
-    0x73337232, 0x71317030, 0x6f2f6e2e, 0x6d2d6c2c, 0x6b2b6a2a, 0x69296828,
-    0x67276626, 0x65256424, 0x63236222, 0x61216020);
+  __m512i idx = _mm512_set_epi8(
+    127, 63, 126, 62, 125, 61, 124, 60, 123, 59, 122, 58, 121, 57, 120, 56, 119,
+    55, 118, 54, 117, 53, 116, 52, 115, 51, 114, 50, 113, 49, 112, 48, 111, 47,
+    110, 46, 109, 45, 108, 44, 107, 43, 106, 42, 105, 41, 104, 40, 103, 39, 102,
+    38, 101, 37, 100, 36, 99, 35, 98, 34, 97, 33, 96, 32);
   return _mm512_permutex2var_epi8(a, idx, b);
-}
-
 #else
-
-// integer version
-template <typename T>
-static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b,
-                                     Part<1>, Bytes<1>)
-{
   return x_mm512_unpackhi_epi8(x_mm512_transpose8x64_epi64(a),
                                x_mm512_transpose8x64_epi64(b));
-}
-
 #endif
-
-#ifdef __AVX512BW__
-
-// integer version
-template <typename T>
-static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b,
-                                     Part<1>, Bytes<2>)
-{
-  // element order high to low for idx
-  // 63,31,62,30,61,29,60,28,
-  // 59,27,58,26,57,25,56,24,
-  // 55,23,54,22,53,21,52,20,
-  // 51,19,50,18,49,17,48,16
-  __m512i idx = _mm512_set_epi32(
-    0x003f001f, 0x003e001e, 0x003d001d, 0x003c001c, 0x003b001b, 0x003a001a,
-    0x00390019, 0x00380018, 0x00370017, 0x00360016, 0x00350015, 0x00340014,
-    0x00330013, 0x00320012, 0x00310011, 0x00300010);
-  return _mm512_permutex2var_epi16(a, idx, b);
 }
 
-#else
-
 // integer version
 template <typename T>
 static SIMD_INLINE Vec<T, 64> unpack(const Vec<T, 64> &a, const Vec<T, 64> &b,
                                      Part<1>, Bytes<2>)
 {
+#ifdef __AVX512BW__
+  // element order high to low for idx
+  __m512i idx = _mm512_set_epi16(63, 31, 62, 30, 61, 29, 60, 28, 59, 27, 58, 26,
+                                 57, 25, 56, 24, 55, 23, 54, 22, 53, 21, 52, 20,
+                                 51, 19, 50, 18, 49, 17, 48, 16);
+  return _mm512_permutex2var_epi16(a, idx, b);
+#else
   return x_mm512_unpackhi_epi16(x_mm512_transpose8x64_epi64(a),
                                 x_mm512_transpose8x64_epi64(b));
-}
-
 #endif
+}
 
 // integer version
 template <typename T>
@@ -2414,7 +1956,7 @@ static SIMD_INLINE Vec<Double, 64> unpack16(const Vec<Double, 64> &a,
 // a, b are passed by-value to avoid problems with identical in/out args.
 
 // zips blocks of NUM_ELEMS elements of type T
-template <int NUM_ELEMS, typename T>
+template <size_t NUM_ELEMS, typename T>
 static SIMD_INLINE void zip(const Vec<T, 64> a, const Vec<T, 64> b,
                             Vec<T, 64> &l, Vec<T, 64> &h)
 {
@@ -2429,7 +1971,7 @@ static SIMD_INLINE void zip(const Vec<T, 64> a, const Vec<T, 64> b,
 // contributed by Adam Marschall
 
 // zips blocks of NUM_ELEMS elements of type T
-template <int NUM_ELEMS, typename T>
+template <size_t NUM_ELEMS, typename T>
 static SIMD_INLINE void zip16(const Vec<T, 64> a, const Vec<T, 64> b,
                               Vec<T, 64> &l, Vec<T, 64> &h)
 {
@@ -2444,255 +1986,12 @@ static SIMD_INLINE void zip16(const Vec<T, 64> a, const Vec<T, 64> b,
 // a, b are passed by-value to avoid problems with identical
 // input/output args.
 
-// here we typically have to transpose the inputs in the same way
-// for both output computations, so we define separate functions for
-// all T and Bytes<> (combinations of unpack functions above)
-
-static SIMD_INLINE __m512i x_mm512_even64_mask()
-{
-  return _mm512_set_epi64
-    // b6   b4   b2   b0  a6 a4 a2 a0
-    (8 | 6, 8 | 4, 8 | 2, 8 | 0, 6, 4, 2, 0);
-}
-
-static SIMD_INLINE __m512i x_mm512_odd64_mask()
-{
-  return _mm512_set_epi64
-    // b7   b5   b3   b1  a7 a5 a3 a1
-    (8 | 7, 8 | 5, 8 | 3, 8 | 1, 7, 5, 3, 1);
-}
-
-// _mm512_set_epi8 is missing from some gcc versions, so we use epi32
-// https://www.mail-archive.com/gcc-patches@gcc.gnu.org/msg188664.html
-
-#ifdef __AVX512VBMI__
-
-// integer version
-template <typename T>
+template <typename T, size_t BYTES>
 static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
-                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<1>)
+                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<BYTES>)
 {
-  // element order for low idx
-  // 126,124,122,120,118,116,114,112,
-  // 110,108,106,104,102,100, 98, 96,
-  //  94, 92, 90, 88, 86, 84, 82, 80,
-  //  78, 76, 74, 72, 70, 68, 66, 64,
-  //  62, 60, 58, 56, 54, 52, 50, 48,
-  //  46, 44, 42, 40, 38, 36, 34, 32,
-  //  30, 28, 26, 24, 22, 20, 18, 16,
-  //  14, 12, 10,  8,  6,  4,  2,  0
-  __m512i idxL = _mm512_set_epi32(
-    0x7e7c7a78, 0x76747270, 0x6e6c6a68, 0x66646260, 0x5e5c5a58, 0x56545250,
-    0x4e4c4a48, 0x46444240, 0x3e3c3a38, 0x36343230, 0x2e2c2a28, 0x26242220,
-    0x1e1c1a18, 0x16141210, 0x0e0c0a08, 0x06040200);
-  // element order for high idx
-  // 127,125,123,121,119,117,115,113,
-  // 111,109,107,105,103,101, 99, 97,
-  //  95, 93, 91, 89, 87, 85, 83, 81,
-  //  79, 77, 75, 73, 71, 69, 67, 65,
-  //  63, 61, 59, 57, 55, 53, 51, 49,
-  //  47, 45, 43, 41, 39, 37, 35, 33,
-  //  31, 29, 27, 25, 23, 21, 19, 17,
-  //  15, 13, 11,  9,  7,  5,  3,  1
-  __m512i idxH = _mm512_set_epi32(
-    0x7f7d7b79, 0x77757371, 0x6f6d6b69, 0x67656361, 0x5f5d5b59, 0x57555351,
-    0x4f4d4b49, 0x47454341, 0x3f3d3b39, 0x37353331, 0x2f2d2b29, 0x27252321,
-    0x1f1d1b19, 0x17151311, 0x0f0d0b09, 0x07050301);
-  l = _mm512_permutex2var_epi8(a, idxL, b);
-  h = _mm512_permutex2var_epi8(a, idxH, b);
-}
-
-#else
-
-// integer version
-template <typename T>
-static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
-                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<1>)
-{
-  // mask is hopefully only set once if unzip is used multiple times
-  __m512i mask = x_mm512_set_epi8(
-    15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0, 15, 13, 11, 9, 7, 5,
-    3, 1, 14, 12, 10, 8, 6, 4, 2, 0, 15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8,
-    6, 4, 2, 0, 15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0);
-  __m512i atmp = x_mm512_shuffle_epi8(a, mask);
-  __m512i btmp = x_mm512_shuffle_epi8(b, mask);
-  l = _mm512_permutex2var_epi64(atmp, x_mm512_even64_mask(), btmp);
-  h = _mm512_permutex2var_epi64(atmp, x_mm512_odd64_mask(), btmp);
-}
-
-#endif
-
-#ifdef __AVX512BW__
-
-// integer version
-template <typename T>
-static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
-                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<2>)
-{
-  // element order for low idx
-  // 62,60,58,56,54,52,50,48,
-  // 46,44,42,40,38,36,34,32,
-  // 30,28,26,24,22,20,18,16,
-  // 14,12,10, 8, 6, 4, 2, 0
-  __m512i idxL = _mm512_set_epi32(
-    0x003e003c, 0x003a0038, 0x00360034, 0x00320030, 0x002e002c, 0x002a0028,
-    0x00260024, 0x00220020, 0x001e001c, 0x001a0018, 0x00160014, 0x00120010,
-    0x000e000c, 0x000a0008, 0x00060004, 0x00020000);
-  // element order for high idx
-  // 63,61,59,57,55,53,51,49,
-  // 47,45,43,41,39,37,35,33,
-  // 31,29,27,25,23,21,19,17,
-  // 15,13,11, 9, 7, 5, 3, 1
-  __m512i idxH = _mm512_set_epi32(
-    0x003f003d, 0x003b0039, 0x00370035, 0x00330031, 0x002f002d, 0x002b0029,
-    0x00270025, 0x00230021, 0x001f001d, 0x001b0019, 0x00170015, 0x00130011,
-    0x000f000d, 0x000b0009, 0x00070005, 0x00030001);
-  l = _mm512_permutex2var_epi16(a, idxL, b);
-  h = _mm512_permutex2var_epi16(a, idxH, b);
-}
-
-#else
-
-// integer version
-template <typename T>
-static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
-                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<2>)
-{
-  // mask is hopefully only set once if unzip is used multiple times
-  __m512i mask = x_mm512_set_epi8(
-    15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0, 15, 14, 11, 10, 7, 6,
-    3, 2, 13, 12, 9, 8, 5, 4, 1, 0, 15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5,
-    4, 1, 0, 15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0);
-  __m512i atmp = x_mm512_shuffle_epi8(a, mask);
-  __m512i btmp = x_mm512_shuffle_epi8(b, mask);
-  l = _mm512_permutex2var_epi64(atmp, x_mm512_even64_mask(), btmp);
-  h = _mm512_permutex2var_epi64(atmp, x_mm512_odd64_mask(), btmp);
-}
-
-#endif
-
-// integer version
-template <typename T>
-static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
-                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<4>)
-{
-  __m512i idxL =
-    _mm512_set_epi32(30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
-  __m512i idxH =
-    _mm512_set_epi32(31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1);
-  l = _mm512_permutex2var_epi32(a, idxL, b);
-  h = _mm512_permutex2var_epi32(a, idxH, b);
-}
-
-// integer version
-template <typename T>
-static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
-                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<8>)
-{
-  __m512i idxL = _mm512_set_epi64(14, 12, 10, 8, 6, 4, 2, 0);
-  __m512i idxH = _mm512_set_epi64(15, 13, 11, 9, 7, 5, 3, 1);
-  l            = _mm512_permutex2var_epi64(a, idxL, b);
-  h            = _mm512_permutex2var_epi64(a, idxH, b);
-}
-
-// integer version
-template <typename T>
-static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
-                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<16>)
-{
-  // lanes:                       b2     b0   a2   a0
-  __m512i idxL = _mm512_set_epi64(13, 12, 9, 8, 5, 4, 1, 0);
-  // lanes:                       b3     b1     a3   a1
-  __m512i idxH = _mm512_set_epi64(15, 14, 11, 10, 7, 6, 3, 2);
-  l            = _mm512_permutex2var_epi64(a, idxL, b);
-  h            = _mm512_permutex2var_epi64(a, idxH, b);
-}
-
-// integer version
-template <typename T>
-static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
-                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<32>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<32>());
-  h = unpack(a, b, Part<1>(), Bytes<32>());
-}
-
-// float version
-static SIMD_INLINE void unzip(const Vec<Float, 64> a, const Vec<Float, 64> b,
-                              Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<4>)
-{
-  __m512i idxL =
-    _mm512_set_epi32(30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
-  __m512i idxH =
-    _mm512_set_epi32(31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1);
-  l = _mm512_permutex2var_ps(a, idxL, b);
-  h = _mm512_permutex2var_ps(a, idxH, b);
-}
-
-// float version
-static SIMD_INLINE void unzip(const Vec<Float, 64> a, const Vec<Float, 64> b,
-                              Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<8>)
-{
-  __m512i idxL = _mm512_set_epi64(14, 12, 10, 8, 6, 4, 2, 0);
-  __m512i idxH = _mm512_set_epi64(15, 13, 11, 9, 7, 5, 3, 1);
-  l            = _mm512_castpd_ps(
-    _mm512_permutex2var_pd(_mm512_castps_pd(a), idxL, _mm512_castps_pd(b)));
-  h = _mm512_castpd_ps(
-    _mm512_permutex2var_pd(_mm512_castps_pd(a), idxH, _mm512_castps_pd(b)));
-}
-
-// float version
-static SIMD_INLINE void unzip(const Vec<Float, 64> a, const Vec<Float, 64> b,
-                              Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<16>)
-{
-  // lanes:                       b2     b0   a2   a0
-  __m512i idxL = _mm512_set_epi64(13, 12, 9, 8, 5, 4, 1, 0);
-  // lanes:                       b3     b1     a3   a1
-  __m512i idxH = _mm512_set_epi64(15, 14, 11, 10, 7, 6, 3, 2);
-  l            = _mm512_castpd_ps(
-    _mm512_permutex2var_pd(_mm512_castps_pd(a), idxL, _mm512_castps_pd(b)));
-  h = _mm512_castpd_ps(
-    _mm512_permutex2var_pd(_mm512_castps_pd(a), idxH, _mm512_castps_pd(b)));
-}
-
-// float version
-static SIMD_INLINE void unzip(const Vec<Float, 64> a, const Vec<Float, 64> b,
-                              Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<32>)
-{
-  l = unpack(a, b, Part<0>(), Bytes<32>());
-  h = unpack(a, b, Part<1>(), Bytes<32>());
-}
-
-// double version
-static SIMD_INLINE void unzip(const Vec<Double, 64> a, const Vec<Double, 64> b,
-                              Vec<Double, 64> &l, Vec<Double, 64> &h, Bytes<8>)
-{
-  const __m512i idxL = _mm512_set_epi64(14, 12, 10, 8, 6, 4, 2, 0);
-  const __m512i idxH = _mm512_set_epi64(15, 13, 11, 9, 7, 5, 3, 1);
-  l                  = _mm512_permutex2var_pd(a, idxL, b);
-  h                  = _mm512_permutex2var_pd(a, idxH, b);
-}
-
-// double version
-static SIMD_INLINE void unzip(const Vec<Double, 64> a, const Vec<Double, 64> b,
-                              Vec<Double, 64> &l, Vec<Double, 64> &h, Bytes<16>)
-{
-  const __m512i idxL = _mm512_set_epi64(13, 12, 9, 8, 5, 4, 1, 0);
-  const __m512i idxH = _mm512_set_epi64(15, 14, 11, 10, 7, 6, 3, 2);
-  l                  = _mm512_permutex2var_pd(a, idxL, b);
-  h                  = _mm512_permutex2var_pd(a, idxH, b);
-}
-
-// ---------------------------------------------------------------------------
-// unzip hub v
-// ---------------------------------------------------------------------------
-
-// hub
-template <int NUM_ELEMS, typename T>
-static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
-                              Vec<T, 64> &l, Vec<T, 64> &h)
-{
-  return unzip(a, b, l, h, Bytes<NUM_ELEMS * sizeof(T)>());
+  l = unpack(a, b, Part<0>(), Bytes<BYTES>());
+  h = unpack(a, b, Part<1>(), Bytes<BYTES>());
 }
 
 // ---------------------------------------------------------------------------
@@ -2853,11 +2152,10 @@ static SIMD_INLINE void extend(const Vec<Float, 64> &vIn,
 static SIMD_INLINE void extend(const Vec<Byte, 64> &vIn, Vec<Word, 64> vOut[2])
 {
   // there's no _mm512_cvtepu8_epu16()
-  Vec<Byte, 64> zero = setzero(OutputType<Byte>(), Integer<64>());
-  // 16. Jul 16 (rm): here we avoid to use generalized unpack from
-  // SIMDVecExt.H
-  vOut[0] = unpack(vIn, zero, Part<0>(), Bytes<1>());
-  vOut[1] = unpack(vIn, zero, Part<1>(), Bytes<1>());
+  vOut[0] = unpack(vIn, setzero(OutputType<Byte>(), Integer<64>()), Part<0>(),
+                   Bytes<1>());
+  vOut[1] = unpack(vIn, setzero(OutputType<Byte>(), Integer<64>()), Part<1>(),
+                   Bytes<1>());
 }
 
 // unsigned -> signed
@@ -2904,12 +2202,10 @@ static SIMD_INLINE void extend(const Vec<Word, 64> &vIn, Vec<Float, 64> vOut[2])
 static SIMD_INLINE void extend(const Vec<SignedByte, 64> &vIn,
                                Vec<Int, 64> vOut[4])
 {
-  __m256i vInLo256 = vIn.lo();
-  vOut[0]          = _mm512_cvtepi8_epi32(_mm256_castsi256_si128(vInLo256));
-  vOut[1] = _mm512_cvtepi8_epi32(_mm256_extractf128_si256(vInLo256, 1));
-  __m256i vInHi256 = vIn.hi();
-  vOut[2]          = _mm512_cvtepi8_epi32(_mm256_castsi256_si128(vInHi256));
-  vOut[3] = _mm512_cvtepi8_epi32(_mm256_extractf128_si256(vInHi256, 1));
+  vOut[0] = _mm512_cvtepi8_epi32(_mm256_castsi256_si128(vIn.lo()));
+  vOut[1] = _mm512_cvtepi8_epi32(_mm256_extractf128_si256(vIn.lo(), 1));
+  vOut[2] = _mm512_cvtepi8_epi32(_mm256_castsi256_si128(vIn.hi()));
+  vOut[3] = _mm512_cvtepi8_epi32(_mm256_extractf128_si256(vIn.hi(), 1));
 }
 
 static SIMD_INLINE void extend(const Vec<SignedByte, 64> &vIn,
@@ -2917,7 +2213,7 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 64> &vIn,
 {
   Vec<Int, 64> vTmp[4];
   extend(vIn, vTmp);
-  for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
+  for (size_t i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
 static SIMD_INLINE void extend(const Vec<Short, 64> &vIn,
@@ -2937,19 +2233,17 @@ static SIMD_INLINE void extend(const Vec<Short, 64> &vIn,
 
 static SIMD_INLINE void extend(const Vec<Byte, 64> &vIn, Vec<Int, 64> vOut[4])
 {
-  __m256i vInLo256 = vIn.lo();
-  vOut[0]          = _mm512_cvtepu8_epi32(_mm256_castsi256_si128(vInLo256));
-  vOut[1] = _mm512_cvtepu8_epi32(_mm256_extractf128_si256(vInLo256, 1));
-  __m256i vInHi256 = vIn.hi();
-  vOut[2]          = _mm512_cvtepu8_epi32(_mm256_castsi256_si128(vInHi256));
-  vOut[3] = _mm512_cvtepu8_epi32(_mm256_extractf128_si256(vInHi256, 1));
+  vOut[0] = _mm512_cvtepu8_epi32(_mm256_castsi256_si128(vIn.lo()));
+  vOut[1] = _mm512_cvtepu8_epi32(_mm256_extractf128_si256(vIn.lo(), 1));
+  vOut[2] = _mm512_cvtepu8_epi32(_mm256_castsi256_si128(vIn.hi()));
+  vOut[3] = _mm512_cvtepu8_epi32(_mm256_extractf128_si256(vIn.hi(), 1));
 }
 
 static SIMD_INLINE void extend(const Vec<Byte, 64> &vIn, Vec<Float, 64> vOut[4])
 {
   Vec<Int, 64> vTmp[4];
   extend(vIn, vTmp);
-  for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
+  for (size_t i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
 static SIMD_INLINE void extend(const Vec<Word, 64> &vIn,
@@ -2981,7 +2275,7 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 64> &vIn,
     _mm512_extracti32x4_epi32(vIn, 3),
   };
 
-  for (int i = 0; i < 4; i++) {
+  for (size_t i = 0; i < 4; i++) {
     vOut[i * 2 + 0] = _mm512_cvtepi32_pd(_mm256_cvtepi8_epi32(vIn128[i]));
     vOut[i * 2 + 1] =
       _mm512_cvtepi32_pd(_mm256_cvtepi8_epi32(_mm_srli_si128(vIn128[i], 8)));
@@ -3000,7 +2294,7 @@ static SIMD_INLINE void extend(const Vec<Byte, 64> &vIn,
     _mm512_extracti32x4_epi32(vIn, 3),
   };
 
-  for (int i = 0; i < 4; i++) {
+  for (size_t i = 0; i < 4; i++) {
     vOut[i * 2 + 0] = _mm512_cvtepi32_pd(_mm256_cvtepu8_epi32(vIn128[i]));
     vOut[i * 2 + 1] =
       _mm512_cvtepi32_pd(_mm256_cvtepu8_epi32(_mm_srli_si128(vIn128[i], 8)));
@@ -3028,153 +2322,214 @@ static SIMD_INLINE void extend(const Vec<Float, 64> &vIn, Vec<Int, 64> vOut[1])
 #ifdef __AVX512BW__
 // 16. Oct 22 (Jonas Keller): added missing Byte and SignedByte versions
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 64> srai(const Vec<Byte, 64> &a)
 {
-  return x_mm512_srai_epi8<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    const __m512i odd  = _mm512_srai_epi16(a, COUNT);
+    const __m512i even = _mm512_srai_epi16(_mm512_slli_epi16(a, 8), COUNT + 8);
+    return _mm512_mask_blend_epi8(__mmask64(0x5555555555555555), odd, even);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 64> srai(const Vec<SignedByte, 64> &a)
 {
-  return x_mm512_srai_epi8<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    const __m512i odd  = _mm512_srai_epi16(a, COUNT);
+    const __m512i even = _mm512_srai_epi16(_mm512_slli_epi16(a, 8), COUNT + 8);
+    const __mmask64 mask = __mmask64(0x5555555555555555);
+    return _mm512_mask_blend_epi8(mask, odd, even);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 64> srai(const Vec<Word, 64> &a)
 {
-  return x_mm512_srai_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_srai_epi16(a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> srai(const Vec<Short, 64> &a)
 {
-  return x_mm512_srai_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_srai_epi16(a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
 #else
 
 // non-avx512bw workaround
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 64> srai(const Vec<T, 64> &a)
 {
-  return Vec<T, 64>(srai<IMM>(a.lo()), srai<IMM>(a.hi()));
+  return Vec<T, 64>(srai<COUNT>(a.lo()), srai<COUNT>(a.hi()));
 }
 
 #endif
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> srai(const Vec<Int, 64> &a)
 {
-  return x_mm512_srai_epi32<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm512_srai_epi32(a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
 // ---------------------------------------------------------------------------
 // srli v
 // ---------------------------------------------------------------------------
 
-// https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
-// License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 64> srli(const Vec<Byte, 64> &a)
 {
-  return _mm512_and_si512(_mm512_set1_epi8((int8_t) (0xff >> IMM)),
-                          x_mm512_srli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
+    // License: not specified
+    return _mm512_and_si512(_mm512_set1_epi8((int8_t) (0xff >> COUNT)),
+                            _mm512_srli_epi32(a, COUNT));
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-// https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
-// License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 64> srli(const Vec<SignedByte, 64> &a)
 {
-  return _mm512_and_si512(_mm512_set1_epi8((int8_t) (0xff >> IMM)),
-                          x_mm512_srli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
+    // License: not specified
+    return _mm512_and_si512(_mm512_set1_epi8((int8_t) (0xff >> COUNT)),
+                            _mm512_srli_epi32(a, COUNT));
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-#ifdef __AVX512BW__
-
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 64> srli(const Vec<Word, 64> &a)
 {
-  return x_mm512_srli_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+#ifdef __AVX512BW__
+    return _mm512_srli_epi16(a, COUNT);
+#else
+    return _mm512_and_si512(_mm512_set1_epi16((int16_t) (0xffff >> COUNT)),
+                            _mm512_srli_epi32(a, COUNT));
+#endif
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> srli(const Vec<Short, 64> &a)
 {
-  return x_mm512_srli_epi16<IMM>(a);
-}
-
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+#ifdef __AVX512BW__
+    return _mm512_srli_epi16(a, COUNT);
 #else
-
-// non-avx512bw workaround
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 64> srli(const Vec<T, 64> &a)
-{
-  return Vec<T, 64>(srli<IMM>(a.lo()), srli<IMM>(a.hi()));
+    return _mm512_and_si512(_mm512_set1_epi16((int16_t) (0xffff >> COUNT)),
+                            _mm512_srli_epi32(a, COUNT));
+#endif
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-#endif
-
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> srli(const Vec<Int, 64> &a)
 {
-  return x_mm512_srli_epi32<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm512_srli_epi32(a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
 // ---------------------------------------------------------------------------
 // slli v
 // ---------------------------------------------------------------------------
 
-// https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
-// License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 64> slli(const Vec<Byte, 64> &a)
 {
-  return _mm512_and_si512(
-    _mm512_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << IMM))),
-    x_mm512_slli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
+    // License: not specified
+    return _mm512_and_si512(
+      _mm512_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << COUNT))),
+      _mm512_slli_epi32(a, COUNT));
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-// https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
-// License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 64> slli(const Vec<SignedByte, 64> &a)
 {
-  return _mm512_and_si512(
-    _mm512_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << IMM))),
-    x_mm512_slli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
+    // License: not specified
+    return _mm512_and_si512(
+      _mm512_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << COUNT))),
+      _mm512_slli_epi32(a, COUNT));
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-#ifdef __AVX512BW__
-
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 64> slli(const Vec<Word, 64> &a)
 {
-  return x_mm512_slli_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+#ifdef __AVX512BW__
+    return _mm512_slli_epi16(a, COUNT);
+#else
+    return _mm512_and_si512(
+      _mm512_set1_epi16((int16_t) (uint16_t) (0xffff & (0xffff << COUNT))),
+      _mm512_slli_epi32(a, COUNT));
+#endif
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> slli(const Vec<Short, 64> &a)
 {
-  return x_mm512_slli_epi16<IMM>(a);
-}
-
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+#ifdef __AVX512BW__
+    return _mm512_slli_epi16(a, COUNT);
 #else
-
-// non-avx512bw workaround
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 64> slli(const Vec<T, 64> &a)
-{
-  return Vec<T, 64>(slli<IMM>(a.lo()), slli<IMM>(a.hi()));
+    return _mm512_and_si512(
+      _mm512_set1_epi16((int16_t) (uint16_t) (0xffff & (0xffff << COUNT))),
+      _mm512_slli_epi32(a, COUNT));
+#endif
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
-#endif
-
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> slli(const Vec<Int, 64> &a)
 {
-  return x_mm512_slli_epi32<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_slli_epi32(a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
 
 // 19. Dec 22 (Jonas Keller): added sra, srl and sll functions
@@ -3259,30 +2614,29 @@ static SIMD_INLINE Vec<SignedByte, 64> srl(const Vec<SignedByte, 64> &a,
                           _mm512_set1_epi8((int8_t) (uint8_t) (0xff >> count)));
 }
 
-#ifdef __AVX512BW__
-
 static SIMD_INLINE Vec<Word, 64> srl(const Vec<Word, 64> &a,
                                      const uint8_t count)
 {
+#ifdef __AVX512BW__
   return _mm512_srl_epi16(a, _mm_cvtsi32_si128(count));
+#else
+  return _mm512_and_si512(
+    _mm512_srl_epi32(a, _mm_cvtsi32_si128(count)),
+    _mm512_set1_epi16((int16_t) (uint16_t) (0xffff >> count)));
+#endif
 }
 
 static SIMD_INLINE Vec<Short, 64> srl(const Vec<Short, 64> &a,
                                       const uint8_t count)
 {
+#ifdef __AVX512BW__
   return _mm512_srl_epi16(a, _mm_cvtsi32_si128(count));
-}
-
 #else
-
-// non-avx512bw workaround
-template <typename T>
-static SIMD_INLINE Vec<T, 64> srl(const Vec<T, 64> &a, const uint8_t count)
-{
-  return Vec<T, 64>(srl(a.lo(), count), srl(a.hi(), count));
-}
-
+  return _mm512_and_si512(
+    _mm512_srl_epi32(a, _mm_cvtsi32_si128(count)),
+    _mm512_set1_epi16((int16_t) (uint16_t) (0xffff >> count)));
 #endif
+}
 
 static SIMD_INLINE Vec<Int, 64> srl(const Vec<Int, 64> &a, const uint8_t count)
 {
@@ -3309,30 +2663,29 @@ static SIMD_INLINE Vec<SignedByte, 64> sll(const Vec<SignedByte, 64> &a,
     _mm512_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << count))));
 }
 
-#ifdef __AVX512BW__
-
 static SIMD_INLINE Vec<Word, 64> sll(const Vec<Word, 64> &a,
                                      const uint8_t count)
 {
+#ifdef __AVX512BW__
   return _mm512_sll_epi16(a, _mm_cvtsi32_si128(count));
+#else
+  return _mm512_and_si512(
+    _mm512_sll_epi32(a, _mm_cvtsi32_si128(count)),
+    _mm512_set1_epi16((int16_t) (uint16_t) (0xffff & (0xffff << count))));
+#endif
 }
 
 static SIMD_INLINE Vec<Short, 64> sll(const Vec<Short, 64> &a,
                                       const uint8_t count)
 {
+#ifdef __AVX512BW__
   return _mm512_sll_epi16(a, _mm_cvtsi32_si128(count));
-}
-
 #else
-
-// non-avx512bw workaround
-template <typename T>
-static SIMD_INLINE Vec<T, 64> sll(const Vec<T, 64> &a, const uint8_t count)
-{
-  return Vec<T, 64>(sll(a.lo(), count), sll(a.hi(), count));
-}
-
+  return _mm512_and_si512(
+    _mm512_sll_epi32(a, _mm_cvtsi32_si128(count)),
+    _mm512_set1_epi16((int16_t) (uint16_t) (0xffff & (0xffff << count))));
 #endif
+}
 
 static SIMD_INLINE Vec<Int, 64> sll(const Vec<Int, 64> &a, const uint8_t count)
 {
@@ -3402,18 +2755,18 @@ static SIMD_INLINE Vec<T, 64> hsubs(const Vec<T, 64> &a, const Vec<T, 64> &b)
 // - ABi (0/1): select lane i from a (0) or from b (1)
 // - Ii (0..3): select lane i from index Ii in either a or b
 
-template <int AB0, int I0, int AB1, int I1, int AB2, int I2, int AB3, int I3,
-          typename T>
+template <size_t AB0, size_t I0, size_t AB1, size_t I1, size_t AB2, size_t I2,
+          size_t AB3, size_t I3, typename T>
 static SIMD_INLINE Vec<T, 64> permute_64_16(const Vec<T, 64> &a,
                                             const Vec<T, 64> &b)
 
 {
-  __m512i mask = _mm512_set_epi64(
+  const __m512i mask = _mm512_set_epi64(
     (AB3 << 3) | (2 * I3 + 1), (AB3 << 3) | (2 * I3), (AB2 << 3) | (2 * I2 + 1),
     (AB2 << 3) | (2 * I2), (AB1 << 3) | (2 * I1 + 1), (AB1 << 3) | (2 * I1),
     (AB0 << 3) | (2 * I0 + 1), (AB0 << 3) | (2 * I0));
   // reinterpret as Int in case T is not an integer type
-  Vec<Int, 64> res = _mm512_permutex2var_epi64(
+  const Vec<Int, 64> res = _mm512_permutex2var_epi64(
     reinterpret(a, OutputType<Int>()), mask, reinterpret(b, OutputType<Int>()));
   return reinterpret(res, OutputType<T>());
 }
@@ -3461,65 +2814,39 @@ static SIMD_INLINE Vec<T, 64> permute_64_16(const Vec<T, 64> &a,
 // NB=3: a3 b0 b1 b2         0 3    1 0    1 1    1 2
 // NB=4: b0 b1 b2 b3         1 0    1 1    1 2    1 3
 
-// special case
-template <typename T>
+template <size_t NB, typename T>
 static SIMD_INLINE Vec<T, 64> align_64_16(const Vec<T, 64> &a,
-                                          const Vec<T, 64> &, Integer<0>)
+                                          const Vec<T, 64> &b)
 {
-  return a;
+  SIMD_IF_CONSTEXPR (NB == 0) {
+    return a;
+  } else SIMD_IF_CONSTEXPR (NB == 4) {
+    return b;
+  } else {
+    return permute_64_16<(NB > 3), (NB % 4), (NB > 2), (NB + 1) % 4, (NB > 1),
+                         (NB + 2) % 4, (NB > 0), (NB + 3) % 4>(a, b);
+  }
 }
 
-// special case
-template <typename T>
-static SIMD_INLINE Vec<T, 64> align_64_16(const Vec<T, 64> &,
-                                          const Vec<T, 64> &b, Integer<4>)
-{
-  return b;
-}
-
-// general case
-template <int NB, typename T>
-static SIMD_INLINE Vec<T, 64> align_64_16(const Vec<T, 64> &a,
-                                          const Vec<T, 64> &b, Integer<NB>)
-{
-  return permute_64_16<(NB > 3), (NB % 4), (NB > 2), (NB + 1) % 4, (NB > 1),
-                       (NB + 2) % 4, (NB > 0), (NB + 3) % 4>(a, b);
-}
-
-// positive and in range
-// IMM: in elements
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 64> alignre(const Vec<T, 64> &h, const Vec<T, 64> &l,
-                                      IsPosInRange<true, true>)
-{
-  const auto byteShift = IMM * sizeof(T);
-  const auto laneShift = byteShift / 16;
-  const Vec<T, 64> L   = (byteShift < 64) ? l : h;
-  const Vec<T, 64> H =
-    (byteShift < 64) ? h : setzero(OutputType<T>(), Integer<64>());
-  const Vec<T, 64> ll = align_64_16(L, H, Integer<(laneShift % 4)>());
-  const Vec<T, 64> hh = align_64_16(L, H, Integer<(laneShift % 4 + 1)>());
-  return reinterpret(Vec<Byte, 64>(x_mm512_alignr_epi8<byteShift % 16>(
-                       reinterpret(hh, OutputType<Byte>()),
-                       reinterpret(ll, OutputType<Byte>()))),
-                     OutputType<T>());
-}
-
-// positive and out of range
-// IMM: in elements
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 64> alignre(const Vec<T, 64> &, const Vec<T, 64> &,
-                                      IsPosInRange<true, false>)
-{
-  return setzero(OutputType<T>(), Integer<64>());
-}
-
-// hub:
-// IMM: in elements
-template <int IMM, typename T>
+// COUNT: in elements
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 64> alignre(const Vec<T, 64> &h, const Vec<T, 64> &l)
 {
-  return alignre<IMM>(h, l, IsPosInGivenRange<2 * Vec<T, 64>::elements, IMM>());
+  const auto byteShift = COUNT * sizeof(T);
+  SIMD_IF_CONSTEXPR (byteShift < 128) {
+    const auto laneShift = byteShift / 16;
+    const Vec<T, 64> L   = (byteShift < 64) ? l : h;
+    const Vec<T, 64> H =
+      (byteShift < 64) ? h : setzero(OutputType<T>(), Integer<64>());
+    const Vec<T, 64> ll = align_64_16<laneShift % 4>(L, H);
+    const Vec<T, 64> hh = align_64_16<laneShift % 4 + 1>(L, H);
+    return reinterpret(Vec<Byte, 64>(x_mm512_alignr_epi8<byteShift % 16>(
+                         reinterpret(hh, OutputType<Byte>()),
+                         reinterpret(ll, OutputType<Byte>()))),
+                       OutputType<T>());
+  } else {
+    return setzero(OutputType<T>(), Integer<64>());
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -3528,30 +2855,15 @@ static SIMD_INLINE Vec<T, 64> alignre(const Vec<T, 64> &h, const Vec<T, 64> &l)
 
 // TODO: srle: solution with byte-wise shift intrinsics instead of align?
 
-// positive and in range
-// IMM: in elements
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 64> srle(const Vec<T, 64> &a,
-                                   IsPosInRange<true, true>)
-{
-  return alignre<IMM>(setzero(OutputType<T>(), Integer<64>()), a);
-}
-
-// positive and out of range
-// IMM: in elements
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 64> srle(const Vec<T, 64> &,
-                                   IsPosInRange<true, false>)
-{
-  return setzero(OutputType<T>(), Integer<64>());
-}
-
-// hub:
-// IMM: in elements
-template <int IMM, typename T>
+// COUNT: in elements
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 64> srle(const Vec<T, 64> &a)
 {
-  return srle<IMM>(a, IsPosInGivenRange<Vec<T, 64>::elements, IMM>());
+  SIMD_IF_CONSTEXPR (COUNT < Vec<T, 64>::elements) {
+    return alignre<COUNT>(setzero(OutputType<T>(), Integer<64>()), a);
+  } else {
+    return setzero(OutputType<T>(), Integer<64>());
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -3560,31 +2872,16 @@ static SIMD_INLINE Vec<T, 64> srle(const Vec<T, 64> &a)
 
 // TODO: slle: solution with byte-wise shift intrinsics instead of align?
 
-// positive and in range
-// IMM: in elements
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 64> slle(const Vec<T, 64> &a,
-                                   IsPosInRange<true, true>)
-{
-  return alignre<Vec<T, 64>::elements - IMM>(
-    a, setzero(OutputType<T>(), Integer<64>()));
-}
-
-// positive and out of range
-// IMM: in elements
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 64> slle(const Vec<T, 64> &,
-                                   IsPosInRange<true, false>)
-{
-  return setzero(OutputType<T>(), Integer<64>());
-}
-
-// hub:
-// IMM: in elements
-template <int IMM, typename T>
+// COUNT: in elements
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 64> slle(const Vec<T, 64> &a)
 {
-  return slle<IMM>(a, IsPosInGivenRange<Vec<T, 64>::elements, IMM>());
+  SIMD_IF_CONSTEXPR (COUNT < Vec<T, 64>::elements) {
+    return alignre<Vec<T, 64>::elements - COUNT>(
+      a, setzero(OutputType<T>(), Integer<64>()));
+  } else {
+    return setzero(OutputType<T>(), Integer<64>());
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -3594,11 +2891,11 @@ static SIMD_INLINE Vec<T, 64> slle(const Vec<T, 64> &a)
 // ---------- swizzle aux functions -----------
 
 // alignoff is the element-wise offset (relates to size of byte)
-template <int ALIGNOFF>
+template <size_t ALIGNOFF>
 static SIMD_INLINE __m512i align_shuffle_512(__m512i lo, __m512i hi,
                                              __m512i mask)
 {
-  static_assert(ALIGNOFF >= 0 && ALIGNOFF < 32, "");
+  static_assert(ALIGNOFF < 32, "");
   return x_mm512_shuffle_epi8(x_mm512_alignr_epi8<ALIGNOFF>(hi, lo), mask);
 }
 
@@ -3646,7 +2943,7 @@ static SIMD_INLINE __m512i align_shuffle_512(__m512i lo, __m512i hi,
 //      -----------|-----------|-----------|-----------|-----------
 
 // primary template
-template <int N, typename T>
+template <size_t N, typename T>
 struct Swizzle_64_16;
 
 // N=2
@@ -3733,7 +3030,7 @@ struct Swizzle_64_16<5, T>
 };
 
 // swizzle lanes (for implementation of swizzle functions)
-template <int N, typename T>
+template <size_t N, typename T>
 static SIMD_INLINE void swizzle_64_16(const Vec<T, 64> vIn[N],
                                       Vec<T, 64> vOut[N])
 {
@@ -3764,7 +3061,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[2], Integer<2>)
 {
   Vec<T, 64> vs[2];
   swizzle_64_16<2>(v, vs);
-  const __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<2, T>());
+  const __m512i mask = _mm512_broadcast_i32x4(get_swizzle_mask<2, T>());
   const __m512i s[2] = {
     x_mm512_shuffle_epi8(vs[0], mask),
     x_mm512_shuffle_epi8(vs[1], mask),
@@ -3819,7 +3116,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[3], Integer<3>)
 {
   Vec<T, 64> vs[3];
   swizzle_64_16<3>(v, vs);
-  __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<3, T>());
+  __m512i mask = _mm512_broadcast_i32x4(get_swizzle_mask<3, T>());
   __m512i s0   = align_shuffle_512<0>(vs[0], vs[1], mask);
   __m512i s1   = align_shuffle_512<12>(vs[0], vs[1], mask);
   __m512i s2   = align_shuffle_512<8>(vs[1], vs[2], mask);
@@ -3896,9 +3193,9 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>)
 {
   Vec<T, 64> vs[4];
   swizzle_64_16<4>(v, vs);
-  __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<4, T>());
+  __m512i mask = _mm512_broadcast_i32x4(get_swizzle_mask<4, T>());
   __m512i s[4];
-  for (int j = 0; j < 4; j++) s[j] = x_mm512_shuffle_epi8(vs[j], mask);
+  for (size_t j = 0; j < 4; j++) s[j] = x_mm512_shuffle_epi8(vs[j], mask);
   __m512i l01 = _mm512_unpacklo_epi32(s[0], s[1]);
   __m512i h01 = _mm512_unpackhi_epi32(s[0], s[1]);
   __m512i l23 = _mm512_unpacklo_epi32(s[2], s[3]);
@@ -3914,7 +3211,7 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void>
 static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>)
 {
   Vec<Int, 64> vInt[4];
-  for (int i = 0; i < 4; i++) vInt[i] = reinterpret(v[i], OutputType<Int>());
+  for (size_t i = 0; i < 4; i++) vInt[i] = reinterpret(v[i], OutputType<Int>());
   Vec<Int, 64> vs[4];
   swizzle_64_16<4>(vInt, vs);
   const __m512i s[4] = {
@@ -3929,7 +3226,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>)
     _mm512_unpacklo_epi64(s[1], s[3]),
     _mm512_unpackhi_epi64(s[1], s[3]),
   };
-  for (int i = 0; i < 4; i++) v[i] = reinterpret(vOut[i], OutputType<T>());
+  for (size_t i = 0; i < 4; i++) v[i] = reinterpret(vOut[i], OutputType<T>());
 }
 
 // 64 bit types
@@ -3938,7 +3235,7 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
 static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>)
 {
   Vec<Double, 64> vDouble[4];
-  for (int i = 0; i < 4; i++)
+  for (size_t i = 0; i < 4; i++)
     vDouble[i] = reinterpret(v[i], OutputType<Double>());
   Vec<Double, 64> vs[4];
   swizzle_64_16<4>(vDouble, vs);
@@ -3948,7 +3245,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[4], Integer<4>)
     _mm512_shuffle_pd(vs[1], vs[3], 0x00), // 0b0000_0000
     _mm512_shuffle_pd(vs[1], vs[3], 0xFF), // 0b1111_1111
   };
-  for (int i = 0; i < 4; i++) v[i] = reinterpret(vOut[i], OutputType<T>());
+  for (size_t i = 0; i < 4; i++) v[i] = reinterpret(vOut[i], OutputType<T>());
 }
 
 // -------------------- n = 5 --------------------
@@ -3960,7 +3257,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
 {
   Vec<T, 64> vs[5];
   swizzle_64_16<5>(v, vs);
-  const __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<5, T>());
+  const __m512i mask = _mm512_broadcast_i32x4(get_swizzle_mask<5, T>());
   const __m512i s[8] = {
     align_shuffle_512<0>(vs[0], vs[1], mask),
     align_shuffle_512<10>(vs[0], vs[1], mask),
@@ -4000,7 +3297,7 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
 {
   Vec<T, 64> vs[5];
   swizzle_64_16<5>(v, vs);
-  const __m512i mask = x_mm512_duplicate_si128(get_swizzle_mask<5, T>());
+  const __m512i mask = _mm512_broadcast_i32x4(get_swizzle_mask<5, T>());
   const __m512i s[8] = {
     align_shuffle_512<0>(vs[0], vs[1], mask),
     align_shuffle_512<6>(vs[0], vs[1], mask),
@@ -4030,7 +3327,7 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void,
 static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
 {
   Vec<Int, 64> vInt[5];
-  for (int i = 0; i < 5; i++) {
+  for (size_t i = 0; i < 5; i++) {
     vInt[i] = reinterpret(v[i], OutputType<Int>());
   }
   Vec<Int, 64> vs[5];
@@ -4082,7 +3379,9 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
     // 4 9 x x / 14 19 x x -> 4 9 14 19
     _mm512_unpacklo_epi64(l13, l57),
   };
-  for (int i = 0; i < 5; i++) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
+  for (size_t i = 0; i < 5; i++) {
+    v[i] = reinterpret(vOut[i], OutputType<T>());
+  }
 }
 
 // 64 bit types
@@ -4091,7 +3390,7 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 8), typename = void,
 static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
 {
   Vec<Double, 64> vDouble[5];
-  for (int i = 0; i < 5; i++) {
+  for (size_t i = 0; i < 5; i++) {
     vDouble[i] = reinterpret(v[i], OutputType<Double>());
   }
   Vec<Double, 64> vs[5];
@@ -4103,7 +3402,9 @@ static SIMD_INLINE void swizzle(Vec<T, 64> v[5], Integer<5>)
     _mm512_shuffle_pd(vs[1], vs[4], 0x55), // 0b0101_0101
     _mm512_shuffle_pd(vs[2], vs[4], 0xaa), // 0b1010_1010
   };
-  for (int i = 0; i < 5; i++) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
+  for (size_t i = 0; i < 5; i++) {
+    v[i] = reinterpret(vOut[i], OutputType<T>());
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -4676,11 +3977,11 @@ static SIMD_INLINE Vec<SignedByte, 64> avg(const Vec<SignedByte, 64> &a,
                                            const Vec<SignedByte, 64> &b)
 {
   // from Agner Fog's VCL vectori128.h
-  __m512i signbit = _mm512_set1_epi32(0x80808080);
-  __m512i a1      = _mm512_xor_si512(a, signbit); // add 0x80
-  __m512i b1      = _mm512_xor_si512(b, signbit); // add 0x80
-  __m512i m1      = _mm512_avg_epu8(a1, b1);      // unsigned avg
-  return _mm512_xor_si512(m1, signbit);           // sub 0x80
+  const __m512i signbit = _mm512_set1_epi8(int8_t(0x80));
+  const __m512i a1      = _mm512_xor_si512(a, signbit); // add 0x80
+  const __m512i b1      = _mm512_xor_si512(b, signbit); // add 0x80
+  const __m512i m1      = _mm512_avg_epu8(a1, b1);      // unsigned avg
+  return _mm512_xor_si512(m1, signbit);                 // sub 0x80
 }
 
 static SIMD_INLINE Vec<Word, 64> avg(const Vec<Word, 64> &a,
@@ -4695,11 +3996,11 @@ static SIMD_INLINE Vec<Short, 64> avg(const Vec<Short, 64> &a,
                                       const Vec<Short, 64> &b)
 {
   // from Agner Fog's VCL vectori128.h
-  __m512i signbit = _mm512_set1_epi32(0x80008000);
-  __m512i a1      = _mm512_xor_si512(a, signbit); // add 0x8000
-  __m512i b1      = _mm512_xor_si512(b, signbit); // add 0x8000
-  __m512i m1      = _mm512_avg_epu16(a1, b1);     // unsigned avg
-  return _mm512_xor_si512(m1, signbit);           // sub 0x8000
+  const __m512i signbit = _mm512_set1_epi16(int16_t(0x8000));
+  const __m512i a1      = _mm512_xor_si512(a, signbit); // add 0x8000
+  const __m512i b1      = _mm512_xor_si512(b, signbit); // add 0x8000
+  const __m512i m1      = _mm512_avg_epu16(a1, b1);     // unsigned avg
+  return _mm512_xor_si512(m1, signbit);                 // sub 0x8000
 }
 
 #else
@@ -4718,62 +4019,37 @@ static SIMD_INLINE Vec<T, 64> avg(const Vec<T, 64> &a, const Vec<T, 64> &b)
 static SIMD_INLINE Vec<Int, 64> avg(const Vec<Int, 64> &a,
                                     const Vec<Int, 64> &b)
 {
-  Vec<Int, 64> one = set1(Int(1), Integer<64>()), as, bs, lsb;
-  lsb              = bit_and(bit_or(a, b), one);
-  as               = srai<1>(a);
-  bs               = srai<1>(b);
-  return add(lsb, add(as, bs));
+  const auto halfA = _mm512_srai_epi32(a, 1);
+  const auto halfB = _mm512_srai_epi32(b, 1);
+  const auto sum   = _mm512_add_epi32(halfA, halfB);
+  const auto lsb =
+    _mm512_and_si512(_mm512_or_si512(a, b), _mm512_set1_epi32(1));
+  return _mm512_add_epi32(lsb, sum);
 }
 
 // NOTE: Float version doesn't round!
 static SIMD_INLINE Vec<Float, 64> avg(const Vec<Float, 64> &a,
                                       const Vec<Float, 64> &b)
 {
-  __m512 half = _mm512_set1_ps(0.5f);
-  return _mm512_mul_ps(_mm512_add_ps(a, b), half);
+  return _mm512_mul_ps(_mm512_add_ps(a, b), _mm512_set1_ps(0.5f));
 }
 
 // NOTE: Double version doesn't round!
 static SIMD_INLINE Vec<Double, 64> avg(const Vec<Double, 64> &a,
                                        const Vec<Double, 64> &b)
 {
-  __m512d half = _mm512_set1_pd(0.5);
-  return _mm512_mul_pd(_mm512_add_pd(a, b), half);
+  return _mm512_mul_pd(_mm512_add_pd(a, b), _mm512_set1_pd(0.5));
 }
 
 // ---------------------------------------------------------------------------
 // test_all_zeros v
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE int x_mm512_mask2int(__mmask16 k1)
-{
-  // not supported by gcc 5.4
-  // return _mm512_mask2int(k1);
-  // workaround from https://gcc.gnu.org/ml/gcc-patches/2017-04/msg00374.html
-  return (int) k1;
-}
-
-// all integer versions
 template <typename T>
 static SIMD_INLINE bool test_all_zeros(const Vec<T, 64> &a)
 {
-  // m[i] = (a[i] & a[i] != 0) = (a[i] != 0)
-  __mmask16 m = _mm512_test_epi32_mask(a, a);
-  return x_mm512_mask2int(m) == 0;
-}
-
-// float version
-// note: contrary to IEEE 754, this function considers -0.0f to be negative
-static SIMD_INLINE bool test_all_zeros(const Vec<Float, 64> &a)
-{
-  return test_all_zeros(reinterpret(a, OutputType<Int>()));
-}
-
-// double version
-// note: contrary to IEEE 754, this function considers -0.0f to be negative
-static SIMD_INLINE int test_all_zeros(const Vec<Double, 64> &a)
-{
-  return test_all_zeros(reinterpret(a, OutputType<Int>()));
+  const auto intA = reinterpret(a, OutputType<Int>());
+  return _mm512_test_epi32_mask(intA, intA) == 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -4795,27 +4071,27 @@ static SIMD_INLINE bool test_all_ones(const Vec<T, 64> &a)
 // 20. Mar 23 (Jonas Keller): implemented reverse masks as functions instead of
 // as arrays that need to be loaded first
 
-template <int Bytes>
+template <size_t Bytes>
 static SIMD_INLINE __m512i reverse_mask();
 
 template <>
 SIMD_INLINE __m512i reverse_mask<1>()
 {
-  return x_mm512_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                          16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
-                          29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
-                          42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
-                          55, 56, 57, 58, 59, 60, 61, 62, 63);
+  return _mm512_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                         16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+                         30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
+                         44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
+                         58, 59, 60, 61, 62, 63);
 }
 
 template <>
 SIMD_INLINE __m512i reverse_mask<2>()
 {
-  return x_mm512_set_epi8(1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14,
-                          17, 16, 19, 18, 21, 20, 23, 22, 25, 24, 27, 26, 29,
-                          28, 31, 30, 33, 32, 35, 34, 37, 36, 39, 38, 41, 40,
-                          43, 42, 45, 44, 47, 46, 49, 48, 51, 50, 53, 52, 55,
-                          54, 57, 56, 59, 58, 61, 60, 63, 62);
+  return _mm512_set_epi8(1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14,
+                         17, 16, 19, 18, 21, 20, 23, 22, 25, 24, 27, 26, 29, 28,
+                         31, 30, 33, 32, 35, 34, 37, 36, 39, 38, 41, 40, 43, 42,
+                         45, 44, 47, 46, 49, 48, 51, 50, 53, 52, 55, 54, 57, 56,
+                         59, 58, 61, 60, 63, 62);
 }
 
 template <typename T>
@@ -4824,14 +4100,13 @@ static SIMD_INLINE Vec<T, 64> reverse(const Vec<T, 64> &a)
 #ifdef __AVX512VBMI__
   return _mm512_permutexvar_epi8(reverse_mask<sizeof(T)>(), a);
 #else
-  Vec<T, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<sizeof(T)>());
+  const Vec<T, 64> r = x_mm512_shuffle_epi8(a, reverse_mask<sizeof(T)>());
   return _mm512_permutexvar_epi64(_mm512_set_epi64(1, 0, 3, 2, 5, 4, 7, 6), r);
 #endif
 }
 
 static SIMD_INLINE Vec<Int, 64> reverse(const Vec<Int, 64> &a)
 {
-  // AVX512F
   const auto mask =
     _mm512_set_epi32(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
   return _mm512_permutexvar_epi32(mask, a);
@@ -4840,7 +4115,6 @@ static SIMD_INLINE Vec<Int, 64> reverse(const Vec<Int, 64> &a)
 // float version, slightly changed int version
 static SIMD_INLINE Vec<Float, 64> reverse(const Vec<Float, 64> &a)
 {
-  // AVX512F
   const auto mask =
     _mm512_set_epi32(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
   return _mm512_permutexvar_ps(mask, a);
@@ -4849,7 +4123,6 @@ static SIMD_INLINE Vec<Float, 64> reverse(const Vec<Float, 64> &a)
 // double version
 static SIMD_INLINE Vec<Double, 64> reverse(const Vec<Double, 64> &a)
 {
-  // AVX512F
   return _mm512_permutexvar_pd(_mm512_set_epi64(0, 1, 2, 3, 4, 5, 6, 7), a);
 }
 
@@ -4859,83 +4132,56 @@ static SIMD_INLINE Vec<Double, 64> reverse(const Vec<Double, 64> &a)
 
 // 27. Aug 22 (Jonas Keller): added msb2int functions
 
+static SIMD_INLINE uint64_t msb2int(const Vec<Int, 64> &a)
+{
 #ifdef __AVX512DQ__
-static SIMD_INLINE uint64_t msb2int(const Vec<Int, 64> &a)
-{
   return _mm512_movepi32_mask(a);
-}
-
-static SIMD_INLINE uint64_t msb2int(const Vec<Float, 64> &a)
-{
-  return _mm512_movepi32_mask(_mm512_castps_si512(a));
-}
-
-static SIMD_INLINE uint64_t msb2int(const Vec<Double, 64> &a)
-{
-  return uint64_t(_mm512_movepi64_mask(_mm512_castpd_si512(a)));
-}
-
-#else  // __AVX512DQ__
-// workaround for msb2int for 32 bits if AVX512DQ is not available
-
-static SIMD_INLINE uint64_t msb2int(const Vec<Int, 64> &a)
-{
+#else
   const __m512i mask = _mm512_set1_epi32(uint32_t(0x80000000));
   return _mm512_test_epi32_mask(a, mask);
+#endif
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Float, 64> &a)
 {
+#ifdef __AVX512DQ__
+  return _mm512_movepi32_mask(_mm512_castps_si512(a));
+#else
   const __m512i mask = _mm512_set1_epi32(0x80000000);
   return _mm512_test_epi32_mask(_mm512_castps_si512(a), mask);
+#endif
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Double, 64> &a)
 {
+#ifdef __AVX512DQ__
+  return uint64_t(_mm512_movepi64_mask(_mm512_castpd_si512(a)));
+#else
+
   const __m512i mask = _mm512_set1_epi64(0x8000000000000000);
   // _cvtmask8_u32 requires AVX512DQ, so just convert using implicit conversion
   return _mm512_test_epi64_mask(_mm512_castpd_si512(a), mask);
+#endif
 }
-#endif // __AVX512DQ__
-
-#ifdef __AVX512BW__
-static SIMD_INLINE uint64_t msb2int(const Vec<Byte, 64> &a)
-{
-  return _mm512_movepi8_mask(a);
-}
-
-static SIMD_INLINE uint64_t msb2int(const Vec<SignedByte, 64> &a)
-{
-  return _mm512_movepi8_mask(a);
-}
-
-static SIMD_INLINE uint64_t msb2int(const Vec<Short, 64> &a)
-{
-  return _mm512_movepi16_mask(a);
-}
-
-static SIMD_INLINE uint64_t msb2int(const Vec<Word, 64> &a)
-{
-  return _mm512_movepi16_mask(a);
-}
-#else  // __AVX512BW__
-// workaround for msb2int for 8 and 16 bits if AVX512BW is not available
 
 // from:
 // https://lemire.me/blog/2018/01/08/how-fast-can-you-bit-interleave-32-bit-integers/
 static SIMD_INLINE uint64_t interleave_uint32_with_zeros(uint32_t input)
 {
   uint64_t word = input;
-  word = (word ^ (word << 16)) & 0x0000ffff0000ffff;
-  word = (word ^ (word << 8)) & 0x00ff00ff00ff00ff;
-  word = (word ^ (word << 4)) & 0x0f0f0f0f0f0f0f0f;
-  word = (word ^ (word << 2)) & 0x3333333333333333;
-  word = (word ^ (word << 1)) & 0x5555555555555555;
+  word          = (word ^ (word << 16)) & 0x0000ffff0000ffff;
+  word          = (word ^ (word << 8)) & 0x00ff00ff00ff00ff;
+  word          = (word ^ (word << 4)) & 0x0f0f0f0f0f0f0f0f;
+  word          = (word ^ (word << 2)) & 0x3333333333333333;
+  word          = (word ^ (word << 1)) & 0x5555555555555555;
   return word;
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Byte, 64> &a)
 {
+#ifdef __AVX512BW__
+  return _mm512_movepi8_mask(a);
+#else
   const uint64_t part3 = msb2int(reinterpret(a, OutputType<Int>()));
   const uint64_t part2 = msb2int(reinterpret(slle<1>(a), OutputType<Int>()));
   const uint64_t part1 = msb2int(reinterpret(slle<2>(a), OutputType<Int>()));
@@ -4952,44 +4198,30 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Byte, 64> &a)
     interleave_uint32_with_zeros(interleave_uint32_with_zeros(part0));
   return part0_with_zeros | (part1_with_zeros << 1) | (part2_with_zeros << 2) |
          (part3_with_zeros << 3);
+#endif
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<SignedByte, 64> &a)
 {
-  const uint64_t part3 = msb2int(reinterpret(a, OutputType<Int>()));
-  const uint64_t part2 = msb2int(reinterpret(slle<1>(a), OutputType<Int>()));
-  const uint64_t part1 = msb2int(reinterpret(slle<2>(a), OutputType<Int>()));
-  const uint64_t part0 = msb2int(reinterpret(slle<3>(a), OutputType<Int>()));
-  // TODO: is there a more efficient way to interleave with 3 zeros instead of
-  // interleaving with 1 zero twice?
-  const uint64_t part3_with_zeros =
-    interleave_uint32_with_zeros(interleave_uint32_with_zeros(part3));
-  const uint64_t part2_with_zeros =
-    interleave_uint32_with_zeros(interleave_uint32_with_zeros(part2));
-  const uint64_t part1_with_zeros =
-    interleave_uint32_with_zeros(interleave_uint32_with_zeros(part1));
-  const uint64_t part0_with_zeros =
-    interleave_uint32_with_zeros(interleave_uint32_with_zeros(part0));
-  return part0_with_zeros | (part1_with_zeros << 1) | (part2_with_zeros << 2) |
-         (part3_with_zeros << 3);
+  return msb2int(reinterpret(a, OutputType<Byte>()));
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Short, 64> &a)
 {
-  const uint64_t odd = msb2int(reinterpret(a, OutputType<Int>()));
+#ifdef __AVX512BW__
+  return _mm512_movepi16_mask(a);
+#else
+  const uint64_t odd  = msb2int(reinterpret(a, OutputType<Int>()));
   const uint64_t even = msb2int(reinterpret(slle<1>(a), OutputType<Int>()));
   return interleave_uint32_with_zeros(even) |
          (interleave_uint32_with_zeros(odd) << 1);
+#endif
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Word, 64> &a)
 {
-  const uint64_t odd = msb2int(reinterpret(a, OutputType<Int>()));
-  const uint64_t even = msb2int(reinterpret(slle<1>(a), OutputType<Int>()));
-  return interleave_uint32_with_zeros(even) |
-         (interleave_uint32_with_zeros(odd) << 1);
+  return msb2int(reinterpret(a, OutputType<Short>()));
 }
-#endif // __AVX512BW__
 
 // ---------------------------------------------------------------------------
 // int2msb
@@ -5003,17 +4235,18 @@ static SIMD_INLINE Vec<Byte, 64> int2msb(const uint64_t a, OutputType<Byte>,
 #ifdef __AVX512BW__
   return _mm512_maskz_set1_epi8(__mmask64(a), (int8_t) 0x80);
 #else
-  __m256i shuffleIndeces = _mm256_set_epi64x(
+  const __m256i shuffleIndeces = _mm256_set_epi64x(
     0x0303030303030303, 0x0202020202020202, 0x0101010101010101, 0);
-  __m256i aVecLo = _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
-  __m256i aVecHi =
+  const __m256i aVecLo =
+    _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
+  const __m256i aVecHi =
     _mm256_shuffle_epi8(_mm256_set1_epi32(a >> 32), shuffleIndeces);
-  __m256i sel = _mm256_set1_epi64x(0x8040201008040201);
-  __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
-  __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
-  __m256i resultLo = _mm256_cmpeq_epi8(selectedLo, sel);
-  __m256i resultHi = _mm256_cmpeq_epi8(selectedHi, sel);
-  __m512i result =
+  const __m256i sel        = _mm256_set1_epi64x(0x8040201008040201);
+  const __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
+  const __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
+  const __m256i resultLo   = _mm256_cmpeq_epi8(selectedLo, sel);
+  const __m256i resultHi   = _mm256_cmpeq_epi8(selectedHi, sel);
+  const __m512i result =
     _mm512_inserti64x4(_mm512_castsi256_si512(resultLo), resultHi, 1);
   return _mm512_and_si512(result, _mm512_set1_epi32(0x80808080));
 #endif
@@ -5033,16 +4266,16 @@ static SIMD_INLINE Vec<Short, 64> int2msb(const uint64_t a, OutputType<Short>,
 #ifdef __AVX512BW__
   return _mm512_maskz_set1_epi16(__mmask32(a), (int16_t) 0x8000);
 #else
-  __m256i sel = _mm256_set_epi16(
+  const __m256i sel = _mm256_set_epi16(
     (int16_t) 0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
     0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
-  __m256i aVecLo = _mm256_set1_epi16(a);
-  __m256i aVecHi = _mm256_set1_epi16(a >> 16);
-  __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
-  __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
-  __m256i resultLo = _mm256_cmpeq_epi16(selectedLo, sel);
-  __m256i resultHi = _mm256_cmpeq_epi16(selectedHi, sel);
-  __m512i result =
+  const __m256i aVecLo     = _mm256_set1_epi16(a);
+  const __m256i aVecHi     = _mm256_set1_epi16(a >> 16);
+  const __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
+  const __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
+  const __m256i resultLo   = _mm256_cmpeq_epi16(selectedLo, sel);
+  const __m256i resultHi   = _mm256_cmpeq_epi16(selectedHi, sel);
+  const __m512i result =
     _mm512_inserti64x4(_mm512_castsi256_si512(resultLo), resultHi, 1);
   return _mm512_and_si512(result, _mm512_set1_epi32(0x80008000));
 #endif
@@ -5087,16 +4320,17 @@ static SIMD_INLINE Vec<Byte, 64> int2bits(const uint64_t a, OutputType<Byte>,
 #ifdef __AVX512BW__
   return _mm512_maskz_set1_epi8(__mmask64(a), (int8_t) 0xff);
 #else
-  __m256i shuffleIndeces = _mm256_set_epi64x(
+  const __m256i shuffleIndeces = _mm256_set_epi64x(
     0x0303030303030303, 0x0202020202020202, 0x0101010101010101, 0);
-  __m256i aVecLo = _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
-  __m256i aVecHi =
+  const __m256i aVecLo =
+    _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
+  const __m256i aVecHi =
     _mm256_shuffle_epi8(_mm256_set1_epi32(a >> 32), shuffleIndeces);
-  __m256i sel = _mm256_set1_epi64x(0x8040201008040201);
-  __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
-  __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
-  __m256i resultLo = _mm256_cmpeq_epi8(selectedLo, sel);
-  __m256i resultHi = _mm256_cmpeq_epi8(selectedHi, sel);
+  const __m256i sel        = _mm256_set1_epi64x(0x8040201008040201);
+  const __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
+  const __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
+  const __m256i resultLo   = _mm256_cmpeq_epi8(selectedLo, sel);
+  const __m256i resultHi   = _mm256_cmpeq_epi8(selectedHi, sel);
   return _mm512_inserti64x4(_mm512_castsi256_si512(resultLo), resultHi, 1);
 #endif
 }
@@ -5115,15 +4349,15 @@ static SIMD_INLINE Vec<Short, 64> int2bits(const uint64_t a, OutputType<Short>,
 #ifdef __AVX512BW__
   return _mm512_maskz_set1_epi16(__mmask32(a), (int16_t) 0xffff);
 #else
-  __m256i sel = _mm256_set_epi16(
+  const __m256i sel = _mm256_set_epi16(
     (int16_t) 0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
     0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
-  __m256i aVecLo = _mm256_set1_epi16(a);
-  __m256i aVecHi = _mm256_set1_epi16(a >> 16);
-  __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
-  __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
-  __m256i resultLo = _mm256_cmpeq_epi16(selectedLo, sel);
-  __m256i resultHi = _mm256_cmpeq_epi16(selectedHi, sel);
+  const __m256i aVecLo     = _mm256_set1_epi16(a);
+  const __m256i aVecHi     = _mm256_set1_epi16(a >> 16);
+  const __m256i selectedLo = _mm256_and_si256(aVecLo, sel);
+  const __m256i selectedHi = _mm256_and_si256(aVecHi, sel);
+  const __m256i resultLo   = _mm256_cmpeq_epi16(selectedLo, sel);
+  const __m256i resultHi   = _mm256_cmpeq_epi16(selectedHi, sel);
   return _mm512_inserti64x4(_mm512_castsi256_si512(resultLo), resultHi, 1);
 #endif
 }
@@ -5163,34 +4397,34 @@ static SIMD_INLINE Vec<Double, 64> int2bits(const uint64_t a,
 
 static SIMD_INLINE Vec<Byte, 64> iota(OutputType<Byte>, Integer<64>)
 {
-  return x_mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51,
-                          50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38,
-                          37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25,
-                          24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,
-                          11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+  return _mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50,
+                         49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36,
+                         35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22,
+                         21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8,
+                         7, 6, 5, 4, 3, 2, 1, 0);
 }
 
 static SIMD_INLINE Vec<SignedByte, 64> iota(OutputType<SignedByte>, Integer<64>)
 {
-  return x_mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51,
-                          50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38,
-                          37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25,
-                          24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,
-                          11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+  return _mm512_set_epi8(63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50,
+                         49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36,
+                         35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22,
+                         21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8,
+                         7, 6, 5, 4, 3, 2, 1, 0);
 }
 
 static SIMD_INLINE Vec<Short, 64> iota(OutputType<Short>, Integer<64>)
 {
-  return x_mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
-                           18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-                           3, 2, 1, 0);
+  return _mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
+                          18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
+                          3, 2, 1, 0);
 }
 
 static SIMD_INLINE Vec<Word, 64> iota(OutputType<Word>, Integer<64>)
 {
-  return x_mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
-                           18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-                           3, 2, 1, 0);
+  return _mm512_set_epi16(31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19,
+                          18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
+                          3, 2, 1, 0);
 }
 
 static SIMD_INLINE Vec<Int, 64> iota(OutputType<Int>, Integer<64>)

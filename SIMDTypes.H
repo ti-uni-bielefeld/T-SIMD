@@ -459,76 +459,53 @@ struct TypeIsIntIsSigned
   : public IsIntIsSigned<TypeInfo<T>::isInteger, TypeInfo<T>::isSigned>
 {};
 
-template <int N>
+template <size_t N>
 struct Integer
 {};
 
-template <int N>
+template <size_t N>
 struct Part
 {};
 
-template <int N>
+template <size_t N>
 struct Elements
 {};
 
-template <int N>
+template <size_t N>
 struct Bytes
 {};
 
-template <bool IS_POSITIVE, bool AT_LOWER_LIMIT, int LOWER_LIMIT_INCLUSIVE,
-          int UPPER_LIMIT_EXCLUSIVE>
+template <bool AT_LOWER_LIMIT, size_t LOWER_LIMIT_INCLUSIVE,
+          size_t UPPER_LIMIT_EXCLUSIVE>
 struct Range
 {};
 
 // 24. Nov 17 (rm): now includes check for IMM >= 0 to reveal
 // negative template parameters
-template <int IMM, int SIZE>
+template <size_t IMM, size_t SIZE>
 struct SizeRange
-  : public Range<(IMM >= 0), SIMD_IS_MULTIPLE_OF(IMM, SIZE),
+  : public Range<SIMD_IS_MULTIPLE_OF(IMM, SIZE),
                  SIMD_PREV_MULTIPLE_OF(IMM, SIZE),
                  SIMD_NEXT_MULTIPLE_OF(IMM, SIZE)>
 {};
 
-template <int N>
+template <size_t N>
 struct Compression
-{};
-
-template <int N>
-struct Expansion
-{};
-
-template <typename T>
-struct InputType
 {};
 
 template <typename T>
 struct OutputType
 {};
 
-// is positive and in a range
-template <bool pos, bool inRange>
-struct IsPosInRange
-{};
-
-// is positive and in given range [0, RANGE)
-template <int RANGE, int INDEX>
-struct IsPosInGivenRange : public IsPosInRange<(INDEX >= 0), (INDEX < RANGE)>
-{};
-
-// is positive and non-zero and in a range
-template <bool pos, bool nonZero, bool inRange>
+// is non-zero and in a range
+template <bool nonZero, bool inRange>
 struct IsPosNonZeroInRange
 {};
 
-// is positive and non-zero and in a given range
-template <int RANGE, int INDEX>
+// is non-zero and in a given range
+template <size_t RANGE, size_t INDEX>
 struct IsPosNonZeroInGivenRange
-  : public IsPosNonZeroInRange<(INDEX >= 0), (INDEX != 0), (INDEX < RANGE)>
-{};
-
-// is positive and in bit range of given type
-template <typename T, int BIT>
-struct IsPosInBitRange : public IsPosInGivenRange<(sizeof(T) * 8), BIT>
+  : public IsPosNonZeroInRange<(INDEX != 0), (INDEX < RANGE)>
 {};
 
 // 12. Jan 23 (Jonas Keller): move CompareTypes to here from Compare2Type.H

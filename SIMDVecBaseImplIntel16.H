@@ -82,10 +82,10 @@ class Vec<T, 16>
   __m128i xmm = _mm_setzero_si128();
 
 public:
-  using Type                    = T;
-  static constexpr int elements = 16 / sizeof(T);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = 16;
+  using Type                       = T;
+  static constexpr size_t elements = 16 / sizeof(T);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = 16;
 
   Vec() = default;
   Vec(const __m128i &x) { xmm = x; }
@@ -116,10 +116,10 @@ class Vec<Float, 16>
   __m128 xmm = _mm_setzero_ps();
 
 public:
-  using Type                    = Float;
-  static constexpr int elements = 16 / sizeof(Float);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = 16;
+  using Type                       = Float;
+  static constexpr size_t elements = 16 / sizeof(Float);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = 16;
 
   Vec() = default;
   Vec(const __m128 &x) { xmm = x; }
@@ -150,11 +150,11 @@ class Vec<Double, 16>
   __m128d xmm;
 
 public:
-  using Type                    = Double;
-  static constexpr int elements = 16 / sizeof(Double);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = 16;
-  Vec()                         = default;
+  using Type                       = Double;
+  static constexpr size_t elements = 16 / sizeof(Double);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = 16;
+  Vec()                            = default;
   Vec(const __m128d &x) { xmm = x; }
   Vec &operator=(const __m128d &x)
   {
@@ -171,404 +171,6 @@ public:
 
 namespace internal {
 namespace base {
-
-// ===========================================================================
-// auxiliary functions
-// ===========================================================================
-
-// These functions either wrap SSE intrinsics (e.g. to handle
-// immediate arguments as template parameter), or switch between
-// implementations with different SSE* extensions, or provide
-// altered or additional functionality.
-// Only for use in wrapper functions!
-
-// 01. Apr 23 (Jonas Keller): removed some not really necessary internal
-// wrapper functions and inlined them directly into where they were used
-
-// ---------------------------------------------------------------------------
-// byte-wise shifts
-// ---------------------------------------------------------------------------
-
-// positive and in range: apply shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srli_si128(__m128i a, IsPosInRange<true, true>)
-{
-  return _mm_srli_si128(a, IMM);
-}
-
-// positive and out of range: return zero vector
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srli_si128(__m128i, IsPosInRange<true, false>)
-{
-  return _mm_setzero_si128();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srli_si128(__m128i a)
-{
-  return x_mm_srli_si128<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: apply shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_slli_si128(__m128i a, IsPosInRange<true, true>)
-{
-  return _mm_slli_si128(a, IMM);
-}
-
-// positive and out of range: return zero vector
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_slli_si128(__m128i, IsPosInRange<true, false>)
-{
-  return _mm_setzero_si128();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_slli_si128(__m128i a)
-{
-  return x_mm_slli_si128<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// ---------------------------------------------------------------------------
-// element-wise shifts
-// ---------------------------------------------------------------------------
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_slli_epi16(__m128i a, IsPosInRange<true, true>)
-{
-  return _mm_slli_epi16(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_slli_epi16(__m128i, IsPosInRange<true, false>)
-{
-  return _mm_setzero_si128();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_slli_epi16(__m128i a)
-{
-  return x_mm_slli_epi16<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srli_epi16(__m128i a, IsPosInRange<true, true>)
-{
-  return _mm_srli_epi16(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srli_epi16(__m128i, IsPosInRange<true, false>)
-{
-  return _mm_setzero_si128();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srli_epi16(__m128i a)
-{
-  return x_mm_srli_epi16<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_slli_epi32(__m128i a, IsPosInRange<true, true>)
-{
-  return _mm_slli_epi32(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_slli_epi32(__m128i, IsPosInRange<true, false>)
-{
-  return _mm_setzero_si128();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_slli_epi32(__m128i a)
-{
-  return x_mm_slli_epi32<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srli_epi32(__m128i a, IsPosInRange<true, true>)
-{
-  return _mm_srli_epi32(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srli_epi32(__m128i, IsPosInRange<true, false>)
-{
-  return _mm_setzero_si128();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srli_epi32(__m128i a)
-{
-  return x_mm_srli_epi32<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-// 16. Oct 22 (Jonas Keller): added x_mm_srai_epi8
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srai_epi8(__m128i a, IsPosInRange<true, true>)
-{
-  __m128i odd         = _mm_srai_epi16(a, IMM);
-  __m128i even        = _mm_srai_epi16(_mm_slli_epi16(a, 8), IMM + 8);
-  __m128i odd_masked  = _mm_and_si128(odd, _mm_set1_epi16((int16_t) 0xFF00));
-  __m128i even_masked = _mm_and_si128(even, _mm_set1_epi16(0x00FF));
-  return _mm_or_si128(odd_masked, even_masked);
-}
-
-// positive and out of range: maximal shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srai_epi8(__m128i a, IsPosInRange<true, false>)
-{
-  // result should be all ones if a is negative, all zeros otherwise
-  return _mm_cmplt_epi8(a, _mm_setzero_si128());
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srai_epi8(__m128i a)
-{
-  return x_mm_srai_epi8<IMM>(a, IsPosInGivenRange<7, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srai_epi16(__m128i a, IsPosInRange<true, true>)
-{
-  return _mm_srai_epi16(a, IMM);
-}
-
-// positive and out of range: maximal shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srai_epi16(__m128i a, IsPosInRange<true, false>)
-{
-  return _mm_srai_epi16(a, 15);
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srai_epi16(__m128i a)
-{
-  return x_mm_srai_epi16<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srai_epi32(__m128i a, IsPosInRange<true, true>)
-{
-  return _mm_srai_epi32(a, IMM);
-}
-
-// positive and out of range: maximal shift
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srai_epi32(__m128i a, IsPosInRange<true, false>)
-{
-  return _mm_srai_epi32(a, 31);
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m128i x_mm_srai_epi32(__m128i a)
-{
-  return x_mm_srai_epi32<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-// ---------------------------------------------------------------------------
-// element-wise shift where count does not need to be constant
-// ---------------------------------------------------------------------------
-
-// 19. Dec 22 (Jonas Keller): added x_mm_sra_epi8
-
-static SIMD_INLINE __m128i x_mm_sra_epi8(__m128i a, uint8_t count)
-{
-  // there is no _mm_sra_epi8 intrinsic
-  if (count >= 8) {
-    // result should be all ones if a is negative, all zeros otherwise
-    return _mm_cmplt_epi8(a, _mm_setzero_si128());
-  }
-  __m128i odd = _mm_sra_epi16(a, _mm_cvtsi32_si128(count));
-  __m128i even =
-    _mm_sra_epi16(_mm_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
-  __m128i odd_masked  = _mm_and_si128(odd, _mm_set1_epi16((int16_t) 0xFF00));
-  __m128i even_masked = _mm_and_si128(even, _mm_set1_epi16(0x00FF));
-  return _mm_or_si128(odd_masked, even_masked);
-}
-
-// ---------------------------------------------------------------------------
-// extract
-// ---------------------------------------------------------------------------
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_epi16(__m128i a, IsPosInRange<true, true>)
-{
-  return _mm_extract_epi16(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_epi16(__m128i, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_epi16(__m128i a)
-{
-  // 8 * epi16
-  return x_mm_extract_epi16<IMM>(a, IsPosInGivenRange<8, IMM>());
-}
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_epi8(__m128i a, IsPosInRange<true, true>)
-{
-#ifdef __SSE4_1__
-  return _mm_extract_epi8(a, IMM);
-#else
-  return (((IMM & 0x1) == 0) ?
-            x_mm_extract_epi16<(IMM >> 1)>(a) & 0xff :
-            x_mm_extract_epi16<(IMM >> 1)>(_mm_srli_epi16(a, 8)));
-#endif
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_epi8(__m128i, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_epi8(__m128i a)
-{
-  // 16 * epi8
-  return x_mm_extract_epi8<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_epi32(__m128i a, IsPosInRange<true, true>)
-{
-  // TODO: extract: is conversion from return type int to Int always safe?
-#ifdef __SSE4_1__
-  return _mm_extract_epi32(a, IMM);
-#else
-  // n << 2 = 4 * n
-  return _mm_cvtsi128_si32(x_mm_srli_si128<(IMM << 2)>(a));
-#endif
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_epi32(__m128i, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_epi32(__m128i a)
-{
-  // 4 * epi32
-  return x_mm_extract_epi32<IMM>(a, IsPosInGivenRange<4, IMM>());
-}
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_ps(__m128 a, IsPosInRange<true, true>)
-{
-#ifdef __SSE4_1__
-  return _mm_extract_ps(a, IMM);
-#else
-  // IMM << 2 = 4 * IMM
-  return _mm_cvtsi128_si32(x_mm_srli_si128<(IMM << 2)>(_mm_castps_si128(a)));
-#endif
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_ps(__m128, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub: yes, really returns an int!
-template <int IMM>
-static SIMD_INLINE int x_mm_extract_ps(__m128 a)
-{
-  // 4 * ps
-  return x_mm_extract_ps<IMM>(a, IsPosInGivenRange<4, IMM>());
-}
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE long long x_mm_extract_pd(__m128d a,
-                                             IsPosInRange<true, true>)
-{
-#ifdef __SSE4_1__
-  return _mm_extract_epi64(_mm_castpd_si128(a), IMM);
-#else
-  // IMM << 3 = 8 * IMM
-  return _mm_cvtsi128_si64(x_mm_srli_si128<(IMM << 3)>(_mm_castpd_si128(a)));
-#endif
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE long long x_mm_extract_pd(__m128d, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub: yes, really returns a long long!
-template <int IMM>
-static SIMD_INLINE long long x_mm_extract_pd(__m128d a)
-{
-  // 2 * pd
-  return x_mm_extract_pd<IMM>(a, IsPosInGivenRange<2, IMM>());
-}
-
-// ---------------------------------------------------------------------------
-// abs
-// ---------------------------------------------------------------------------
-
-static SIMD_INLINE __m128 x_mm_abs_ps(__m128 a)
-{
-  // there's no _mm_abs_ps, so we have to emulate it:
-  // clear sign bit:
-  return _mm_and_ps(a, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)));
-}
-
-static SIMD_INLINE __m128d x_mm_abs_pd(__m128d a)
-{
-  // there's no _mm_abs_pd, so we have to emulate it:
-  // clear sign bit:
-  return _mm_and_pd(a, _mm_castsi128_pd(_mm_set1_epi64x(0x7FFFFFFFFFFFFFFF)));
-}
-
-// ###########################################################################
-// ###########################################################################
-// ###########################################################################
-
 // ===========================================================================
 // Vec function template specialization or overloading for SSE
 // ===========================================================================
@@ -911,49 +513,117 @@ static SIMD_INLINE void mfence()
 // extract: with template parameter for immediate argument
 // ---------------------------------------------------------------------------
 
-template <int IMM>
+template <size_t INDEX>
 static SIMD_INLINE Byte extract(const Vec<Byte, 16> &a)
 {
-  return x_mm_extract_epi8<IMM>(a);
+  SIMD_IF_CONSTEXPR (INDEX == 0) {
+    return _mm_cvtsi128_si32(a);
+  } else SIMD_IF_CONSTEXPR (INDEX < 16) {
+#ifdef __SSE4_1__
+    return _mm_extract_epi8(a, INDEX);
+#else
+    SIMD_IF_CONSTEXPR ((INDEX & 0x1) == 0) {
+      return _mm_extract_epi16(a, INDEX / 2) & 0xff;
+    } else {
+      return _mm_extract_epi16(_mm_srli_epi16(a, 8), INDEX / 2);
+    }
+#endif
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t INDEX>
 static SIMD_INLINE SignedByte extract(const Vec<SignedByte, 16> &a)
 {
-  return x_mm_extract_epi8<IMM>(a);
+  SIMD_IF_CONSTEXPR (INDEX == 0) {
+    return _mm_cvtsi128_si32(a);
+  } else SIMD_IF_CONSTEXPR (INDEX < 16) {
+#ifdef __SSE4_1__
+    return _mm_extract_epi8(a, INDEX);
+#else
+    SIMD_IF_CONSTEXPR ((INDEX & 0x1) == 0) {
+      return _mm_extract_epi16(a, INDEX / 2) & 0xff;
+    } else {
+      return _mm_extract_epi16(_mm_srli_epi16(a, 8), INDEX / 2);
+    }
+#endif
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t INDEX>
 static SIMD_INLINE Word extract(const Vec<Word, 16> &a)
 {
-  return x_mm_extract_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (INDEX == 0) {
+    return _mm_cvtsi128_si32(a);
+  } else SIMD_IF_CONSTEXPR (INDEX < 8) {
+    return _mm_extract_epi16(a, INDEX);
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t INDEX>
 static SIMD_INLINE Short extract(const Vec<Short, 16> &a)
 {
-  return x_mm_extract_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (INDEX == 0) {
+    return _mm_cvtsi128_si32(a);
+  } else SIMD_IF_CONSTEXPR (INDEX < 8) {
+    return _mm_extract_epi16(a, INDEX);
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t INDEX>
 static SIMD_INLINE Int extract(const Vec<Int, 16> &a)
 {
-  return x_mm_extract_epi32<IMM>(a);
+  SIMD_IF_CONSTEXPR (INDEX == 0) {
+    return _mm_cvtsi128_si32(a);
+  } else SIMD_IF_CONSTEXPR (INDEX < 4) {
+#ifdef __SSE4_1__
+    return _mm_extract_epi32(a, INDEX);
+#else
+    return _mm_cvtsi128_si32(_mm_srli_si128(a, INDEX * 4));
+#endif
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t INDEX>
 static SIMD_INLINE Float extract(const Vec<Float, 16> &a)
 {
-  SIMD_RETURN_REINTERPRET_INT(Float, x_mm_extract_ps<IMM>(a), 0)
+  SIMD_IF_CONSTEXPR (INDEX == 0) {
+    return ::simd::internal::bit_cast<Float>(
+      _mm_cvtsi128_si32(_mm_castps_si128(a)));
+  } else SIMD_IF_CONSTEXPR (INDEX < 4) {
+#ifdef __SSE4_2__
+    const int intRes = _mm_extract_ps(a, INDEX);
+#else
+    const int intRes =
+      _mm_cvtsi128_si32(_mm_srli_si128(_mm_castps_si128(a), INDEX * 4));
+#endif
+    return ::simd::internal::bit_cast<Float>(intRes);
+  } else {
+    return 0.0f;
+  }
 }
 
-template <int IMM>
+template <size_t INDEX>
 static SIMD_INLINE Double extract(const Vec<Double, 16> &a)
 {
-  Double res;
-  long long i = x_mm_extract_pd<IMM>(a);
-  memcpy(&res, &i, sizeof(Double));
-  return res;
+  SIMD_IF_CONSTEXPR (INDEX == 0) {
+    return ::simd::internal::bit_cast<Double>(
+      _mm_cvtsi128_si64(_mm_castpd_si128(a)));
+  } else SIMD_IF_CONSTEXPR (INDEX == 1) {
+    return ::simd::internal::bit_cast<Double>(
+      _mm_cvtsi128_si64(_mm_srli_si128(_mm_castpd_si128(a), 8)));
+  } else {
+    return 0.0;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1082,16 +752,16 @@ static SIMD_INLINE Vec<Int, 16> adds(const Vec<Int, 16> &a,
   // Hacker's Delight, 2-13 Overflow Detection: "Signed integer overflow of
   // addition occurs if and only if the operands have the same sign and the
   // sum has a sign opposite to that of the operands."
-  __m128i sum             = _mm_add_epi32(a, b);
-  __m128i opsHaveDiffSign = _mm_xor_si128(a, b);
-  __m128i sumHasDiffSign  = _mm_xor_si128(a, sum);
+  const __m128i sum             = _mm_add_epi32(a, b);
+  const __m128i opsHaveDiffSign = _mm_xor_si128(a, b);
+  const __m128i sumHasDiffSign  = _mm_xor_si128(a, sum);
   // indicates when an overflow has occurred
-  __m128i overflow =
+  const __m128i overflow =
     _mm_srai_epi32(_mm_andnot_si128(opsHaveDiffSign, sumHasDiffSign), 31);
   // saturated sum for if overflow occurred (0x7FFFFFFF=max positive int, when
   // sign of a (and thus b as well) is 0, 0x80000000=min negative int, when sign
   // of a (and thus b as well) is 1)
-  __m128i saturatedSum =
+  const __m128i saturatedSum =
     _mm_xor_si128(_mm_srai_epi32(a, 31), _mm_set1_epi32(0x7FFFFFFF));
   // return saturated sum if overflow occurred, otherwise return sum
   return ifelse(Vec<Int, 16>(overflow), Vec<Int, 16>(saturatedSum),
@@ -1196,16 +866,16 @@ static SIMD_INLINE Vec<Int, 16> subs(const Vec<Int, 16> &a,
   // Hacker's Delight, 2-13 Overflow Detection: "[...] overflow in the final
   // value of x−y [...] occurs if and only if x and y have opposite signs and
   // the sign of x−y [...] is opposite to that of x [...]"
-  __m128i diff            = _mm_sub_epi32(a, b);
-  __m128i opsHaveDiffSign = _mm_xor_si128(a, b);
-  __m128i diffHasDiffSign = _mm_xor_si128(a, diff);
+  const __m128i diff            = _mm_sub_epi32(a, b);
+  const __m128i opsHaveDiffSign = _mm_xor_si128(a, b);
+  const __m128i diffHasDiffSign = _mm_xor_si128(a, diff);
   // indicates when an overflow has occurred
-  __m128i overflow =
+  const __m128i overflow =
     _mm_srai_epi32(_mm_and_si128(opsHaveDiffSign, diffHasDiffSign), 31);
   // saturated diff for if overflow occurred (0x7FFFFFFF=max positive int, when
   // sign of a (and thus b as well) is 0, 0x80000000=min negative int, when sign
   // of a (and thus b as well) is 1)
-  __m128i saturatedDiff =
+  const __m128i saturatedDiff =
     _mm_xor_si128(_mm_srai_epi32(a, 31), _mm_set1_epi32(0x7FFFFFFF));
   // return saturated diff if overflow occurred, otherwise return diff
   return ifelse(Vec<Int, 16>(overflow), Vec<Int, 16>(saturatedDiff),
@@ -1272,11 +942,11 @@ static SIMD_INLINE Vec<SignedByte, 16> min(const Vec<SignedByte, 16> &a,
   return _mm_min_epi8(a, b);
 #else
   // from Agner Fog's VCL vectori128.h
-  __m128i signbit = _mm_set1_epi32(0x80808080);
-  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x80
-  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x80
-  __m128i m1      = _mm_min_epu8(a1, b1);      // unsigned min
-  return _mm_xor_si128(m1, signbit);           // sub 0x80
+  const __m128i signbit = _mm_set1_epi32(0x80808080);
+  const __m128i a1      = _mm_xor_si128(a, signbit); // add 0x80
+  const __m128i b1      = _mm_xor_si128(b, signbit); // add 0x80
+  const __m128i m1      = _mm_min_epu8(a1, b1);      // unsigned min
+  return _mm_xor_si128(m1, signbit);                 // sub 0x80
 #endif
 }
 
@@ -1287,11 +957,11 @@ static SIMD_INLINE Vec<Word, 16> min(const Vec<Word, 16> &a,
   return _mm_min_epu16(a, b);
 #else
   // from Agner Fog's VCL vectori128.h
-  __m128i signbit = _mm_set1_epi32(0x80008000);
-  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x8000
-  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x8000
-  __m128i m1      = _mm_min_epi16(a1, b1);     // signed min
-  return _mm_xor_si128(m1, signbit);           // sub 0x8000
+  const __m128i signbit = _mm_set1_epi32(0x80008000);
+  const __m128i a1      = _mm_xor_si128(a, signbit); // add 0x8000
+  const __m128i b1      = _mm_xor_si128(b, signbit); // add 0x8000
+  const __m128i m1      = _mm_min_epi16(a1, b1);     // signed min
+  return _mm_xor_si128(m1, signbit);                 // sub 0x8000
 #endif
 }
 
@@ -1308,7 +978,7 @@ static SIMD_INLINE Vec<Int, 16> min(const Vec<Int, 16> &a,
   return _mm_min_epi32(a, b);
 #else
   // from Agner Fog's VCL vectori128.h (modified)
-  __m128i gt = _mm_cmpgt_epi32(a, b);
+  const __m128i gt = _mm_cmpgt_epi32(a, b);
   return _mm_or_si128(_mm_and_si128(gt, b), _mm_andnot_si128(gt, a));
 #endif
 }
@@ -1345,11 +1015,11 @@ static SIMD_INLINE Vec<SignedByte, 16> max(const Vec<SignedByte, 16> &a,
   return _mm_max_epi8(a, b);
 #else
   // from Agner Fog's VCL vectori128.h
-  __m128i signbit = _mm_set1_epi32(0x80808080);
-  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x80
-  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x80
-  __m128i m1      = _mm_max_epu8(a1, b1);      // unsigned max
-  return _mm_xor_si128(m1, signbit);           // sub 0x80
+  const __m128i signbit = _mm_set1_epi32(0x80808080);
+  const __m128i a1      = _mm_xor_si128(a, signbit); // add 0x80
+  const __m128i b1      = _mm_xor_si128(b, signbit); // add 0x80
+  const __m128i m1      = _mm_max_epu8(a1, b1);      // unsigned max
+  return _mm_xor_si128(m1, signbit);                 // sub 0x80
 #endif
 }
 
@@ -1360,11 +1030,11 @@ static SIMD_INLINE Vec<Word, 16> max(const Vec<Word, 16> &a,
   return _mm_max_epu16(a, b);
 #else
   // from Agner Fog's VCL vectori128.h
-  __m128i signbit = _mm_set1_epi32(0x80008000);
-  __m128i a1      = _mm_xor_si128(a, signbit); // add 0x8000
-  __m128i b1      = _mm_xor_si128(b, signbit); // add 0x8000
-  __m128i m1      = _mm_max_epi16(a1, b1);     // signed max
-  return _mm_xor_si128(m1, signbit);           // sub 0x8000
+  const __m128i signbit = _mm_set1_epi32(0x80008000);
+  const __m128i a1      = _mm_xor_si128(a, signbit); // add 0x8000
+  const __m128i b1      = _mm_xor_si128(b, signbit); // add 0x8000
+  const __m128i m1      = _mm_max_epi16(a1, b1);     // signed max
+  return _mm_xor_si128(m1, signbit);                 // sub 0x8000
 #endif
 }
 
@@ -1381,7 +1051,7 @@ static SIMD_INLINE Vec<Int, 16> max(const Vec<Int, 16> &a,
   return _mm_max_epi32(a, b);
 #else
   // from Agner Fog's VCL vectori128.h
-  __m128i gt = _mm_cmpgt_epi32(a, b);
+  const __m128i gt = _mm_cmpgt_epi32(a, b);
   return _mm_or_si128(_mm_and_si128(gt, a), _mm_andnot_si128(gt, b));
 #endif
 }
@@ -1493,19 +1163,22 @@ static SIMD_INLINE Vec<Float, 16> ceil(const Vec<Float, 16> &a)
   return _mm_ceil_ps(a);
 #else
   // if e>=23, floating point number represents an integer, 2^23 = 8388608
-  __m128 limit = _mm_set1_ps(8388608.f);
+  const __m128 limit = _mm_set1_ps(8388608.f);
   // bool mask: no rounding required if abs(a) >= limit
-  __m128 noRndReq = _mm_cmpge_ps(x_mm_abs_ps(a), limit);
+  const __m128 absA =
+    _mm_and_ps(a, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)));
+  const __m128 noRndReq = _mm_cmpge_ps(absA, limit);
   // bool mask: true if a is negative
-  __m128 isNeg = _mm_castsi128_ps(_mm_srai_epi32(_mm_castps_si128(a), 31));
+  const __m128 isNeg =
+    _mm_castsi128_ps(_mm_srai_epi32(_mm_castps_si128(a), 31));
   // truncated result (for |a| < limit)
   __m128 aTrunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(a));
   // check if a is an integer
-  __m128 isNotInt = _mm_cmpneq_ps(a, aTrunc);
+  const __m128 isNotInt = _mm_cmpneq_ps(a, aTrunc);
   // constant 1.0
-  __m128 one = _mm_set1_ps(1.0f);
+  const __m128 one = _mm_set1_ps(1.0f);
   // mask which is 1.0f for non-negative non-integer values, 0.0f otherwise
-  __m128 oneMask = _mm_and_ps(_mm_andnot_ps(isNeg, isNotInt), one);
+  const __m128 oneMask = _mm_and_ps(_mm_andnot_ps(isNeg, isNotInt), one);
   // if non-negative, trunc computes floor, to turn it into ceil we
   // add 1 if aTrunc is non-integer
   aTrunc = _mm_add_ps(aTrunc, oneMask);
@@ -1539,19 +1212,22 @@ static SIMD_INLINE Vec<Float, 16> floor(const Vec<Float, 16> &a)
   return _mm_floor_ps(a);
 #else
   // if e>=23, floating point number represents an integer, 2^23 = 8388608
-  __m128 limit = _mm_set1_ps(8388608.f);
+  const __m128 limit = _mm_set1_ps(8388608.f);
   // bool mask: no rounding required if abs(a) >= limit
-  __m128 noRndReq = _mm_cmpge_ps(x_mm_abs_ps(a), limit);
+  const __m128 absA =
+    _mm_and_ps(a, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)));
+  const __m128 noRndReq = _mm_cmpge_ps(absA, limit);
   // bool mask: true if a is negative
-  __m128 isNeg = _mm_castsi128_ps(_mm_srai_epi32(_mm_castps_si128(a), 31));
+  const __m128 isNeg =
+    _mm_castsi128_ps(_mm_srai_epi32(_mm_castps_si128(a), 31));
   // truncated result (for |a| < limit)
   __m128 aTrunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(a));
   // check if a is an integer
-  __m128 isNotInt = _mm_cmpneq_ps(a, aTrunc);
+  const __m128 isNotInt = _mm_cmpneq_ps(a, aTrunc);
   // constant 1.0
-  __m128 one = _mm_set1_ps(1.0f);
+  const __m128 one = _mm_set1_ps(1.0f);
   // mask which is 1.0f for negative non-integer values, 0.0f otherwise
-  __m128 oneMask = _mm_and_ps(_mm_and_ps(isNeg, isNotInt), one);
+  const __m128 oneMask = _mm_and_ps(_mm_and_ps(isNeg, isNotInt), one);
   // if negative, trunc computes ceil, to turn it into floor we sub
   // 1 if aTrunc is non-integer
   aTrunc = _mm_sub_ps(aTrunc, oneMask);
@@ -1589,12 +1265,14 @@ static SIMD_INLINE Vec<Float, 16> round(const Vec<Float, 16> &a)
 #else
   // NOTE: only works if rounding mode is default (rnd. to nearest (even))
   // if e>=23, floating point number represents an integer, 2^23 = 8388608
-  __m128 limit = _mm_set1_ps(8388608.f);
+  const __m128 limit = _mm_set1_ps(8388608.f);
   // bool mask: no rounding required if abs(a) >= limit
-  __m128 noRndReq = _mm_cmpge_ps(x_mm_abs_ps(a), limit);
+  const __m128 absA =
+    _mm_and_ps(a, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)));
+  const __m128 noRndReq = _mm_cmpge_ps(absA, limit);
   // rounded result (here rounded according to current rounding mode)
   // (for |a| < limit)
-  __m128 aRnd = _mm_cvtepi32_ps(_mm_cvtps_epi32(a));
+  const __m128 aRnd = _mm_cvtepi32_ps(_mm_cvtps_epi32(a));
   // select result
   return ifelse(noRndReq, a, aRnd);
 #endif
@@ -1626,11 +1304,13 @@ static SIMD_INLINE Vec<Float, 16> truncate(const Vec<Float, 16> &a)
   return _mm_round_ps(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
 #else
   // if e>=23, floating point number represents an integer, 2^23 = 8388608
-  __m128 limit = _mm_set1_ps(8388608.f);
+  const __m128 limit = _mm_set1_ps(8388608.f);
   // bool mask: no rounding required if abs(a) >= limit
-  __m128 noRndReq = _mm_cmpge_ps(x_mm_abs_ps(a), limit);
+  const __m128 absA =
+    _mm_and_ps(a, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)));
+  const __m128 noRndReq = _mm_cmpge_ps(absA, limit);
   // truncated result (for |a| < limit) (cvtTps!)
-  __m128 aTrunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(a));
+  const __m128 aTrunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(a));
   // select result
   return ifelse(noRndReq, a, aTrunc);
 #endif
@@ -1728,12 +1408,12 @@ static SIMD_INLINE Vec<Int, 16> abs(const Vec<Int, 16> &a)
 
 static SIMD_INLINE Vec<Float, 16> abs(const Vec<Float, 16> &a)
 {
-  return x_mm_abs_ps(a);
+  return _mm_and_ps(a, _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)));
 }
 
 static SIMD_INLINE Vec<Double, 16> abs(const Vec<Double, 16> &a)
 {
-  return x_mm_abs_pd(a);
+  return _mm_and_pd(a, _mm_castsi128_pd(_mm_set1_epi64x(0x7FFFFFFFFFFFFFFF)));
 }
 
 // ---------------------------------------------------------------------------
@@ -1865,7 +1545,7 @@ static SIMD_INLINE Vec<Double, 16> unpack(const Vec<Double, 16> &a,
 // unpack blocks of NUM_ELEMS elements of type T
 // PART=0: low half of input vectors,
 // PART=1: high half of input vectors
-template <int PART, int BYTES, typename T>
+template <size_t PART, size_t BYTES, typename T>
 static SIMD_INLINE Vec<T, 16> unpack16(const Vec<T, 16> &a, const Vec<T, 16> &b,
                                        Part<PART>, Bytes<BYTES>)
 {
@@ -1878,7 +1558,7 @@ static SIMD_INLINE Vec<T, 16> unpack16(const Vec<T, 16> &a, const Vec<T, 16> &b,
 
 // contributed by Adam Marschall
 
-template <int IMM, typename T>
+template <size_t LANE_INDEX, typename T>
 static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 16> &a)
 {
   return a;
@@ -1891,12 +1571,12 @@ static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 16> &a)
 // a, b are passed by-value to avoid problems with identical input/output args.
 
 // here we can directly map zip to unpack<PART,NUM_ELEMS,T>
-template <int NUM_ELEMS, typename T>
+template <size_t NUM_ELEMS, typename T>
 static SIMD_INLINE void zip(const Vec<T, 16> a, const Vec<T, 16> b,
                             Vec<T, 16> &l, Vec<T, 16> &h)
 {
-  l = unpack<0, NUM_ELEMS>(a, b);
-  h = unpack<1, NUM_ELEMS>(a, b);
+  l = unpack(a, b, Part<0>(), Bytes<NUM_ELEMS * sizeof(T)>());
+  h = unpack(a, b, Part<1>(), Bytes<NUM_ELEMS * sizeof(T)>());
 }
 
 // ---------------------------------------------------------------------------
@@ -1908,7 +1588,7 @@ static SIMD_INLINE void zip(const Vec<T, 16> a, const Vec<T, 16> b,
 // a, b are passed by-value to avoid problems with identical
 // input/output args.
 
-template <int NUM_ELEMS, typename T>
+template <size_t NUM_ELEMS, typename T>
 static SIMD_INLINE void zip16(const Vec<T, 16> a, const Vec<T, 16> b,
                               Vec<T, 16> &l, Vec<T, 16> &h)
 {
@@ -1930,12 +1610,12 @@ static SIMD_INLINE void unzip(const Vec<T, 16> a, const Vec<T, 16> b,
                               Vec<T, 16> &l, Vec<T, 16> &h, Bytes<1>)
 {
   // mask is hopefully only set once if unzip is used multiple times
-  __m128i mask =
+  const __m128i mask =
     _mm_set_epi8(15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0);
-  __m128i atmp = _mm_shuffle_epi8(a, mask);
-  __m128i btmp = _mm_shuffle_epi8(b, mask);
-  l            = _mm_unpacklo_epi64(atmp, btmp);
-  h            = _mm_unpackhi_epi64(atmp, btmp);
+  const __m128i atmp = _mm_shuffle_epi8(a, mask);
+  const __m128i btmp = _mm_shuffle_epi8(b, mask);
+  l                  = _mm_unpacklo_epi64(atmp, btmp);
+  h                  = _mm_unpackhi_epi64(atmp, btmp);
 }
 
 // all integer versions
@@ -1944,12 +1624,12 @@ static SIMD_INLINE void unzip(const Vec<T, 16> a, const Vec<T, 16> b,
                               Vec<T, 16> &l, Vec<T, 16> &h, Bytes<2>)
 {
   // mask is hopefully only set once if unzip is used multiple times
-  __m128i mask =
+  const __m128i mask =
     _mm_set_epi8(15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0);
-  __m128i atmp = _mm_shuffle_epi8(a, mask);
-  __m128i btmp = _mm_shuffle_epi8(b, mask);
-  l            = _mm_unpacklo_epi64(atmp, btmp);
-  h            = _mm_unpackhi_epi64(atmp, btmp);
+  const __m128i atmp = _mm_shuffle_epi8(a, mask);
+  const __m128i btmp = _mm_shuffle_epi8(b, mask);
+  l                  = _mm_unpacklo_epi64(atmp, btmp);
+  h                  = _mm_unpackhi_epi64(atmp, btmp);
 }
 
 // all integer versions
@@ -1957,8 +1637,8 @@ template <typename T>
 static SIMD_INLINE void unzip(const Vec<T, 16> a, const Vec<T, 16> b,
                               Vec<T, 16> &l, Vec<T, 16> &h, Bytes<4>)
 {
-  __m128 aps = _mm_castsi128_ps(a);
-  __m128 bps = _mm_castsi128_ps(b);
+  const __m128 aps = _mm_castsi128_ps(a);
+  const __m128 bps = _mm_castsi128_ps(b);
   l = _mm_castps_si128(_mm_shuffle_ps(aps, bps, _MM_SHUFFLE(2, 0, 2, 0)));
   h = _mm_castps_si128(_mm_shuffle_ps(aps, bps, _MM_SHUFFLE(3, 1, 3, 1)));
 }
@@ -2021,9 +1701,9 @@ static SIMD_INLINE Vec<Float, 16> packs(const Vec<Double, 16> &a,
 static SIMD_INLINE Vec<Int, 16> packs(const Vec<Double, 16> &a,
                                       const Vec<Double, 16> &b, OutputType<Int>)
 {
-  auto clip = _mm_set1_pd(std::numeric_limits<Int>::max());
-  auto bI   = _mm_castsi128_ps(_mm_cvtpd_epi32(_mm_min_pd(clip, b)));
-  auto aI   = _mm_castsi128_ps(_mm_cvtpd_epi32(_mm_min_pd(clip, a)));
+  const __m128d clip = _mm_set1_pd(std::numeric_limits<Int>::max());
+  const __m128 bI    = _mm_castsi128_ps(_mm_cvtpd_epi32(_mm_min_pd(clip, b)));
+  const __m128 aI    = _mm_castsi128_ps(_mm_cvtpd_epi32(_mm_min_pd(clip, a)));
   return _mm_castps_si128(_mm_shuffle_ps(aI, bI, _MM_SHUFFLE(1, 0, 1, 0)));
 }
 
@@ -2043,7 +1723,7 @@ static SIMD_INLINE Vec<Word, 16> packs(const Vec<Int, 16> &a,
   return _mm_packus_epi32(a, b);
 #else
   // mask for lower 16 bit
-  __m128i mask = _mm_set1_epi32(0x0000ffff);
+  const __m128i mask = _mm_set1_epi32(0x0000ffff);
   // a >= 0 ? asat = a : asat = 0
   // 23. Nov 17 (rm): 32->31
   __m128i asat = _mm_andnot_si128(_mm_srai_epi32(a, 31), a);
@@ -2443,34 +2123,45 @@ static SIMD_INLINE void extend(const Vec<Float, 16> &vIn, Vec<Int, 16> vOut[1])
 
 // 16. Oct 22 (Jonas Keller): added missing Byte and SignedByte versions
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 16> srai(const Vec<Byte, 16> &a)
 {
-  return x_mm_srai_epi8<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    const __m128i odd  = _mm_srai_epi16(a, COUNT);
+    const __m128i even = _mm_srai_epi16(_mm_slli_epi16(a, 8), COUNT + 8);
+    const __m128i odd_masked =
+      _mm_and_si128(odd, _mm_set1_epi16((int16_t) 0xFF00));
+    const __m128i even_masked = _mm_and_si128(even, _mm_set1_epi16(0x00FF));
+    return _mm_or_si128(odd_masked, even_masked);
+  } else {
+    // result should be all ones if a is negative, all zeros otherwise
+    return _mm_cmplt_epi8(a, _mm_setzero_si128());
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 16> srai(const Vec<SignedByte, 16> &a)
 {
-  return x_mm_srai_epi8<IMM>(a);
+  return reinterpret(srai<COUNT>(reinterpret(a, OutputType<Byte>())),
+                     OutputType<SignedByte>());
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 16> srai(const Vec<Word, 16> &a)
 {
-  return x_mm_srai_epi16<IMM>(a);
+  return _mm_srai_epi16(a, std::min(COUNT, 15ul));
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 16> srai(const Vec<Short, 16> &a)
 {
-  return x_mm_srai_epi16<IMM>(a);
+  return _mm_srai_epi16(a, std::min(COUNT, 15ul));
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 16> srai(const Vec<Int, 16> &a)
 {
-  return x_mm_srai_epi32<IMM>(a);
+  return _mm_srai_epi32(a, std::min(COUNT, 31ul));
 }
 
 // ---------------------------------------------------------------------------
@@ -2479,38 +2170,58 @@ static SIMD_INLINE Vec<Int, 16> srai(const Vec<Int, 16> &a)
 
 // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
 // License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 16> srli(const Vec<Byte, 16> &a)
 {
-  return _mm_and_si128(_mm_set1_epi8((int8_t) (0xff >> IMM)),
-                       x_mm_srli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    return _mm_and_si128(_mm_set1_epi8((int8_t) (0xff >> COUNT)),
+                         _mm_srli_epi32(a, COUNT));
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
 // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
 // License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 16> srli(const Vec<SignedByte, 16> &a)
 {
-  return _mm_and_si128(_mm_set1_epi8((int8_t) (0xff >> IMM)),
-                       x_mm_srli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    return _mm_and_si128(_mm_set1_epi8((int8_t) (0xff >> COUNT)),
+                         _mm_srli_epi32(a, COUNT));
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 16> srli(const Vec<Word, 16> &a)
 {
-  return x_mm_srli_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm_srli_epi16(a, COUNT);
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 16> srli(const Vec<Short, 16> &a)
 {
-  return x_mm_srli_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm_srli_epi16(a, COUNT);
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 16> srli(const Vec<Int, 16> &a)
 {
-  return x_mm_srli_epi32<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm_srli_epi32(a, COUNT);
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -2519,38 +2230,60 @@ static SIMD_INLINE Vec<Int, 16> srli(const Vec<Int, 16> &a)
 
 // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
 // License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 16> slli(const Vec<Byte, 16> &a)
 {
-  return _mm_and_si128(_mm_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << IMM))),
-                       x_mm_slli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    return _mm_and_si128(
+      _mm_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << COUNT))),
+      _mm_slli_epi32(a, COUNT));
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
 // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
 // License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 16> slli(const Vec<SignedByte, 16> &a)
 {
-  return _mm_and_si128(_mm_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << IMM))),
-                       x_mm_slli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    return _mm_and_si128(
+      _mm_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << COUNT))),
+      _mm_slli_epi32(a, COUNT));
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 16> slli(const Vec<Word, 16> &a)
 {
-  return x_mm_slli_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm_slli_epi16(a, COUNT);
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 16> slli(const Vec<Short, 16> &a)
 {
-  return x_mm_slli_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm_slli_epi16(a, COUNT);
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 16> slli(const Vec<Int, 16> &a)
 {
-  return x_mm_slli_epi32<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm_slli_epi32(a, COUNT);
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
 // 19. Dec 22 (Jonas Keller): added sra, srl and sll functions
@@ -2850,27 +2583,13 @@ static SIMD_INLINE Vec<Double, 16> hsubs(const Vec<Double, 16> &a,
 // element-wise shift right
 // ---------------------------------------------------------------------------
 
-// all integer versions
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 16> srle(const Vec<T, 16> &a)
 {
-  return x_mm_srli_si128<IMM * sizeof(T)>(a);
-}
-
-// float version
-template <int IMM>
-static SIMD_INLINE Vec<Float, 16> srle(const Vec<Float, 16> &a)
-{
-  return _mm_castsi128_ps(
-    x_mm_srli_si128<IMM * sizeof(Float)>(_mm_castps_si128(a)));
-}
-
-// double version
-template <int IMM>
-static SIMD_INLINE Vec<Double, 16> srle(const Vec<Double, 16> &a)
-{
-  return _mm_castsi128_pd(
-    x_mm_srli_si128<IMM * sizeof(Double)>(_mm_castpd_si128(a)));
+  const auto intA = reinterpret(a, OutputType<Int>());
+  const Vec<Int, 16> result =
+    _mm_srli_si128(intA, std::min(COUNT * sizeof(T), 16lu));
+  return reinterpret(result, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
@@ -2878,26 +2597,13 @@ static SIMD_INLINE Vec<Double, 16> srle(const Vec<Double, 16> &a)
 // ---------------------------------------------------------------------------
 
 // all integer versions
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 16> slle(const Vec<T, 16> &a)
 {
-  return x_mm_slli_si128<IMM * sizeof(T)>(a);
-}
-
-// float version
-template <int IMM>
-static SIMD_INLINE Vec<Float, 16> slle(const Vec<Float, 16> &a)
-{
-  return _mm_castsi128_ps(
-    x_mm_slli_si128<IMM * sizeof(Float)>(_mm_castps_si128(a)));
-}
-
-// double version
-template <int IMM>
-static SIMD_INLINE Vec<Double, 16> slle(const Vec<Double, 16> &a)
-{
-  return _mm_castsi128_pd(
-    x_mm_slli_si128<IMM * sizeof(Double)>(_mm_castpd_si128(a)));
+  const auto intA = reinterpret(a, OutputType<Int>());
+  const Vec<Int, 16> result =
+    _mm_slli_si128(intA, std::min(COUNT * sizeof(T), 16lu));
+  return reinterpret(result, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
@@ -2905,48 +2611,40 @@ static SIMD_INLINE Vec<Double, 16> slle(const Vec<Double, 16> &a)
 // ---------------------------------------------------------------------------
 
 // all integer versions
-
-// IMM in range
-template <int IMM, typename T, SIMD_ENABLE_IF(IMM >= 0 && IMM * sizeof(T) < 32)>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 16> alignre(const Vec<T, 16> &h, const Vec<T, 16> &l)
 {
-  return _mm_alignr_epi8(h, l, IMM * sizeof(T));
-}
-
-// IMM out of range
-template <int IMM, typename T, SIMD_ENABLE_IF(IMM * sizeof(T) >= 32),
-          typename = void>
-static SIMD_INLINE Vec<T, 16> alignre(const Vec<T, 16> &, const Vec<T, 16> &)
-{
-  return setzero(OutputType<T>(), Integer<16>());
+  SIMD_IF_CONSTEXPR (COUNT * sizeof(T) < 32) {
+    return _mm_alignr_epi8(h, l, COUNT * sizeof(T));
+  } else {
+    return _mm_setzero_si128();
+  }
 }
 
 // float version
-
-// IMM in range
-template <int IMM, SIMD_ENABLE_IF(IMM >= 0 && IMM * sizeof(Float) < 32)>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Float, 16> alignre(const Vec<Float, 16> &h,
                                           const Vec<Float, 16> &l)
 {
-  return _mm_castsi128_ps(_mm_alignr_epi8(
-    _mm_castps_si128(h), _mm_castps_si128(l), IMM * sizeof(Float)));
-}
-
-// IMM out of range
-template <int IMM, SIMD_ENABLE_IF(IMM * sizeof(Float) >= 32), typename = void>
-static SIMD_INLINE Vec<Float, 16> alignre(const Vec<Float, 16> &,
-                                          const Vec<Float, 16> &)
-{
-  return setzero(OutputType<Float>(), Integer<16>());
+  SIMD_IF_CONSTEXPR (COUNT * sizeof(Float) < 32) {
+    return _mm_castsi128_ps(_mm_alignr_epi8(
+      _mm_castps_si128(h), _mm_castps_si128(l), COUNT * sizeof(Float)));
+  } else {
+    return _mm_setzero_ps();
+  }
 }
 
 // double version
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Double, 16> alignre(const Vec<Double, 16> &h,
                                            const Vec<Double, 16> &l)
 {
-  return _mm_castsi128_pd(_mm_alignr_epi8(
-    _mm_castpd_si128(h), _mm_castpd_si128(l), IMM * sizeof(Double)));
+  SIMD_IF_CONSTEXPR (COUNT * sizeof(Double) < 32) {
+    return _mm_castsi128_pd(_mm_alignr_epi8(
+      _mm_castpd_si128(h), _mm_castpd_si128(l), COUNT * sizeof(Double)));
+  } else {
+    return _mm_setzero_pd();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -3003,7 +2701,7 @@ static SIMD_INLINE __m128i get_swizzle_mask(Integer<5>, Integer<2>)
 }
 
 // hub
-template <int N, typename T>
+template <size_t N, typename T>
 static SIMD_INLINE __m128i get_swizzle_mask()
 {
   return get_swizzle_mask(Integer<N>(), Integer<sizeof(T)>());
@@ -3012,7 +2710,7 @@ static SIMD_INLINE __m128i get_swizzle_mask()
 // ---------- swizzle aux functions -----------
 
 // alignoff is the element-wise offset (relates to size of byte)
-template <int ALIGNOFF>
+template <size_t ALIGNOFF>
 static SIMD_INLINE __m128i align_shuffle_128(__m128i lo, __m128i hi,
                                              __m128i mask)
 {
@@ -3167,7 +2865,7 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
 {
   __m128 vFloat[4];
-  for (int i = 0; i < 4; ++i) {
+  for (size_t i = 0; i < 4; ++i) {
     vFloat[i] = reinterpret(v[i], OutputType<Float>());
   }
   __m128 s[4];
@@ -3180,7 +2878,9 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
   vOut[1] = _mm_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1));
   vOut[2] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));
   vOut[3] = _mm_shuffle_ps(s[1], s[3], _MM_SHUFFLE(3, 1, 3, 1));
-  for (int i = 0; i < 4; ++i) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
+  for (size_t i = 0; i < 4; ++i) {
+    v[i] = reinterpret(vOut[i], OutputType<T>());
+  }
 }
 
 // 64 bit types
@@ -3273,7 +2973,9 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void,
 static SIMD_INLINE void swizzle(Vec<T, 16> vT[5], Integer<5>)
 {
   __m128i v[5];
-  for (int i = 0; i < 5; i++) { v[i] = reinterpret(vT[i], OutputType<Int>()); };
+  for (size_t i = 0; i < 5; i++) {
+    v[i] = reinterpret(vT[i], OutputType<Int>());
+  };
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   // v[0]: 0 1 2 3
   // v[1]: 4 x x x
@@ -3322,7 +3024,9 @@ static SIMD_INLINE void swizzle(Vec<T, 16> vT[5], Integer<5>)
     // 4 9 x x / 14 19 x x -> 4 9 14 19
     _mm_unpacklo_epi64(l13, l57),
   };
-  for (int i = 0; i < 5; ++i) { vT[i] = reinterpret(vOut[i], OutputType<T>()); }
+  for (size_t i = 0; i < 5; ++i) {
+    vT[i] = reinterpret(vOut[i], OutputType<T>());
+  }
 }
 
 // 64 bit types

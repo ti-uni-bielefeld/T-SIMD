@@ -129,7 +129,7 @@ int dummy(int i)
 }
 
 #ifdef SIMDVEC_NEON_ENABLE
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 bool vectorsEqual(const Vec<T, SIMD_WIDTH> &a, const Vec<T, SIMD_WIDTH> &b)
 {
   return test_all_ones(cmpeq(a, b));
@@ -200,7 +200,7 @@ bool vectorsEqual(const __m512 a, const __m512 b)
 }
 #endif
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 Vec<T, SIMD_WIDTH> getRandomVector()
 {
   void *buf = malloc(SIMD_WIDTH);
@@ -675,7 +675,7 @@ uinttest_t random_continuous(uint8_t size)
     }                                                                          \
   }
 
-template <typename Tin, typename Tout, int SIMD_WIDTH>
+template <typename Tin, typename Tout, size_t SIMD_WIDTH>
 void test_cvts()
 {
   unsigned int csr0, csr1, csr2;
@@ -781,13 +781,13 @@ void test_cvts()
   TEST_FUNCTION_SHIFT(NAME, OP, Short, NATIVE_SIMD_WIDTH, "%i ", COUNT)        \
   TEST_FUNCTION_SHIFT(NAME, OP, Int, NATIVE_SIMD_WIDTH, "%i ", COUNT)
 
-/*template <typename T, int SIMD_WIDTH>
+/*template <typename T, size_t SIMD_WIDTH>
 void test_function(Vec<T, SIMD_WIDTH> (*function) (const Vec<T,
 SIMD_WIDTH> &src, const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH>
 &a, const Vec<T, SIMD_WIDTH> &b)) { _mm_getcsr()
 }*/
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 void benchmark()
 {
   unsigned int i;
@@ -842,7 +842,7 @@ void benchmark()
            (uinttest_t) kshift##R_OR_L##i<I>(a_mask));                         \
   }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 void test_mask_functions()
 {
   // printf("begin %s\n", __PRETTY_FUNCTION__);
@@ -858,9 +858,9 @@ void test_mask_functions()
   if (a != ((uinttest_t) a_mask) || b != ((uinttest_t) b_mask)) {
     printf("ERROR: mask conversion: a=%" PRIutest " %" PRIutest ", b=%" PRIutest
            " %" PRIutest ", ones=%" PRIutest ", "
-           "SIMD_WIDTH/sizeof(T)=%u, %s\n",
+           "SIMD_WIDTH/sizeof(T)=%zu, %s\n",
            a, (uinttest_t) a_mask, b, (uinttest_t) b_mask, ones,
-           SIMD_WIDTH / (int) sizeof(T), __PRETTY_FUNCTION__);
+           SIMD_WIDTH / sizeof(T), __PRETTY_FUNCTION__);
   }
   for (i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
     if ((a_mask[i]) != (((a >> i) & 1) == 1)) {

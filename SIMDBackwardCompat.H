@@ -64,15 +64,15 @@ using SIMDIntPtr        = SIMDInt *;        ///< Pointer to SIMDInt.
 using SIMDFloatPtr      = SIMDFloat *;      ///< Pointer to SIMDFloat.
 
 /// Alias for Vec. @deprecated Use Vec instead.
-template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 using SIMDVec = Vec<T, SIMD_WIDTH>;
 
 /// Alias for Vecs. @deprecated Use Vecs instead.
-template <int NUM, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <size_t NUM, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 using SIMDVecs = Vecs<NUM, T, SIMD_WIDTH>;
 
 /// Alias for Mask. @deprecated Use Mask instead.
-template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 using SIMDMask = Mask<T, SIMD_WIDTH>;
 
 /// Alias for TypeInfo. @deprecated Use TypeInfo instead.
@@ -92,7 +92,7 @@ template <typename Tout, typename Tin>
 using NumSIMDVecs = NumVecs<Tout, Tin>;
 
 /// Alias for bit_and(). @deprecated Use bit_and() instead.
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> and_(const Vec<T, SIMD_WIDTH> &a,
                                            const Vec<T, SIMD_WIDTH> &b)
 {
@@ -100,7 +100,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> and_(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /// Alias for bit_or(). @deprecated Use bit_or() instead.
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &a,
                                           const Vec<T, SIMD_WIDTH> &b)
 {
@@ -108,7 +108,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> or_(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /// Alias for bit_xor(). @deprecated Use bit_xor() instead.
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> xor_(const Vec<T, SIMD_WIDTH> &a,
                                            const Vec<T, SIMD_WIDTH> &b)
 {
@@ -116,7 +116,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> xor_(const Vec<T, SIMD_WIDTH> &a,
 }
 
 /// Alias for bit_not(). @deprecated Use bit_not() instead.
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> not_(const Vec<T, SIMD_WIDTH> &a)
 {
   return bit_not(a);
@@ -130,22 +130,22 @@ static SIMD_INLINE T elem0(const Vec<T, SIMD_WIDTH> &a)
 }
 
 /// Alias for Vec<T, SIMD_WIDTH>::elems. @deprecated Use Vec::elems instead.
-template <typename T, int SIMD_WIDTH>
-static constexpr SIMD_INLINE int numSIMDVecElements()
+template <typename T, size_t SIMD_WIDTH>
+static constexpr SIMD_INLINE size_t numSIMDVecElements()
 {
   return Vec<T, SIMD_WIDTH>::elems;
 }
 
 /// Alias for numInVecs(). @deprecated Use numInVecs() instead.
 template <typename Tout, typename Tin>
-static constexpr SIMD_INLINE int numInputSIMDVecs()
+static constexpr SIMD_INLINE size_t numInputSIMDVecs()
 {
   return numInVecs<Tout, Tin>();
 }
 
 /// Alias for numOutVecs(). @deprecated Use numOutVecs() instead.
 template <typename Tout, typename Tin>
-static constexpr SIMD_INLINE int numOutputSIMDVecs()
+static constexpr SIMD_INLINE size_t numOutputSIMDVecs()
 {
   return numOutVecs<Tout, Tin>();
 }

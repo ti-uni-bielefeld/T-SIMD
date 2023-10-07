@@ -37,6 +37,7 @@
 #include "SIMDTypes.H"
 
 #include <algorithm>
+#include <cstddef>
 #include <type_traits>
 
 /**
@@ -69,7 +70,7 @@ namespace simd {
  * @tparam T type of the vector elements
  * @tparam SIMD_WIDTH number of bytes in the SIMD vector
  */
-template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 class Vec
 #ifdef DOXYGEN
 {
@@ -77,17 +78,17 @@ public:
   /**
    * @brief Number of elements in the vector.
    */
-  static constexpr int elements = SIMD_WIDTH / sizeof(T);
+  static constexpr size_t elements = SIMD_WIDTH / sizeof(T);
 
   /**
    * @brief Number of elements in the vector. Alias for @ref elements.
    */
-  static constexpr int elems = elements;
+  static constexpr size_t elems = elements;
 
   /**
    * @brief Number of bytes in the vector.
    */
-  static constexpr int bytes = SIMD_WIDTH;
+  static constexpr size_t bytes = SIMD_WIDTH;
 
   // 05. Sep 23 (Jonas Keller): added allocator
   /**
@@ -113,7 +114,7 @@ public:
  * @tparam T type of the elements of the corresponding Vec
  * @tparam SIMD_WIDTH number of bytes in the corresponding Vec
  */
-template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 class Mask
 #ifdef DOXYGEN
 {
@@ -158,7 +159,7 @@ public:
    * @param i index of the Mask bit
    * @return whether the Mask bit at the given index is set
    */
-  SIMD_INLINE bool operator[](const int i) const;
+  SIMD_INLINE bool operator[](const size_t i) const;
 
   /**
    * @brief Compares the Mask with another Mask.
@@ -198,7 +199,7 @@ public:
  * @return number of input vectors
  */
 template <typename Tout, typename Tin>
-static constexpr SIMD_INLINE int numInVecs()
+static constexpr SIMD_INLINE size_t numInVecs()
 {
   return (sizeof(Tout) < sizeof(Tin)) ? (sizeof(Tin) / sizeof(Tout)) : 1;
 }
@@ -213,7 +214,7 @@ static constexpr SIMD_INLINE int numInVecs()
  * @return number of output vectors
  */
 template <typename Tout, typename Tin>
-static constexpr SIMD_INLINE int numOutVecs()
+static constexpr SIMD_INLINE size_t numOutVecs()
 {
   return (sizeof(Tout) > sizeof(Tin)) ? (sizeof(Tout) / sizeof(Tin)) : 1;
 }
@@ -227,8 +228,8 @@ static constexpr SIMD_INLINE int numOutVecs()
  * @tparam Tin input type
  * @return number of elements in all input vectors
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
-static constexpr SIMD_INLINE int numSIMDVecsElements()
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
+static constexpr SIMD_INLINE size_t numSIMDVecsElements()
 {
   return (sizeof(Tout) > sizeof(Tin)) ? Vec<Tin, SIMD_WIDTH>::elems :
                                         Vec<Tout, SIMD_WIDTH>::elems;

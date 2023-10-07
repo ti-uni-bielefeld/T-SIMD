@@ -44,7 +44,7 @@
 namespace simd {
 namespace auto_test {
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Mask_ifelse
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_ifelse"); }
@@ -53,8 +53,8 @@ struct Mask_ifelse
     mask.randomize();
   }
   static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
-  template <template <typename, int> class Vec,
-            template <typename, int> class Mask>
+  template <template <typename, size_t> class Vec,
+            template <typename, size_t> class Mask>
   static Vec<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &cond,
                                   const Vec<T, SIMD_WIDTH> &trueVal,
                                   const Vec<T, SIMD_WIDTH> &falseVal)
@@ -63,7 +63,7 @@ struct Mask_ifelse
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Mask_ifelsezero
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_ifelsezero"); }
@@ -72,8 +72,8 @@ struct Mask_ifelsezero
     mask.randomize();
   }
   static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
-  template <template <typename, int> class Vec,
-            template <typename, int> class Mask>
+  template <template <typename, size_t> class Vec,
+            template <typename, size_t> class Mask>
   static Vec<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &cond,
                                   const Vec<T, SIMD_WIDTH> &trueVal)
   {
@@ -81,7 +81,7 @@ struct Mask_ifelsezero
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename T, size_t SIMD_WIDTH>
 struct Mask_cvts
 {
   static std::string name() { return tt2s<Tout, T, SIMD_WIDTH>("mask_cvts"); }
@@ -94,8 +94,8 @@ struct Mask_cvts
   {
     vec.randomize();
   }
-  template <template <typename, int> class Vec,
-            template <typename, int> class Mask>
+  template <template <typename, size_t> class Vec,
+            template <typename, size_t> class Mask>
   static Vec<Tout, SIMD_WIDTH> apply(const Vec<Tout, SIMD_WIDTH> &src,
                                      const Mask<T, SIMD_WIDTH> &k,
                                      const Vec<T, SIMD_WIDTH> &a)
@@ -104,7 +104,7 @@ struct Mask_cvts
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename T, size_t SIMD_WIDTH>
 struct MaskZ_cvts
 {
   static std::string name() { return tt2s<Tout, T, SIMD_WIDTH>("maskz_cvts"); }
@@ -113,8 +113,8 @@ struct MaskZ_cvts
     mask.randomize();
   }
   static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
-  template <template <typename, int> class Vec,
-            template <typename, int> class Mask>
+  template <template <typename, size_t> class Vec,
+            template <typename, size_t> class Mask>
   static Vec<Tout, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &k,
                                      const Vec<T, SIMD_WIDTH> &a)
   {
@@ -122,7 +122,7 @@ struct MaskZ_cvts
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Mask_set1
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_set1"); }
@@ -132,8 +132,8 @@ struct Mask_set1
   }
   static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
   static T randomizeInputScalar() { return getRandom<T>(); }
-  template <template <typename, int> class Vec,
-            template <typename, int> class Mask>
+  template <template <typename, size_t> class Vec,
+            template <typename, size_t> class Mask>
   static Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &src,
                                   const Mask<T, SIMD_WIDTH> &k, const T a)
   {
@@ -141,7 +141,7 @@ struct Mask_set1
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct MaskZ_set1
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("maskz_set1"); }
@@ -150,8 +150,8 @@ struct MaskZ_set1
     mask.randomize();
   }
   static T randomizeInputScalar() { return getRandom<T>(); }
-  template <template <typename, int> class Vec,
-            template <typename, int> class Mask>
+  template <template <typename, size_t> class Vec,
+            template <typename, size_t> class Mask>
   static Vec<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &k, const T a)
   {
     return maskz_set1(k, a);
@@ -161,7 +161,7 @@ struct MaskZ_set1
 // TODO: load/store ?
 
 #define GENERATE_WRAPPER_MASK_UNARY(OP)                                        \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   struct Mask_##OP                                                             \
   {                                                                            \
     static std::string name()                                                  \
@@ -176,8 +176,8 @@ struct MaskZ_set1
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
-    template <template <typename, int> class Vec,                              \
-              template <typename, int> class Mask>                             \
+    template <template <typename, size_t> class Vec,                           \
+              template <typename, size_t> class Mask>                          \
     static Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &src,             \
                                     const Mask<T, SIMD_WIDTH> &k,              \
                                     const Vec<T, SIMD_WIDTH> &a)               \
@@ -187,7 +187,7 @@ struct MaskZ_set1
   };
 
 #define GENERATE_WRAPPER_MASKZ_UNARY(OP)                                       \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   struct MaskZ_##OP                                                            \
   {                                                                            \
     static std::string name()                                                  \
@@ -202,8 +202,8 @@ struct MaskZ_set1
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
-    template <template <typename, int> class Vec,                              \
-              template <typename, int> class Mask>                             \
+    template <template <typename, size_t> class Vec,                           \
+              template <typename, size_t> class Mask>                          \
     static Vec<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &k,              \
                                     const Vec<T, SIMD_WIDTH> &a)               \
     {                                                                          \
@@ -216,16 +216,16 @@ struct MaskZ_set1
   GENERATE_WRAPPER_MASKZ_UNARY(OP)
 
 #define GENERATE_WRAPPER_MASK_SHIFT(OP)                                        \
-  template <int IMM, typename T, int SIMD_WIDTH>                               \
+  template <size_t COUNT, typename T, size_t SIMD_WIDTH>                       \
   struct Mask_##OP                                                             \
   {                                                                            \
     static std::string name()                                                  \
     {                                                                          \
-      return ti2s<IMM, T, SIMD_WIDTH>("mask_" #OP);                            \
+      return ti2s<COUNT, T, SIMD_WIDTH>("mask_" #OP);                          \
     }                                                                          \
-    static constexpr int minI  = 0;                                            \
-    static constexpr int maxI  = sizeof(T) * 8 + 1;                            \
-    static constexpr int nextI = IMM + 1;                                      \
+    static constexpr size_t minI  = 0;                                         \
+    static constexpr size_t maxI  = sizeof(T) * 8 + 1;                         \
+    static constexpr size_t nextI = COUNT + 1;                                 \
     static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)                \
     {                                                                          \
       mask.randomize();                                                        \
@@ -234,27 +234,27 @@ struct MaskZ_set1
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
-    template <template <typename, int> class Vec,                              \
-              template <typename, int> class Mask>                             \
+    template <template <typename, size_t> class Vec,                           \
+              template <typename, size_t> class Mask>                          \
     static Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &src,             \
                                     const Mask<T, SIMD_WIDTH> &k,              \
                                     const Vec<T, SIMD_WIDTH> &a)               \
     {                                                                          \
-      return mask_##OP<IMM>(src, k, a);                                        \
+      return mask_##OP<COUNT>(src, k, a);                                      \
     }                                                                          \
   };
 
 #define GENERATE_WRAPPER_MASKZ_SHIFT(OP)                                       \
-  template <int IMM, typename T, int SIMD_WIDTH>                               \
+  template <size_t COUNT, typename T, size_t SIMD_WIDTH>                       \
   struct MaskZ_##OP                                                            \
   {                                                                            \
     static std::string name()                                                  \
     {                                                                          \
-      return ti2s<IMM, T, SIMD_WIDTH>("maskz_" #OP);                           \
+      return ti2s<COUNT, T, SIMD_WIDTH>("maskz_" #OP);                         \
     }                                                                          \
-    static constexpr int minI  = 0;                                            \
-    static constexpr int maxI  = sizeof(T) * 8 + 1;                            \
-    static constexpr int nextI = IMM + 1;                                      \
+    static constexpr size_t minI  = 0;                                         \
+    static constexpr size_t maxI  = sizeof(T) * 8 + 1;                         \
+    static constexpr size_t nextI = COUNT + 1;                                 \
     static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)                \
     {                                                                          \
       mask.randomize();                                                        \
@@ -263,12 +263,12 @@ struct MaskZ_set1
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
-    template <template <typename, int> class Vec,                              \
-              template <typename, int> class Mask>                             \
+    template <template <typename, size_t> class Vec,                           \
+              template <typename, size_t> class Mask>                          \
     static Vec<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &k,              \
                                     const Vec<T, SIMD_WIDTH> &a)               \
     {                                                                          \
-      return maskz_##OP<IMM>(k, a);                                            \
+      return maskz_##OP<COUNT>(k, a);                                          \
     }                                                                          \
   };
 
@@ -277,7 +277,7 @@ struct MaskZ_set1
   GENERATE_WRAPPER_MASKZ_SHIFT(OP)
 
 #define GENERATE_WRAPPER_MASK_BINARY(OP)                                       \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   struct Mask_##OP                                                             \
   {                                                                            \
     static std::string name()                                                  \
@@ -292,8 +292,8 @@ struct MaskZ_set1
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
-    template <template <typename, int> class Vec,                              \
-              template <typename, int> class Mask>                             \
+    template <template <typename, size_t> class Vec,                           \
+              template <typename, size_t> class Mask>                          \
     static Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &src,             \
                                     const Mask<T, SIMD_WIDTH> &k,              \
                                     const Vec<T, SIMD_WIDTH> &a,               \
@@ -304,7 +304,7 @@ struct MaskZ_set1
   };
 
 #define GENERATE_WRAPPER_MASKZ_BINARY(OP)                                      \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   struct MaskZ_##OP                                                            \
   {                                                                            \
     static std::string name()                                                  \
@@ -319,8 +319,8 @@ struct MaskZ_set1
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
-    template <template <typename, int> class Vec,                              \
-              template <typename, int> class Mask>                             \
+    template <template <typename, size_t> class Vec,                           \
+              template <typename, size_t> class Mask>                          \
     static Vec<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &k,              \
                                     const Vec<T, SIMD_WIDTH> &a,               \
                                     const Vec<T, SIMD_WIDTH> &b)               \
@@ -379,7 +379,7 @@ GENERATE_WRAPPER_MASK_MASKZ_BINARY(hsubs)
 // that only take two vector parameters and no mask parameter
 
 #define GENERATE_WRAPPER_MASK_CMP(OP)                                          \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   struct Mask_##OP                                                             \
   {                                                                            \
     static std::string name()                                                  \
@@ -394,16 +394,16 @@ GENERATE_WRAPPER_MASK_MASKZ_BINARY(hsubs)
     {                                                                          \
       vec.randomize();                                                         \
     }                                                                          \
-    template <template <typename, int> class Vec,                              \
-              template <typename, int> class Mask>                             \
+    template <template <typename, size_t> class Vec,                           \
+              template <typename, size_t> class Mask>                          \
     static Mask<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &k,             \
                                      const Vec<T, SIMD_WIDTH> &a,              \
                                      const Vec<T, SIMD_WIDTH> &b)              \
     {                                                                          \
       return mask_##OP(k, a, b);                                               \
     }                                                                          \
-    template <template <typename, int> class Vec,                              \
-              template <typename, int> class Mask>                             \
+    template <template <typename, size_t> class Vec,                           \
+              template <typename, size_t> class Mask>                          \
     static Mask<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,              \
                                      const Vec<T, SIMD_WIDTH> &b)              \
     {                                                                          \
@@ -420,7 +420,7 @@ GENERATE_WRAPPER_MASK_CMP(cmpneq)
 
 GENERATE_WRAPPER_MASK_MASKZ_BINARY(avg)
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Mask_test_all_zeros
 {
   static std::string name()
@@ -432,15 +432,15 @@ struct Mask_test_all_zeros
     mask.randomize();
   }
   static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
-  template <template <typename, int> class Vec,
-            template <typename, int> class Mask>
-  static int apply(const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a)
+  template <template <typename, size_t> class Vec,
+            template <typename, size_t> class Mask>
+  static bool apply(const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a)
   {
     return mask_test_all_zeros(k, a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Mask_test_all_ones
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_test_all_ones"); }
@@ -449,16 +449,16 @@ struct Mask_test_all_ones
     mask.randomize();
   }
   static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
-  template <template <typename, int> class Vec,
-            template <typename, int> class Mask>
-  static int apply(const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a)
+  template <template <typename, size_t> class Vec,
+            template <typename, size_t> class Mask>
+  static bool apply(const Mask<T, SIMD_WIDTH> &k, const Vec<T, SIMD_WIDTH> &a)
   {
     return mask_test_all_ones(k, a);
   }
 };
 
 #define GENERATE_WRAPPER_BINARY_K(OP_STRUCT, OP)                               \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   struct OP_STRUCT                                                             \
   {                                                                            \
     static std::string name()                                                  \
@@ -469,7 +469,7 @@ struct Mask_test_all_ones
     {                                                                          \
       mask.randomize();                                                        \
     }                                                                          \
-    template <template <typename, int> class Mask>                             \
+    template <template <typename, size_t> class Mask>                          \
     static Mask<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &a,             \
                                      const Mask<T, SIMD_WIDTH> &b)             \
     {                                                                          \
@@ -484,7 +484,7 @@ GENERATE_WRAPPER_BINARY_K(Kxor, kxor)
 GENERATE_WRAPPER_BINARY_K(Kxnor, kxnor)
 GENERATE_WRAPPER_BINARY_K(Kadd, kadd)
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Knot
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("knot"); }
@@ -492,52 +492,52 @@ struct Knot
   {
     mask.randomize();
   }
-  template <template <typename, int> class Mask>
+  template <template <typename, size_t> class Mask>
   static Mask<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &a)
   {
     return knot(a);
   }
 };
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 struct Kshiftli
 {
-  static std::string name() { return ti2s<IMM, T, SIMD_WIDTH>("kshiftli"); }
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = SerialMask<T, SIMD_WIDTH>::bits + 1;
-  static constexpr int nextI = IMM + 1;
+  static std::string name() { return ti2s<COUNT, T, SIMD_WIDTH>("kshiftli"); }
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = SerialMask<T, SIMD_WIDTH>::bits + 1;
+  static constexpr size_t nextI = COUNT + 1;
   static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
-  template <template <typename, int> class Mask>
+  template <template <typename, size_t> class Mask>
   static Mask<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &a)
   {
-    return kshiftli<IMM>(a);
+    return kshiftli<COUNT>(a);
   }
 };
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 struct Kshiftri
 {
-  static std::string name() { return ti2s<IMM, T, SIMD_WIDTH>("kshiftri"); }
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = SerialMask<T, SIMD_WIDTH>::bits + 1;
-  static constexpr int nextI = IMM + 1;
+  static std::string name() { return ti2s<COUNT, T, SIMD_WIDTH>("kshiftri"); }
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = SerialMask<T, SIMD_WIDTH>::bits + 1;
+  static constexpr size_t nextI = COUNT + 1;
   static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
   {
     mask.randomize();
   }
-  template <template <typename, int> class Mask>
+  template <template <typename, size_t> class Mask>
   static Mask<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &a)
   {
-    return kshiftri<IMM>(a);
+    return kshiftri<COUNT>(a);
   }
 };
 
 // 25. Aug 23 (Jonas Keller): added kcmpneq
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Kcmpeq
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("kcmpeq"); }
@@ -545,7 +545,7 @@ struct Kcmpeq
   {
     mask.randomize();
   }
-  template <template <typename, int> class Mask>
+  template <template <typename, size_t> class Mask>
   static Mask<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &a,
                                    const Mask<T, SIMD_WIDTH> &b)
   {
@@ -555,7 +555,7 @@ struct Kcmpeq
 
 // 25. Aug 23 (Jonas Keller): added ktest_all_zeros and ktest_all_ones
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Ktest_all_zeros
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("ktest_all_zeros"); }
@@ -563,14 +563,14 @@ struct Ktest_all_zeros
   {
     mask.randomize();
   }
-  template <template <typename, int> class Mask>
+  template <template <typename, size_t> class Mask>
   static bool apply(const Mask<T, SIMD_WIDTH> &a)
   {
     return ktest_all_zeros(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Ktest_all_ones
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("ktest_all_ones"); }
@@ -578,7 +578,7 @@ struct Ktest_all_ones
   {
     mask.randomize();
   }
-  template <template <typename, int> class Mask>
+  template <template <typename, size_t> class Mask>
   static bool apply(const Mask<T, SIMD_WIDTH> &a)
   {
     return ktest_all_ones(a);
@@ -589,7 +589,7 @@ struct Ktest_all_ones
 // 30. Jan 23 (Jonas Keller): removed setTrueLeft/Right and replaced them with
 // mask_set_true/false_low/high.
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Mask_set_true_low
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_set_true_low"); }
@@ -597,14 +597,14 @@ struct Mask_set_true_low
   {
     return getRandomOrSpecialValueRanges<uint8_t>();
   }
-  template <template <typename, int> class Mask>
+  template <template <typename, size_t> class Mask>
   static Mask<T, SIMD_WIDTH> apply(unsigned int i)
   {
     return MaskDeductor<Mask>::template _mask_set_true_low<T, SIMD_WIDTH>(i);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Mask_set_true_high
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_set_true_high"); }
@@ -612,14 +612,14 @@ struct Mask_set_true_high
   {
     return getRandomOrSpecialValueRanges<uint8_t>();
   }
-  template <template <typename, int> class Mask>
+  template <template <typename, size_t> class Mask>
   static Mask<T, SIMD_WIDTH> apply(unsigned int i)
   {
     return MaskDeductor<Mask>::template _mask_set_true_high<T, SIMD_WIDTH>(i);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Mask_set_false_low
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_set_false_low"); }
@@ -627,14 +627,14 @@ struct Mask_set_false_low
   {
     return getRandomOrSpecialValueRanges<uint8_t>();
   }
-  template <template <typename, int> class Mask>
+  template <template <typename, size_t> class Mask>
   static Mask<T, SIMD_WIDTH> apply(unsigned int i)
   {
     return MaskDeductor<Mask>::template _mask_set_false_low<T, SIMD_WIDTH>(i);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Mask_set_false_high
 {
   static std::string name()
@@ -645,7 +645,7 @@ struct Mask_set_false_high
   {
     return getRandomOrSpecialValueRanges<uint8_t>();
   }
-  template <template <typename, int> class Mask>
+  template <template <typename, size_t> class Mask>
   static Mask<T, SIMD_WIDTH> apply(unsigned int i)
   {
     return MaskDeductor<Mask>::template _mask_set_false_high<T, SIMD_WIDTH>(i);

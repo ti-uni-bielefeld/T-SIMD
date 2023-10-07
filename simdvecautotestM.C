@@ -46,12 +46,12 @@ int main(int argc, char *argv[])
 {
   srand(time(nullptr));
   // default values
-  int repeats1        = REPEATS1;
+  size_t repeats1     = REPEATS1;
   std::string pattern = "";
   // overwrite default values from command line
   if (argc >= 2) pattern = argv[1];
   if (argc == 3) repeats1 = atoi(argv[2]);
-  printf("pattern \"%s\", repeats1 = %d\n", pattern.c_str(), repeats1);
+  printf("pattern \"%s\", repeats1 = %zu\n", pattern.c_str(), repeats1);
 
   TestAll<TesterMaskConditionBinary, SW, Mask_ifelse>::test(repeats1, pattern);
   TestAll<TesterMaskConditionUnary, SW, Mask_ifelsezero>::test(repeats1,
@@ -185,8 +185,9 @@ int main(int argc, char *argv[])
   TestAll<TesterMaskBinary, SW, Mask_avg>::test(repeats1, pattern);
   TestAll<TesterMaskZBinary, SW, MaskZ_avg>::test(repeats1, pattern);
 
-  TestAll<TesterMaskUnaryInt, SW, Mask_test_all_zeros>::test(repeats1, pattern);
-  TestAll<TesterMaskUnaryInt, SW, Mask_test_all_ones>::test(repeats1, pattern);
+  TestAll<TesterMaskUnaryBool, SW, Mask_test_all_zeros>::test(repeats1,
+                                                              pattern);
+  TestAll<TesterMaskUnaryBool, SW, Mask_test_all_ones>::test(repeats1, pattern);
 
   TestAll<TesterBinaryK, SW, Kand>::test(repeats1, pattern);
   TestAll<TesterBinaryK, SW, Kandn>::test(repeats1, pattern);

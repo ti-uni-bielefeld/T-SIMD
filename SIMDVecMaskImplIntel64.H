@@ -40,6 +40,7 @@
 #include "SIMDVecBase.H"
 #include "SIMDVecBaseImplIntel64.H"
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 
@@ -901,183 +902,191 @@ GENERATE_DOP(max, Short, epi16)
 GENERATE_DOP(max, Int, epi32)
 GENERATE_DOP(max, Float, ps)
 
-// For all shifts
-// ARG1, ARG2, and ARG3 can be used to control whether the parameter should be
-// named (or not, to suppress compiler's unused warning). Default: a, k, a
-#define MAKE_X_SHIFT(OP, BITS, MASK_SIZE)                                      \
-  /* positive and in range: shift */                                           \
-  template <int IMM>                                                           \
-  static SIMD_INLINE __m512i x_mm512_mask_##OP##_epi##BITS(                    \
-    __m512i src, __mmask##MASK_SIZE k, __m512i a, IsPosInRange<true, true>)    \
-  {                                                                            \
-    return _mm512_mask_##OP##_epi##BITS(src, k, a, IMM);                       \
-  }                                                                            \
-  /* hub */                                                                    \
-  template <int IMM>                                                           \
-  static SIMD_INLINE __m512i x_mm512_mask_##OP##_epi##BITS(                    \
-    __m512i src, __mmask##MASK_SIZE k, __m512i a)                              \
-  {                                                                            \
-    return x_mm512_mask_##OP##_epi##BITS<IMM>(src, k, a,                       \
-                                              IsPosInGivenRange<BITS, IMM>()); \
-  }                                                                            \
-  /* positive and in range: shift */                                           \
-  template <int IMM>                                                           \
-  static SIMD_INLINE __m512i x_mm512_maskz_##OP##_epi##BITS(                   \
-    __mmask##MASK_SIZE k, __m512i a, IsPosInRange<true, true>)                 \
-  {                                                                            \
-    return _mm512_maskz_##OP##_epi##BITS(k, a, IMM);                           \
-  }                                                                            \
-  /* hub */                                                                    \
-  template <int IMM>                                                           \
-  static SIMD_INLINE __m512i x_mm512_maskz_##OP##_epi##BITS(                   \
-    __mmask##MASK_SIZE k, __m512i a)                                           \
-  {                                                                            \
-    return x_mm512_maskz_##OP##_epi##BITS<IMM>(                                \
-      k, a, IsPosInGivenRange<BITS, IMM>());                                   \
-  }
-
-#define GENERATE_SHIFT(OP, TYPE, SUF)                                          \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 64> mask_##OP(                                  \
-    const Vec<TYPE, 64> &src, const Mask<TYPE, 64> &k, const Vec<TYPE, 64> &a) \
-  {                                                                            \
-    return x_mm512_mask_##OP##_##SUF<IMM>(src, k, a);                          \
-  }                                                                            \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 64> maskz_##OP(const Mask<TYPE, 64> &k,         \
-                                              const Vec<TYPE, 64> &a)          \
-  {                                                                            \
-    return x_mm512_maskz_##OP##_##SUF<IMM>(k, a);                              \
-  }
-
 // ---------------------------------------------------------------------------
 // masked srai (16/32 only) v
 // ---------------------------------------------------------------------------
 
 #ifdef __AVX512BW__
-/* positive and out of range */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_mask_srai_epi16(__m512i src, __mmask32 k,
-                                                   __m512i a,
-                                                   IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Word, 64> mask_srai(const Vec<Word, 64> &src,
+                                           const Mask<Word, 64> &k,
+                                           const Vec<Word, 64> &a)
 {
-  return _mm512_mask_srai_epi16(src, k, a, 15);
+  return _mm512_mask_srai_epi16(src, k, a, std::min(COUNT, 15ul));
 }
-/* positive and out of range: maximal shift */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_maskz_srai_epi16(__mmask32 k, __m512i a,
-                                                    IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Word, 64> maskz_srai(const Mask<Word, 64> &k,
+                                            const Vec<Word, 64> &a)
 {
-  return _mm512_maskz_srai_epi16(k, a, 15);
+  return _mm512_maskz_srai_epi16(k, a, std::min(COUNT, 15ul));
 }
-MAKE_X_SHIFT(srai, 16, 32)
-GENERATE_SHIFT(srai, Word, epi16)
-GENERATE_SHIFT(srai, Short, epi16)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Short, 64> mask_srai(const Vec<Short, 64> &src,
+                                            const Mask<Short, 64> &k,
+                                            const Vec<Short, 64> &a)
+{
+  return _mm512_mask_srai_epi16(src, k, a, std::min(COUNT, 15ul));
+}
+template <size_t COUNT>
+static SIMD_INLINE Vec<Short, 64> maskz_srai(const Mask<Short, 64> &k,
+                                             const Vec<Short, 64> &a)
+{
+  return _mm512_maskz_srai_epi16(k, a, std::min(COUNT, 15ul));
+}
 #endif
-/* positive and out of range */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_mask_srai_epi32(__m512i src, __mmask16 k,
-                                                   __m512i a,
-                                                   IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Int, 64> mask_srai(const Vec<Int, 64> &src,
+                                          const Mask<Int, 64> &k,
+                                          const Vec<Int, 64> &a)
 {
-  return _mm512_mask_srai_epi32(src, k, a, 31);
+  return _mm512_mask_srai_epi32(src, k, a, std::min(COUNT, 31ul));
 }
-/* positive and out of range: maximal shift */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_maskz_srai_epi32(__mmask16 k, __m512i a,
-                                                    IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Int, 64> maskz_srai(const Mask<Int, 64> &k,
+                                           const Vec<Int, 64> &a)
 {
-  // 02. Aug 22 (Jonas Keller):
-  // fixed wrong intrinsic
-  // return _mm512_maskz_srai_epi16(k, a, 31);
-  return _mm512_maskz_srai_epi32(k, a, 31);
+  return _mm512_maskz_srai_epi32(k, a, std::min(COUNT, 31ul));
 }
-MAKE_X_SHIFT(srai, 32, 16)
-GENERATE_SHIFT(srai, Int, epi32)
 
 // ---------------------------------------------------------------------------
 // masked srli v
 // ---------------------------------------------------------------------------
 
 #ifdef __AVX512BW__
-/* positive and out of range */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_mask_srli_epi16(__m512i src, __mmask32 k,
-                                                   __m512i,
-                                                   IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Word, 64> mask_srli(const Vec<Word, 64> &src,
+                                           const Mask<Word, 64> &k,
+                                           const Vec<Word, 64> &a)
 {
-  return _mm512_mask_set1_epi16(src, k, 0);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_mask_srli_epi16(src, k, a, COUNT);
+  } else {
+    return _mm512_mask_blend_epi16(k, src, _mm512_setzero_si512());
+  }
 }
-/* positive and out of range: maximal shift */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_maskz_srli_epi16(__mmask32, __m512i,
-                                                    IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Word, 64> maskz_srli(const Mask<Word, 64> &k,
+                                            const Vec<Word, 64> &a)
 {
-  return _mm512_setzero_si512();
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_maskz_srli_epi16(k, a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
-MAKE_X_SHIFT(srli, 16, 32)
-GENERATE_SHIFT(srli, Word, epi16)
-GENERATE_SHIFT(srli, Short, epi16)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Short, 64> mask_srli(const Vec<Short, 64> &src,
+                                            const Mask<Short, 64> &k,
+                                            const Vec<Short, 64> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_mask_srli_epi16(src, k, a, COUNT);
+  } else {
+    return _mm512_mask_blend_epi16(k, src, _mm512_setzero_si512());
+  }
+}
+template <size_t COUNT>
+static SIMD_INLINE Vec<Short, 64> maskz_srli(const Mask<Short, 64> &k,
+                                             const Vec<Short, 64> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_maskz_srli_epi16(k, a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
+}
 #endif
-/* positive and out of range */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_mask_srli_epi32(__m512i src, __mmask16 k,
-                                                   __m512i,
-                                                   IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Int, 64> mask_srli(const Vec<Int, 64> &src,
+                                          const Mask<Int, 64> &k,
+                                          const Vec<Int, 64> &a)
 {
-  return _mm512_mask_set1_epi32(src, k, 0);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm512_mask_srli_epi32(src, k, a, COUNT);
+  } else {
+    return _mm512_mask_blend_epi32(k, src, _mm512_setzero_si512());
+  }
 }
-/* positive and out of range: maximal shift */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_maskz_srli_epi32(__mmask16, __m512i,
-                                                    IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Int, 64> maskz_srli(const Mask<Int, 64> &k,
+                                           const Vec<Int, 64> &a)
 {
-  return _mm512_setzero_si512();
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm512_maskz_srli_epi32(k, a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
-MAKE_X_SHIFT(srli, 32, 16)
-GENERATE_SHIFT(srli, Int, epi32)
 
 // ---------------------------------------------------------------------------
 // masked slli v
 // ---------------------------------------------------------------------------
 
 #ifdef __AVX512BW__
-/* positive and out of range */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_mask_slli_epi16(__m512i src, __mmask32 k,
-                                                   __m512i,
-                                                   IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Word, 64> mask_slli(const Vec<Word, 64> &src,
+                                           const Mask<Word, 64> &k,
+                                           const Vec<Word, 64> &a)
 {
-  return _mm512_mask_set1_epi16(src, k, 0);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_mask_slli_epi16(src, k, a, COUNT);
+  } else {
+    return _mm512_mask_blend_epi16(k, src, _mm512_setzero_si512());
+  }
 }
-/* positive and out of range: maximal shift */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_maskz_slli_epi16(__mmask32, __m512i,
-                                                    IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Word, 64> maskz_slli(const Mask<Word, 64> &k,
+                                            const Vec<Word, 64> &a)
 {
-  return _mm512_setzero_si512();
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_maskz_slli_epi16(k, a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
-MAKE_X_SHIFT(slli, 16, 32)
-GENERATE_SHIFT(slli, Word, epi16)
-GENERATE_SHIFT(slli, Short, epi16)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Short, 64> mask_slli(const Vec<Short, 64> &src,
+                                            const Mask<Short, 64> &k,
+                                            const Vec<Short, 64> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_mask_slli_epi16(src, k, a, COUNT);
+  } else {
+    return _mm512_mask_blend_epi16(k, src, _mm512_setzero_si512());
+  }
+}
+template <size_t COUNT>
+static SIMD_INLINE Vec<Short, 64> maskz_slli(const Mask<Short, 64> &k,
+                                             const Vec<Short, 64> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm512_maskz_slli_epi16(k, a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
+}
 #endif
-/* positive and out of range */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_mask_slli_epi32(__m512i src, __mmask16 k,
-                                                   __m512i,
-                                                   IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Int, 64> mask_slli(const Vec<Int, 64> &src,
+                                          const Mask<Int, 64> &k,
+                                          const Vec<Int, 64> &a)
 {
-  return _mm512_mask_set1_epi32(src, k, 0);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm512_mask_slli_epi32(src, k, a, COUNT);
+  } else {
+    return _mm512_mask_blend_epi32(k, src, _mm512_setzero_si512());
+  }
 }
-/* positive and out of range: maximal shift */
-template <int IMM>
-static SIMD_INLINE __m512i x_mm512_maskz_slli_epi32(__mmask16, __m512i,
-                                                    IsPosInRange<true, false>)
+template <size_t COUNT>
+static SIMD_INLINE Vec<Int, 64> maskz_slli(const Mask<Int, 64> &k,
+                                           const Vec<Int, 64> &a)
 {
-  return _mm512_setzero_si512();
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm512_maskz_slli_epi32(k, a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
 }
-MAKE_X_SHIFT(slli, 32, 16)
-GENERATE_SHIFT(slli, Int, epi32)
 
 // 05. Aug 22 (Jonas Keller):
 // Improved implementation of masked hadd, hadds, hsub and hsubs,
@@ -1400,8 +1409,8 @@ static SIMD_INLINE Vec<Float, 64> maskz_avg(const Mask<Float, 64> &k,
 // ---------------------------------------------------------------------------
 
 #define TEST_ALL_ZEROS(TYPE, SUF)                                              \
-  static SIMD_INLINE int mask_test_all_zeros(const Mask<TYPE, 64> &k,          \
-                                             const Vec<TYPE, 64> &a)           \
+  static SIMD_INLINE bool mask_test_all_zeros(const Mask<TYPE, 64> &k,         \
+                                              const Vec<TYPE, 64> &a)          \
   {                                                                            \
     return (_mm512_mask_test_epi##SUF##_mask(k, a, a) == 0);                   \
   }
@@ -1414,8 +1423,8 @@ TEST_ALL_ZEROS(Short, 16)
 #endif
 TEST_ALL_ZEROS(Int, 32)
 
-static SIMD_INLINE int mask_test_all_zeros(const Mask<Float, 64> &k,
-                                           const Vec<Float, 64> &a)
+static SIMD_INLINE bool mask_test_all_zeros(const Mask<Float, 64> &k,
+                                            const Vec<Float, 64> &a)
 {
   return (_mm512_mask_test_epi32_mask(k, _mm512_castps_si512(a),
                                       _mm512_castps_si512(a)) == 0);
@@ -1476,10 +1485,10 @@ kshiftl, "&" for kand)
 
 // shift with template parameter
 #define KSHIFT(R_OR_L, TYPE, NUM)                                              \
-  template <unsigned int IMM>                                                  \
+  template <size_t COUNT>                                                      \
   static SIMD_INLINE Mask<TYPE, 64> kshift##R_OR_L##i(const Mask<TYPE, 64> &a) \
   {                                                                            \
-    return _kshift##R_OR_L##i_mask##NUM(a, IMM);                               \
+    return _kshift##R_OR_L##i_mask##NUM(a, COUNT);                             \
   }
 #ifdef __AVX512BW__
 GENERATE_DMASKOP(and, Byte, 64)
@@ -1632,35 +1641,37 @@ static SIMD_INLINE Mask<T, 64> knot(const Mask<T, 64> &a)
   return ~a;
 }
 
-template <unsigned int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Mask<T, 64> kshiftri(const Mask<T, 64> &a)
 {
   // 04. Aug 22 (Jonas Keller):
-  // return zero if IMM is larger than 63, since then the >> operator is
+  // return zero if COUNT is larger than 63, since then the >> operator is
   // undefined, but kshift should return zero
   // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
-  // since IMM is a constant, the compiler should optimize away the if-statement
-  if (IMM >= 64) { return 0; }
-// we checked that IMM is not too large above, disable warning
+  // since COUNT is a constant, the compiler should optimize away the
+  // if-statement
+  if (COUNT >= 64) { return 0; }
+// we checked that COUNT is not too large above, disable warning
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshift-count-overflow"
-  return ((uint64_t) a) >> ((uint64_t) IMM);
+  return ((uint64_t) a) >> ((uint64_t) COUNT);
 #pragma GCC diagnostic pop
 }
 
-template <unsigned int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Mask<T, 64> kshiftli(const Mask<T, 64> &a)
 {
   // 04. Aug 22 (Jonas Keller):
-  // return zero if IMM is larger than 63, since then the << operator is
+  // return zero if COUNT is larger than 63, since then the << operator is
   // undefined, but kshift should return zero
   // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=kshift
-  // since IMM is a constant, the compiler should optimize away the if-statement
-  if (IMM >= 64) { return 0; }
-// we checked that IMM is not too large above, disable warning
+  // since COUNT is a constant, the compiler should optimize away the
+  // if-statement
+  if (COUNT >= 64) { return 0; }
+// we checked that COUNT is not too large above, disable warning
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshift-count-overflow"
-  return ((uint64_t) a) << ((uint64_t) IMM);
+  return ((uint64_t) a) << ((uint64_t) COUNT);
 #pragma GCC diagnostic pop
 }
 #endif // if __GNUC__ >= 7

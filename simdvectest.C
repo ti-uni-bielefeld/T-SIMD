@@ -77,11 +77,11 @@ using namespace simd;
 
 #define NUMERIC                                                                \
   {                                                                            \
-    const int elems = Vec<Float, SW>::elements;                                \
+    const size_t elems = Vec<Float, SW>::elements;                             \
     Vec<Float, SW> x, y;                                                       \
     Float bufx[elems], bufy[elems];                                            \
     Float xi = 1.234e-10, yi = 33.3;                                           \
-    for (int i = 0; i < elems; i++) {                                          \
+    for (size_t i = 0; i < elems; i++) {                                       \
       bufx[i] = xi;                                                            \
       bufy[i] = yi;                                                            \
       xi *= 55.3;                                                              \
@@ -111,11 +111,11 @@ using namespace simd;
 
 #define ROUNDING(X0, XOFF)                                                     \
   {                                                                            \
-    const int elems = Vec<Float, SW>::elements;                                \
+    const size_t elems = Vec<Float, SW>::elements;                             \
     Vec<Float, SW> x;                                                          \
     Float bufx[elems];                                                         \
     Float xi = X0;                                                             \
-    for (int i = 0; i < elems; i++) {                                          \
+    for (size_t i = 0; i < elems; i++) {                                       \
       bufx[i] = xi;                                                            \
       xi += XOFF;                                                              \
     }                                                                          \
@@ -141,11 +141,11 @@ using namespace simd;
 #define HOR(CMD, TYPE, FORMAT, A0, AS, B0, BS)                                 \
   {                                                                            \
     puts(#TYPE);                                                               \
-    const int elems = Vec<TYPE, SW>::elements;                                 \
+    const size_t elems = Vec<TYPE, SW>::elements;                              \
     Vec<TYPE, SW> a, b;                                                        \
     TYPE bufa[elems], bufb[elems];                                             \
     TYPE av = A0, bv = B0;                                                     \
-    for (unsigned i = 0; i < elems; i++, av += AS, bv += BS) {                 \
+    for (size_t i = 0; i < elems; i++, av += AS, bv += BS) {                   \
       bufa[i] = av;                                                            \
       bufb[i] = bv;                                                            \
     }                                                                          \
@@ -165,21 +165,21 @@ using namespace simd;
 
 #define PACKS(Tout, Tin, outFormat, inFormat, inStart, inFac, inOff)           \
   {                                                                            \
-    const int numVecsIn  = sizeof(Tin) / sizeof(Tout);                         \
-    const int numElemsIn = SW / sizeof(Tin);                                   \
-    printf("%d " #Tin " -> " #Tout "\n", numVecsIn);                           \
+    const size_t numVecsIn  = sizeof(Tin) / sizeof(Tout);                      \
+    const size_t numElemsIn = SW / sizeof(Tin);                                \
+    printf("%zu " #Tin " -> " #Tout "\n", numVecsIn);                          \
     Vec<Tout, SW> out;                                                         \
     Vec<Tin, SW> in[numVecsIn];                                                \
     Tin buf[numElemsIn] __attribute__((aligned(SW)));                          \
     Tin val = inStart, fac = 1;                                                \
-    for (int iVec = 0; iVec < numVecsIn; iVec++) {                             \
-      for (int iElem = 0; iElem < numElemsIn; iElem++) {                       \
+    for (size_t iVec = 0; iVec < numVecsIn; iVec++) {                          \
+      for (size_t iElem = 0; iElem < numElemsIn; iElem++) {                    \
         buf[iElem] = val * fac;                                                \
         val += inOff;                                                          \
         fac *= inFac;                                                          \
       }                                                                        \
       in[iVec] = load<SW>(buf);                                                \
-      printf("in[%d] = ", iVec);                                               \
+      printf("in[%zu] = ", iVec);                                              \
       print(inFormat, in[iVec]);                                               \
       printf("\n");                                                            \
     }                                                                          \
@@ -192,14 +192,14 @@ using namespace simd;
 
 #define EXTEND(Tout, Tin, outFormat, inFormat, inStart, inFac, inOff)          \
   {                                                                            \
-    const int numVecsOut = sizeof(Tout) / sizeof(Tin);                         \
-    const int numElemsIn = SW / sizeof(Tin);                                   \
-    printf(#Tin " -> %d " #Tout "\n", numVecsOut);                             \
+    const size_t numVecsOut = sizeof(Tout) / sizeof(Tin);                      \
+    const size_t numElemsIn = SW / sizeof(Tin);                                \
+    printf(#Tin " -> %zu " #Tout "\n", numVecsOut);                            \
     Vec<Tout, SW> out[numVecsOut];                                             \
     Vec<Tin, SW> in;                                                           \
     Tin buf[numElemsIn] __attribute__((aligned(SW)));                          \
     Tin val = inStart, fac = 1;                                                \
-    for (int iElem = 0; iElem < numElemsIn; iElem++) {                         \
+    for (size_t iElem = 0; iElem < numElemsIn; iElem++) {                      \
       buf[iElem] = val * fac;                                                  \
       val += inOff;                                                            \
       fac *= inFac;                                                            \
@@ -209,8 +209,8 @@ using namespace simd;
     print(inFormat, in);                                                       \
     printf("\n");                                                              \
     extend(in, out);                                                           \
-    for (int oVec = 0; oVec < numVecsOut; oVec++) {                            \
-      printf("out[%d] = ", oVec);                                              \
+    for (size_t oVec = 0; oVec < numVecsOut; oVec++) {                         \
+      printf("out[%zu] = ", oVec);                                             \
       print(outFormat, out[oVec]);                                             \
       printf("\n");                                                            \
     }                                                                          \
@@ -219,17 +219,17 @@ using namespace simd;
 
 #define UNPACK(T, lohi, num, format)                                           \
   {                                                                            \
-    const int numElems = SW / sizeof(T);                                       \
-    printf("unpack<%d,%d> 2x %d " #T " elements\n", lohi, num, numElems);      \
+    const size_t numElems = SW / sizeof(T);                                    \
+    printf("unpack<%d,%d> 2x %zu " #T " elements\n", lohi, num, numElems);     \
     T inBuf[2][numElems] __attribute__((aligned(SW)));                         \
-    for (int i = 0; i < numElems; i++) {                                       \
+    for (size_t i = 0; i < numElems; i++) {                                    \
       inBuf[0][i] = i;                                                         \
       inBuf[1][i] = numElems + i;                                              \
     }                                                                          \
     Vec<T, SW> inVec[2], outVec;                                               \
-    for (int i = 0; i < 2; i++) {                                              \
+    for (size_t i = 0; i < 2; i++) {                                           \
       inVec[i] = load<SW>(inBuf[i]);                                           \
-      printf("inVec[%d] = ", i);                                               \
+      printf("inVec[%zu] = ", i);                                              \
       print(format, inVec[i]);                                                 \
       printf("\n");                                                            \
     }                                                                          \
@@ -241,58 +241,58 @@ using namespace simd;
 
 #define FXMUL(OUTTYPE, INTYPE, OUTFORMAT, INFORMAT)                            \
   {                                                                            \
-    const int nInVecs        = numInputSIMDVecs<OUTTYPE, INTYPE>();            \
-    const int nOutVecs       = numOutputSIMDVecs<OUTTYPE, INTYPE>();           \
-    const int nElemsPerInVec = (SW / sizeof(INTYPE));                          \
-    const int nInElems       = numSIMDVecsElements<OUTTYPE, INTYPE, SW>();     \
+    const size_t nInVecs        = numInputSIMDVecs<OUTTYPE, INTYPE>();         \
+    const size_t nOutVecs       = numOutputSIMDVecs<OUTTYPE, INTYPE>();        \
+    const size_t nElemsPerInVec = (SW / sizeof(INTYPE));                       \
+    const size_t nInElems       = numSIMDVecsElements<OUTTYPE, INTYPE, SW>();  \
     printf("\nINTYPE = " #INTYPE ", OUTTYPE = " #OUTTYPE "\n");                \
-    printf("sizeof(INTYPE)=%d, sizeof(OUTTYPE)=%d\n", (int) sizeof(INTYPE),    \
-           (int) sizeof(OUTTYPE));                                             \
-    printf("nInVecs=%d, nOutVecs=%d, nInElems = %d\n", nInVecs, nOutVecs,      \
+    printf("sizeof(INTYPE)=%zu, sizeof(OUTTYPE)=%zu\n", sizeof(INTYPE),        \
+           sizeof(OUTTYPE));                                                   \
+    printf("nInVecs=%zu, nOutVecs=%zu, nInElems = %zu\n", nInVecs, nOutVecs,   \
            nInElems);                                                          \
     INTYPE inBuf1[nInElems] __attribute__((aligned(SW)));                      \
     INTYPE inBuf2[nInElems] __attribute__((aligned(SW)));                      \
-    for (int i = 0; i < nInElems; i++) {                                       \
+    for (size_t i = 0; i < nInElems; i++) {                                    \
       inBuf1[i] = i + 1;                                                       \
       inBuf2[i] = i + 2;                                                       \
     }                                                                          \
     Vec<INTYPE, SW> inVecs1[nInVecs], inVecs2[nInVecs];                        \
-    for (int i = 0; i < nInVecs; i++) {                                        \
+    for (size_t i = 0; i < nInVecs; i++) {                                     \
       inVecs1[i] = load<SW>(inBuf1 + i * nElemsPerInVec);                      \
       inVecs2[i] = load<SW>(inBuf2 + i * nElemsPerInVec);                      \
-      printf("inVecs1[%d]: ", i);                                              \
+      printf("inVecs1[%zu]: ", i);                                             \
       print(INFORMAT, inVecs1[i]);                                             \
       puts("");                                                                \
-      printf("inVecs2[%d]: ", i);                                              \
+      printf("inVecs2[%zu]: ", i);                                             \
       print(INFORMAT, inVecs2[i]);                                             \
       puts("");                                                                \
     }                                                                          \
     Vec<OUTTYPE, SW> outVecs[nOutVecs];                                        \
     puts("----- fmul(inVecs1, 3.5, outVecs) -----");                           \
     fmul(inVecs1, 3.5, outVecs);                                               \
-    for (int i = 0; i < nOutVecs; i++) {                                       \
-      printf("outVecs[%d]: ", i);                                              \
+    for (size_t i = 0; i < nOutVecs; i++) {                                    \
+      printf("outVecs[%zu]: ", i);                                             \
       print(OUTFORMAT, outVecs[i]);                                            \
       puts("");                                                                \
     }                                                                          \
     puts("----- faddmul(inVecs1, 1.5, 3.5, outVecs) -----");                   \
     faddmul(inVecs1, 1.5, 3.5, outVecs);                                       \
-    for (int i = 0; i < nOutVecs; i++) {                                       \
-      printf("outVecs[%d]: ", i);                                              \
+    for (size_t i = 0; i < nOutVecs; i++) {                                    \
+      printf("outVecs[%zu]: ", i);                                             \
       print(OUTFORMAT, outVecs[i]);                                            \
       puts("");                                                                \
     }                                                                          \
     puts("----- fdivmul(inVecs1, inVecs2, 35.0, outVecs) -----");              \
     fdivmul(inVecs1, inVecs2, 35.0, outVecs);                                  \
-    for (int i = 0; i < nOutVecs; i++) {                                       \
-      printf("outVecs[%d]: ", i);                                              \
+    for (size_t i = 0; i < nOutVecs; i++) {                                    \
+      printf("outVecs[%zu]: ", i);                                             \
       print(OUTFORMAT, outVecs[i]);                                            \
       puts("");                                                                \
     }                                                                          \
     puts("----- fwaddmul(inVecs1, inVecs2, 0.2, 35.0, outVecs) -----");        \
     fwaddmul(inVecs1, inVecs2, 0.2, 35.0, outVecs);                            \
-    for (int i = 0; i < nOutVecs; i++) {                                       \
-      printf("outVecs[%d]: ", i);                                              \
+    for (size_t i = 0; i < nOutVecs; i++) {                                    \
+      printf("outVecs[%zu]: ", i);                                             \
       print(OUTFORMAT, outVecs[i]);                                            \
       puts("");                                                                \
     }                                                                          \
@@ -300,29 +300,29 @@ using namespace simd;
 
 #define CONVERT(OUTTYPE, INTYPE, OUTFORMAT, INFORMAT)                          \
   {                                                                            \
-    const int nInVecs        = numInputSIMDVecs<OUTTYPE, INTYPE>();            \
-    const int nOutVecs       = numOutputSIMDVecs<OUTTYPE, INTYPE>();           \
-    const int nElemsPerInVec = (SW / sizeof(INTYPE));                          \
-    const int nInElems       = nInVecs * nElemsPerInVec;                       \
+    const size_t nInVecs        = numInputSIMDVecs<OUTTYPE, INTYPE>();         \
+    const size_t nOutVecs       = numOutputSIMDVecs<OUTTYPE, INTYPE>();        \
+    const size_t nElemsPerInVec = (SW / sizeof(INTYPE));                       \
+    const size_t nInElems       = nInVecs * nElemsPerInVec;                    \
     printf("\nINTYPE = " #INTYPE ", OUTTYPE = " #OUTTYPE "\n");                \
-    printf("sizeof(INTYPE)=%d, sizeof(OUTTYPE)=%d\n", (int) sizeof(INTYPE),    \
-           (int) sizeof(OUTTYPE));                                             \
-    printf("nInVecs=%d, nOutVecs=%d, nInElems = %d\n", nInVecs, nOutVecs,      \
+    printf("sizeof(INTYPE)=%zu, sizeof(OUTTYPE)=%zu\n", sizeof(INTYPE),        \
+           sizeof(OUTTYPE));                                                   \
+    printf("nInVecs=%zu, nOutVecs=%zu, nInElems = %zu\n", nInVecs, nOutVecs,   \
            nInElems);                                                          \
     INTYPE inBuf[nInElems] __attribute__((aligned(SW)));                       \
-    for (int i = 0; i < nInElems; i++) { inBuf[i] = i + 1; }                   \
+    for (size_t i = 0; i < nInElems; i++) { inBuf[i] = i + 1; }                \
     Vec<INTYPE, SW> inVecs[nInVecs];                                           \
-    for (int i = 0; i < nInVecs; i++) {                                        \
+    for (size_t i = 0; i < nInVecs; i++) {                                     \
       inVecs[i] = load<SW>(inBuf + i * nElemsPerInVec);                        \
-      printf("inVecs[%d]: ", i);                                               \
+      printf("inVecs[%zu]: ", i);                                              \
       print(INFORMAT, inVecs[i]);                                              \
       puts("");                                                                \
     }                                                                          \
     Vec<OUTTYPE, SW> outVecs[nOutVecs];                                        \
     puts("----- convert(inVecs, outVecs) -----");                              \
     convert(inVecs, outVecs);                                                  \
-    for (int i = 0; i < nOutVecs; i++) {                                       \
-      printf("outVecs[%d]: ", i);                                              \
+    for (size_t i = 0; i < nOutVecs; i++) {                                    \
+      printf("outVecs[%zu]: ", i);                                             \
       print(OUTFORMAT, outVecs[i]);                                            \
       puts("");                                                                \
     }                                                                          \
@@ -330,29 +330,29 @@ using namespace simd;
 
 #define CONVERTVECS(OUTTYPE, INTYPE, OUTFORMAT, INFORMAT)                      \
   {                                                                            \
-    const int nInVecs        = numInputSIMDVecs<OUTTYPE, INTYPE>();            \
-    const int nOutVecs       = numOutputSIMDVecs<OUTTYPE, INTYPE>();           \
-    const int nElemsPerInVec = numSIMDVecElements<INTYPE, SW>();               \
-    const int nInElems       = nInVecs * nElemsPerInVec;                       \
+    const size_t nInVecs        = numInputSIMDVecs<OUTTYPE, INTYPE>();         \
+    const size_t nOutVecs       = numOutputSIMDVecs<OUTTYPE, INTYPE>();        \
+    const size_t nElemsPerInVec = numSIMDVecElements<INTYPE, SW>();            \
+    const size_t nInElems       = nInVecs * nElemsPerInVec;                    \
     printf("\nINTYPE = " #INTYPE ", OUTTYPE = " #OUTTYPE "\n");                \
-    printf("sizeof(INTYPE)=%d, sizeof(OUTTYPE)=%d\n", (int) sizeof(INTYPE),    \
-           (int) sizeof(OUTTYPE));                                             \
-    printf("nInVecs=%d, nOutVecs=%d, nInElems = %d\n", nInVecs, nOutVecs,      \
+    printf("sizeof(INTYPE)=%zu, sizeof(OUTTYPE)=%zu\n", sizeof(INTYPE),        \
+           sizeof(OUTTYPE));                                                   \
+    printf("nInVecs=%zu, nOutVecs=%zu, nInElems = %zu\n", nInVecs, nOutVecs,   \
            nInElems);                                                          \
     INTYPE inBuf[nInElems] __attribute__((aligned(SW)));                       \
-    for (int i = 0; i < nInElems; i++) { inBuf[i] = i + 1; }                   \
+    for (size_t i = 0; i < nInElems; i++) { inBuf[i] = i + 1; }                \
     Vecs<NumVecs<OUTTYPE, INTYPE>::in, INTYPE, SW> inVecs;                     \
-    for (int i = 0; i < nInVecs; i++) {                                        \
+    for (size_t i = 0; i < nInVecs; i++) {                                     \
       inVecs.vec[i] = load<SW>(inBuf + i * nElemsPerInVec);                    \
-      printf("inVecs.vec[%d]: ", i);                                           \
+      printf("inVecs.vec[%zu]: ", i);                                          \
       print(INFORMAT, inVecs.vec[i]);                                          \
       puts("");                                                                \
     }                                                                          \
     Vecs<NumVecs<OUTTYPE, INTYPE>::out, OUTTYPE, SW> outVecs;                  \
     puts("----- convert(inVecs, outVecs) -----");                              \
     convert(inVecs, outVecs);                                                  \
-    for (int i = 0; i < nOutVecs; i++) {                                       \
-      printf("outVecs.vec[%d]: ", i);                                          \
+    for (size_t i = 0; i < nOutVecs; i++) {                                    \
+      printf("outVecs.vec[%zu]: ", i);                                         \
       print(OUTFORMAT, outVecs.vec[i]);                                        \
       puts("");                                                                \
     }                                                                          \
@@ -361,9 +361,9 @@ using namespace simd;
 #define HMINMAX(TYPE, FORMAT, INIT)                                            \
   {                                                                            \
     puts("\n" #TYPE);                                                          \
-    const int nElems = SW / sizeof(TYPE);                                      \
+    const size_t nElems = SW / sizeof(TYPE);                                   \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
-    for (int i = 0; i < nElems; i++, val -= TYPE(1)) buf[i] = val;             \
+    for (size_t i = 0; i < nElems; i++, val -= TYPE(1)) buf[i] = val;          \
     Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in = ");                                                           \
     print(FORMAT, in);                                                         \
@@ -375,9 +375,9 @@ using namespace simd;
 #define NEG(TYPE, FORMAT, INIT, STEP)                                          \
   {                                                                            \
     puts(#TYPE);                                                               \
-    const int nElems = SW / sizeof(TYPE);                                      \
+    const size_t nElems = SW / sizeof(TYPE);                                   \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
-    for (int i = 0; i < nElems; i++, val += TYPE(STEP)) buf[i] = val;          \
+    for (size_t i = 0; i < nElems; i++, val += TYPE(STEP)) buf[i] = val;       \
     Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in           = ");                                                 \
     print(FORMAT, in);                                                         \
@@ -394,9 +394,9 @@ using namespace simd;
 #define HOR1(FCT, TYPE, FORMAT, INIT)                                          \
   {                                                                            \
     puts("\n" #TYPE);                                                          \
-    const int nElems = SW / sizeof(TYPE);                                      \
+    const size_t nElems = SW / sizeof(TYPE);                                   \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
-    for (int i = 0; i < nElems; i++, val -= TYPE(1)) buf[i] = val;             \
+    for (size_t i = 0; i < nElems; i++, val -= TYPE(1)) buf[i] = val;          \
     Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in = ");                                                           \
     print(FORMAT, in);                                                         \
@@ -407,11 +407,11 @@ using namespace simd;
 #define HORn(FCT, TYPE, FORMAT)                                                \
   {                                                                            \
     puts("\n" #TYPE);                                                          \
-    const int nElems = Vec<TYPE, SW>::elements;                                \
+    const size_t nElems = Vec<TYPE, SW>::elements;                             \
     Vec<TYPE, SW> v[nElems];                                                   \
     TYPE buf[nElems];                                                          \
-    for (unsigned i = 0; i < nElems; i++) {                                    \
-      for (unsigned int j = 0; j < nElems; j++)                                \
+    for (size_t i = 0; i < nElems; i++) {                                      \
+      for (size_t j = 0; j < nElems; j++)                                      \
         buf[j] = (2 * nElems - (i + j)) * 100;                                 \
       v[i] = loadu<SW>(buf);                                                   \
       printf("v[%2d] = ", i);                                                  \
@@ -426,9 +426,9 @@ using namespace simd;
 #define SHIFT(CMD, N, TYPE, FORMAT, VAL0, VALS)                                \
   {                                                                            \
     puts("\n" #TYPE);                                                          \
-    const int nElems = Vec<TYPE, SW>::elements;                                \
+    const size_t nElems = Vec<TYPE, SW>::elements;                             \
     TYPE buf[nElems], val = VAL0;                                              \
-    for (int i = 0; i < nElems; i++, val += VALS) buf[i] = val;                \
+    for (size_t i = 0; i < nElems; i++, val += VALS) buf[i] = val;             \
     Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in          = ");                                                  \
     print(FORMAT, in);                                                         \
@@ -441,9 +441,9 @@ using namespace simd;
 
 #define SLLE_SRLE(TYPE, FORMAT, INIT, SHIFT)                                   \
   {                                                                            \
-    const int nElems = SW / sizeof(TYPE);                                      \
+    const size_t nElems = SW / sizeof(TYPE);                                   \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
-    for (int i = 0; i < nElems; i++, val += TYPE(1)) { buf[i] = val; }         \
+    for (size_t i = 0; i < nElems; i++, val += TYPE(1)) { buf[i] = val; }      \
     Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in          = ");                                                  \
     print(FORMAT, in);                                                         \
@@ -459,9 +459,9 @@ using namespace simd;
 
 #define EXTRACT(TYPE, FORMAT, INIT, IDX)                                       \
   {                                                                            \
-    const int nElems = Vec<TYPE, SW>::elements;                                \
+    const size_t nElems = Vec<TYPE, SW>::elements;                             \
     TYPE buf[nElems], val = TYPE(INIT);                                        \
-    for (int i = 0; i < nElems; i++, val += TYPE(1)) buf[i] = val;             \
+    for (size_t i = 0; i < nElems; i++, val += TYPE(1)) buf[i] = val;          \
     Vec<TYPE, SW> in = loadu<SW>(buf);                                         \
     printf("in          = ");                                                  \
     print(FORMAT, in);                                                         \
@@ -472,9 +472,9 @@ using namespace simd;
 #define MIN_MAX(TYPE, FORMAT, INIT0, INIT1)                                    \
   {                                                                            \
     puts("\n" #TYPE);                                                          \
-    const int nElems = SW / sizeof(TYPE);                                      \
+    const size_t nElems = SW / sizeof(TYPE);                                   \
     TYPE buf[2][nElems];                                                       \
-    for (int i = 0; i < nElems; i++) {                                         \
+    for (size_t i = 0; i < nElems; i++) {                                      \
       buf[0][i] = TYPE(INIT0 + i);                                             \
       buf[1][i] = TYPE(INIT1 - i);                                             \
     }                                                                          \
@@ -498,9 +498,9 @@ using namespace simd;
 
 #define ALIGNRE(TYPE, FORMAT, N)                                               \
   {                                                                            \
-    const int nElems = SW / sizeof(TYPE);                                      \
+    const size_t nElems = SW / sizeof(TYPE);                                   \
     TYPE buf[2 * nElems], val = TYPE(0);                                       \
-    for (int i = 0; i < 2 * nElems; i++, val += TYPE(1)) buf[i] = val;         \
+    for (size_t i = 0; i < 2 * nElems; i++, val += TYPE(1)) buf[i] = val;      \
     Vec<TYPE, SW> in[2];                                                       \
     in[0] = loadu<SW>(buf);                                                    \
     in[1] = loadu<SW>(buf + nElems);                                           \
@@ -516,21 +516,21 @@ using namespace simd;
 #define SWIZZLE(TYPE, N, FORMAT)                                               \
   {                                                                            \
     printf("swizzle " #TYPE " " #N "\n\n");                                    \
-    const int nElems = SW / sizeof(TYPE);                                      \
+    const size_t nElems = SW / sizeof(TYPE);                                   \
     TYPE buf[N * nElems];                                                      \
-    for (int i = 0; i < N * nElems; i++) buf[i] = TYPE(i);                     \
+    for (size_t i = 0; i < N * nElems; i++) buf[i] = TYPE(i);                  \
     Vec<TYPE, SW> v[N];                                                        \
     TYPE *bufp = buf;                                                          \
-    for (int i = 0; i < N; i++, bufp += nElems) {                              \
+    for (size_t i = 0; i < N; i++, bufp += nElems) {                           \
       v[i] = loadu<SW>(bufp);                                                  \
-      printf("v[%d] = ", i);                                                   \
+      printf("v[%zu] = ", i);                                                  \
       print(FORMAT, v[i]);                                                     \
       printf("\n");                                                            \
     }                                                                          \
     printf("\n");                                                              \
     swizzle<N>(v);                                                             \
-    for (int i = 0; i < N; i++, bufp += nElems) {                              \
-      printf("v[%d] = ", i);                                                   \
+    for (size_t i = 0; i < N; i++, bufp += nElems) {                           \
+      printf("v[%zu] = ", i);                                                  \
       print(FORMAT, v[i]);                                                     \
       printf("\n");                                                            \
     }                                                                          \
@@ -540,28 +540,28 @@ using namespace simd;
 #define SWIZZLE2(TYPE, N, FORMAT)                                              \
   {                                                                            \
     printf("swizzle2 " #TYPE " " #N "\n\n");                                   \
-    const int nElems = SW / sizeof(TYPE);                                      \
+    const size_t nElems = SW / sizeof(TYPE);                                   \
     TYPE buf[2 * N * nElems];                                                  \
-    for (int i = 0; i < 2 * N * nElems; i++) buf[i] = TYPE(i);                 \
+    for (size_t i = 0; i < 2 * N * nElems; i++) buf[i] = TYPE(i);              \
     Vec<TYPE, SW> v[2 * N];                                                    \
     TYPE *bufp = buf;                                                          \
-    for (int i = 0; i < 2 * N; i++, bufp += nElems) {                          \
+    for (size_t i = 0; i < 2 * N; i++, bufp += nElems) {                       \
       v[i] = loadu<SW>(bufp);                                                  \
-      printf("v[%d] = ", i);                                                   \
+      printf("v[%zu] = ", i);                                                  \
       print(FORMAT, v[i]);                                                     \
       printf("\n");                                                            \
     }                                                                          \
     printf("\n");                                                              \
     swizzle2<N>(v);                                                            \
-    for (int i = 0; i < 2 * N; i++, bufp += nElems) {                          \
-      printf("v[%d] = ", i);                                                   \
+    for (size_t i = 0; i < 2 * N; i++, bufp += nElems) {                       \
+      printf("v[%zu] = ", i);                                                  \
       print(FORMAT, v[i]);                                                     \
       printf("\n");                                                            \
     }                                                                          \
     printf("\n");                                                              \
     unswizzle<N>(v);                                                           \
-    for (int i = 0; i < 2 * N; i++, bufp += nElems) {                          \
-      printf("v[%d] = ", i);                                                   \
+    for (size_t i = 0; i < 2 * N; i++, bufp += nElems) {                       \
+      printf("v[%zu] = ", i);                                                  \
       print(FORMAT, v[i]);                                                     \
       printf("\n");                                                            \
     }                                                                          \
@@ -571,28 +571,28 @@ using namespace simd;
 #define UNSWIZZLE(TYPE, N, FORMAT)                                             \
   {                                                                            \
     printf("unswizzle " #TYPE " " #N "\n\n");                                  \
-    const int nElems = SW / sizeof(TYPE);                                      \
+    const size_t nElems = SW / sizeof(TYPE);                                   \
     TYPE buf[2 * N * nElems];                                                  \
-    for (int i = 0; i < 2 * N * nElems; i++) buf[i] = TYPE(i);                 \
+    for (size_t i = 0; i < 2 * N * nElems; i++) buf[i] = TYPE(i);              \
     Vec<TYPE, SW> v[2 * N];                                                    \
     TYPE *bufp = buf;                                                          \
-    for (int i = 0; i < 2 * N; i++, bufp += nElems) {                          \
+    for (size_t i = 0; i < 2 * N; i++, bufp += nElems) {                       \
       v[i] = loadu<SW>(bufp);                                                  \
-      printf("v[%d] = ", i);                                                   \
+      printf("v[%zu] = ", i);                                                  \
       print(FORMAT, v[i]);                                                     \
       printf("\n");                                                            \
     }                                                                          \
     printf("\n");                                                              \
     unswizzle<N>(v);                                                           \
-    for (int i = 0; i < 2 * N; i++, bufp += nElems) {                          \
-      printf("v[%d] = ", i);                                                   \
+    for (size_t i = 0; i < 2 * N; i++, bufp += nElems) {                       \
+      printf("v[%zu] = ", i);                                                  \
       print(FORMAT, v[i]);                                                     \
       printf("\n");                                                            \
     }                                                                          \
     printf("\n");                                                              \
     swizzle2<N>(v);                                                            \
-    for (int i = 0; i < 2 * N; i++, bufp += nElems) {                          \
-      printf("v[%d] = ", i);                                                   \
+    for (size_t i = 0; i < 2 * N; i++, bufp += nElems) {                       \
+      printf("v[%zu] = ", i);                                                  \
       print(FORMAT, v[i]);                                                     \
       printf("\n");                                                            \
     }                                                                          \
@@ -603,25 +603,25 @@ using namespace simd;
 #define SWIZZLE_32_16(TYPE, N, FORMAT)                                         \
   {                                                                            \
     printf("swizzle_32_16 " #TYPE " " #N "\n\n");                              \
-    const int nElems = 32 / sizeof(TYPE);                                      \
+    const size_t nElems = 32 / sizeof(TYPE);                                   \
     TYPE buf[N * nElems];                                                      \
-    for (int i = 0; i < N; i++)                                                \
-      for (int j = 0; j < nElems / 2; j++) {                                   \
+    for (size_t i = 0; i < N; i++)                                             \
+      for (size_t j = 0; j < nElems / 2; j++) {                                \
         buf[i * nElems + j]              = 2 * i;                              \
         buf[i * nElems + nElems / 2 + j] = 2 * i + 1;                          \
       }                                                                        \
     Vec<TYPE, 32> vIn[N], vOut[N];                                             \
     TYPE *bufp = buf;                                                          \
-    for (int i = 0; i < N; i++, bufp += nElems) {                              \
+    for (size_t i = 0; i < N; i++, bufp += nElems) {                           \
       vIn[i] = loadu<32>(bufp);                                                \
-      printf("vIn[%d] =  ", i);                                                \
+      printf("vIn[%zu] =  ", i);                                               \
       print(FORMAT, vIn[i]);                                                   \
       printf("\n");                                                            \
     }                                                                          \
     puts("");                                                                  \
     internal::base::swizzle_32_16<N>(vIn, vOut);                               \
-    for (int i = 0; i < N; i++, bufp += nElems) {                              \
-      printf("vOut[%d] = ", i);                                                \
+    for (size_t i = 0; i < N; i++, bufp += nElems) {                           \
+      printf("vOut[%zu] = ", i);                                               \
       print(FORMAT, vOut[i]);                                                  \
       printf("\n");                                                            \
     }                                                                          \
@@ -631,7 +631,7 @@ using namespace simd;
 #define CMP(TYPE, FORMAT)                                                      \
   {                                                                            \
     puts("\n" #TYPE);                                                          \
-    const int nElems = SW / sizeof(TYPE);                                      \
+    const size_t nElems = SW / sizeof(TYPE);                                   \
     TYPE val1, val2;                                                           \
     if (SIMDTypeInfo<TYPE>::isSigned) {                                        \
       val1 = TYPE(-nElems / 2);                                                \
@@ -641,7 +641,7 @@ using namespace simd;
       val2 = TYPE(nElems);                                                     \
     }                                                                          \
     TYPE buf1[nElems], buf2[nElems];                                           \
-    for (int i = 0; i < nElems; i++, val1 += TYPE(1), val2 -= TYPE(1)) {       \
+    for (size_t i = 0; i < nElems; i++, val1 += TYPE(1), val2 -= TYPE(1)) {    \
       buf1[i] = val1;                                                          \
       buf2[i] = val2;                                                          \
     }                                                                          \
@@ -708,7 +708,7 @@ using namespace simd;
     Vec<TYPE, SW> a, r0, rd;                                                   \
     TYPE v = TYPE(LOVAL);                                                      \
     TYPE buf[Vec<TYPE, SW>::elements];                                         \
-    for (int i = 0; i < Vec<TYPE, SW>::elements; i++, v++) buf[i] = v;         \
+    for (size_t i = 0; i < Vec<TYPE, SW>::elements; i++, v++) buf[i] = v;      \
     a  = loadu<SW>(buf);                                                       \
     r0 = div2r0(a);                                                            \
     rd = div2rd(a);                                                            \
@@ -1037,9 +1037,9 @@ int main()
 
   puts("\n*********** test of reinterpret functions  ***********\n");
 
-  const int nFloats = SW / sizeof(Float);
+  const size_t nFloats = SW / sizeof(Float);
   Float buf[nFloats] __attribute__((aligned(SW)));
-  for (int i = 0; i < nFloats; i++) buf[i] = (Float) i;
+  for (size_t i = 0; i < nFloats; i++) buf[i] = (Float) i;
   Vec<Float, SW> fv;
   fv = load<SW>(buf);
   print("%3g ", fv);
@@ -1269,9 +1269,9 @@ int main()
 #define OUTTYPE Float
   Vecs<NumVecs<OUTTYPE, INTYPE>::in, INTYPE, SW> inVecs;
   Vecs<NumVecs<OUTTYPE, INTYPE>::out, OUTTYPE, SW> outVecs;
-  printf("inVecs:  vectors = %d, elements = %d\n", inVecs.vectors,
+  printf("inVecs:  vectors = %zu, elements = %zu\n", inVecs.vectors,
          inVecs.elements);
-  printf("outVecs: vectors = %d, elements = %d\n", outVecs.vectors,
+  printf("outVecs: vectors = %zu, elements = %zu\n", outVecs.vectors,
          outVecs.elements);
 
   CONVERTVECS(Short, Int, "%d ", "%d ");
@@ -1368,11 +1368,11 @@ int main()
 
   Float testVals[3] = {Float(SIMDINT_MIN), 2147483520.0f, Float(SIMDINT_MAX)};
 
-  for (int i = 0; i < 3; i++) {
+  for (size_t i = 0; i < 3; i++) {
     for (int off = -200; off <= 200; off += 100) {
       Float v              = testVals[i] + Float(off);
       Vec<Float, SW> ffvec = set1<Float, SW>(v);
-      printf("\n%12.0f (%d, %g)\n", v, i, Float(off));
+      printf("\n%12.0f (%zu, %g)\n", v, i, Float(off));
       print("%12.0f ", ffvec);
       puts("");
       print("%12d ", cvts<Int>(ffvec));

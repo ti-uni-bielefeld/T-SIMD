@@ -55,7 +55,7 @@ namespace simd {
  * @param a Vec to reinterpret
  * @return reinterpreted Vec
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> reinterpret(
   const Vec<Tin, SIMD_WIDTH> &a)
 {
@@ -67,7 +67,7 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> reinterpret(
  * @brief Returns a Vec with all elements set to zero.
  * @return Vec with all elements set to zero
  */
-template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setzero()
 {
   return internal::base::setzero(internal::OutputType<T>(),
@@ -80,7 +80,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setzero()
  * @param a value to set all elements to
  * @return Vec with all elements set to the same value
  */
-template <typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> set1(T a)
 {
   return internal::base::set1(a, internal::Integer<SIMD_WIDTH>());
@@ -98,7 +98,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> set1(T a)
  *
  * @return Vec containing sequentially increasing numbers
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> iota()
 {
   return internal::base::iota(internal::OutputType<T>(),
@@ -118,7 +118,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> iota()
  * @param falseVal Vec to select from if the condition is false
  * @return Vec containing the selected elements
  */
-template <typename Tcond, typename T, int SIMD_WIDTH>
+template <typename Tcond, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> ifelse(const Vec<Tcond, SIMD_WIDTH> &cond,
                                              const Vec<T, SIMD_WIDTH> &trueVal,
                                              const Vec<T, SIMD_WIDTH> &falseVal)
@@ -139,7 +139,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> ifelse(const Vec<Tcond, SIMD_WIDTH> &cond,
  * @return an integer containing the most significant bit of each element of the
  * input Vec padded with zeros to 64 bits
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE uint64_t msb2int(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::msb2int(a);
@@ -161,7 +161,7 @@ static SIMD_INLINE uint64_t msb2int(const Vec<T, SIMD_WIDTH> &a)
  * @return Vec with the most significant bit of each element set to the
  * corresponding bit of the input integer
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> int2msb(const uint64_t a)
 {
   return internal::base::int2msb(a, internal::OutputType<T>(),
@@ -182,7 +182,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> int2msb(const uint64_t a)
  * @return Vec with all bits of each element set to the corresponding bit of the
  * input integer
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> int2bits(const uint64_t a)
 {
   return internal::base::int2bits(a, internal::OutputType<T>(),
@@ -201,7 +201,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> int2bits(const uint64_t a)
  * @param[in] p pointer to the aligned memory location to load from
  * @return Vec with the loaded values
  */
-template <int SIMD_WIDTH_DEFAULT_NATIVE, typename T>
+template <size_t SIMD_WIDTH_DEFAULT_NATIVE, typename T>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> load(const T *const p)
 {
   // 08. Apr 23 (Jonas Keller):
@@ -223,7 +223,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> load(const T *const p)
  * @param[in] p pointer to the memory location to load from
  * @return Vec with the loaded values
  */
-template <int SIMD_WIDTH_DEFAULT_NATIVE, typename T>
+template <size_t SIMD_WIDTH_DEFAULT_NATIVE, typename T>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> loadu(const T *const p)
 {
   return internal::base::loadu(p, internal::Integer<SIMD_WIDTH>());
@@ -238,7 +238,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> loadu(const T *const p)
  * @param[out] p pointer to the aligned memory location to store to
  * @param a Vec to store
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> &a)
 {
   // 08. Apr 23 (Jonas Keller):
@@ -257,7 +257,7 @@ static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> &a)
  * @param[out] p pointer to the memory location to store to
  * @param a Vec to store
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> &a)
 {
   internal::base::storeu(p, a);
@@ -278,7 +278,7 @@ static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> &a)
  * @param[out] p pointer to the aligned memory location to store to
  * @param a Vec to store
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void stream_store(T *const p, const Vec<T, SIMD_WIDTH> &a)
 {
   // 08. Apr 23 (Jonas Keller):
@@ -349,7 +349,7 @@ static SIMD_INLINE void mfence()
  * @param b second Vec
  * @return Vec containing the sums of the elements of the two input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> add(const Vec<T, SIMD_WIDTH> &a,
                                           const Vec<T, SIMD_WIDTH> &b)
 {
@@ -366,7 +366,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> add(const Vec<T, SIMD_WIDTH> &a,
  * @return Vec containing the saturated sums of the elements of the two input
  * Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> adds(const Vec<T, SIMD_WIDTH> &a,
                                            const Vec<T, SIMD_WIDTH> &b)
 {
@@ -380,7 +380,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> adds(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the differences of the elements of the two input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sub(const Vec<T, SIMD_WIDTH> &a,
                                           const Vec<T, SIMD_WIDTH> &b)
 {
@@ -397,7 +397,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sub(const Vec<T, SIMD_WIDTH> &a,
  * @return Vec containing the saturated differences of the elements of the two
  * input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> subs(const Vec<T, SIMD_WIDTH> &a,
                                            const Vec<T, SIMD_WIDTH> &b)
 {
@@ -413,7 +413,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> subs(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the products of the elements of the two input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mul(const Vec<T, SIMD_WIDTH> &a,
                                           const Vec<T, SIMD_WIDTH> &b)
 {
@@ -431,7 +431,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mul(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the quotients of the elements of the two input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> div(const Vec<T, SIMD_WIDTH> &a,
                                           const Vec<T, SIMD_WIDTH> &b)
 {
@@ -448,7 +448,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> div(const Vec<T, SIMD_WIDTH> &a,
  * @return Vec containing the rounded up average of the elements of the two
  * input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> avg(const Vec<T, SIMD_WIDTH> &a,
                                           const Vec<T, SIMD_WIDTH> &b)
 {
@@ -469,7 +469,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avg(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the results of the horizontal additions
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(const Vec<T, SIMD_WIDTH> &a,
                                            const Vec<T, SIMD_WIDTH> &b)
 {
@@ -485,7 +485,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the results of the horizontal saturated additions
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
@@ -499,7 +499,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the results of the horizontal subtractions
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hsub(const Vec<T, SIMD_WIDTH> &a,
                                            const Vec<T, SIMD_WIDTH> &b)
 {
@@ -515,7 +515,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hsub(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the results of the horizontal saturated subtractions
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
@@ -539,7 +539,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(const Vec<T, SIMD_WIDTH> &a,
  * @return Vec containing the approximate reciprocal of the elements of the
  * input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> rcp(const Vec<T, SIMD_WIDTH> &a)
 {
   static_assert(TypeInfo<T>::isFloatingPoint,
@@ -557,7 +557,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> rcp(const Vec<T, SIMD_WIDTH> &a)
  * @return Vec containing the approximate reciprocal square root of the elements
  * of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> rsqrt(const Vec<T, SIMD_WIDTH> &a)
 {
   static_assert(TypeInfo<T>::isFloatingPoint,
@@ -576,7 +576,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> rsqrt(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to compute the square root of
  * @return Vec containing the square root of the elements of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sqrt(const Vec<T, SIMD_WIDTH> &a)
 {
   static_assert(TypeInfo<T>::isFloatingPoint,
@@ -598,7 +598,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sqrt(const Vec<T, SIMD_WIDTH> &a)
  * @param b second Vec
  * @return Vec containing the minimum of the elements of the input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> min(const Vec<T, SIMD_WIDTH> &a,
                                           const Vec<T, SIMD_WIDTH> &b)
 {
@@ -612,7 +612,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> min(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the maximum of the elements of the input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> max(const Vec<T, SIMD_WIDTH> &a,
                                           const Vec<T, SIMD_WIDTH> &b)
 {
@@ -627,7 +627,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> max(const Vec<T, SIMD_WIDTH> &a,
  * @param a Vec to negate
  * @return Vec containing the negated elements of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> neg(const Vec<T, SIMD_WIDTH> &a)
 {
   static_assert(TypeInfo<T>::isSigned,
@@ -646,7 +646,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> neg(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to compute the absolute value of
  * @return Vec containing the absolute value of the elements of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> abs(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::abs(a);
@@ -660,7 +660,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> abs(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to round
  * @return Vec containing the rounded elements of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> ceil(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::ceil(a);
@@ -675,7 +675,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> ceil(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to round
  * @return Vec containing the rounded elements of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> floor(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::floor(a);
@@ -689,7 +689,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> floor(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to round
  * @return Vec containing the rounded elements of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> round(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::round(a);
@@ -704,7 +704,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> round(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to truncate
  * @return Vec containing the truncated elements of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> truncate(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::truncate(a);
@@ -724,7 +724,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> truncate(const Vec<T, SIMD_WIDTH> &a)
  * @param b second Vec
  * @return Vec containing the bitwise AND of the two input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_and(const Vec<T, SIMD_WIDTH> &a,
                                               const Vec<T, SIMD_WIDTH> &b)
 {
@@ -738,7 +738,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_and(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the bitwise OR of the two input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_or(const Vec<T, SIMD_WIDTH> &a,
                                              const Vec<T, SIMD_WIDTH> &b)
 {
@@ -754,7 +754,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_or(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the bitwise ANDNOT of the two input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_andnot(const Vec<T, SIMD_WIDTH> &a,
                                                  const Vec<T, SIMD_WIDTH> &b)
 {
@@ -768,7 +768,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_andnot(const Vec<T, SIMD_WIDTH> &a,
  * @param b second Vec
  * @return Vec containing the bitwise XOR of the two input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_xor(const Vec<T, SIMD_WIDTH> &a,
                                               const Vec<T, SIMD_WIDTH> &b)
 {
@@ -781,7 +781,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_xor(const Vec<T, SIMD_WIDTH> &a,
  * @param a Vec
  * @return Vec containing the bitwise NOT of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_not(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::bit_not(a);
@@ -804,7 +804,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_not(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to shift
  * @return Vec containing the shifted elements of the input Vec
  */
-template <int COUNT, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srai(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::srai<COUNT>(a);
@@ -820,7 +820,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srai(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to shift
  * @return Vec containing the shifted elements of the input Vec
  */
-template <int COUNT, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srli(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::srli<COUNT>(a);
@@ -836,7 +836,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srli(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to shift
  * @return Vec containing the shifted elements of the input Vec
  */
-template <int COUNT, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> slli(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::slli<COUNT>(a);
@@ -854,7 +854,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> slli(const Vec<T, SIMD_WIDTH> &a)
  * @param count number of bits to shift by
  * @return Vec containing the shifted elements of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sra(const Vec<T, SIMD_WIDTH> &a,
                                           const uint8_t count)
 {
@@ -871,7 +871,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sra(const Vec<T, SIMD_WIDTH> &a,
  * @param count number of bits to shift by
  * @return Vec containing the shifted elements of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srl(const Vec<T, SIMD_WIDTH> &a,
                                           const uint8_t count)
 {
@@ -888,7 +888,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srl(const Vec<T, SIMD_WIDTH> &a,
  * @param count number of bits to shift by
  * @return Vec containing the shifted elements of the input Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sll(const Vec<T, SIMD_WIDTH> &a,
                                           const uint8_t count)
 {
@@ -916,7 +916,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> sll(const Vec<T, SIMD_WIDTH> &a,
  * @sa mask_cmplt(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmplt(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
@@ -937,7 +937,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmplt(const Vec<T, SIMD_WIDTH> &a,
  * @sa mask_cmple(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmple(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
@@ -958,7 +958,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmple(const Vec<T, SIMD_WIDTH> &a,
  * @sa mask_cmpeq(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpeq(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
@@ -979,7 +979,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpeq(const Vec<T, SIMD_WIDTH> &a,
  * @sa mask_cmpge(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpge(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
@@ -1000,7 +1000,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpge(const Vec<T, SIMD_WIDTH> &a,
  * @sa mask_cmpgt(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpgt(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
@@ -1021,7 +1021,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpgt(const Vec<T, SIMD_WIDTH> &a,
  * @sa mask_cmpne(const Mask<T, SIMD_WIDTH> &, const Vec<T,
  * SIMD_WIDTH> &, const Vec<T, SIMD_WIDTH> &)
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpneq(const Vec<T, SIMD_WIDTH> &a,
                                              const Vec<T, SIMD_WIDTH> &b)
 {
@@ -1034,7 +1034,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpneq(const Vec<T, SIMD_WIDTH> &a,
  * @param a Vec to test
  * @return true if all bits are zero, false otherwise
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE bool test_all_zeros(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::test_all_zeros(a);
@@ -1046,7 +1046,7 @@ static SIMD_INLINE bool test_all_zeros(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to test
  * @return true if all bits are one, false otherwise
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE bool test_all_ones(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::test_all_ones(a);
@@ -1058,11 +1058,13 @@ static SIMD_INLINE bool test_all_ones(const Vec<T, SIMD_WIDTH> &a)
  * @ingroup group_extract
  * @brief Extracts a single value from a Vec.
  *
+ * Returns 0 if @p INDEX is out of range.
+ *
  * @tparam INDEX index of the value to extract
  * @param a Vec to extract from
  * @return extracted value
  */
-template <int INDEX, typename T, int SIMD_WIDTH>
+template <size_t INDEX, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T extract(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::extract<INDEX>(a);
@@ -1072,14 +1074,15 @@ static SIMD_INLINE T extract(const Vec<T, SIMD_WIDTH> &a)
  * @ingroup group_extract
  * @brief Extracts a 16-byte lane from a Vec as a Vec < T, 16 >.
  *
- * @tparam LANE_INDEX lane to extract Must be in the range [0, @p SIMD_WIDTH /
- * 16)
+ * @tparam LANE_INDEX lane to extract, must be less than @p SIMD_WIDTH / 16
  * @param a Vec to extract a lane from
  * @return extracted lane as a Vec < T, 16 >
  */
-template <int LANE_INDEX, typename T, int SIMD_WIDTH>
+template <size_t LANE_INDEX, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, SIMD_WIDTH> &a)
 {
+  static_assert(LANE_INDEX < SIMD_WIDTH / 16,
+                "LANE_INDEX must be less than SIMD_WIDTH / 16");
   return internal::base::extractLane<LANE_INDEX>(a);
 }
 
@@ -1090,7 +1093,7 @@ static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to reverse
  * @return Vec containing the elements of the input Vec in reverse order
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static Vec<T, SIMD_WIDTH> reverse(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::reverse(a);
@@ -1130,7 +1133,7 @@ static Vec<T, SIMD_WIDTH> reverse(const Vec<T, SIMD_WIDTH> &a)
  * potentially better performance
  * @sa unswizzle()
  */
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> v[N])
 {
   static_assert(N >= 1 && N <= 5, "N must be between 1 and 5");
@@ -1152,16 +1155,21 @@ static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH> v[N])
  *
  * @tparam PART selects which half of the input Vec's to use. A value of 0
  * selects the low half, a value of 1 selects the high half
- * @tparam NUM_ELEMS number of elements in a block This must be a power of two
+ * @tparam NUM_ELEMS number of elements in a block, this must be a power of two
  * (including 1) and be at most half of one Vec
  * @param a first input Vec
  * @param b second input Vec
  * @return interleaved Vec
  */
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t PART, size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack(const Vec<T, SIMD_WIDTH> &a,
                                              const Vec<T, SIMD_WIDTH> &b)
 {
+  static_assert(PART == 0 || PART == 1, "PART must be 0 or 1");
+  static_assert(NUM_ELEMS <= Vec<T, SIMD_WIDTH>::elements / 2,
+                "NUM_ELEMS must be at most half of one Vec");
+  static_assert(NUM_ELEMS > 0 && (NUM_ELEMS & (NUM_ELEMS - 1)) == 0,
+                "NUM_ELEMS must be a power of two");
   return internal::base::unpack(a, b, internal::Part<PART>(),
                                 internal::Bytes<NUM_ELEMS * sizeof(T)>());
 }
@@ -1186,17 +1194,22 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack(const Vec<T, SIMD_WIDTH> &a,
  *
  * @tparam PART selects which half of the lanes of the input Vec's to use. A
  * value of 0 selects the low half, a value of 1 selects the high half
- * @tparam NUM_ELEMS number of elements in a block This must be a power of two
+ * @tparam NUM_ELEMS number of elements in a block, must be a power of two
  * (including 1) and be at most half of one 16-byte lane of one Vec (i.e. at
  * most 8 bytes)
  * @param a first input Vec
  * @param b second input Vec
  * @return interleaved Vec
  */
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t PART, size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack16(const Vec<T, SIMD_WIDTH> &a,
                                                const Vec<T, SIMD_WIDTH> &b)
 {
+  static_assert(PART == 0 || PART == 1, "PART must be 0 or 1");
+  static_assert(NUM_ELEMS <= Vec<T, SIMD_WIDTH>::elements / 2,
+                "NUM_ELEMS must be at most half of one Vec");
+  static_assert(NUM_ELEMS > 0 && (NUM_ELEMS & (NUM_ELEMS - 1)) == 0,
+                "NUM_ELEMS must be a power of two");
   return internal::base::unpack16(a, b, internal::Part<PART>(),
                                   internal::Bytes<NUM_ELEMS * sizeof(T)>());
 }
@@ -1219,18 +1232,22 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack16(const Vec<T, SIMD_WIDTH> &a,
  * @sa unpack()
  * @sa unzip()
  *
- * @tparam NUM_ELEMS number of elements in a block This must be a power of two
+ * @tparam NUM_ELEMS number of elements in a block, must be a power of two
  * (including 1) and be at most half of one Vec
  * @param a first input Vec
  * @param b second input Vec
  * @param[out] l output Vec containing the low half of the interleaved blocks
  * @param[out] h output Vec containing the high half of the interleaved blocks
  */
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void zip(const Vec<T, SIMD_WIDTH> a,
                             const Vec<T, SIMD_WIDTH> b, Vec<T, SIMD_WIDTH> &l,
                             Vec<T, SIMD_WIDTH> &h)
 {
+  static_assert(NUM_ELEMS <= Vec<T, SIMD_WIDTH>::elements / 2,
+                "NUM_ELEMS must be at most half of one Vec");
+  static_assert(NUM_ELEMS > 0 && (NUM_ELEMS & (NUM_ELEMS - 1)) == 0,
+                "NUM_ELEMS must be a power of two");
   return internal::base::zip<NUM_ELEMS>(a, b, l, h);
 }
 
@@ -1254,18 +1271,22 @@ static SIMD_INLINE void zip(const Vec<T, SIMD_WIDTH> a,
  *
  * @sa unpack16()
  *
- * @tparam NUM_ELEMS number of elements in a block This must be a power of two
+ * @tparam NUM_ELEMS number of elements in a block, must be a power of two
  * (including 1) and be at most half of one Vec
  * @param a first input Vec
  * @param b second input Vec
  * @param[out] l output Vec containing the low half of the interleaved blocks
  * @param[out] h output Vec containing the high half of the interleaved blocks
  */
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void zip16(const Vec<T, SIMD_WIDTH> a,
                               const Vec<T, SIMD_WIDTH> b, Vec<T, SIMD_WIDTH> &l,
                               Vec<T, SIMD_WIDTH> &h)
 {
+  static_assert(NUM_ELEMS <= Vec<T, SIMD_WIDTH>::elements / 2,
+                "NUM_ELEMS must be at most half of one Vec");
+  static_assert(NUM_ELEMS > 0 && (NUM_ELEMS & (NUM_ELEMS - 1)) == 0,
+                "NUM_ELEMS must be a power of two");
   return internal::base::zip16<NUM_ELEMS>(a, b, l, h);
 }
 
@@ -1280,18 +1301,22 @@ static SIMD_INLINE void zip16(const Vec<T, SIMD_WIDTH> a,
  *
  * @sa zip()
  *
- * @tparam NUM_ELEMS number of elements in a block This must be a power of two
+ * @tparam NUM_ELEMS number of elements in a block, must be a power of two
  * (including 1) and be at most half of one Vec
  * @param a first input Vec
  * @param b second input Vec
  * @param[out] l output Vec containing the low half of the deinterleaved blocks
  * @param[out] h output Vec containing the high half of the deinterleaved blocks
  */
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void unzip(const Vec<T, SIMD_WIDTH> a,
                               const Vec<T, SIMD_WIDTH> b, Vec<T, SIMD_WIDTH> &l,
                               Vec<T, SIMD_WIDTH> &h)
 {
+  static_assert(NUM_ELEMS <= Vec<T, SIMD_WIDTH>::elements / 2,
+                "NUM_ELEMS must be at most half of one Vec");
+  static_assert(NUM_ELEMS > 0 && (NUM_ELEMS & (NUM_ELEMS - 1)) == 0,
+                "NUM_ELEMS must be a power of two");
   return internal::base::unzip(a, b, l, h,
                                internal::Bytes<NUM_ELEMS * sizeof(T)>());
 }
@@ -1305,7 +1330,7 @@ static SIMD_INLINE void unzip(const Vec<T, SIMD_WIDTH> a,
  * @param a Vec to shift
  * @return shifted Vec
  */
-template <int COUNT, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srle(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::srle<COUNT>(a);
@@ -1320,7 +1345,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srle(const Vec<T, SIMD_WIDTH> &a)
  * @param a Vec to shift
  * @return shifted Vec
  */
-template <int COUNT, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> slle(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::base::slle<COUNT>(a);
@@ -1337,7 +1362,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> slle(const Vec<T, SIMD_WIDTH> &a)
  * @param l second Vec The low half of the concatenated Vec
  * @return low half of the shifted concatenated Vec
  */
-template <int COUNT, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &h,
                                               const Vec<T, SIMD_WIDTH> &l)
 {
@@ -1365,7 +1390,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &h,
  * @param a, b The input Vec's.
  * @return Vec with the elements of a and b packed into one
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> &a,
                                                const Vec<Tin, SIMD_WIDTH> &b)
 {
@@ -1395,7 +1420,7 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> &a,
  * @param vIn input Vec
  * @param[out] vOut output Vec's
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE void extend(
   const Vec<Tin, SIMD_WIDTH> &vIn,
   Vec<Tout, SIMD_WIDTH> vOut[sizeof(Tout) / sizeof(Tin)])
@@ -1423,7 +1448,7 @@ static SIMD_INLINE void extend(
  * @ref Int or @ref Float, but not the same as @p Tout.
  * @param a input Vec
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> cvts(const Vec<Tin, SIMD_WIDTH> &a)
 {
   static_assert(

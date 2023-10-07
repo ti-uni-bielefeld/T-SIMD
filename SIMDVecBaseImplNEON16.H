@@ -61,6 +61,7 @@
 #include "SIMDVec.H"
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
 
@@ -79,65 +80,27 @@ namespace base {
 // -------------------------------------------------------------------------
 
 template <typename T>
-struct SIMDVecNeon;
-
-#define SIMDVEC_NEON(T, NEON_T, NUM, NUM64)                                    \
-  template <>                                                                  \
-  struct SIMDVecNeon<T>                                                        \
-  {                                                                            \
-    using ScalarType = NEON_T##_t;                                             \
-    using Type       = NEON_T##x##NUM##_t;                                     \
-    using Type64     = NEON_T##x##NUM64##_t;                                   \
-    using TypeX2     = NEON_T##x##NUM##x2_t;                                   \
-  };
-
-SIMDVEC_NEON(Byte, uint8, 16, 8)
-SIMDVEC_NEON(SignedByte, int8, 16, 8)
-SIMDVEC_NEON(Word, uint16, 8, 4)
-SIMDVEC_NEON(Short, int16, 8, 4)
-SIMDVEC_NEON(Int, int32, 4, 2)
-SIMDVEC_NEON(Float, float32, 4, 2)
+struct _NEONRegType;
+// clang-format off
+template <> struct _NEONRegType<Byte> { using Type = uint8x16_t; };
+template <> struct _NEONRegType<SignedByte> { using Type = int8x16_t; };
+template <> struct _NEONRegType<Word> { using Type = uint16x8_t; };
+template <> struct _NEONRegType<Short> { using Type = int16x8_t; };
+template <> struct _NEONRegType<Int> { using Type = int32x4_t; };
+template <> struct _NEONRegType<Float> { using Type = float32x4_t; };
 #ifdef SIMD_DOUBLE
-SIMDVEC_NEON(Double, float64, 2, 1)
+template <> struct _NEONRegType<Double> { using Type = float64x2_t; };
 #endif
+// clang-format on
 
-// -------------------------------------------------------------------------
-// single element array type (for generalizations)
-// -------------------------------------------------------------------------
-
-// defined as the other array types in arm_neon.h
-// but with type conversion constructor and operator=
-#define SIMDVEC_NEON_64X1(NEON_T)                                              \
-  struct NEON_T##x1_t                                                          \
-  {                                                                            \
-    NEON_T##_t val[1];                                                         \
-    NEON_T##x1_t() {}                                                          \
-    NEON_T##x1_t(const NEON_T##_t &x)                                          \
-    {                                                                          \
-      val[0] = x;                                                              \
-    }                                                                          \
-    NEON_T##x1_t &operator=(const NEON_T##_t &x)                               \
-    {                                                                          \
-      val[0] = x;                                                              \
-      return *this;                                                            \
-    }                                                                          \
-  };
-
-SIMDVEC_NEON_64X1(uint8x8)
-SIMDVEC_NEON_64X1(int8x8)
-SIMDVEC_NEON_64X1(uint16x4)
-SIMDVEC_NEON_64X1(int16x4)
-SIMDVEC_NEON_64X1(int32x2)
-SIMDVEC_NEON_64X1(float32x2)
-#ifdef SIMD_DOUBLE
-SIMDVEC_NEON_64X1(float64x1)
-#endif
+template <typename T>
+using NEONRegType = typename _NEONRegType<T>::Type;
 
 // -------------------------------------------------------------------------
 // 64bit array type collection
 // -------------------------------------------------------------------------
 
-template <int N, typename T>
+template <size_t N, typename T>
 struct SIMDVecNeonArray64;
 
 #define SIMDVEC_NEON_ARRAY64(NUM, T, NEON_T)                                   \
@@ -164,6 +127,9 @@ SIMDVEC_NEON_ARRAY64_ALLNUM(Float, float32x2)
 SIMDVEC_NEON_ARRAY64_ALLNUM(Double, float64x1)
 #endif
 
+#undef SIMDVEC_NEON_ARRAY64
+#undef SIMDVEC_NEON_ARRAY64_ALLNUM
+
 } // namespace base
 } // namespace internal
 
@@ -174,14 +140,14 @@ SIMDVEC_NEON_ARRAY64_ALLNUM(Double, float64x1)
 template <typename T>
 class Vec<T, 16>
 {
-  using RegType = typename internal::base::SIMDVecNeon<T>::Type;
+  using RegType = internal::base::NEONRegType<T>;
   RegType reg   = {};
 
 public:
-  using Type                    = T;
-  static constexpr int elements = 16 / sizeof(T);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = 16;
+  using Type                       = T;
+  static constexpr size_t elements = 16 / sizeof(T);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = 16;
 
   Vec() = default;
   Vec(const RegType &x) { reg = x; }
@@ -202,94 +168,65 @@ public:
   using allocator = simd_aligned_allocator<Vec<T, bytes>, bytes>;
 };
 
-// =========================================================================
-// auxiliary NEON functions
-// =========================================================================
-
-// -------------------------------------------------------------------------
-// vreinterpret[q] with same input and output type (not avail. as intrinsic)
-// -------------------------------------------------------------------------
-
-#define SIMDVEC_NEON_VREINTERPRET_SAME(T, NEON_SUF)                            \
-  static SIMD_INLINE typename internal::base::SIMDVecNeon<T>::Type             \
-    vreinterpretq_##NEON_SUF##_##NEON_SUF(                                     \
-      typename internal::base::SIMDVecNeon<T>::Type a)                         \
-  {                                                                            \
-    return a;                                                                  \
-  }                                                                            \
-  static SIMD_INLINE typename internal::base::SIMDVecNeon<T>::Type64           \
-    vreinterpret_##NEON_SUF##_##NEON_SUF(                                      \
-      typename internal::base::SIMDVecNeon<T>::Type64 a)                       \
-  {                                                                            \
-    return a;                                                                  \
-  }
-
-SIMDVEC_NEON_VREINTERPRET_SAME(Byte, u8)
-SIMDVEC_NEON_VREINTERPRET_SAME(SignedByte, s8)
-SIMDVEC_NEON_VREINTERPRET_SAME(Word, u16)
-SIMDVEC_NEON_VREINTERPRET_SAME(Short, s16)
-SIMDVEC_NEON_VREINTERPRET_SAME(Int, s32)
-SIMDVEC_NEON_VREINTERPRET_SAME(Float, f32)
-#ifdef SIMD_DOUBLE
-SIMDVEC_NEON_VREINTERPRET_SAME(Double, f64)
-#endif
-
 namespace internal {
 namespace base {
 
+// =========================================================================
+// macros for common functions
+// =========================================================================
+
 // -------------------------------------------------------------------------
-// replace a NEON function by a different NEON function
+// binary functions (same input and output type)
 // -------------------------------------------------------------------------
 
-#define SIMDVEC_NEON_BINARY_REPLACE(T, NEON_FCT, NEON_REPL_FCT, NEON_SUF)      \
-  static SIMD_INLINE typename SIMDVecNeon<T>::Type NEON_FCT##_##NEON_SUF(      \
-    typename SIMDVecNeon<T>::Type a, typename SIMDVecNeon<T>::Type b)          \
+// wrapper for arbitrary binary function
+#define SIMDVEC_NEON_BINARY(FCT, TYPE, NEON_FCT, NEON_SUF)                     \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
+                                       const Vec<TYPE, 16> &b)                 \
   {                                                                            \
-    return NEON_REPL_FCT##_##NEON_SUF(a, b);                                   \
+    return NEON_FCT##_##NEON_SUF(a, b);                                        \
   }
 
-// -------------------------------------------------------------------------
-// implement float operation by int operation
-// -------------------------------------------------------------------------
+#define SIMDVEC_NEON_BINARY_ALLINT(FCT, NEON_FCT)                              \
+  SIMDVEC_NEON_BINARY(FCT, Byte, NEON_FCT, u8)                                 \
+  SIMDVEC_NEON_BINARY(FCT, SignedByte, NEON_FCT, s8)                           \
+  SIMDVEC_NEON_BINARY(FCT, Word, NEON_FCT, u16)                                \
+  SIMDVEC_NEON_BINARY(FCT, Short, NEON_FCT, s16)                               \
+  SIMDVEC_NEON_BINARY(FCT, Int, NEON_FCT, s32)
 
 #ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_BINARY_FLOAT_BY_INT(NEON_FCT)                             \
-  static SIMD_INLINE float32x4_t NEON_FCT##_f32(float32x4_t a, float32x4_t b)  \
-  {                                                                            \
-    return vreinterpretq_f32_s32(                                              \
-      NEON_FCT##_s32(vreinterpretq_s32_f32(a), vreinterpretq_s32_f32(b)));     \
-  }                                                                            \
-  static SIMD_INLINE float64x2_t NEON_FCT##_f64(float64x2_t a, float64x2_t b)  \
-  {                                                                            \
-    return vreinterpretq_f64_s64(                                              \
-      NEON_FCT##_s64(vreinterpretq_s64_f64(a), vreinterpretq_s64_f64(b)));     \
-  }
+#define SIMDVEC_NEON_BINARY_ALLFLOAT(FCT, NEON_FCT)                            \
+  SIMDVEC_NEON_BINARY(FCT, Float, NEON_FCT, f32)                               \
+  SIMDVEC_NEON_BINARY(FCT, Double, NEON_FCT, f64)
 #else
-#define SIMDVEC_NEON_BINARY_FLOAT_BY_INT(NEON_FCT)                             \
-  static SIMD_INLINE float32x4_t NEON_FCT##_f32(float32x4_t a, float32x4_t b)  \
-  {                                                                            \
-    return vreinterpretq_f32_s32(                                              \
-      NEON_FCT##_s32(vreinterpretq_s32_f32(a), vreinterpretq_s32_f32(b)));     \
-  }
+#define SIMDVEC_NEON_BINARY_ALLFLOAT(FCT, NEON_FCT)                            \
+  SIMDVEC_NEON_BINARY(FCT, Float, NEON_FCT, f32)
 #endif
 
+#define SIMDVEC_NEON_BINARY_ALL(FCT, NEON_FCT)                                 \
+  SIMDVEC_NEON_BINARY_ALLINT(FCT, NEON_FCT)                                    \
+  SIMDVEC_NEON_BINARY_ALLFLOAT(FCT, NEON_FCT)
+
 // -------------------------------------------------------------------------
-// implement float operation by int operation (64 bit width)
+// unary functions
 // -------------------------------------------------------------------------
 
-#define SIMDVEC_NEON_BINARY_FLOAT_BY_INT_64(NEON_FCT)                          \
-  static SIMD_INLINE float32x2_t NEON_FCT##_f32(float32x2_t a, float32x2_t b)  \
+#define SIMDVEC_NEON_UNARY(FCT, TYPE, NEON_FCT, NEON_SUF)                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a)                 \
   {                                                                            \
-    return vreinterpret_f32_s32(                                               \
-      NEON_FCT##_s32(vreinterpret_s32_f32(a), vreinterpret_s32_f32(b)));       \
+    return NEON_FCT##_##NEON_SUF(a);                                           \
   }
 
+// #########################################################################
+// #########################################################################
+// #########################################################################
+
 // =========================================================================
-// macros
+// Vec function instantiations or overloading for NEON
 // =========================================================================
 
 // -------------------------------------------------------------------------
-// reinterpret
+// reinterpretation casts
 // -------------------------------------------------------------------------
 
 // wrapper for vreinterpretq
@@ -321,780 +258,18 @@ namespace base {
 #endif
 
 // wrapper for all dst and src types
+SIMDVEC_NEON_REINTERP_ALLDST(Byte, u8)
+SIMDVEC_NEON_REINTERP_ALLDST(SignedByte, s8)
+SIMDVEC_NEON_REINTERP_ALLDST(Word, u16)
+SIMDVEC_NEON_REINTERP_ALLDST(Short, s16)
+SIMDVEC_NEON_REINTERP_ALLDST(Int, s32)
+SIMDVEC_NEON_REINTERP_ALLDST(Float, f32)
 #ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_REINTERP_ALL()                                            \
-  SIMDVEC_NEON_REINTERP_ALLDST(Byte, u8)                                       \
-  SIMDVEC_NEON_REINTERP_ALLDST(SignedByte, s8)                                 \
-  SIMDVEC_NEON_REINTERP_ALLDST(Word, u16)                                      \
-  SIMDVEC_NEON_REINTERP_ALLDST(Short, s16)                                     \
-  SIMDVEC_NEON_REINTERP_ALLDST(Int, s32)                                       \
-  SIMDVEC_NEON_REINTERP_ALLDST(Float, f32)                                     \
-  SIMDVEC_NEON_REINTERP_ALLDST(Double, f64)
-#else
-#define SIMDVEC_NEON_REINTERP_ALL()                                            \
-  SIMDVEC_NEON_REINTERP_ALLDST(Byte, u8)                                       \
-  SIMDVEC_NEON_REINTERP_ALLDST(SignedByte, s8)                                 \
-  SIMDVEC_NEON_REINTERP_ALLDST(Word, u16)                                      \
-  SIMDVEC_NEON_REINTERP_ALLDST(Short, s16)                                     \
-  SIMDVEC_NEON_REINTERP_ALLDST(Int, s32)                                       \
-  SIMDVEC_NEON_REINTERP_ALLDST(Float, f32)
+SIMDVEC_NEON_REINTERP_ALLDST(Double, f64)
 #endif
 
-// -------------------------------------------------------------------------
-// binary functions (same input and output type)
-// -------------------------------------------------------------------------
-
-// wrapper for arbitrary binary function
-#define SIMDVEC_NEON_BINARY(FCT, TYPE, NEON_FCT, NEON_SUF)                     \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       const Vec<TYPE, 16> &b)                 \
-  {                                                                            \
-    return NEON_FCT##_##NEON_SUF(a, b);                                        \
-  }
-
-// wrapper for arbitary binary function for all types
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_BINARY_ALL(FCT, NEON_FCT)                                 \
-  SIMDVEC_NEON_BINARY(FCT, Byte, NEON_FCT, u8)                                 \
-  SIMDVEC_NEON_BINARY(FCT, SignedByte, NEON_FCT, s8)                           \
-  SIMDVEC_NEON_BINARY(FCT, Word, NEON_FCT, u16)                                \
-  SIMDVEC_NEON_BINARY(FCT, Short, NEON_FCT, s16)                               \
-  SIMDVEC_NEON_BINARY(FCT, Int, NEON_FCT, s32)                                 \
-  SIMDVEC_NEON_BINARY(FCT, Float, NEON_FCT, f32)                               \
-  SIMDVEC_NEON_BINARY(FCT, Double, NEON_FCT, f64)
-#else
-#define SIMDVEC_NEON_BINARY_ALL(FCT, NEON_FCT)                                 \
-  SIMDVEC_NEON_BINARY(FCT, Byte, NEON_FCT, u8)                                 \
-  SIMDVEC_NEON_BINARY(FCT, SignedByte, NEON_FCT, s8)                           \
-  SIMDVEC_NEON_BINARY(FCT, Word, NEON_FCT, u16)                                \
-  SIMDVEC_NEON_BINARY(FCT, Short, NEON_FCT, s16)                               \
-  SIMDVEC_NEON_BINARY(FCT, Int, NEON_FCT, s32)                                 \
-  SIMDVEC_NEON_BINARY(FCT, Float, NEON_FCT, f32)
-#endif
-
-// wrapper for arbitary binary function for all integer types
-#define SIMDVEC_NEON_BINARY_ALLINT(FCT, NEON_FCT)                              \
-  SIMDVEC_NEON_BINARY(FCT, Byte, NEON_FCT, u8)                                 \
-  SIMDVEC_NEON_BINARY(FCT, SignedByte, NEON_FCT, s8)                           \
-  SIMDVEC_NEON_BINARY(FCT, Word, NEON_FCT, u16)                                \
-  SIMDVEC_NEON_BINARY(FCT, Short, NEON_FCT, s16)                               \
-  SIMDVEC_NEON_BINARY(FCT, Int, NEON_FCT, s32)
-
-// -------------------------------------------------------------------------
-// binary functions (with reinterpret (from unsigned) to avoid type change)
-// -------------------------------------------------------------------------
-
-// wrapper for arbitrary binary function (with reinterpret...)
-#define SIMDVEC_NEON_BINARY_REINTERP(FCT, TYPE, NEON_FCT, NEON_SUF, NEON_USUF) \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       const Vec<TYPE, 16> &b)                 \
-  {                                                                            \
-    return vreinterpretq_##NEON_SUF##_##NEON_USUF(                             \
-      NEON_FCT##_##NEON_SUF(a, b));                                            \
-  }
-
-// wrapper for arbitary binary function for all types (with reinterpret...)
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_BINARY_REINTERP_ALL(FCT, NEON_FCT)                        \
-  SIMDVEC_NEON_BINARY(FCT, Byte, NEON_FCT, u8)                                 \
-  SIMDVEC_NEON_BINARY_REINTERP(FCT, SignedByte, NEON_FCT, s8, u8)              \
-  SIMDVEC_NEON_BINARY(FCT, Word, NEON_FCT, u16)                                \
-  SIMDVEC_NEON_BINARY_REINTERP(FCT, Short, NEON_FCT, s16, u16)                 \
-  SIMDVEC_NEON_BINARY_REINTERP(FCT, Int, NEON_FCT, s32, u32)                   \
-  SIMDVEC_NEON_BINARY_REINTERP(FCT, Float, NEON_FCT, f32, u32)                 \
-  SIMDVEC_NEON_BINARY_REINTERP(FCT, Double, NEON_FCT, f64, u64)
-#else
-#define SIMDVEC_NEON_BINARY_REINTERP_ALL(FCT, NEON_FCT)                        \
-  SIMDVEC_NEON_BINARY(FCT, Byte, NEON_FCT, u8)                                 \
-  SIMDVEC_NEON_BINARY_REINTERP(FCT, SignedByte, NEON_FCT, s8, u8)              \
-  SIMDVEC_NEON_BINARY(FCT, Word, NEON_FCT, u16)                                \
-  SIMDVEC_NEON_BINARY_REINTERP(FCT, Short, NEON_FCT, s16, u16)                 \
-  SIMDVEC_NEON_BINARY_REINTERP(FCT, Int, NEON_FCT, s32, u32)                   \
-  SIMDVEC_NEON_BINARY_REINTERP(FCT, Float, NEON_FCT, f32, u32)
-#endif
-
-// -------------------------------------------------------------------------
-// unary functions
-// -------------------------------------------------------------------------
-
-#define SIMDVEC_NEON_UNARY(FCT, TYPE, NEON_FCT, NEON_SUF)                      \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a)                 \
-  {                                                                            \
-    return NEON_FCT##_##NEON_SUF(a);                                           \
-  }
-
-// wrapper for arbitary unary function for all types
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_UNARY_ALL(FCT, NEON_FCT)                                  \
-  SIMDVEC_NEON_UNARY(FCT, Byte, NEON_FCT, u8)                                  \
-  SIMDVEC_NEON_UNARY(FCT, SignedByte, NEON_FCT, s8)                            \
-  SIMDVEC_NEON_UNARY(FCT, Word, NEON_FCT, u16)                                 \
-  SIMDVEC_NEON_UNARY(FCT, Short, NEON_FCT, s16)                                \
-  SIMDVEC_NEON_UNARY(FCT, Int, NEON_FCT, s32)                                  \
-  SIMDVEC_NEON_UNARY(FCT, Float, NEON_FCT, f32)                                \
-  SIMDVEC_NEON_UNARY(FCT, Double, NEON_FCT, f64)
-#else
-#define SIMDVEC_NEON_UNARY_ALL(FCT, NEON_FCT)                                  \
-  SIMDVEC_NEON_UNARY(FCT, Byte, NEON_FCT, u8)                                  \
-  SIMDVEC_NEON_UNARY(FCT, SignedByte, NEON_FCT, s8)                            \
-  SIMDVEC_NEON_UNARY(FCT, Word, NEON_FCT, u16)                                 \
-  SIMDVEC_NEON_UNARY(FCT, Short, NEON_FCT, s16)                                \
-  SIMDVEC_NEON_UNARY(FCT, Int, NEON_FCT, s32)                                  \
-  SIMDVEC_NEON_UNARY(FCT, Float, NEON_FCT, f32)
-#endif
-
-// wrapper for arbitary unary function for all signed types
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_UNARY_ALLSIGNED(FCT, NEON_FCT)                            \
-  SIMDVEC_NEON_UNARY(FCT, SignedByte, NEON_FCT, s8)                            \
-  SIMDVEC_NEON_UNARY(FCT, Short, NEON_FCT, s16)                                \
-  SIMDVEC_NEON_UNARY(FCT, Int, NEON_FCT, s32)                                  \
-  SIMDVEC_NEON_UNARY(FCT, Float, NEON_FCT, f32)                                \
-  SIMDVEC_NEON_UNARY(FCT, Double, NEON_FCT, f64)
-#else
-#define SIMDVEC_NEON_UNARY_ALLSIGNED(FCT, NEON_FCT)                            \
-  SIMDVEC_NEON_UNARY(FCT, SignedByte, NEON_FCT, s8)                            \
-  SIMDVEC_NEON_UNARY(FCT, Short, NEON_FCT, s16)                                \
-  SIMDVEC_NEON_UNARY(FCT, Int, NEON_FCT, s32)                                  \
-  SIMDVEC_NEON_UNARY(FCT, Float, NEON_FCT, f32)
-#endif
-
-// wrapper for arbitary unary function for all integer types
-#define SIMDVEC_NEON_UNARY_ALLINT(FCT, NEON_FCT)                               \
-  SIMDVEC_NEON_UNARY(FCT, Byte, NEON_FCT, u8)                                  \
-  SIMDVEC_NEON_UNARY(FCT, SignedByte, NEON_FCT, s8)                            \
-  SIMDVEC_NEON_UNARY(FCT, Word, NEON_FCT, u16)                                 \
-  SIMDVEC_NEON_UNARY(FCT, Short, NEON_FCT, s16)                                \
-  SIMDVEC_NEON_UNARY(FCT, Int, NEON_FCT, s32)
-
-// -------------------------------------------------------------------------
-// template function with scalar input
-// -------------------------------------------------------------------------
-
-#define SIMDVEC_NEON_TMPLT_SCALAR(FCT, TYPE, NEON_FCT, NEON_SUF)               \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(TYPE a, Integer<16>)                    \
-  {                                                                            \
-    return NEON_FCT##_##NEON_SUF(a);                                           \
-  }
-
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_TMPLT_SCALAR_ALL(FCT, NEON_FCT)                           \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Byte, NEON_FCT, u8)                           \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, SignedByte, NEON_FCT, s8)                     \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Word, NEON_FCT, u16)                          \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Short, NEON_FCT, s16)                         \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Int, NEON_FCT, s32)                           \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Float, NEON_FCT, f32)                         \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Double, NEON_FCT, f64)
-#else
-#define SIMDVEC_NEON_TMPLT_SCALAR_ALL(FCT, NEON_FCT)                           \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Byte, NEON_FCT, u8)                           \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, SignedByte, NEON_FCT, s8)                     \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Word, NEON_FCT, u16)                          \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Short, NEON_FCT, s16)                         \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Int, NEON_FCT, s32)                           \
-  SIMDVEC_NEON_TMPLT_SCALAR(FCT, Float, NEON_FCT, f32)
-#endif
-
-// -------------------------------------------------------------------------
-// template function with pointer input
-// -------------------------------------------------------------------------
-
-#define SIMDVEC_NEON_TMPLT_PTR(FCT, TYPE, NEON_FCT, NEON_SUF)                  \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const TYPE *const p, Integer<16>)       \
-  {                                                                            \
-    return NEON_FCT##_##NEON_SUF(p);                                           \
-  }
-
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_TMPLT_PTR_ALL(FCT, NEON_FCT)                              \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Byte, NEON_FCT, u8)                              \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, SignedByte, NEON_FCT, s8)                        \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Word, NEON_FCT, u16)                             \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Short, NEON_FCT, s16)                            \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Int, NEON_FCT, s32)                              \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Float, NEON_FCT, f32)                            \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Double, NEON_FCT, f64)
-#else
-#define SIMDVEC_NEON_TMPLT_PTR_ALL(FCT, NEON_FCT)                              \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Byte, NEON_FCT, u8)                              \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, SignedByte, NEON_FCT, s8)                        \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Word, NEON_FCT, u16)                             \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Short, NEON_FCT, s16)                            \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Int, NEON_FCT, s32)                              \
-  SIMDVEC_NEON_TMPLT_PTR(FCT, Float, NEON_FCT, f32)
-#endif
-
-// -------------------------------------------------------------------------
-// template function without input variable but immediate parameter
-// -------------------------------------------------------------------------
-
-#define SIMDVEC_NEON_TMPLT_IMM(FCT, TYPE, NEON_FCT, NEON_SUF, NEON_ARG)        \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(OutputType<TYPE>, Integer<16>)          \
-  {                                                                            \
-    return NEON_FCT##_##NEON_SUF(TYPE(NEON_ARG));                              \
-  }
-
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_TMPLT_IMM_ALL(FCT, NEON_FCT, NEON_ARG)                    \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Byte, NEON_FCT, u8, NEON_ARG)                    \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, SignedByte, NEON_FCT, s8, NEON_ARG)              \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Word, NEON_FCT, u16, NEON_ARG)                   \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Short, NEON_FCT, s16, NEON_ARG)                  \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Int, NEON_FCT, s32, NEON_ARG)                    \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Float, NEON_FCT, f32, NEON_ARG)                  \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Double, NEON_FCT, f64, NEON_ARG)
-#else
-#define SIMDVEC_NEON_TMPLT_IMM_ALL(FCT, NEON_FCT, NEON_ARG)                    \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Byte, NEON_FCT, u8, NEON_ARG)                    \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, SignedByte, NEON_FCT, s8, NEON_ARG)              \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Word, NEON_FCT, u16, NEON_ARG)                   \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Short, NEON_FCT, s16, NEON_ARG)                  \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Int, NEON_FCT, s32, NEON_ARG)                    \
-  SIMDVEC_NEON_TMPLT_IMM(FCT, Float, NEON_FCT, f32, NEON_ARG)
-#endif
-
-// -------------------------------------------------------------------------
-// function with pointer and vector input
-// -------------------------------------------------------------------------
-
-#define SIMDVEC_NEON_PTR_VEC(FCT, TYPE, NEON_FCT, NEON_SUF)                    \
-  static SIMD_INLINE void FCT(TYPE *const p, const Vec<TYPE, 16> &a)           \
-  {                                                                            \
-    return NEON_FCT##_##NEON_SUF(p, a);                                        \
-  }
-
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_PTR_VEC_ALL(FCT, NEON_FCT)                                \
-  SIMDVEC_NEON_PTR_VEC(FCT, Byte, NEON_FCT, u8)                                \
-  SIMDVEC_NEON_PTR_VEC(FCT, SignedByte, NEON_FCT, s8)                          \
-  SIMDVEC_NEON_PTR_VEC(FCT, Word, NEON_FCT, u16)                               \
-  SIMDVEC_NEON_PTR_VEC(FCT, Short, NEON_FCT, s16)                              \
-  SIMDVEC_NEON_PTR_VEC(FCT, Int, NEON_FCT, s32)                                \
-  SIMDVEC_NEON_PTR_VEC(FCT, Float, NEON_FCT, f32)                              \
-  SIMDVEC_NEON_PTR_VEC(FCT, Double, NEON_FCT, f64)
-#else
-#define SIMDVEC_NEON_PTR_VEC_ALL(FCT, NEON_FCT)                                \
-  SIMDVEC_NEON_PTR_VEC(FCT, Byte, NEON_FCT, u8)                                \
-  SIMDVEC_NEON_PTR_VEC(FCT, SignedByte, NEON_FCT, s8)                          \
-  SIMDVEC_NEON_PTR_VEC(FCT, Word, NEON_FCT, u16)                               \
-  SIMDVEC_NEON_PTR_VEC(FCT, Short, NEON_FCT, s16)                              \
-  SIMDVEC_NEON_PTR_VEC(FCT, Int, NEON_FCT, s32)                                \
-  SIMDVEC_NEON_PTR_VEC(FCT, Float, NEON_FCT, f32)
-#endif
-
-// -------------------------------------------------------------------------
-// template function with scalar result and vector + immed. tmpl. argument
-// -------------------------------------------------------------------------
-
-#define SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)      \
-  template <int IMM>                                                           \
-  static SIMD_INLINE TYPE FCT(const Vec<TYPE, 16> &a,                          \
-                              IsPosInRange<true, true>)                        \
-  {                                                                            \
-    return NEON_FCT##_##NEON_SUF(a, IMM);                                      \
-  }                                                                            \
-  template <int IMM>                                                           \
-  static SIMD_INLINE TYPE FCT(const Vec<TYPE, 16> &,                           \
-                              IsPosInRange<true, false>)                       \
-  {                                                                            \
-    return TYPE(0);                                                            \
-  }                                                                            \
-  template <int IMM>                                                           \
-  static SIMD_INLINE TYPE FCT(const Vec<TYPE, 16> &a)                          \
-  {                                                                            \
-    return FCT<IMM>(a, IsPosInGivenRange<RANGE, IMM>());                       \
-  }
-
-// RANGE parameter relates to no. of elements
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_SCALAR_VEC_IMM_ALL(FCT, NEON_FCT)                         \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Byte, NEON_FCT, u8, 16)                     \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, SignedByte, NEON_FCT, s8, 16)               \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Word, NEON_FCT, u16, 8)                     \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Short, NEON_FCT, s16, 8)                    \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Int, NEON_FCT, s32, 4)                      \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Float, NEON_FCT, f32, 4)                    \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Double, NEON_FCT, f64, 2)
-#else
-#define SIMDVEC_NEON_SCALAR_VEC_IMM_ALL(FCT, NEON_FCT)                         \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Byte, NEON_FCT, u8, 16)                     \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, SignedByte, NEON_FCT, s8, 16)               \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Word, NEON_FCT, u16, 8)                     \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Short, NEON_FCT, s16, 8)                    \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Int, NEON_FCT, s32, 4)                      \
-  SIMDVEC_NEON_SCALAR_VEC_IMM(FCT, Float, NEON_FCT, f32, 4)
-#endif
-
-// -------------------------------------------------------------------------
-// template function with vector result and vector + immediate argument
-// -------------------------------------------------------------------------
-
-// this is rather specific for shift instructions
-
-// it was necessary to introduce a special case IMM == 0, since this
-// is not allowed for the shift intrinsics (just returns the
-// argument); since the ARM docs aren't clear in this point, we also
-// treat the case IMM == no-of-bits as special case (in two
-// versions: one using FCT on RANGE-1, the other setting result to
-// zero)
-
-#define SIMDVEC_NEON_VEC_VEC_IMM(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)         \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<true, true, true>)  \
-  {                                                                            \
-    return NEON_FCT##_##NEON_SUF(a, IMM);                                      \
-  }                                                                            \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<true, false, true>) \
-  {                                                                            \
-    return a;                                                                  \
-  }                                                                            \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a)                 \
-  {                                                                            \
-    return FCT<IMM>(a, IsPosNonZeroInGivenRange<RANGE, IMM>());                \
-  }
-
-// out-of-range implemented with FCT of RANGE-1
-#define SIMDVEC_NEON_VEC_VEC_IMM_OORFCT(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)  \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<true, true, false>) \
-  {                                                                            \
-    return NEON_FCT##_##NEON_SUF(a, (RANGE - 1));                              \
-  }                                                                            \
-  SIMDVEC_NEON_VEC_VEC_IMM(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)
-
-// out-of-range implemented with set-to-zero
-#define SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE) \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &,                  \
-                                       IsPosNonZeroInRange<true, true, false>) \
-  {                                                                            \
-    return vmovq_n_##NEON_SUF(TYPE(0));                                        \
-  }                                                                            \
-  SIMDVEC_NEON_VEC_VEC_IMM(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)
-
-/*
-// not used at the moment
-// TODO: two OOR versions would be required if this is used at some point
-#define SIMDVEC_NEON_VEC_VEC_IMM_ALL(FCT,NEON_FCT)			\
-SIMDVEC_NEON_VEC_VEC_IMM(FCT,Byte,NEON_FCT,u8,8)			\
-SIMDVEC_NEON_VEC_VEC_IMM(FCT,SignedByte,NEON_FCT,s8,8)		\
-SIMDVEC_NEON_VEC_VEC_IMM(FCT,Word,NEON_FCT,u16,16)		\
-SIMDVEC_NEON_VEC_VEC_IMM(FCT,Short,NEON_FCT,s16, 16)		\
-SIMDVEC_NEON_VEC_VEC_IMM(FCT,Int,NEON_FCT,s32,32)			\
-SIMDVEC_NEON_VEC_VEC_IMM(FCT,Float,NEON_FCT,f32,32)
-*/
-
-#define SIMDVEC_NEON_VEC_VEC_IMM_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)  \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<true, true, true>)  \
-  {                                                                            \
-    return vreinterpretq_##NSUF##_##NSUF2(                                     \
-      NFCT##_##NSUF2(vreinterpretq_##NSUF2##_##NSUF(a), IMM));                 \
-  }                                                                            \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<true, false, true>) \
-  {                                                                            \
-    return a;                                                                  \
-  }                                                                            \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a)                 \
-  {                                                                            \
-    return FCT<IMM>(a, IsPosNonZeroInGivenRange<RANGE, IMM>());                \
-  }
-
-#define SIMDVEC_NEON_VEC_VEC_IMM_REINTER_OORFCT(FCT, TYPE, NFCT, NSUF, NSUF2,  \
-                                                RANGE)                         \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<true, true, false>) \
-  {                                                                            \
-    return vreinterpretq_##NSUF##_##NSUF2(                                     \
-      NFCT##_##NSUF2(vreinterpretq_##NSUF2##_##NSUF(a), (RANGE - 1)));         \
-  }                                                                            \
-  SIMDVEC_NEON_VEC_VEC_IMM_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)
-
-#define SIMDVEC_NEON_VEC_VEC_IMM_REINTER_OORZERO(FCT, TYPE, NFCT, NSUF, NSUF2, \
-                                                 RANGE)                        \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &,                  \
-                                       IsPosNonZeroInRange<true, true, false>) \
-  {                                                                            \
-    return vmovq_n_##NSUF(TYPE(0));                                            \
-  }                                                                            \
-  SIMDVEC_NEON_VEC_VEC_IMM_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)
-
-// -------------------------------------------------------------------------
-// alignre
-// -------------------------------------------------------------------------
-
-#define SIMDVEC_NEON_ALIGNRE_0(TYPE, NEON_SUF)                                 \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> alignre(                                    \
-    const Vec<TYPE, 16> &, const Vec<TYPE, 16> &l,                             \
-    Range<true, true, 0, Vec<TYPE, 16>::elements>)                             \
-  {                                                                            \
-    return l;                                                                  \
-  }
-
-#define SIMDVEC_NEON_ALIGNRE_0_E(TYPE, NEON_SUF)                               \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> alignre(                                    \
-    const Vec<TYPE, 16> &h, const Vec<TYPE, 16> &l,                            \
-    Range<true, false, 0, Vec<TYPE, 16>::elements>)                            \
-  {                                                                            \
-    return vextq_##NEON_SUF(l, h, IMM);                                        \
-  }
-
-#define SIMDVEC_NEON_ALIGNRE_E(TYPE, NEON_SUF)                                 \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> alignre(                                    \
-    const Vec<TYPE, 16> &h, const Vec<TYPE, 16> &,                             \
-    Range<true, true, Vec<TYPE, 16>::elements, 2 * Vec<TYPE, 16>::elements>)   \
-  {                                                                            \
-    return h;                                                                  \
-  }
-
-#define SIMDVEC_NEON_ALIGNRE_E_2E(TYPE, NEON_SUF)                              \
-  template <int IMM>                                                           \
-  static SIMD_INLINE Vec<TYPE, 16> alignre(                                    \
-    const Vec<TYPE, 16> &h, const Vec<TYPE, 16> &,                             \
-    Range<true, false, Vec<TYPE, 16>::elements, 2 * Vec<TYPE, 16>::elements>)  \
-  {                                                                            \
-    const int imm = IMM - Vec<TYPE, 16>::elements;                             \
-    return vextq_##NEON_SUF(h, vmovq_n_##NEON_SUF(TYPE(0)), imm);              \
-  }
-
-#define SIMDVEC_NEON_ALIGNRE_OTHER(TYPE, NEON_SUF)                             \
-  template <int IMM, bool AT_LL, int LL_INCL, int UL_EXCL>                     \
-  static SIMD_INLINE Vec<TYPE, 16> alignre(                                    \
-    const Vec<TYPE, 16> &, const Vec<TYPE, 16> &,                              \
-    Range<true, AT_LL, LL_INCL, UL_EXCL>)                                      \
-  {                                                                            \
-    return vmovq_n_##NEON_SUF(TYPE(0));                                        \
-  }
-
-#define SIMDVEC_NEON_ALIGNRE_HUB()                                             \
-  template <int IMM, typename T>                                               \
-  static SIMD_INLINE Vec<T, 16> alignre(const Vec<T, 16> &h,                   \
-                                        const Vec<T, 16> &l)                   \
-  {                                                                            \
-    return alignre<IMM>(h, l, SizeRange<IMM, Vec<T, 16>::elements>());         \
-  }
-
-#define SIMDVEC_NEON_ALIGNRE(TYPE, NEON_SUF)                                   \
-  SIMDVEC_NEON_ALIGNRE_0(TYPE, NEON_SUF)                                       \
-  SIMDVEC_NEON_ALIGNRE_0_E(TYPE, NEON_SUF)                                     \
-  SIMDVEC_NEON_ALIGNRE_E(TYPE, NEON_SUF)                                       \
-  SIMDVEC_NEON_ALIGNRE_E_2E(TYPE, NEON_SUF)                                    \
-  SIMDVEC_NEON_ALIGNRE_OTHER(TYPE, NEON_SUF)
-
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_ALIGNRE_ALL()                                             \
-  SIMDVEC_NEON_ALIGNRE(Byte, u8)                                               \
-  SIMDVEC_NEON_ALIGNRE(SignedByte, s8)                                         \
-  SIMDVEC_NEON_ALIGNRE(Word, u16)                                              \
-  SIMDVEC_NEON_ALIGNRE(Short, s16)                                             \
-  SIMDVEC_NEON_ALIGNRE(Int, s32)                                               \
-  SIMDVEC_NEON_ALIGNRE(Float, f32)                                             \
-  SIMDVEC_NEON_ALIGNRE(Double, f64)                                            \
-  SIMDVEC_NEON_ALIGNRE_HUB()
-#else
-#define SIMDVEC_NEON_ALIGNRE_ALL()                                             \
-  SIMDVEC_NEON_ALIGNRE(Byte, u8)                                               \
-  SIMDVEC_NEON_ALIGNRE(SignedByte, s8)                                         \
-  SIMDVEC_NEON_ALIGNRE(Word, u16)                                              \
-  SIMDVEC_NEON_ALIGNRE(Short, s16)                                             \
-  SIMDVEC_NEON_ALIGNRE(Int, s32)                                               \
-  SIMDVEC_NEON_ALIGNRE(Float, f32)                                             \
-  SIMDVEC_NEON_ALIGNRE_HUB()
-#endif
-
-// -------------------------------------------------------------------------
-// unpack
-// -------------------------------------------------------------------------
-
-// TODO: unpack is inefficient here since vzipq does both unpacklo and
-// TODO: unpackhi but only half of the result is used
-
-// via cast to larger datatype
-#define SIMDVEC_NEON_UNPACK(TYPE, PART, BYTES, NEON_SUF, NEON_SUF2)            \
-  static SIMD_INLINE Vec<TYPE, 16> unpack(                                     \
-    const Vec<TYPE, 16> &a, const Vec<TYPE, 16> &b, Part<PART>, Bytes<BYTES>)  \
-  {                                                                            \
-    return vreinterpretq_##NEON_SUF##_##NEON_SUF2(                             \
-      (vzipq_##NEON_SUF2(vreinterpretq_##NEON_SUF2##_##NEON_SUF(a),            \
-                         vreinterpretq_##NEON_SUF2##_##NEON_SUF(b)))           \
-        .val[PART]);                                                           \
-  }
-
-#define SIMDVEC_NEON_UNPACK_PART01(TYPE, BYTES, NEON_SUF, NEON_SUF2)           \
-  SIMDVEC_NEON_UNPACK(TYPE, 0, BYTES, NEON_SUF, NEON_SUF2)                     \
-  SIMDVEC_NEON_UNPACK(TYPE, 1, BYTES, NEON_SUF, NEON_SUF2)
-
-// via extraction of low or high halfs
-// (NOTE: PART and BYTES are needed in argument list)
-#define SIMDVEC_NEON_UNPACK_HALFS(TYPE, PART, BYTES, LOHI, NEON_SUF)           \
-  static SIMD_INLINE Vec<TYPE, 16> unpack(                                     \
-    const Vec<TYPE, 16> &a, const Vec<TYPE, 16> &b, Part<PART>, Bytes<BYTES>)  \
-  {                                                                            \
-    return vcombine_##NEON_SUF(vget_##LOHI##_##NEON_SUF(a),                    \
-                               vget_##LOHI##_##NEON_SUF(b));                   \
-  }
-
-#define SIMDVEC_NEON_UNPACK_HALFS_PART01(TYPE, BYTES, NEON_SUF)                \
-  SIMDVEC_NEON_UNPACK_HALFS(TYPE, 0, BYTES, low, NEON_SUF)                     \
-  SIMDVEC_NEON_UNPACK_HALFS(TYPE, 1, BYTES, high, NEON_SUF)
-
-#define SIMDVEC_NEON_UNPACK_BYTE()                                             \
-  SIMDVEC_NEON_UNPACK_PART01(Byte, 1, u8, u8)                                  \
-  SIMDVEC_NEON_UNPACK_PART01(Byte, 2, u8, u16)                                 \
-  SIMDVEC_NEON_UNPACK_PART01(Byte, 4, u8, u32)                                 \
-  SIMDVEC_NEON_UNPACK_HALFS_PART01(Byte, 8, u8)
-
-#define SIMDVEC_NEON_UNPACK_SIGNEDBYTE()                                       \
-  SIMDVEC_NEON_UNPACK_PART01(SignedByte, 1, s8, s8)                            \
-  SIMDVEC_NEON_UNPACK_PART01(SignedByte, 2, s8, s16)                           \
-  SIMDVEC_NEON_UNPACK_PART01(SignedByte, 4, s8, s32)                           \
-  SIMDVEC_NEON_UNPACK_HALFS_PART01(SignedByte, 8, s8)
-
-#define SIMDVEC_NEON_UNPACK_WORD()                                             \
-  SIMDVEC_NEON_UNPACK_PART01(Word, 2, u16, u16)                                \
-  SIMDVEC_NEON_UNPACK_PART01(Word, 4, u16, u32)                                \
-  SIMDVEC_NEON_UNPACK_HALFS_PART01(Word, 8, u16)
-
-#define SIMDVEC_NEON_UNPACK_SHORT()                                            \
-  SIMDVEC_NEON_UNPACK_PART01(Short, 2, s16, s16)                               \
-  SIMDVEC_NEON_UNPACK_PART01(Short, 4, s16, s32)                               \
-  SIMDVEC_NEON_UNPACK_HALFS_PART01(Short, 8, s16)
-
-#define SIMDVEC_NEON_UNPACK_INT()                                              \
-  SIMDVEC_NEON_UNPACK_PART01(Int, 4, s32, s32)                                 \
-  SIMDVEC_NEON_UNPACK_HALFS_PART01(Int, 8, s32)
-
-#define SIMDVEC_NEON_UNPACK_FLOAT()                                            \
-  SIMDVEC_NEON_UNPACK_PART01(Float, 4, f32, f32)                               \
-  SIMDVEC_NEON_UNPACK_HALFS_PART01(Float, 8, f32)
-
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_UNPACK_DOUBLE()                                           \
-  static SIMD_INLINE Vec<Double, 16> unpack(                                   \
-    const Vec<Double, 16> &a, const Vec<Double, 16> &b, Part<0>, Bytes<8>)     \
-  {                                                                            \
-    return vcombine_f64(vget_low_f64(a), vget_low_f64(b));                     \
-  }                                                                            \
-  static SIMD_INLINE Vec<Double, 16> unpack(                                   \
-    const Vec<Double, 16> &a, const Vec<Double, 16> &b, Part<1>, Bytes<8>)     \
-  {                                                                            \
-    return vcombine_f64(vget_high_f64(a), vget_high_f64(b));                   \
-  }
-#else
-#define SIMDVEC_NEON_UNPACK_DOUBLE()
-#endif
-
-#define SIMDVEC_NEON_UNPACK_ALL()                                              \
-  SIMDVEC_NEON_UNPACK_BYTE()                                                   \
-  SIMDVEC_NEON_UNPACK_SIGNEDBYTE()                                             \
-  SIMDVEC_NEON_UNPACK_WORD()                                                   \
-  SIMDVEC_NEON_UNPACK_SHORT()                                                  \
-  SIMDVEC_NEON_UNPACK_INT()                                                    \
-  SIMDVEC_NEON_UNPACK_FLOAT()                                                  \
-  SIMDVEC_NEON_UNPACK_DOUBLE()
-
-// -------------------------------------------------------------------------
-// zip
-// -------------------------------------------------------------------------
-
-// a, b passed by-value to avoid problems with identical input/output args.
-
-// via cast to larger datatype
-#define SIMDVEC_NEON_ZIP(TYPE, NUM_ELEMS, NEON_SUF, NEON_SUF2, NEONX2_2)       \
-  static SIMD_INLINE void zip(const Vec<TYPE, 16> a, const Vec<TYPE, 16> b,    \
-                              Vec<TYPE, 16> &c, Vec<TYPE, 16> &d,              \
-                              Elements<NUM_ELEMS>)                             \
-  {                                                                            \
-    NEONX2_2 res;                                                              \
-    res = vzipq_##NEON_SUF2(vreinterpretq_##NEON_SUF2##_##NEON_SUF(a),         \
-                            vreinterpretq_##NEON_SUF2##_##NEON_SUF(b));        \
-    c   = vreinterpretq_##NEON_SUF##_##NEON_SUF2(res.val[0]);                  \
-    d   = vreinterpretq_##NEON_SUF##_##NEON_SUF2(res.val[1]);                  \
-  }
-
-// via extraction of low or high halfs
-// (NOTE: NUM_ELEMS is needed in argument list)
-#define SIMDVEC_NEON_ZIP_HALFS(TYPE, NUM_ELEMS, NEON_SUF)                      \
-  static SIMD_INLINE void zip(const Vec<TYPE, 16> a, const Vec<TYPE, 16> b,    \
-                              Vec<TYPE, 16> &c, Vec<TYPE, 16> &d,              \
-                              Elements<NUM_ELEMS>)                             \
-  {                                                                            \
-    c = vcombine_##NEON_SUF(vget_low_##NEON_SUF(a), vget_low_##NEON_SUF(b));   \
-    d = vcombine_##NEON_SUF(vget_high_##NEON_SUF(a), vget_high_##NEON_SUF(b)); \
-  }
-
-// hub template function
-#define SIMDVEC_NEON_ZIP_HUB()                                                 \
-  template <int NUM_ELEMS, typename T>                                         \
-  static SIMD_INLINE void zip(const Vec<T, 16> a, const Vec<T, 16> b,          \
-                              Vec<T, 16> &c, Vec<T, 16> &d)                    \
-  {                                                                            \
-    return zip(a, b, c, d, Elements<NUM_ELEMS>());                             \
-  }
-
-#define SIMDVEC_NEON_ZIP_BYTE()                                                \
-  SIMDVEC_NEON_ZIP(Byte, 1, u8, u8, uint8x16x2_t)                              \
-  SIMDVEC_NEON_ZIP(Byte, 2, u8, u16, uint16x8x2_t)                             \
-  SIMDVEC_NEON_ZIP(Byte, 4, u8, u32, uint32x4x2_t)                             \
-  SIMDVEC_NEON_ZIP_HALFS(Byte, 8, u8)
-
-#define SIMDVEC_NEON_ZIP_SIGNEDBYTE()                                          \
-  SIMDVEC_NEON_ZIP(SignedByte, 1, s8, s8, int8x16x2_t)                         \
-  SIMDVEC_NEON_ZIP(SignedByte, 2, s8, s16, int16x8x2_t)                        \
-  SIMDVEC_NEON_ZIP(SignedByte, 4, s8, s32, int32x4x2_t)                        \
-  SIMDVEC_NEON_ZIP_HALFS(SignedByte, 8, s8)
-
-#define SIMDVEC_NEON_ZIP_WORD()                                                \
-  SIMDVEC_NEON_ZIP(Word, 1, u16, u16, uint16x8x2_t)                            \
-  SIMDVEC_NEON_ZIP(Word, 2, u16, u32, uint32x4x2_t)                            \
-  SIMDVEC_NEON_ZIP_HALFS(Word, 4, u16)
-
-#define SIMDVEC_NEON_ZIP_SHORT()                                               \
-  SIMDVEC_NEON_ZIP(Short, 1, s16, s16, int16x8x2_t)                            \
-  SIMDVEC_NEON_ZIP(Short, 2, s16, s32, int32x4x2_t)                            \
-  SIMDVEC_NEON_ZIP_HALFS(Short, 4, s16)
-
-#define SIMDVEC_NEON_ZIP_INT()                                                 \
-  SIMDVEC_NEON_ZIP(Int, 1, s32, s32, int32x4x2_t)                              \
-  SIMDVEC_NEON_ZIP_HALFS(Int, 2, s32)
-
-#define SIMDVEC_NEON_ZIP_FLOAT()                                               \
-  SIMDVEC_NEON_ZIP(Float, 1, f32, f32, float32x4x2_t)                          \
-  SIMDVEC_NEON_ZIP_HALFS(Float, 2, f32)
-
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_ZIP_DOUBLE()                                              \
-  static SIMD_INLINE void zip(const Vec<Double, 16> a,                         \
-                              const Vec<Double, 16> b, Vec<Double, 16> &c,     \
-                              Vec<Double, 16> &d, Elements<1>)                 \
-  {                                                                            \
-    c = vcombine_f64(vget_low_f64(a), vget_low_f64(b));                        \
-    d = vcombine_f64(vget_high_f64(a), vget_high_f64(b));                      \
-  }
-#else
-#define SIMDVEC_NEON_ZIP_DOUBLE()
-#endif
-
-#define SIMDVEC_NEON_ZIP_ALL()                                                 \
-  SIMDVEC_NEON_ZIP_BYTE()                                                      \
-  SIMDVEC_NEON_ZIP_SIGNEDBYTE()                                                \
-  SIMDVEC_NEON_ZIP_WORD()                                                      \
-  SIMDVEC_NEON_ZIP_SHORT()                                                     \
-  SIMDVEC_NEON_ZIP_INT()                                                       \
-  SIMDVEC_NEON_ZIP_FLOAT()                                                     \
-  SIMDVEC_NEON_ZIP_DOUBLE()                                                    \
-  SIMDVEC_NEON_ZIP_HUB()
-
-// -------------------------------------------------------------------------
-// unzip
-// -------------------------------------------------------------------------
-
-// a, b passed by-value to avoid problems with identical input/output args.
-
-// via cast to larger datatype
-#define SIMDVEC_NEON_UNZIP(TYPE, BYTES, NEON_SUF, NEON_SUF2, NEONX2_2)         \
-  static SIMD_INLINE void unzip(const Vec<TYPE, 16> a, const Vec<TYPE, 16> b,  \
-                                Vec<TYPE, 16> &c, Vec<TYPE, 16> &d,            \
-                                Bytes<BYTES>)                                  \
-  {                                                                            \
-    NEONX2_2 res;                                                              \
-    res = vuzpq_##NEON_SUF2(vreinterpretq_##NEON_SUF2##_##NEON_SUF(a),         \
-                            vreinterpretq_##NEON_SUF2##_##NEON_SUF(b));        \
-    c   = vreinterpretq_##NEON_SUF##_##NEON_SUF2(res.val[0]);                  \
-    d   = vreinterpretq_##NEON_SUF##_##NEON_SUF2(res.val[1]);                  \
-  }
-
-// via extraction of low or high halfs
-// (NOTE: BYTES is needed in argument list)
-#define SIMDVEC_NEON_UNZIP_HALFS(TYPE, BYTES, NEON_SUF)                        \
-  static SIMD_INLINE void unzip(const Vec<TYPE, 16> a, const Vec<TYPE, 16> b,  \
-                                Vec<TYPE, 16> &c, Vec<TYPE, 16> &d,            \
-                                Bytes<BYTES>)                                  \
-  {                                                                            \
-    c = vcombine_##NEON_SUF(vget_low_##NEON_SUF(a), vget_low_##NEON_SUF(b));   \
-    d = vcombine_##NEON_SUF(vget_high_##NEON_SUF(a), vget_high_##NEON_SUF(b)); \
-  }
-
-#define SIMDVEC_NEON_UNZIP_BYTE()                                              \
-  SIMDVEC_NEON_UNZIP(Byte, 1, u8, u8, uint8x16x2_t)                            \
-  SIMDVEC_NEON_UNZIP(Byte, 2, u8, u16, uint16x8x2_t)                           \
-  SIMDVEC_NEON_UNZIP(Byte, 4, u8, u32, uint32x4x2_t)                           \
-  SIMDVEC_NEON_UNZIP_HALFS(Byte, 8, u8)
-
-#define SIMDVEC_NEON_UNZIP_SIGNEDBYTE()                                        \
-  SIMDVEC_NEON_UNZIP(SignedByte, 1, s8, s8, int8x16x2_t)                       \
-  SIMDVEC_NEON_UNZIP(SignedByte, 2, s8, s16, int16x8x2_t)                      \
-  SIMDVEC_NEON_UNZIP(SignedByte, 4, s8, s32, int32x4x2_t)                      \
-  SIMDVEC_NEON_UNZIP_HALFS(SignedByte, 8, s8)
-
-#define SIMDVEC_NEON_UNZIP_WORD()                                              \
-  SIMDVEC_NEON_UNZIP(Word, 2, u16, u16, uint16x8x2_t)                          \
-  SIMDVEC_NEON_UNZIP(Word, 4, u16, u32, uint32x4x2_t)                          \
-  SIMDVEC_NEON_UNZIP_HALFS(Word, 8, u16)
-
-#define SIMDVEC_NEON_UNZIP_SHORT()                                             \
-  SIMDVEC_NEON_UNZIP(Short, 2, s16, s16, int16x8x2_t)                          \
-  SIMDVEC_NEON_UNZIP(Short, 4, s16, s32, int32x4x2_t)                          \
-  SIMDVEC_NEON_UNZIP_HALFS(Short, 8, s16)
-
-#define SIMDVEC_NEON_UNZIP_INT()                                               \
-  SIMDVEC_NEON_UNZIP(Int, 4, s32, s32, int32x4x2_t)                            \
-  SIMDVEC_NEON_UNZIP_HALFS(Int, 8, s32)
-
-#define SIMDVEC_NEON_UNZIP_FLOAT()                                             \
-  SIMDVEC_NEON_UNZIP(Float, 4, f32, f32, float32x4x2_t)                        \
-  SIMDVEC_NEON_UNZIP_HALFS(Float, 8, f32)
-
-#ifdef SIMD_DOUBLE
-#define SIMDVEC_NEON_UNZIP_DOUBLE()                                            \
-  static SIMD_INLINE void unzip(const Vec<Double, 16> a,                       \
-                                const Vec<Double, 16> b, Vec<Double, 16> &c,   \
-                                Vec<Double, 16> &d, Bytes<8>)                  \
-  {                                                                            \
-    c = vcombine_f64(vget_low_f64(a), vget_low_f64(b));                        \
-    d = vcombine_f64(vget_high_f64(a), vget_high_f64(b));                      \
-  }
-#else
-#define SIMDVEC_NEON_UNZIP_DOUBLE()
-#endif
-
-#define SIMDVEC_NEON_UNZIP_ALL()                                               \
-  SIMDVEC_NEON_UNZIP_BYTE()                                                    \
-  SIMDVEC_NEON_UNZIP_SIGNEDBYTE()                                              \
-  SIMDVEC_NEON_UNZIP_WORD()                                                    \
-  SIMDVEC_NEON_UNZIP_SHORT()                                                   \
-  SIMDVEC_NEON_UNZIP_INT()                                                     \
-  SIMDVEC_NEON_UNZIP_FLOAT()                                                   \
-  SIMDVEC_NEON_UNZIP_DOUBLE()
-
-// #########################################################################
-// #########################################################################
-// #########################################################################
-
-// =========================================================================
-// Vec function instantiations or overloading for NEON
-// =========================================================================
-
-// -------------------------------------------------------------------------
-// reinterpretation casts
-// -------------------------------------------------------------------------
-
-SIMDVEC_NEON_REINTERP_ALL()
+#undef SIMDVEC_NEON_REINTERP_ALLDST
+#undef SIMDVEC_NEON_REINTERP
 
 // -------------------------------------------------------------------------
 // convert (without changes in the number of of elements)
@@ -1127,44 +302,101 @@ static SIMD_INLINE Vec<Float, 16> cvts(const Vec<Int, 16> &a, OutputType<Float>)
 // setzero
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_TMPLT_IMM_ALL(setzero, vmovq_n, 0)
+#define SIMDVEC_NEON_SETZERO(TYPE, NEON_SUF)                                   \
+  static SIMD_INLINE Vec<TYPE, 16> setzero(OutputType<TYPE>, Integer<16>)      \
+  {                                                                            \
+    return vmovq_n##_##NEON_SUF(TYPE(0));                                      \
+  }
+
+SIMDVEC_NEON_SETZERO(Byte, u8)
+SIMDVEC_NEON_SETZERO(SignedByte, s8)
+SIMDVEC_NEON_SETZERO(Word, u16)
+SIMDVEC_NEON_SETZERO(Short, s16)
+SIMDVEC_NEON_SETZERO(Int, s32)
+SIMDVEC_NEON_SETZERO(Float, f32)
+#ifdef SIMD_DOUBLE
+SIMDVEC_NEON_SETZERO(Double, f64)
+#endif
+
+#undef SIMDVEC_NEON_SETZERO
 
 // -------------------------------------------------------------------------
 // set1
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_TMPLT_SCALAR_ALL(set1, vdupq_n)
+#define SIMDVEC_NEON_SET1(TYPE, NEON_SUF)                                      \
+  static SIMD_INLINE Vec<TYPE, 16> set1(TYPE a, Integer<16>)                   \
+  {                                                                            \
+    return vdupq_n##_##NEON_SUF(a);                                            \
+  }
+
+SIMDVEC_NEON_SET1(Byte, u8)
+SIMDVEC_NEON_SET1(SignedByte, s8)
+SIMDVEC_NEON_SET1(Word, u16)
+SIMDVEC_NEON_SET1(Short, s16)
+SIMDVEC_NEON_SET1(Int, s32)
+SIMDVEC_NEON_SET1(Float, f32)
+#ifdef SIMD_DOUBLE
+SIMDVEC_NEON_SET1(Double, f64)
+#endif
+
+#undef SIMDVEC_NEON_SET1
 
 // -------------------------------------------------------------------------
 // load
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_TMPLT_PTR_ALL(load, vld1q)
+#define SIMDVEC_NEON_LOAD(TYPE, NEON_SUF)                                      \
+  static SIMD_INLINE Vec<TYPE, 16> load(const TYPE *const p, Integer<16>)      \
+  {                                                                            \
+    return vld1q##_##NEON_SUF(p);                                              \
+  }                                                                            \
+  static SIMD_INLINE Vec<TYPE, 16> loadu(const TYPE *const p, Integer<16>)     \
+  {                                                                            \
+    return vld1q##_##NEON_SUF(p);                                              \
+  }
 
-// -------------------------------------------------------------------------
-// loadu
-// -------------------------------------------------------------------------
+SIMDVEC_NEON_LOAD(Byte, u8)
+SIMDVEC_NEON_LOAD(SignedByte, s8)
+SIMDVEC_NEON_LOAD(Word, u16)
+SIMDVEC_NEON_LOAD(Short, s16)
+SIMDVEC_NEON_LOAD(Int, s32)
+SIMDVEC_NEON_LOAD(Float, f32)
+#ifdef SIMD_DOUBLE
+SIMDVEC_NEON_LOAD(Double, f64)
+#endif
 
-SIMDVEC_NEON_TMPLT_PTR_ALL(loadu, vld1q)
+#undef SIMDVEC_NEON_LOAD
 
 // -------------------------------------------------------------------------
 // store
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_PTR_VEC_ALL(store, vst1q)
+#define SIMDVEC_NEON_STORE(TYPE, NEON_SUF)                                     \
+  static SIMD_INLINE void store(TYPE *const p, const Vec<TYPE, 16> &a)         \
+  {                                                                            \
+    return vst1q##_##NEON_SUF(p, a);                                           \
+  }                                                                            \
+  static SIMD_INLINE void storeu(TYPE *const p, const Vec<TYPE, 16> &a)        \
+  {                                                                            \
+    return vst1q##_##NEON_SUF(p, a);                                           \
+  }                                                                            \
+  static SIMD_INLINE void stream_store(TYPE *const p, const Vec<TYPE, 16> &a)  \
+  {                                                                            \
+    return vst1q##_##NEON_SUF(p, a);                                           \
+  }
 
-// -------------------------------------------------------------------------
-// storeu
-// -------------------------------------------------------------------------
+SIMDVEC_NEON_STORE(Byte, u8)
+SIMDVEC_NEON_STORE(SignedByte, s8)
+SIMDVEC_NEON_STORE(Word, u16)
+SIMDVEC_NEON_STORE(Short, s16)
+SIMDVEC_NEON_STORE(Int, s32)
+SIMDVEC_NEON_STORE(Float, f32)
+#ifdef SIMD_DOUBLE
+SIMDVEC_NEON_STORE(Double, f64)
+#endif
 
-SIMDVEC_NEON_PTR_VEC_ALL(storeu, vst1q)
-
-// -------------------------------------------------------------------------
-// stream_store
-// -------------------------------------------------------------------------
-
-// TODO: is there anything like _mm_stream_* for NEON?
-SIMDVEC_NEON_PTR_VEC_ALL(stream_store, vst1q)
+#undef SIMDVEC_NEON_STORE
 
 // -------------------------------------------------------------------------
 // fences
@@ -1196,7 +428,28 @@ static SIMD_INLINE void mfence()
 // extract: with template parameter for immediate argument
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_SCALAR_VEC_IMM_ALL(extract, vgetq_lane)
+#define SIMDVEC_NEON_EXTRACT(TYPE, NEON_SUF)                                   \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE TYPE extract(const Vec<TYPE, 16> &a)                      \
+  {                                                                            \
+    SIMD_IF_CONSTEXPR (COUNT < Vec<TYPE, 16>::elements) {                      \
+      return vgetq_lane##_##NEON_SUF(a, COUNT);                                \
+    } else {                                                                   \
+      return TYPE(0);                                                          \
+    }                                                                          \
+  }
+
+SIMDVEC_NEON_EXTRACT(Byte, u8)
+SIMDVEC_NEON_EXTRACT(SignedByte, s8)
+SIMDVEC_NEON_EXTRACT(Word, u16)
+SIMDVEC_NEON_EXTRACT(Short, s16)
+SIMDVEC_NEON_EXTRACT(Int, s32)
+SIMDVEC_NEON_EXTRACT(Float, f32)
+#ifdef SIMD_DOUBLE
+SIMDVEC_NEON_EXTRACT(Double, f64)
+#endif
+
+#undef SIMDVEC_NEON_EXTRACT
 
 // -------------------------------------------------------------------------
 // add
@@ -1208,12 +461,12 @@ SIMDVEC_NEON_BINARY_ALL(add, vaddq)
 // adds
 // -------------------------------------------------------------------------
 
+SIMDVEC_NEON_BINARY_ALLINT(adds, vqaddq)
 // float NOT saturated
-SIMDVEC_NEON_BINARY_REPLACE(Float, vqaddq, vaddq, f32)
+SIMDVEC_NEON_BINARY(adds, Float, vaddq, f32)
 #ifdef SIMD_DOUBLE
-SIMDVEC_NEON_BINARY_REPLACE(Double, vqaddq, vaddq, f64)
+SIMDVEC_NEON_BINARY(adds, Double, vaddq, f64)
 #endif
-SIMDVEC_NEON_BINARY_ALL(adds, vqaddq)
 
 // -------------------------------------------------------------------------
 // sub
@@ -1225,18 +478,24 @@ SIMDVEC_NEON_BINARY_ALL(sub, vsubq)
 // subs
 // -------------------------------------------------------------------------
 
+SIMDVEC_NEON_BINARY_ALLINT(subs, vqsubq)
 // float NOT saturated
-SIMDVEC_NEON_BINARY_REPLACE(Float, vqsubq, vsubq, f32)
+SIMDVEC_NEON_BINARY(subs, Float, vsubq, f32)
 #ifdef SIMD_DOUBLE
-SIMDVEC_NEON_BINARY_REPLACE(Double, vqsubq, vsubq, f64)
+SIMDVEC_NEON_BINARY(subs, Double, vsubq, f64)
 #endif
-SIMDVEC_NEON_BINARY_ALL(subs, vqsubq)
 
 // -------------------------------------------------------------------------
 // neg (negate = two's complement or unary minus), only signed types
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_UNARY_ALLSIGNED(neg, vnegq)
+SIMDVEC_NEON_UNARY(neg, SignedByte, vnegq, s8)
+SIMDVEC_NEON_UNARY(neg, Short, vnegq, s16)
+SIMDVEC_NEON_UNARY(neg, Int, vnegq, s32)
+SIMDVEC_NEON_UNARY(neg, Float, vnegq, f32)
+#ifdef SIMD_DOUBLE
+SIMDVEC_NEON_UNARY(neg, Double, vnegq, f64)
+#endif
 
 // -------------------------------------------------------------------------
 // min
@@ -1259,7 +518,7 @@ SIMDVEC_NEON_BINARY(mul, Float, vmulq, f32)
 SIMDVEC_NEON_BINARY(mul, Double, vmulq, f64)
 #endif
 
-#define SIMDVEC_NEON_DIV_REFINE_STEPS 2
+const auto DIV_NEWTON_STEPS = 2;
 
 // adapted from Jens Froemmer's Ba thesis (2014)
 static SIMD_INLINE Vec<Float, 16> div(const Vec<Float, 16> &num,
@@ -1268,7 +527,7 @@ static SIMD_INLINE Vec<Float, 16> div(const Vec<Float, 16> &num,
   // get estimate of reciprocal of denom
   float32x4_t reciprocal = vrecpeq_f32(denom);
   // refine estimate using Newton-Raphson steps
-  for (int i = 0; i < SIMDVEC_NEON_DIV_REFINE_STEPS; i++)
+  for (size_t i = 0; i < DIV_NEWTON_STEPS; i++)
     reciprocal = vmulq_f32(vrecpsq_f32(denom, reciprocal), reciprocal);
   // num * (1.0 / denom)
   return vmulq_f32(num, reciprocal);
@@ -1281,7 +540,7 @@ static SIMD_INLINE Vec<Double, 16> div(const Vec<Double, 16> &num,
   // get estimate of reciprocal of denom
   float64x2_t reciprocal = vrecpeq_f64(denom);
   // refine estimate using Newton-Raphson steps
-  for (int i = 0; i < SIMDVEC_NEON_DIV_REFINE_STEPS; i++)
+  for (size_t i = 0; i < DIV_NEWTON_STEPS; i++)
     reciprocal = vmulq_f64(vrecpsq_f64(denom, reciprocal), reciprocal);
   // num * (1.0 / denom)
   return vmulq_f64(num, reciprocal);
@@ -1441,7 +700,7 @@ SIMDVEC_NEON_UNARY(rsqrt, Float, vrsqrteq, f32)
 SIMDVEC_NEON_UNARY(rsqrt, Double, vrsqrteq, f64)
 #endif
 
-#define SIMDVEC_NEON_SQRT_REFINE_STEPS 2
+const auto SQRT_NEWTON_STEPS = 2;
 
 // square root (may not be very efficient)
 static SIMD_INLINE Vec<Float, 16> sqrt(const Vec<Float, 16> &a)
@@ -1455,7 +714,7 @@ static SIMD_INLINE Vec<Float, 16> sqrt(const Vec<Float, 16> &a)
   // get estimate of reciprocal sqrt
   float32x4_t rSqrt = vrsqrteq_f32(as);
   // refine estimate using Newton-Raphson steps
-  for (int i = 0; i < SIMDVEC_NEON_SQRT_REFINE_STEPS; i++)
+  for (size_t i = 0; i < SQRT_NEWTON_STEPS; i++)
     rSqrt = vmulq_f32(vrsqrtsq_f32(as, vmulq_f32(rSqrt, rSqrt)), rSqrt);
   // sqrt(a) = a * (1.0 / sqrt(a))
   float32x4_t res = vmulq_f32(as, rSqrt);
@@ -1475,7 +734,7 @@ static SIMD_INLINE Vec<Double, 16> sqrt(const Vec<Double, 16> &a)
   // get estimate of reciprocal sqrt
   float64x2_t rSqrt = vrsqrteq_f64(as);
   // refine estimate using Newton-Raphson steps
-  for (int i = 0; i < SIMDVEC_NEON_SQRT_REFINE_STEPS; i++)
+  for (size_t i = 0; i < SQRT_NEWTON_STEPS; i++)
     rSqrt = vmulq_f64(vrsqrtsq_f64(as, vmulq_f64(rSqrt, rSqrt)), rSqrt);
   // sqrt(a) = a * (1.0 / sqrt(a))
   float64x2_t res = vmulq_f64(as, rSqrt);
@@ -1498,19 +757,95 @@ static SIMD_INLINE Vec<T, 16> abs(const Vec<T, 16> &a)
   return a;
 }
 
-SIMDVEC_NEON_UNARY_ALLSIGNED(abs, vabsq)
+SIMDVEC_NEON_UNARY(abs, SignedByte, vabsq, s8)
+SIMDVEC_NEON_UNARY(abs, Short, vabsq, s16)
+SIMDVEC_NEON_UNARY(abs, Int, vabsq, s32)
+SIMDVEC_NEON_UNARY(abs, Float, vabsq, f32)
+#ifdef SIMD_DOUBLE
+SIMDVEC_NEON_UNARY(abs, Double, vabsq, f64)
+#endif
 
 // -------------------------------------------------------------------------
 // unpack
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_UNPACK_ALL()
+// TODO: unpack is inefficient here since vzipq does both unpacklo and
+// TODO: unpackhi but only half of the result is used
+
+// via cast to larger datatype
+#define SIMDVEC_NEON_UNPACK(TYPE, BYTES, NEON_SUF, NEON_SUF2)                  \
+  template <size_t PART>                                                       \
+  static SIMD_INLINE Vec<TYPE, 16> unpack(                                     \
+    const Vec<TYPE, 16> &a, const Vec<TYPE, 16> &b, Part<PART>, Bytes<BYTES>)  \
+  {                                                                            \
+    return vreinterpretq_##NEON_SUF##_##NEON_SUF2(                             \
+      (vzipq_##NEON_SUF2(vreinterpretq_##NEON_SUF2##_##NEON_SUF(a),            \
+                         vreinterpretq_##NEON_SUF2##_##NEON_SUF(b)))           \
+        .val[PART]);                                                           \
+  }
+
+// via extraction of low or high halfs
+// (NOTE: PART and BYTES are needed in argument list)
+#define SIMDVEC_NEON_UNPACK_HALFS(TYPE, BYTES, NEON_SUF)                       \
+  static SIMD_INLINE Vec<TYPE, 16> unpack(                                     \
+    const Vec<TYPE, 16> &a, const Vec<TYPE, 16> &b, Part<0>, Bytes<BYTES>)     \
+  {                                                                            \
+    return vcombine_##NEON_SUF(vget_low##_##NEON_SUF(a),                       \
+                               vget_low##_##NEON_SUF(b));                      \
+  }                                                                            \
+  static SIMD_INLINE Vec<TYPE, 16> unpack(                                     \
+    const Vec<TYPE, 16> &a, const Vec<TYPE, 16> &b, Part<1>, Bytes<BYTES>)     \
+  {                                                                            \
+    return vcombine_##NEON_SUF(vget_high##_##NEON_SUF(a),                      \
+                               vget_high##_##NEON_SUF(b));                     \
+  }
+
+SIMDVEC_NEON_UNPACK(Byte, 1, u8, u8)
+SIMDVEC_NEON_UNPACK(Byte, 2, u8, u16)
+SIMDVEC_NEON_UNPACK(Byte, 4, u8, u32)
+SIMDVEC_NEON_UNPACK_HALFS(Byte, 8, u8)
+SIMDVEC_NEON_UNPACK(SignedByte, 1, s8, s8)
+SIMDVEC_NEON_UNPACK(SignedByte, 2, s8, s16)
+SIMDVEC_NEON_UNPACK(SignedByte, 4, s8, s32)
+SIMDVEC_NEON_UNPACK_HALFS(SignedByte, 8, s8)
+SIMDVEC_NEON_UNPACK(Word, 2, u16, u16)
+SIMDVEC_NEON_UNPACK(Word, 4, u16, u32)
+SIMDVEC_NEON_UNPACK_HALFS(Word, 8, u16)
+SIMDVEC_NEON_UNPACK(Short, 2, s16, s16)
+SIMDVEC_NEON_UNPACK(Short, 4, s16, s32)
+SIMDVEC_NEON_UNPACK_HALFS(Short, 8, s16)
+SIMDVEC_NEON_UNPACK(Int, 4, s32, s32)
+SIMDVEC_NEON_UNPACK_HALFS(Int, 8, s32)
+SIMDVEC_NEON_UNPACK(Float, 4, f32, f32)
+SIMDVEC_NEON_UNPACK_HALFS(Float, 8, f32)
+
+#ifdef SIMD_DOUBLE
+static SIMD_INLINE Vec<Double, 16> unpack(const Vec<Double, 16> &a,
+                                          const Vec<Double, 16> &b, Part<0>,
+                                          Bytes<8>)
+{
+  return vcombine_f64(vget_low_f64(a), vget_low_f64(b));
+}
+static SIMD_INLINE Vec<Double, 16> unpack(const Vec<Double, 16> &a,
+                                          const Vec<Double, 16> &b, Part<1>,
+                                          Bytes<8>)
+{
+  return vcombine_f64(vget_high_f64(a), vget_high_f64(b));
+}
+#endif
+
+#undef SIMDVEC_NEON_UNPACK
+#undef SIMDVEC_NEON_UNPACK_HALFS
+
+// ---------------------------------------------------------------------------
+// unpack16
+// ---------------------------------------------------------------------------
 
 // 16-byte-lane oriented unpack: for 16 bytes same as generalized unpack
 // unpack blocks of NUM_ELEMS elements of type T
 // PART=0: low half of input vectors,
 // PART=1: high half of input vectors
-template <int PART, int BYTES, typename T>
+template <size_t PART, size_t BYTES, typename T>
 static SIMD_INLINE Vec<T, 16> unpack16(const Vec<T, 16> &a, const Vec<T, 16> &b,
                                        Part<PART>, Bytes<BYTES>)
 {
@@ -1521,7 +856,7 @@ static SIMD_INLINE Vec<T, 16> unpack16(const Vec<T, 16> &a, const Vec<T, 16> &b,
 // extract 128-bit lane as Vec<T, 16>, does nothing for 16 bytes
 // ---------------------------------------------------------------------------
 
-template <int IMM, typename T>
+template <size_t LANE_INDEX, typename T>
 static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 16> &a)
 {
   return a;
@@ -1531,7 +866,69 @@ static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 16> &a)
 // zip
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_ZIP_ALL()
+// a, b passed by-value to avoid problems with identical input/output args.
+
+// via cast to larger datatype
+#define SIMDVEC_NEON_ZIP(TYPE, NUM_ELEMS, NEON_SUF, NEON_SUF2, NEONX2_2)       \
+  static SIMD_INLINE void zip(const Vec<TYPE, 16> a, const Vec<TYPE, 16> b,    \
+                              Vec<TYPE, 16> &c, Vec<TYPE, 16> &d,              \
+                              Elements<NUM_ELEMS>)                             \
+  {                                                                            \
+    NEONX2_2 res;                                                              \
+    res = vzipq_##NEON_SUF2(vreinterpretq_##NEON_SUF2##_##NEON_SUF(a),         \
+                            vreinterpretq_##NEON_SUF2##_##NEON_SUF(b));        \
+    c   = vreinterpretq_##NEON_SUF##_##NEON_SUF2(res.val[0]);                  \
+    d   = vreinterpretq_##NEON_SUF##_##NEON_SUF2(res.val[1]);                  \
+  }
+
+// via extraction of low or high halfs
+// (NOTE: NUM_ELEMS is needed in argument list)
+#define SIMDVEC_NEON_ZIP_HALFS(TYPE, NUM_ELEMS, NEON_SUF)                      \
+  static SIMD_INLINE void zip(const Vec<TYPE, 16> a, const Vec<TYPE, 16> b,    \
+                              Vec<TYPE, 16> &c, Vec<TYPE, 16> &d,              \
+                              Elements<NUM_ELEMS>)                             \
+  {                                                                            \
+    c = vcombine_##NEON_SUF(vget_low_##NEON_SUF(a), vget_low_##NEON_SUF(b));   \
+    d = vcombine_##NEON_SUF(vget_high_##NEON_SUF(a), vget_high_##NEON_SUF(b)); \
+  }
+
+SIMDVEC_NEON_ZIP(Byte, 1, u8, u8, uint8x16x2_t)
+SIMDVEC_NEON_ZIP(Byte, 2, u8, u16, uint16x8x2_t)
+SIMDVEC_NEON_ZIP(Byte, 4, u8, u32, uint32x4x2_t)
+SIMDVEC_NEON_ZIP_HALFS(Byte, 8, u8)
+SIMDVEC_NEON_ZIP(SignedByte, 1, s8, s8, int8x16x2_t)
+SIMDVEC_NEON_ZIP(SignedByte, 2, s8, s16, int16x8x2_t)
+SIMDVEC_NEON_ZIP(SignedByte, 4, s8, s32, int32x4x2_t)
+SIMDVEC_NEON_ZIP_HALFS(SignedByte, 8, s8)
+SIMDVEC_NEON_ZIP(Word, 1, u16, u16, uint16x8x2_t)
+SIMDVEC_NEON_ZIP(Word, 2, u16, u32, uint32x4x2_t)
+SIMDVEC_NEON_ZIP_HALFS(Word, 4, u16)
+SIMDVEC_NEON_ZIP(Short, 1, s16, s16, int16x8x2_t)
+SIMDVEC_NEON_ZIP(Short, 2, s16, s32, int32x4x2_t)
+SIMDVEC_NEON_ZIP_HALFS(Short, 4, s16)
+SIMDVEC_NEON_ZIP(Int, 1, s32, s32, int32x4x2_t)
+SIMDVEC_NEON_ZIP_HALFS(Int, 2, s32)
+SIMDVEC_NEON_ZIP(Float, 1, f32, f32, float32x4x2_t)
+SIMDVEC_NEON_ZIP_HALFS(Float, 2, f32)
+
+#ifdef SIMD_DOUBLE
+static SIMD_INLINE void zip(const Vec<Double, 16> a, const Vec<Double, 16> b,
+                            Vec<Double, 16> &c, Vec<Double, 16> &d, Elements<1>)
+{
+  c = vcombine_f64(vget_low_f64(a), vget_low_f64(b));
+  d = vcombine_f64(vget_high_f64(a), vget_high_f64(b));
+}
+#endif
+
+template <size_t NUM_ELEMS, typename T>
+static SIMD_INLINE void zip(const Vec<T, 16> a, const Vec<T, 16> b,
+                            Vec<T, 16> &c, Vec<T, 16> &d)
+{
+  return zip(a, b, c, d, Elements<NUM_ELEMS>());
+}
+
+#undef SIMDVEC_NEON_ZIP
+#undef SIMDVEC_NEON_ZIP_HALFS
 
 // ---------------------------------------------------------------------------
 // zip16 hub  (16-byte-lane oriented zip): for 16 bytes same as zip
@@ -1539,7 +936,7 @@ SIMDVEC_NEON_ZIP_ALL()
 
 // a, b are passed by-value to avoid problems with identical input/output args.
 
-template <int NUM_ELEMS, typename T>
+template <size_t NUM_ELEMS, typename T>
 static SIMD_INLINE void zip16(const Vec<T, 16> a, const Vec<T, 16> b,
                               Vec<T, 16> &l, Vec<T, 16> &h)
 {
@@ -1550,7 +947,71 @@ static SIMD_INLINE void zip16(const Vec<T, 16> a, const Vec<T, 16> b,
 // unzip
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_UNZIP_ALL()
+// -------------------------------------------------------------------------
+// unzip
+// -------------------------------------------------------------------------
+
+// a, b passed by-value to avoid problems with identical input/output args.
+
+// via cast to larger datatype
+#define SIMDVEC_NEON_UNZIP(TYPE, BYTES, NEON_SUF, NEON_SUF2, NEONX2_2)         \
+  static SIMD_INLINE void unzip(const Vec<TYPE, 16> a, const Vec<TYPE, 16> b,  \
+                                Vec<TYPE, 16> &c, Vec<TYPE, 16> &d,            \
+                                Bytes<BYTES>)                                  \
+  {                                                                            \
+    NEONX2_2 res;                                                              \
+    res = vuzpq_##NEON_SUF2(vreinterpretq_##NEON_SUF2##_##NEON_SUF(a),         \
+                            vreinterpretq_##NEON_SUF2##_##NEON_SUF(b));        \
+    c   = vreinterpretq_##NEON_SUF##_##NEON_SUF2(res.val[0]);                  \
+    d   = vreinterpretq_##NEON_SUF##_##NEON_SUF2(res.val[1]);                  \
+  }
+
+// via extraction of low or high halfs
+// (NOTE: BYTES is needed in argument list)
+#define SIMDVEC_NEON_UNZIP_HALFS(TYPE, BYTES, NEON_SUF)                        \
+  static SIMD_INLINE void unzip(const Vec<TYPE, 16> a, const Vec<TYPE, 16> b,  \
+                                Vec<TYPE, 16> &c, Vec<TYPE, 16> &d,            \
+                                Bytes<BYTES>)                                  \
+  {                                                                            \
+    c = vcombine_##NEON_SUF(vget_low_##NEON_SUF(a), vget_low_##NEON_SUF(b));   \
+    d = vcombine_##NEON_SUF(vget_high_##NEON_SUF(a), vget_high_##NEON_SUF(b)); \
+  }
+
+SIMDVEC_NEON_UNZIP(Byte, 1, u8, u8, uint8x16x2_t)
+SIMDVEC_NEON_UNZIP(Byte, 2, u8, u16, uint16x8x2_t)
+SIMDVEC_NEON_UNZIP(Byte, 4, u8, u32, uint32x4x2_t)
+SIMDVEC_NEON_UNZIP_HALFS(Byte, 8, u8)
+
+SIMDVEC_NEON_UNZIP(SignedByte, 1, s8, s8, int8x16x2_t)
+SIMDVEC_NEON_UNZIP(SignedByte, 2, s8, s16, int16x8x2_t)
+SIMDVEC_NEON_UNZIP(SignedByte, 4, s8, s32, int32x4x2_t)
+SIMDVEC_NEON_UNZIP_HALFS(SignedByte, 8, s8)
+
+SIMDVEC_NEON_UNZIP(Word, 2, u16, u16, uint16x8x2_t)
+SIMDVEC_NEON_UNZIP(Word, 4, u16, u32, uint32x4x2_t)
+SIMDVEC_NEON_UNZIP_HALFS(Word, 8, u16)
+
+SIMDVEC_NEON_UNZIP(Short, 2, s16, s16, int16x8x2_t)
+SIMDVEC_NEON_UNZIP(Short, 4, s16, s32, int32x4x2_t)
+SIMDVEC_NEON_UNZIP_HALFS(Short, 8, s16)
+
+SIMDVEC_NEON_UNZIP(Int, 4, s32, s32, int32x4x2_t)
+SIMDVEC_NEON_UNZIP_HALFS(Int, 8, s32)
+
+SIMDVEC_NEON_UNZIP(Float, 4, f32, f32, float32x4x2_t)
+SIMDVEC_NEON_UNZIP_HALFS(Float, 8, f32)
+
+#ifdef SIMD_DOUBLE
+static SIMD_INLINE void unzip(const Vec<Double, 16> a, const Vec<Double, 16> b,
+                              Vec<Double, 16> &c, Vec<Double, 16> &d, Bytes<8>)
+{
+  c = vcombine_f64(vget_low_f64(a), vget_low_f64(b));
+  d = vcombine_f64(vget_high_f64(a), vget_high_f64(b));
+}
+#endif
+
+#undef SIMDVEC_NEON_UNZIP
+#undef SIMDVEC_NEON_UNZIP_HALFS
 
 // ---------------------------------------------------------------------------
 // packs
@@ -1827,48 +1288,137 @@ static SIMD_INLINE void extend(const Vec<Float, 16> &vIn, Vec<Int, 16> vOut[1])
 }
 
 // -------------------------------------------------------------------------
-// srai
+// shift functions
 // -------------------------------------------------------------------------
 
+// it was necessary to introduce a special case COUNT == 0, since this
+// is not allowed for the shift intrinsics (just returns the
+// argument); since the ARM docs aren't clear in this point, we also
+// treat the case COUNT == no-of-bits as special case (in two
+// versions: one using FCT on RANGE-1, the other setting result to
+// zero)
+
+#define SIMDVEC_NEON_SHIFT(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)               \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
+                                       IsPosNonZeroInRange<true, true>)        \
+  {                                                                            \
+    return NEON_FCT##_##NEON_SUF(a, COUNT);                                    \
+  }                                                                            \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
+                                       IsPosNonZeroInRange<false, true>)       \
+  {                                                                            \
+    return a;                                                                  \
+  }                                                                            \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a)                 \
+  {                                                                            \
+    return FCT<COUNT>(a, IsPosNonZeroInGivenRange<RANGE, COUNT>());            \
+  }
+
+// out-of-range implemented with FCT of RANGE-1
+#define SIMDVEC_NEON_SHIFT_ARITH(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)         \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
+                                       IsPosNonZeroInRange<true, false>)       \
+  {                                                                            \
+    return NEON_FCT##_##NEON_SUF(a, (RANGE - 1));                              \
+  }                                                                            \
+  SIMDVEC_NEON_SHIFT(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)
+
+// out-of-range implemented with set-to-zero
+#define SIMDVEC_NEON_SHIFT_LOGICAL(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)       \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &,                  \
+                                       IsPosNonZeroInRange<true, false>)       \
+  {                                                                            \
+    return vmovq_n_##NEON_SUF(TYPE(0));                                        \
+  }                                                                            \
+  SIMDVEC_NEON_SHIFT(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)
+
+#define SIMDVEC_NEON_SHIFT_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)        \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
+                                       IsPosNonZeroInRange<true, true>)        \
+  {                                                                            \
+    return vreinterpretq_##NSUF##_##NSUF2(                                     \
+      NFCT##_##NSUF2(vreinterpretq_##NSUF2##_##NSUF(a), COUNT));               \
+  }                                                                            \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
+                                       IsPosNonZeroInRange<false, true>)       \
+  {                                                                            \
+    return a;                                                                  \
+  }                                                                            \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a)                 \
+  {                                                                            \
+    return FCT<COUNT>(a, IsPosNonZeroInGivenRange<RANGE, COUNT>());            \
+  }
+
+#define SIMDVEC_NEON_SHIFT_REINTER_ARITH(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)  \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
+                                       IsPosNonZeroInRange<true, false>)       \
+  {                                                                            \
+    return vreinterpretq_##NSUF##_##NSUF2(                                     \
+      NFCT##_##NSUF2(vreinterpretq_##NSUF2##_##NSUF(a), (RANGE - 1)));         \
+  }                                                                            \
+  SIMDVEC_NEON_SHIFT_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)
+
+#define SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(FCT, TYPE, NFCT, NSUF, NSUF2,       \
+                                           RANGE)                              \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &,                  \
+                                       IsPosNonZeroInRange<true, false>)       \
+  {                                                                            \
+    return vmovq_n_##NSUF(TYPE(0));                                            \
+  }                                                                            \
+  SIMDVEC_NEON_SHIFT_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)
+
+// srai
+
 // requires cast of unsigned types to signed!
-// http://stackoverflow.com/questions/18784988/
-//   neon-intrinsic-for-arithmetic-shift
+// http://stackoverflow.com/questions/18784988/neon-intrinsic-for-arithmetic-shift
 // out-of-range case handled with FCT=srai
 
 // 13. Nov 22 (Jonas Keller):
 // added missing Byte and SignedByte versions of srai
 
-SIMDVEC_NEON_VEC_VEC_IMM_REINTER_OORFCT(srai, Byte, vshrq_n, u8, s8, 8)
-SIMDVEC_NEON_VEC_VEC_IMM_OORFCT(srai, SignedByte, vshrq_n, s8, 8)
-SIMDVEC_NEON_VEC_VEC_IMM_REINTER_OORFCT(srai, Word, vshrq_n, u16, s16, 16)
-SIMDVEC_NEON_VEC_VEC_IMM_OORFCT(srai, Short, vshrq_n, s16, 16)
-SIMDVEC_NEON_VEC_VEC_IMM_OORFCT(srai, Int, vshrq_n, s32, 32)
+SIMDVEC_NEON_SHIFT_REINTER_ARITH(srai, Byte, vshrq_n, u8, s8, 8)
+SIMDVEC_NEON_SHIFT_ARITH(srai, SignedByte, vshrq_n, s8, 8)
+SIMDVEC_NEON_SHIFT_REINTER_ARITH(srai, Word, vshrq_n, u16, s16, 16)
+SIMDVEC_NEON_SHIFT_ARITH(srai, Short, vshrq_n, s16, 16)
+SIMDVEC_NEON_SHIFT_ARITH(srai, Int, vshrq_n, s32, 32)
 
-// -------------------------------------------------------------------------
 // srli
-// -------------------------------------------------------------------------
 
 // requires cast of signed types to unsigned!
-// http://stackoverflow.com/questions/18784988/
-//   neon-intrinsic-for-arithmetic-shift
+// http://stackoverflow.com/questions/18784988/neon-intrinsic-for-arithmetic-shift
 // out-of-range case handled with set-to-zero
 
-SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(srli, Byte, vshrq_n, u8, 8)
-SIMDVEC_NEON_VEC_VEC_IMM_REINTER_OORZERO(srli, SignedByte, vshrq_n, s8, u8, 8)
-SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(srli, Word, vshrq_n, u16, 16)
-SIMDVEC_NEON_VEC_VEC_IMM_REINTER_OORZERO(srli, Short, vshrq_n, s16, u16, 16)
-SIMDVEC_NEON_VEC_VEC_IMM_REINTER_OORZERO(srli, Int, vshrq_n, s32, u32, 32)
+SIMDVEC_NEON_SHIFT_LOGICAL(srli, Byte, vshrq_n, u8, 8)
+SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, SignedByte, vshrq_n, s8, u8, 8)
+SIMDVEC_NEON_SHIFT_LOGICAL(srli, Word, vshrq_n, u16, 16)
+SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Short, vshrq_n, s16, u16, 16)
+SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Int, vshrq_n, s32, u32, 32)
 
-// -------------------------------------------------------------------------
 // slli
-// -------------------------------------------------------------------------
 
 // out-of-range case handled with set-to-zero
-SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(slli, Byte, vshlq_n, u8, 8)
-SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(slli, SignedByte, vshlq_n, s8, 8)
-SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(slli, Word, vshlq_n, u16, 16)
-SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(slli, Short, vshlq_n, s16, 16)
-SIMDVEC_NEON_VEC_VEC_IMM_OORZERO(slli, Int, vshlq_n, s32, 32)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, Byte, vshlq_n, u8, 8)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, SignedByte, vshlq_n, s8, 8)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, Word, vshlq_n, u16, 16)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, Short, vshlq_n, s16, 16)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, Int, vshlq_n, s32, 32)
+
+#undef SIMDVEC_NEON_SHIFT
+#undef SIMDVEC_NEON_SHIFT_ARITH
+#undef SIMDVEC_NEON_SHIFT_LOGICAL
+#undef SIMDVEC_NEON_SHIFT_REINTER
+#undef SIMDVEC_NEON_SHIFT_REINTER_ARITH
+#undef SIMDVEC_NEON_SHIFT_REINTER_LOGICAL
 
 // 19. Dec 22 (Jonas Keller): added sra, srl and sll functions
 
@@ -2080,6 +1630,8 @@ static SIMD_INLINE Vec<Double, 16> hadd(const Vec<Double, 16> &a,
 }
 #endif
 
+#undef SIMDVEC_NEON_HADD
+
 // -------------------------------------------------------------------------
 // hadds
 // -------------------------------------------------------------------------
@@ -2140,21 +1692,14 @@ static SIMD_INLINE Vec<Double, 16> hadds(const Vec<Double, 16> &a,
 // hsub
 // -------------------------------------------------------------------------
 
-// via vuzp (unzip)
-#define SIMDVEC_NEON_HOR_VIA_UZP(FCT, TYPE, NEON_FCT, NEON_SUF)                \
-  static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       const Vec<TYPE, 16> &b)                 \
-  {                                                                            \
-    SIMDVecNeon<TYPE>::TypeX2 unzip = vuzpq_##NEON_SUF(a, b);                  \
-    return NEON_FCT##_##NEON_SUF(unzip.val[0], unzip.val[1]);                  \
-  }
+template <typename T>
+static SIMD_INLINE Vec<T, 16> hsub(const Vec<T, 16> &a, const Vec<T, 16> &b)
+{
+  Vec<T, 16> x, y;
+  unzip(a, b, x, y, Bytes<sizeof(T)>());
+  return sub(x, y);
+}
 
-SIMDVEC_NEON_HOR_VIA_UZP(hsub, Byte, vsubq, u8)
-SIMDVEC_NEON_HOR_VIA_UZP(hsub, SignedByte, vsubq, s8)
-SIMDVEC_NEON_HOR_VIA_UZP(hsub, Word, vsubq, u16)
-SIMDVEC_NEON_HOR_VIA_UZP(hsub, Short, vsubq, s16)
-SIMDVEC_NEON_HOR_VIA_UZP(hsub, Int, vsubq, s32)
-SIMDVEC_NEON_HOR_VIA_UZP(hsub, Float, vsubq, f32)
 #ifdef SIMD_DOUBLE
 static SIMD_INLINE Vec<Double, 16> hsub(const Vec<Double, 16> &a,
                                         const Vec<Double, 16> &b)
@@ -2168,34 +1713,14 @@ static SIMD_INLINE Vec<Double, 16> hsub(const Vec<Double, 16> &a,
 // hsubs
 // -------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 16> hsubs(const Vec<Byte, 16> &a,
-                                       const Vec<Byte, 16> &b)
+template <typename T>
+static SIMD_INLINE Vec<T, 16> hsubs(const Vec<T, 16> &a, const Vec<T, 16> &b)
 {
-  Vec<Byte, 16> x, y;
-  unzip(a, b, x, y, Bytes<1>());
+  Vec<T, 16> x, y;
+  unzip(a, b, x, y, Bytes<sizeof(T)>());
   return subs(x, y);
 }
 
-static SIMD_INLINE Vec<SignedByte, 16> hsubs(const Vec<SignedByte, 16> &a,
-                                             const Vec<SignedByte, 16> &b)
-{
-  Vec<SignedByte, 16> x, y;
-  unzip(a, b, x, y, Bytes<1>());
-  return subs(x, y);
-}
-
-static SIMD_INLINE Vec<Word, 16> hsubs(const Vec<Word, 16> &a,
-                                       const Vec<Word, 16> &b)
-{
-  Vec<Word, 16> x, y;
-  unzip(a, b, x, y, Bytes<2>());
-  return subs(x, y);
-}
-
-SIMDVEC_NEON_HOR_VIA_UZP(hsubs, Short, vqsubq, s16)
-SIMDVEC_NEON_HOR_VIA_UZP(hsubs, Int, vqsubq, s32)
-// Float not saturated
-SIMDVEC_NEON_HOR_VIA_UZP(hsubs, Float, vsubq, f32)
 #ifdef SIMD_DOUBLE
 // Double not saturated
 static SIMD_INLINE Vec<Double, 16> hsubs(const Vec<Double, 16> &a,
@@ -2210,17 +1735,71 @@ static SIMD_INLINE Vec<Double, 16> hsubs(const Vec<Double, 16> &a,
 // alignre (moved above srle, slle)
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_ALIGNRE_ALL()
+#define SIMDVEC_NEON_ALIGNRE(TYPE, NEON_SUF)                                   \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> alignre(                                    \
+    const Vec<TYPE, 16> &, const Vec<TYPE, 16> &l,                             \
+    Range<true, 0, Vec<TYPE, 16>::elements>)                                   \
+  {                                                                            \
+    return l;                                                                  \
+  }                                                                            \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> alignre(                                    \
+    const Vec<TYPE, 16> &h, const Vec<TYPE, 16> &l,                            \
+    Range<false, 0, Vec<TYPE, 16>::elements>)                                  \
+  {                                                                            \
+    return vextq_##NEON_SUF(l, h, COUNT);                                      \
+  }                                                                            \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> alignre(                                    \
+    const Vec<TYPE, 16> &h, const Vec<TYPE, 16> &,                             \
+    Range<true, Vec<TYPE, 16>::elements, 2 * Vec<TYPE, 16>::elements>)         \
+  {                                                                            \
+    return h;                                                                  \
+  }                                                                            \
+  template <size_t COUNT>                                                      \
+  static SIMD_INLINE Vec<TYPE, 16> alignre(                                    \
+    const Vec<TYPE, 16> &h, const Vec<TYPE, 16> &,                             \
+    Range<false, Vec<TYPE, 16>::elements, 2 * Vec<TYPE, 16>::elements>)        \
+  {                                                                            \
+    return vextq_##NEON_SUF(h, vmovq_n_##NEON_SUF(TYPE(0)),                    \
+                            COUNT - Vec<TYPE, 16>::elements);                  \
+  }                                                                            \
+  template <size_t COUNT, bool AT_LL, size_t LL_INCL, size_t UL_EXCL>          \
+  static SIMD_INLINE Vec<TYPE, 16> alignre(const Vec<TYPE, 16> &,              \
+                                           const Vec<TYPE, 16> &,              \
+                                           Range<AT_LL, LL_INCL, UL_EXCL>)     \
+  {                                                                            \
+    return vmovq_n_##NEON_SUF(TYPE(0));                                        \
+  }
+
+SIMDVEC_NEON_ALIGNRE(Byte, u8)
+SIMDVEC_NEON_ALIGNRE(SignedByte, s8)
+SIMDVEC_NEON_ALIGNRE(Word, u16)
+SIMDVEC_NEON_ALIGNRE(Short, s16)
+SIMDVEC_NEON_ALIGNRE(Int, s32)
+SIMDVEC_NEON_ALIGNRE(Float, f32)
+#ifdef SIMD_DOUBLE
+SIMDVEC_NEON_ALIGNRE(Double, f64)
+#endif
+
+template <size_t COUNT, typename T>
+static SIMD_INLINE Vec<T, 16> alignre(const Vec<T, 16> &h, const Vec<T, 16> &l)
+{
+  return alignre<COUNT>(h, l, SizeRange<COUNT, Vec<T, 16>::elements>());
+}
+
+#undef SIMDVEC_NEON_ALIGNRE
 
 // -------------------------------------------------------------------------
 // element-wise shift right
 // -------------------------------------------------------------------------
 
 // all types, done via alignre
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 16> srle(const Vec<T, 16> &a)
 {
-  return alignre<IMM>(setzero(OutputType<T>(), Integer<16>()), a);
+  return alignre<COUNT>(setzero(OutputType<T>(), Integer<16>()), a);
 }
 
 // -------------------------------------------------------------------------
@@ -2228,187 +1807,21 @@ static SIMD_INLINE Vec<T, 16> srle(const Vec<T, 16> &a)
 // -------------------------------------------------------------------------
 
 // all types, done via alignre
-// we have to check the range since alignre doesn't accept negative IMM
 
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 16> slle(const Vec<T, 16> &a,
-                                   IsPosInRange<true, true>)
-{
-  return alignre<Vec<T, 16>::elements - IMM>(
-    a, setzero(OutputType<T>(), Integer<16>()));
-}
-
-template <int IMM, typename T>
-static SIMD_INLINE Vec<T, 16> slle(const Vec<T, 16> &,
-                                   IsPosInRange<true, false>)
-{
-  return setzero(OutputType<T>(), Integer<16>());
-}
-
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 16> slle(const Vec<T, 16> &a)
 {
-  return slle<IMM>(a, IsPosInGivenRange<Vec<T, 16>::elements, IMM>());
+  SIMD_IF_CONSTEXPR (COUNT < Vec<T, 16>::elements) {
+    return alignre<Vec<T, 16>::elements - COUNT>(
+      a, setzero(OutputType<T>(), Integer<16>()));
+  } else {
+    return setzero(OutputType<T>(), Integer<16>());
+  }
 }
 
 // -------------------------------------------------------------------------
 // swizzle
 // -------------------------------------------------------------------------
-
-// this mask is rearranged using vldN (n=1..4,sizeof=*)
-static const Byte swizzleMask16[32] SIMD_ATTR_ALIGNED(16) = {
-  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
-  16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
-
-// n=5,sizeof=1, 99=invalid (mapped to 0 by vtbl3)
-static const Byte swizzleMask16_5_1[48] SIMD_ATTR_ALIGNED(16) = {
-  0,  5,  10, 15, 1,  6,  11, 16, 2,  7,  12, 17, 3,  8,  13, 18,
-  4,  9,  14, 19, 99, 99, 99, 99, 20, 25, 30, 35, 21, 26, 31, 36,
-  22, 27, 32, 37, 23, 28, 33, 38, 24, 29, 34, 39, 99, 99, 99, 99};
-
-// n=5,sizeof=2, 99=invalid (mapped to 0 by vtbl3)
-static const Byte swizzleMask16_5_2[48] SIMD_ATTR_ALIGNED(16) = {
-  0,  1,  10, 11, 2,  3,  12, 13, 4,  5,  14, 15, 6,  7,  16, 17,
-  8,  9,  18, 19, 99, 99, 99, 99, 20, 21, 30, 31, 22, 23, 32, 33,
-  24, 25, 34, 35, 26, 27, 36, 37, 28, 29, 38, 39, 99, 99, 99, 99};
-
-// n=5,sizeof=4, 99=invalid (mapped to 0 by vtbl3)
-static const Byte swizzleMask16_5_4[48] SIMD_ATTR_ALIGNED(16) = {
-  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
-  16, 17, 18, 19, 99, 99, 99, 99, 20, 21, 22, 23, 24, 25, 26, 27,
-  28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 99, 99, 99, 99};
-
-// n=5,sizeof=8, 99=invalid (mapped to 0 by vtbl3)
-static const Byte swizzleMask16_5_8[48] SIMD_ATTR_ALIGNED(16) = {99}; // TODO
-
-// n=5,sizeof=index
-static const Byte *swizzleMask16_5[9] = {NULL,
-                                         swizzleMask16_5_1,
-                                         swizzleMask16_5_2,
-                                         NULL,
-                                         swizzleMask16_5_4,
-                                         NULL,
-                                         NULL,
-                                         NULL,
-                                         swizzleMask16_5_8};
-
-// ---------- swizzle tables ----------
-
-template <int NUM, typename T, int SIMD_WIDTH>
-struct SwizzleTable;
-
-// n = 2, 3, 4
-#define SIMDVEC_NEON_SWIZZLE_TABLE(NUM, T, NEON_SUF)                           \
-  template <>                                                                  \
-  struct SwizzleTable<NUM, T, 16>                                              \
-  {                                                                            \
-    using ScalarType    = SIMDVecNeon<T>::ScalarType;                          \
-    using TableLoadType = SIMDVecNeonArray64<NUM, T>::Type;                    \
-    using TableType     = SIMDVecNeonArray64<NUM, Byte>::Type;                 \
-    using TableValType  = SIMDVecNeon<Byte>::Type64;                           \
-    TableType table;                                                           \
-    SwizzleTable()                                                             \
-    {                                                                          \
-      TableLoadType loadTable =                                                \
-        vld##NUM##_##NEON_SUF((ScalarType *) swizzleMask16);                   \
-      for (int i = 0; i < NUM; i++)                                            \
-        table.val[i] = vreinterpret_u8_##NEON_SUF(loadTable.val[i]);           \
-    }                                                                          \
-    void print(FILE *f = stdout)                                               \
-    {                                                                          \
-      SIMDVecNeon<Byte>::ScalarType buf[8] SIMD_ATTR_ALIGNED(8);               \
-      for (int i = 0; i < NUM; i++) {                                          \
-        vst1_u8(buf, table.val[i]);                                            \
-        for (int j = 0; j < 8; j++) fprintf(f, "%2d ", buf[j]);                \
-        fprintf(f, "\n");                                                      \
-      }                                                                        \
-    }                                                                          \
-  };
-
-// n = 5
-template <typename T>
-struct SwizzleTable<5, T, 16>
-{
-  using ScalarType   = typename SIMDVecNeon<Byte>::ScalarType;
-  using TableType    = typename SIMDVecNeonArray64<3, Byte>::Type;
-  using TableValType = typename SIMDVecNeon<Byte>::Type64;
-  // two tables for n=3
-  TableType table[2];
-  SwizzleTable()
-  {
-    ScalarType *mask = (ScalarType *) swizzleMask16_5[sizeof(T)];
-    for (int i = 0, off = 0; i < 3; i++, off += 8) {
-      // first half (applied to vectors 0,1,2)
-      table[0].val[i] = vld1_u8(mask + off);
-      // second half (applied to vectors 2,3,4), index-16, 99-16=invalid
-      table[1].val[i] = vsub_u8(vld1_u8(mask + 24 + off), vmov_n_u8(16));
-    }
-  }
-  void print(FILE *f = stdout)
-  {
-    SIMDVecNeon<Byte>::ScalarType buf[8] SIMD_ATTR_ALIGNED(8);
-    for (int j = 0; j < 2; j++)
-      for (int i = 0; i < 3; i++) {
-        vst1_u8(buf, table[j].val[i]);
-        for (int j = 0; j < 8; j++) fprintf(f, "%2d ", buf[j]);
-        fprintf(f, "\n");
-      }
-  }
-};
-
-#define SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(T, NEON_SUF)                         \
-  SIMDVEC_NEON_SWIZZLE_TABLE(1, T, NEON_SUF)                                   \
-  SIMDVEC_NEON_SWIZZLE_TABLE(2, T, NEON_SUF)                                   \
-  SIMDVEC_NEON_SWIZZLE_TABLE(3, T, NEON_SUF)                                   \
-  SIMDVEC_NEON_SWIZZLE_TABLE(4, T, NEON_SUF)
-
-SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(Byte, u8)
-SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(SignedByte, s8)
-SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(Word, u16)
-SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(Short, s16)
-SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(Int, s32)
-SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(Float, f32)
-#ifdef SIMD_DOUBLE
-SIMDVEC_NEON_SWIZZLE_TABLE_ALLNUM(Double, f64)
-#endif
-
-// ---------- swizzle (AoS to SoA) ----------
-
-// e.g. NUM==3:
-//
-// i     0        0          0        1          1        1
-// j     0        1          2        0          1        2
-// k     0        1          2        3          4        5
-// k>>1  0        0          1        1          2        2
-//     | v0                | v1                | v2                |
-//     | vu0.val0 vu0.val1 | vu0.val2 vu1.val0 | vu1.val1 vu1.val2 |
-//     | vu0                         | vu1                         |
-// j=0 | t.table.val0                | t.table.val0                | -> v0
-// j=1 | t.table.val1                | t.table.val1                | -> v1
-// j=2 | t.table.val2                | t.table.val2                | -> v2
-// i     0                             1
-
-#define SIMDVEC_NEON_SWIZZLE(NUM)                                              \
-  template <typename T>                                                        \
-  static SIMD_INLINE void swizzle(Vec<T, 16> v[NUM], Integer<NUM>)             \
-  {                                                                            \
-    static const SwizzleTable<NUM, T, 16> t;                                   \
-    typename SwizzleTable<NUM, T, 16>::TableType vu[2];                        \
-    for (int i = 0, k = 0; i < 2; i++)                                         \
-      for (int j = 0; j < NUM; j++, k++) {                                     \
-        Vec<Byte, 16> vb = reinterpret(v[k >> 1], OutputType<Byte>());         \
-        vu[i].val[j]     = (k & 1) ? vget_high_u8(vb) : vget_low_u8(vb);       \
-      }                                                                        \
-    typename SwizzleTable<NUM, T, 16>::TableValType ru[2];                     \
-    for (int j = 0; j < NUM; j++) {                                            \
-      for (int i = 0; i < 2; i++)                                              \
-        ru[i] = vtbl##NUM##_u8(vu[i], t.table.val[j]);                         \
-      v[j] = reinterpret(Vec<Byte, 16>(vcombine_u8(ru[0], ru[1])),             \
-                         OutputType<T>());                                     \
-    }                                                                          \
-  }
-
-// -------------------- n = 1 --------------------
 
 template <typename T>
 static SIMD_INLINE void swizzle(Vec<T, 16>[1], Integer<1>)
@@ -2416,20 +1829,123 @@ static SIMD_INLINE void swizzle(Vec<T, 16>[1], Integer<1>)
   // v remains unchanged
 }
 
-// -------------------- n = 2 --------------------
+template <typename T>
+static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>)
+{
+  uint8x8x2_t vu[2];
+  for (size_t j = 0; j < 2; j++) {
+    const auto vByte = reinterpret(v[j], OutputType<Byte>());
+    vu[0].val[j]     = vget_low_u8(vByte);
+    vu[1].val[j]     = vget_high_u8(vByte);
+  }
+  const uint8x8_t table[2] = {
+    {0, 2, 4, 6, 8, 10, 12, 14},
+    {1, 3, 5, 7, 9, 11, 13, 15},
+  };
+  for (size_t i = 0; i < 2; i++) {
+    v[i] = reinterpret(Vec<Byte, 16>(vcombine_u8(vtbl2_u8(vu[0], table[i]),
+                                                 vtbl2_u8(vu[1], table[i]))),
+                       OutputType<T>());
+  }
+}
 
-SIMDVEC_NEON_SWIZZLE(2)
+template <typename T>
+static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>)
+{
+  uint8x8x3_t vu[2];
+  for (size_t j = 0; j < 3; j++) {
+    const auto vByte = reinterpret(v[j], OutputType<Byte>());
+    vu[0].val[j]     = vget_low_u8(vByte);
+    vu[1].val[j]     = vget_high_u8(vByte);
+  }
+  const uint8x8_t table[3] = {
+    {0, 3, 6, 9, 12, 15, 18, 21},
+    {1, 4, 7, 10, 13, 16, 19, 22},
+    {2, 5, 8, 11, 14, 17, 20, 23},
+  };
+  for (size_t i = 0; i < 3; i++) {
+    v[i] = reinterpret(Vec<Byte, 16>(vcombine_u8(vtbl3_u8(vu[0], table[i]),
+                                                 vtbl3_u8(vu[1], table[i]))),
+                       OutputType<T>());
+  }
+}
 
-// -------------------- n = 3 --------------------
+template <typename T>
+static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
+{
+  uint8x8x4_t vu[2];
+  for (size_t j = 0; j < 4; j++) {
+    const auto vByte = reinterpret(v[j], OutputType<Byte>());
+    vu[0].val[j]     = vget_low_u8(vByte);
+    vu[1].val[j]     = vget_high_u8(vByte);
+  }
+  const uint8x8_t table[4] = {
+    {0, 4, 8, 12, 16, 20, 24, 28},
+    {1, 5, 9, 13, 17, 21, 25, 29},
+    {2, 6, 10, 14, 18, 22, 26, 30},
+    {3, 7, 11, 15, 19, 23, 27, 31},
+  };
+  for (size_t i = 0; i < 4; i++) {
+    v[i] = reinterpret(Vec<Byte, 16>(vcombine_u8(vtbl4_u8(vu[0], table[i]),
+                                                 vtbl4_u8(vu[1], table[i]))),
+                       OutputType<T>());
+  }
+}
 
-SIMDVEC_NEON_SWIZZLE(3)
+// ---------- n = 5 ----------
 
-// -------------------- n = 4 --------------------
+// swizzle table
 
-SIMDVEC_NEON_SWIZZLE(4)
+// arrays are padded from 24 to 32 elements to keep alignment
+static const uint8_t swizzleMask5Lo[9][32] SIMD_ATTR_ALIGNED(16) = {
+  {},
+  {0, 5, 10, 15, 1, 6, 11, 16, 2,  7,  12, 17,
+   3, 8, 13, 18, 4, 9, 14, 19, 99, 99, 99, 99},
+  {0, 1, 10, 11, 2, 3, 12, 13, 4,  5,  14, 15,
+   6, 7, 16, 17, 8, 9, 18, 19, 99, 99, 99, 99},
+  {},
+  {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
+   12, 13, 14, 15, 16, 17, 18, 19, 99, 99, 99, 99},
+  {},
+  {},
+  {},
+  {}, // TODO
+};
 
-// -------------------- n = 5 --------------------
+// arrays are padded from 24 to 32 elements to keep alignment
+static const uint8_t swizzleMask5Hi[9][32] SIMD_ATTR_ALIGNED(16) = {
+  {},
+  {4, 9,  14, 19, 5, 10, 15, 20, 6,  11, 16, 21,
+   7, 12, 17, 22, 8, 13, 18, 23, 99, 99, 99, 99},
+  {4,  5,  14, 15, 6,  7,  16, 17, 8,  9,  18, 19,
+   10, 11, 20, 21, 12, 13, 22, 23, 99, 99, 99, 99},
+  {},
+  {4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+   16, 17, 18, 19, 20, 21, 22, 23, 99, 99, 99, 99},
+  {},
+  {},
+  {},
+  {}, // TODO
+};
 
+// n = 5
+template <size_t SIZE>
+struct SwizzleTable5
+{
+  // two tables for n=3
+  uint8x8x3_t table[2];
+  SwizzleTable5()
+  {
+    for (size_t i = 0; i < 3; i++) {
+      // first half (applied to vectors 0,1,2)
+      table[0].val[i] = vld1_u8(&swizzleMask5Lo[SIZE][i * 8]);
+      // second half (applied to vectors 2,3,4)
+      table[1].val[i] = vld1_u8(&swizzleMask5Hi[SIZE][i * 8]);
+    }
+  }
+};
+
+// n = 5
 template <typename T>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>)
 {
@@ -2464,70 +1980,84 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>)
   //     | t.table[0].val[2]|             | t.table[0].val[2]|
   //                  | t.table[1].val[2] |           | t.table[1].val[2] |
 
-  static const SwizzleTable<5, T, 16> t;
-  typename SwizzleTable<5, T, 16>::TableType vu[4];
+  uint8x8x3_t vu[4];
   // input half-vector index starts at k0
-  int k0[4] = {0, 2, 5, 7};
-  for (int i = 0; i < 4; i++)
-    for (int j = 0, k = k0[i]; j < 3; j++, k++) {
-      Vec<Byte, 16> vb = reinterpret(v[k >> 1], OutputType<Byte>());
-      vu[i].val[j]     = (k & 1) ? vget_high_u8(vb) : vget_low_u8(vb);
+  const size_t k0[4] = {0, 2, 5, 7};
+  for (size_t i = 0; i < 4; i++) {
+    for (size_t j = 0; j < 3; j++) {
+      const size_t k         = k0[i] + j;
+      const Vec<Byte, 16> vb = reinterpret(v[k >> 1], OutputType<Byte>());
+      vu[i].val[j]           = (k & 1) ? vget_high_u8(vb) : vget_low_u8(vb);
     }
-  typename SIMDVecNeon<Byte>::Type64 r[2][3][3];
+  }
+  static const SwizzleTable5<sizeof(T)> t;
+  uint8x8_t r[2][3][3];
   // n: left/right half of input
   // k: index of vu
-  for (int n = 0, k = 0; n < 2; n++)
+  for (size_t n = 0, k = 0; n < 2; n++)
     // i: left/right half of half input
-    for (int i = 0; i < 2; i++, k++)
+    for (size_t i = 0; i < 2; i++, k++)
       // j: different 3-tables
-      for (int j = 0; j < 3; j++)
+      for (size_t j = 0; j < 3; j++)
         // apply table
         r[n][i][j] = vtbl3_u8(vu[k], t.table[i].val[j]);
   // zip 4-byte blocks together
   int32x2x2_t z[2][3];
-  for (int n = 0; n < 2; n++)
-    for (int j = 0; j < 3; j++)
+  for (size_t n = 0; n < 2; n++)
+    for (size_t j = 0; j < 3; j++)
       z[n][j] = vzip_s32(vreinterpret_s32_u8(r[n][0][j]),
                          vreinterpret_s32_u8(r[n][1][j]));
   // combine left and right halfs
-  for (int j = 0, k = 0; j < 3; j++)
-    for (int lh = 0; lh < 2; lh++) {
+  for (size_t j = 0, k = 0; j < 3; j++) {
+    for (size_t lh = 0; lh < 2; lh++) {
       v[k] = reinterpret(
         Vec<Int, 16>(vcombine_s32(z[0][j].val[lh], z[1][j].val[lh])),
         OutputType<T>());
-      if (++k == 5) break;
+      k++;
+      if (k >= 5) break;
     }
+  }
 }
 
 // -------------------------------------------------------------------------
-// compare <
+// compare functions
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_BINARY_REINTERP_ALL(cmplt, vcltq)
+#define SIMDVEC_NEON_CMP(CMP, TYPE, NEON_SUF, NEON_USUF)                       \
+  static SIMD_INLINE Vec<TYPE, 16> cmp##CMP(const Vec<TYPE, 16> &a,            \
+                                            const Vec<TYPE, 16> &b)            \
+  {                                                                            \
+    return vreinterpretq_##NEON_SUF##_##NEON_USUF(                             \
+      vc##CMP##q##_##NEON_SUF(a, b));                                          \
+  }
 
-// -------------------------------------------------------------------------
-// compare <=
-// -------------------------------------------------------------------------
+#ifdef SIMD_DOUBLE
+#define SIMDVEC_NEON_CMP_ALL(CMP)                                              \
+  SIMDVEC_NEON_CMP(CMP, Byte, u8, u8)                                          \
+  SIMDVEC_NEON_CMP(CMP, SignedByte, s8, u8)                                    \
+  SIMDVEC_NEON_CMP(CMP, Word, u16, u16)                                        \
+  SIMDVEC_NEON_CMP(CMP, Short, s16, u16)                                       \
+  SIMDVEC_NEON_CMP(CMP, Int, s32, u32)                                         \
+  SIMDVEC_NEON_CMP(CMP, Float, f32, u32)                                       \
+  SIMDVEC_NEON_CMP(CMP, Double, f64, u64)
+#else
+#define SIMDVEC_NEON_CMP_ALL(CMP)                                              \
+  SIMDVEC_NEON_CMP(CMP, Byte, u8, u8)                                          \
+  SIMDVEC_NEON_CMP(CMP, SignedByte, s8, u8)                                    \
+  SIMDVEC_NEON_CMP(CMP, Word, u16, u16)                                        \
+  SIMDVEC_NEON_CMP(CMP, Short, s16, u16)                                       \
+  SIMDVEC_NEON_CMP(CMP, Int, s32, u32)                                         \
+  SIMDVEC_NEON_CMP(CMP, Float, f32, u32)
+#endif
 
-SIMDVEC_NEON_BINARY_REINTERP_ALL(cmple, vcleq)
+SIMDVEC_NEON_CMP_ALL(lt)
+SIMDVEC_NEON_CMP_ALL(le)
+SIMDVEC_NEON_CMP_ALL(eq)
+SIMDVEC_NEON_CMP_ALL(gt)
+SIMDVEC_NEON_CMP_ALL(ge)
 
-// -------------------------------------------------------------------------
-// compare ==
-// -------------------------------------------------------------------------
-
-SIMDVEC_NEON_BINARY_REINTERP_ALL(cmpeq, vceqq)
-
-// -------------------------------------------------------------------------
-// compare >
-// -------------------------------------------------------------------------
-
-SIMDVEC_NEON_BINARY_REINTERP_ALL(cmpgt, vcgtq)
-
-// -------------------------------------------------------------------------
-// compare >=
-// -------------------------------------------------------------------------
-
-SIMDVEC_NEON_BINARY_REINTERP_ALL(cmpge, vcgeq)
+#undef SIMDVEC_NEON_CMP_ALL
+#undef SIMDVEC_NEON_CMP
 
 // -------------------------------------------------------------------------
 // compare !=
@@ -2556,6 +2086,8 @@ static SIMD_INLINE Vec<Double, 16> cmpneq(const Vec<Double, 16> &a,
 }
 #endif
 
+#undef SIMDVEC_NEON_CMPNEQ
+
 // -------------------------------------------------------------------------
 // ifelse
 // -------------------------------------------------------------------------
@@ -2580,19 +2112,51 @@ SIMDVEC_NEON_IFELSE(Float, f32, u32)
 SIMDVEC_NEON_IFELSE(Double, f64, u64)
 #endif
 
+#undef SIMDVEC_NEON_IFELSE
+
 // -------------------------------------------------------------------------
 // bit_and
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_BINARY_FLOAT_BY_INT(vandq)
-SIMDVEC_NEON_BINARY_ALL(bit_and, vandq)
+SIMDVEC_NEON_BINARY_ALLINT(bit_and, vandq)
+
+static SIMD_INLINE Vec<Float, 16> bit_and(const Vec<Float, 16> &a,
+                                          const Vec<Float, 16> &b)
+{
+  return vreinterpretq_f32_s32(
+    vandq_s32(vreinterpretq_s32_f32(a), vreinterpretq_s32_f32(b)));
+}
+
+#ifdef SIMD_DOUBLE
+static SIMD_INLINE Vec<Double, 16> bit_and(const Vec<Double, 16> &a,
+                                           const Vec<Double, 16> &b)
+{
+  return vreinterpretq_f64_s64(
+    vandq_s64(vreinterpretq_s64_f64(a), vreinterpretq_s64_f64(b)));
+}
+#endif
 
 // -------------------------------------------------------------------------
 // bit_or
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_BINARY_FLOAT_BY_INT(vorrq)
-SIMDVEC_NEON_BINARY_ALL(bit_or, vorrq)
+SIMDVEC_NEON_BINARY_ALLINT(bit_or, vorrq)
+
+static SIMD_INLINE Vec<Float, 16> bit_or(const Vec<Float, 16> &a,
+                                         const Vec<Float, 16> &b)
+{
+  return vreinterpretq_f32_s32(
+    vorrq_s32(vreinterpretq_s32_f32(a), vreinterpretq_s32_f32(b)));
+}
+
+#ifdef SIMD_DOUBLE
+static SIMD_INLINE Vec<Double, 16> bit_or(const Vec<Double, 16> &a,
+                                          const Vec<Double, 16> &b)
+{
+  return vreinterpretq_f64_s64(
+    vorrq_s64(vreinterpretq_s64_f64(a), vreinterpretq_s64_f64(b)));
+}
+#endif
 
 // -------------------------------------------------------------------------
 // bit_andnot
@@ -2609,14 +2173,33 @@ static SIMD_INLINE Vec<T, 16> bit_andnot(const Vec<T, 16> &a,
 // bit_xor
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_BINARY_FLOAT_BY_INT(veorq)
-SIMDVEC_NEON_BINARY_ALL(bit_xor, veorq)
+SIMDVEC_NEON_BINARY_ALLINT(bit_xor, veorq)
+
+static SIMD_INLINE Vec<Float, 16> bit_xor(const Vec<Float, 16> &a,
+                                          const Vec<Float, 16> &b)
+{
+  return vreinterpretq_f32_s32(
+    veorq_s32(vreinterpretq_s32_f32(a), vreinterpretq_s32_f32(b)));
+}
+
+#ifdef SIMD_DOUBLE
+static SIMD_INLINE Vec<Double, 16> bit_xor(const Vec<Double, 16> &a,
+                                           const Vec<Double, 16> &b)
+{
+  return vreinterpretq_f64_s64(
+    veorq_s64(vreinterpretq_s64_f64(a), vreinterpretq_s64_f64(b)));
+}
+#endif
 
 // -------------------------------------------------------------------------
 // bit_not
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_UNARY_ALLINT(bit_not, vmvnq)
+SIMDVEC_NEON_UNARY(bit_not, Byte, vmvnq, u8)
+SIMDVEC_NEON_UNARY(bit_not, SignedByte, vmvnq, s8)
+SIMDVEC_NEON_UNARY(bit_not, Word, vmvnq, u16)
+SIMDVEC_NEON_UNARY(bit_not, Short, vmvnq, s16)
+SIMDVEC_NEON_UNARY(bit_not, Int, vmvnq, s32)
 
 static SIMD_INLINE Vec<Float, 16> bit_not(const Vec<Float, 16> &a)
 {
@@ -2659,7 +2242,11 @@ static SIMD_INLINE Vec<Double, 16> avg(const Vec<Double, 16> &a,
 //   fastest-way-to-test-a-128-bit-neon-register-
 //   for-a-value-of-0-using-intrinsics
 
-SIMDVEC_NEON_BINARY_FLOAT_BY_INT_64(vorr)
+static SIMD_INLINE float32x2_t vorr_f32(float32x2_t a, float32x2_t b)
+{
+  return vreinterpret_f32_s32(
+    vorr_s32(vreinterpret_s32_f32(a), vreinterpret_s32_f32(b)));
+}
 
 // vpmax has to operate on unsigned (u32), otherwise 0 could be
 // the max. of a pair even though the other value is non-zero (neg.)
@@ -2681,6 +2268,8 @@ SIMDVEC_NEON_TESTALLZEROS(Float, f32)
 SIMDVEC_NEON_TESTALLZEROS(Double, f64)
 #endif
 
+#undef SIMDVEC_NEON_TESTALLZEROS
+
 // -------------------------------------------------------------------------
 // test_all_ones
 // -------------------------------------------------------------------------
@@ -2695,13 +2284,12 @@ static SIMD_INLINE bool test_all_ones(const Vec<T, 16> &a)
 // reverse
 // -------------------------------------------------------------------------
 
-// https://stackoverflow.com/questions/18760784/
-//         reverse-vector-order-in-arm-neon-intrinsics
+// https://stackoverflow.com/questions/18760784/reverse-vector-order-in-arm-neon-intrinsics
 
 #define SIMDVEC_NEON_REVERSE(T, NEON_SUF)                                      \
   static SIMD_INLINE Vec<T, 16> reverse(const Vec<T, 16> &a)                   \
   {                                                                            \
-    SIMDVecNeon<T>::Type t = vrev64q_##NEON_SUF(a);                            \
+    const auto t = vrev64q_##NEON_SUF(a);                                      \
     return vcombine_##NEON_SUF(vget_high_##NEON_SUF(t),                        \
                                vget_low_##NEON_SUF(t));                        \
   }
@@ -2718,6 +2306,8 @@ static SIMD_INLINE Vec<Double, 16> reverse(const Vec<Double, 16> &a)
   return vcombine_f64(vget_high_f64(a), vget_low_f64(a));
 }
 #endif
+
+#undef SIMDVEC_NEON_REVERSE
 
 // ---------------------------------------------------------------------------
 // msb2int

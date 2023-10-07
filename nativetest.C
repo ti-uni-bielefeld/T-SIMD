@@ -54,9 +54,9 @@ int main()
 #endif
   printf("NATIVE_SIMD_WIDTH = %d\n", NATIVE_SIMD_WIDTH);
   SIMDVec<SIMDFloat> a, b, c;
-  const int n = SIMDVec<SIMDFloat>::elements;
+  const auto n = SIMDVec<SIMDFloat>::elements;
   SIMDFloat buf[n];
-  for (int i = 0; i < n; i++) buf[i] = i;
+  for (size_t i = 0; i < n; i++) buf[i] = i;
   a = setzero<SIMDFloat>();
   b = loadu(buf);
   c = a + b;

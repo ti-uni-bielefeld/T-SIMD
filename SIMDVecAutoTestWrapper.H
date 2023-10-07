@@ -62,28 +62,28 @@ namespace auto_test {
 // 13. Mar 23 (Jonas Keller): used C++ string concatenation instead of
 // sprintf for theses functions
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static std::string t2s(const std::string &fct)
 {
   return fct + "<" + TypeInfo<T>::name() + "," + std::to_string(SIMD_WIDTH) +
          ">";
 }
 
-template <int I, typename T, int SIMD_WIDTH>
+template <size_t I, typename T, size_t SIMD_WIDTH>
 static std::string ti2s(const std::string &fct)
 {
   return fct + "<" + std::to_string(I) + "," + TypeInfo<T>::name() + "," +
          std::to_string(SIMD_WIDTH) + ">";
 }
 
-template <int I, int J, typename T, int SIMD_WIDTH>
+template <size_t I, size_t J, typename T, size_t SIMD_WIDTH>
 static std::string tii2s(const std::string &fct)
 {
   return fct + "<" + std::to_string(I) + "," + std::to_string(J) + "," +
          TypeInfo<T>::name() + "," + std::to_string(SIMD_WIDTH) + ">";
 }
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename T, size_t SIMD_WIDTH>
 static std::string tt2s(const std::string &fct)
 {
   return fct + "<" + TypeInfo<Tout>::name() + "," + TypeInfo<T>::name() + "," +
@@ -94,7 +94,7 @@ static std::string tt2s(const std::string &fct)
 // wrapper
 // -------------------------------------------------------------------------
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename T, size_t SIMD_WIDTH>
 struct Reinterpret
 {
   static SIMD_INLINE std::string name()
@@ -107,14 +107,14 @@ struct Reinterpret
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<Tout, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return reinterpret<Tout>(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Setzero
 {
   static SIMD_INLINE std::string name()
@@ -127,28 +127,28 @@ struct Setzero
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply()
   {
     return Deductor<VEC>::template _setzero<T, SIMD_WIDTH>();
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Set1
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("set1"); }
 
   static SIMD_INLINE T randomizeInputScalar() { return getRandom<T>(); }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(T a)
   {
     return Deductor<VEC>::template _set1<T, SIMD_WIDTH>(a);
   }
 };
 
-template <int I, typename T, int SIMD_WIDTH>
+template <size_t I, typename T, size_t SIMD_WIDTH>
 struct Extract
 {
   static SIMD_INLINE std::string name()
@@ -156,23 +156,23 @@ struct Extract
     return ti2s<I, T, SIMD_WIDTH>("extract");
   }
 
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = SIMD_WIDTH / sizeof(T) + 1;
-  static constexpr int nextI = I + 1;
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = SIMD_WIDTH / sizeof(T) + 1;
+  static constexpr size_t nextI = I + 1;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE T apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return extract<I>(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Add
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("add"); }
@@ -182,7 +182,7 @@ struct Add
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -190,7 +190,7 @@ struct Add
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Adds
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("adds"); }
@@ -200,7 +200,7 @@ struct Adds
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -208,7 +208,7 @@ struct Adds
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Sub
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("sub"); }
@@ -218,7 +218,7 @@ struct Sub
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -226,7 +226,7 @@ struct Sub
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Subs
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("subs"); }
@@ -236,7 +236,7 @@ struct Subs
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -244,7 +244,7 @@ struct Subs
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Neg
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("neg"); }
@@ -254,14 +254,14 @@ struct Neg
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return neg(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Mul
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("mul"); }
@@ -271,7 +271,7 @@ struct Mul
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -279,7 +279,7 @@ struct Mul
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Div
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("div"); }
@@ -289,7 +289,7 @@ struct Div
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -297,7 +297,7 @@ struct Div
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Ceil
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("ceil"); }
@@ -307,14 +307,14 @@ struct Ceil
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return ceil(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Floor
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("floor"); }
@@ -324,14 +324,14 @@ struct Floor
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return floor(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Round
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("round"); }
@@ -341,14 +341,14 @@ struct Round
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return round(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Truncate
 {
   static SIMD_INLINE std::string name()
@@ -361,7 +361,7 @@ struct Truncate
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return truncate(a);
@@ -370,7 +370,7 @@ struct Truncate
 
 // 02. Oct 22 (Jonas Keller): added Rcp and Rsqrt
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Rcp
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("rcp"); }
@@ -380,14 +380,14 @@ struct Rcp
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return rcp(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Rsqrt
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("rsqrt"); }
@@ -397,14 +397,14 @@ struct Rsqrt
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return rsqrt(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Sqrt
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("sqrt"); }
@@ -414,14 +414,14 @@ struct Sqrt
     vec.randomizeNonNegative();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return sqrt(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Min
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("min"); }
@@ -431,7 +431,7 @@ struct Min
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -439,7 +439,7 @@ struct Min
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Max
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("max"); }
@@ -449,7 +449,7 @@ struct Max
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -457,7 +457,7 @@ struct Max
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Abs
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("abs"); }
@@ -467,14 +467,14 @@ struct Abs
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return abs(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Sign
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("sign"); }
@@ -484,7 +484,7 @@ struct Sign
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -492,7 +492,7 @@ struct Sign
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct AbsDiff
 {
   static SIMD_INLINE std::string name()
@@ -505,7 +505,7 @@ struct AbsDiff
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -513,7 +513,7 @@ struct AbsDiff
   }
 };
 
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t PART, size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 struct Unpack
 {
   static SIMD_INLINE std::string name()
@@ -522,20 +522,20 @@ struct Unpack
   }
 
   // PART (I) switches between 0 and 1
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = 1;
-  static constexpr int nextI = 1 - PART;
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = 1;
+  static constexpr size_t nextI = 1 - PART;
   // NUM_ELEMS (J) is doubled if PART == 1
-  static constexpr int minJ  = 1;
-  static constexpr int maxJ  = SIMD_WIDTH / sizeof(T);
-  static constexpr int nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
+  static constexpr size_t minJ  = 1;
+  static constexpr size_t maxJ  = SIMD_WIDTH / sizeof(T);
+  static constexpr size_t nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -544,7 +544,7 @@ struct Unpack
 };
 
 // 10. Oct 22 (Jonas Keller): added Unpack16
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t PART, size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 struct Unpack16
 {
   static SIMD_INLINE std::string name()
@@ -553,20 +553,20 @@ struct Unpack16
   }
 
   // PART (I) switches between 0 and 1
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = 1;
-  static constexpr int nextI = 1 - PART;
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = 1;
+  static constexpr size_t nextI = 1 - PART;
   // NUM_ELEMS (J) is doubled if PART == 1
-  static constexpr int minJ  = 1;
-  static constexpr int maxJ  = 16 / sizeof(T);
-  static constexpr int nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
+  static constexpr size_t minJ  = 1;
+  static constexpr size_t maxJ  = 16 / sizeof(T);
+  static constexpr size_t nextJ = PART ? NUM_ELEMS * 2 : NUM_ELEMS;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -576,31 +576,31 @@ struct Unpack16
 
 // 10. Oct 22 (Jonas Keller): added ExtractLane
 // extracts a 128-bit lane
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t LANE_INDEX, typename T, size_t SIMD_WIDTH>
 struct ExtractLane
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<IMM, T, SIMD_WIDTH>("extractLane");
+    return ti2s<LANE_INDEX, T, SIMD_WIDTH>("extractLane");
   }
 
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = SIMD_WIDTH / 16 - 1;
-  static constexpr int nextI = IMM + 1;
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = SIMD_WIDTH / 16 - 1;
+  static constexpr size_t nextI = LANE_INDEX + 1;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, 16> apply(const VEC<T, SIMD_WIDTH> &a)
   {
-    return extractLane<IMM>(a);
+    return extractLane<LANE_INDEX>(a);
   }
 };
 
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 struct Zip
 {
   static SIMD_INLINE std::string name()
@@ -608,16 +608,16 @@ struct Zip
     return ti2s<NUM_ELEMS, T, SIMD_WIDTH>("zip");
   }
 
-  static constexpr int minI  = 1;
-  static constexpr int maxI  = SIMD_WIDTH / sizeof(T);
-  static constexpr int nextI = NUM_ELEMS * 2;
+  static constexpr size_t minI  = 1;
+  static constexpr size_t maxI  = SIMD_WIDTH / sizeof(T);
+  static constexpr size_t nextI = NUM_ELEMS * 2;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> a,
                                 const VEC<T, SIMD_WIDTH> b,
                                 VEC<T, SIMD_WIDTH> &c, VEC<T, SIMD_WIDTH> &d)
@@ -627,7 +627,7 @@ struct Zip
 };
 
 // 10. Oct 22 (Jonas Keller): added Zip16
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 struct Zip16
 {
   static SIMD_INLINE std::string name()
@@ -635,16 +635,16 @@ struct Zip16
     return ti2s<NUM_ELEMS, T, SIMD_WIDTH>("zip16");
   }
 
-  static constexpr int minI  = 1;
-  static constexpr int maxI  = 16 / sizeof(T);
-  static constexpr int nextI = NUM_ELEMS * 2;
+  static constexpr size_t minI  = 1;
+  static constexpr size_t maxI  = 16 / sizeof(T);
+  static constexpr size_t nextI = NUM_ELEMS * 2;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> a,
                                 const VEC<T, SIMD_WIDTH> b,
                                 VEC<T, SIMD_WIDTH> &c, VEC<T, SIMD_WIDTH> &d)
@@ -653,7 +653,7 @@ struct Zip16
   }
 };
 
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 struct Unzip
 {
   static SIMD_INLINE std::string name()
@@ -661,16 +661,16 @@ struct Unzip
     return ti2s<NUM_ELEMS, T, SIMD_WIDTH>("unzip");
   }
 
-  static constexpr int minI  = 1;
-  static constexpr int maxI  = SIMD_WIDTH / sizeof(T);
-  static constexpr int nextI = NUM_ELEMS * 2;
+  static constexpr size_t minI  = 1;
+  static constexpr size_t maxI  = SIMD_WIDTH / sizeof(T);
+  static constexpr size_t nextI = NUM_ELEMS * 2;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(const VEC<T, SIMD_WIDTH> a,
                                 const VEC<T, SIMD_WIDTH> b,
                                 VEC<T, SIMD_WIDTH> &c, VEC<T, SIMD_WIDTH> &d)
@@ -679,7 +679,7 @@ struct Unzip
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename T, size_t SIMD_WIDTH>
 struct Packs
 {
   static SIMD_INLINE std::string name()
@@ -692,7 +692,7 @@ struct Packs
     vec.randomizeRanges();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<Tout, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                                  const VEC<T, SIMD_WIDTH> &b)
   {
@@ -700,7 +700,7 @@ struct Packs
   }
 };
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 struct Extend
 {
   static SIMD_INLINE std::string name()
@@ -713,7 +713,7 @@ struct Extend
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<Tin, SIMD_WIDTH> &a,
     VEC<Tout, SIMD_WIDTH> b[sizeof(Tout) / sizeof(Tin)])
@@ -722,81 +722,81 @@ struct Extend
   }
 };
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 struct Srai
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<IMM, T, SIMD_WIDTH>("srai");
+    return ti2s<COUNT, T, SIMD_WIDTH>("srai");
   }
 
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = sizeof(T) * 8 + 1;
-  static constexpr int nextI = IMM + 1;
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = sizeof(T) * 8 + 1;
+  static constexpr size_t nextI = COUNT + 1;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
-    return srai<IMM>(a);
+    return srai<COUNT>(a);
   }
 };
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 struct Srli
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<IMM, T, SIMD_WIDTH>("srli");
+    return ti2s<COUNT, T, SIMD_WIDTH>("srli");
   }
 
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = sizeof(T) * 8 + 1;
-  static constexpr int nextI = IMM + 1;
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = sizeof(T) * 8 + 1;
+  static constexpr size_t nextI = COUNT + 1;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
-    return srli<IMM>(a);
+    return srli<COUNT>(a);
   }
 };
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 struct Slli
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<IMM, T, SIMD_WIDTH>("slli");
+    return ti2s<COUNT, T, SIMD_WIDTH>("slli");
   }
 
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = sizeof(T) * 8 + 1;
-  static constexpr int nextI = IMM + 1;
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = sizeof(T) * 8 + 1;
+  static constexpr size_t nextI = COUNT + 1;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
-    return slli<IMM>(a);
+    return slli<COUNT>(a);
   }
 };
 
 // 19. Dec 22 (Jonas Keller): added Sra, Srl and Sll wrappers
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Sra
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("sra"); }
@@ -811,7 +811,7 @@ struct Sra
     return getRandomOrSpecialValue<uint8_t>();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const uint8_t count)
   {
@@ -819,7 +819,7 @@ struct Sra
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Srl
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("srl"); }
@@ -834,7 +834,7 @@ struct Srl
     return getRandomOrSpecialValue<uint8_t>();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const uint8_t count)
   {
@@ -842,7 +842,7 @@ struct Srl
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Sll
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("sll"); }
@@ -857,7 +857,7 @@ struct Sll
     return getRandomOrSpecialValue<uint8_t>();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const uint8_t count)
   {
@@ -865,7 +865,7 @@ struct Sll
   }
 };
 
-template <typename Tout, typename T, int SIMD_WIDTH>
+template <typename Tout, typename T, size_t SIMD_WIDTH>
 struct Cvts
 {
   static SIMD_INLINE std::string name()
@@ -878,14 +878,14 @@ struct Cvts
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<Tout, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return cvts<Tout>(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Hadd
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadd"); }
@@ -895,7 +895,7 @@ struct Hadd
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -903,7 +903,7 @@ struct Hadd
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Hadds
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadds"); }
@@ -913,7 +913,7 @@ struct Hadds
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -921,7 +921,7 @@ struct Hadds
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Hsub
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsub"); }
@@ -931,7 +931,7 @@ struct Hsub
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -939,7 +939,7 @@ struct Hsub
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Hsubs
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hsubs"); }
@@ -949,7 +949,7 @@ struct Hsubs
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -957,80 +957,80 @@ struct Hsubs
   }
 };
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 struct Srle
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<IMM, T, SIMD_WIDTH>("srle");
+    return ti2s<COUNT, T, SIMD_WIDTH>("srle");
   }
 
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = SIMD_WIDTH / sizeof(T) + 1;
-  static constexpr int nextI = IMM + 1;
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = SIMD_WIDTH / sizeof(T) + 1;
+  static constexpr size_t nextI = COUNT + 1;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
-    return srle<IMM>(a);
+    return srle<COUNT>(a);
   }
 };
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 struct Slle
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<IMM, T, SIMD_WIDTH>("slle");
+    return ti2s<COUNT, T, SIMD_WIDTH>("slle");
   }
 
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = SIMD_WIDTH / sizeof(T) + 1;
-  static constexpr int nextI = IMM + 1;
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = SIMD_WIDTH / sizeof(T) + 1;
+  static constexpr size_t nextI = COUNT + 1;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
-    return slle<IMM>(a);
+    return slle<COUNT>(a);
   }
 };
 
-template <int IMM, typename T, int SIMD_WIDTH>
+template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 struct Alignre
 {
   static SIMD_INLINE std::string name()
   {
-    return ti2s<IMM, T, SIMD_WIDTH>("alignre");
+    return ti2s<COUNT, T, SIMD_WIDTH>("alignre");
   }
 
-  static constexpr int minI  = 0;
-  static constexpr int maxI  = 2 * (SIMD_WIDTH / sizeof(T)) + 1;
-  static constexpr int nextI = IMM + 1;
+  static constexpr size_t minI  = 0;
+  static constexpr size_t maxI  = 2 * (SIMD_WIDTH / sizeof(T)) + 1;
+  static constexpr size_t nextI = COUNT + 1;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
-    return alignre<IMM>(a, b);
+    return alignre<COUNT>(a, b);
   }
 };
 
-template <int I, typename T, int SIMD_WIDTH>
+template <size_t I, typename T, size_t SIMD_WIDTH>
 struct Swizzle
 {
   static SIMD_INLINE std::string name()
@@ -1038,17 +1038,17 @@ struct Swizzle
     return ti2s<I, T, SIMD_WIDTH>("swizzle");
   }
 
-  static constexpr int minI    = 1;
-  static constexpr int maxI    = 6;
-  static constexpr int nextI   = I + 1;
-  static constexpr int numVecs = I;
+  static constexpr size_t minI    = 1;
+  static constexpr size_t maxI    = 6;
+  static constexpr size_t nextI   = I + 1;
+  static constexpr size_t numVecs = I;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[I])
   {
     swizzle<I>(v);
@@ -1056,7 +1056,7 @@ struct Swizzle
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Swizzle2 to Swizzle2_a
-template <int I, typename T, int SIMD_WIDTH>
+template <size_t I, typename T, size_t SIMD_WIDTH>
 struct Swizzle2_a
 {
   static SIMD_INLINE std::string name()
@@ -1064,18 +1064,18 @@ struct Swizzle2_a
     return ti2s<I, T, SIMD_WIDTH>("swizzle2_a");
   }
 
-  static constexpr int minI = 1;
+  static constexpr size_t minI = 1;
   // TODO: is there an upper limit for maxI in swizzle2_a?
-  static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int nextI   = I + 1;
-  static constexpr int numVecs = 2 * I;
+  static constexpr size_t maxI    = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr size_t nextI   = I + 1;
+  static constexpr size_t numVecs = 2 * I;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[I])
   {
     using ::simd::internal::ext::swizzle2_a;
@@ -1084,7 +1084,7 @@ struct Swizzle2_a
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Unswizzle2 to Unswizzle_a
-template <int I, typename T, int SIMD_WIDTH>
+template <size_t I, typename T, size_t SIMD_WIDTH>
 struct Unswizzle_a
 {
   static SIMD_INLINE std::string name()
@@ -1092,18 +1092,18 @@ struct Unswizzle_a
     return ti2s<I, T, SIMD_WIDTH>("unswizzle_a");
   }
 
-  static constexpr int minI = 1;
+  static constexpr size_t minI = 1;
   // TODO: is there an upper limit for maxI in unswizzle_a?
-  static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int nextI   = I + 1;
-  static constexpr int numVecs = 2 * I;
+  static constexpr size_t maxI    = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr size_t nextI   = I + 1;
+  static constexpr size_t numVecs = 2 * I;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
     using ::simd::internal::ext::unswizzle_a;
@@ -1113,7 +1113,7 @@ struct Unswizzle_a
 
 // 07. Feb 23 (Jonas Keller): added Swizzle3
 // 02. Aug 23 (Jonas Keller): renamed Swizzle3 to Swizzle2_b
-template <int I, typename T, int SIMD_WIDTH>
+template <size_t I, typename T, size_t SIMD_WIDTH>
 struct Swizzle2_b
 {
   static SIMD_INLINE std::string name()
@@ -1121,18 +1121,18 @@ struct Swizzle2_b
     return ti2s<I, T, SIMD_WIDTH>("swizzle2_b");
   }
 
-  static constexpr int minI = 1;
+  static constexpr size_t minI = 1;
   // TODO: is there an upper limit for maxI in swizzle2_b?
-  static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int nextI   = I + 1;
-  static constexpr int numVecs = 2 * I;
+  static constexpr size_t maxI    = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr size_t nextI   = I + 1;
+  static constexpr size_t numVecs = 2 * I;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
     using ::simd::internal::ext::swizzle2_b;
@@ -1142,7 +1142,7 @@ struct Swizzle2_b
 
 // 15. Oct 22 (Jonas Keller): added _Swizzle4
 // 02. Aug 23 (Jonas Keller): renamed Swizzle4 to Swizzle2_c
-template <int I, typename T, int SIMD_WIDTH>
+template <size_t I, typename T, size_t SIMD_WIDTH>
 struct Swizzle2_c
 {
   static SIMD_INLINE std::string name()
@@ -1150,18 +1150,18 @@ struct Swizzle2_c
     return ti2s<I, T, SIMD_WIDTH>("swizzle2_c");
   }
 
-  static constexpr int minI = 1;
+  static constexpr size_t minI = 1;
   // TODO: is there an upper limit for maxI in swizzle2_c?
-  static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int nextI   = I + 1;
-  static constexpr int numVecs = 2 * I;
+  static constexpr size_t maxI    = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr size_t nextI   = I + 1;
+  static constexpr size_t numVecs = 2 * I;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
     using ::simd::internal::ext::swizzle2_c;
@@ -1171,7 +1171,7 @@ struct Swizzle2_c
 
 // 15. Oct 22 (Jonas Keller): added _Unswizzle4
 // 02. Aug 23 (Jonas Keller): renamed Unswizzle4 to Unswizzle_b
-template <int I, typename T, int SIMD_WIDTH>
+template <size_t I, typename T, size_t SIMD_WIDTH>
 struct Unswizzle_b
 {
   static SIMD_INLINE std::string name()
@@ -1179,18 +1179,18 @@ struct Unswizzle_b
     return ti2s<I, T, SIMD_WIDTH>("unswizzle_b");
   }
 
-  static constexpr int minI = 1;
+  static constexpr size_t minI = 1;
   // TODO: is there an upper limit for maxI in unswizzle_b?
-  static constexpr int maxI    = Vec<T, SIMD_WIDTH>::elems;
-  static constexpr int nextI   = I + 1;
-  static constexpr int numVecs = 2 * I;
+  static constexpr size_t maxI    = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr size_t nextI   = I + 1;
+  static constexpr size_t numVecs = 2 * I;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
   {
     using ::simd::internal::ext::unswizzle_b;
@@ -1198,7 +1198,7 @@ struct Unswizzle_b
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Cmplt
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmplt"); }
@@ -1208,7 +1208,7 @@ struct Cmplt
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1216,7 +1216,7 @@ struct Cmplt
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Cmple
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmple"); }
@@ -1226,7 +1226,7 @@ struct Cmple
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1234,7 +1234,7 @@ struct Cmple
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Cmpeq
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmpeq"); }
@@ -1244,7 +1244,7 @@ struct Cmpeq
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1252,7 +1252,7 @@ struct Cmpeq
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Cmpge
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmpge"); }
@@ -1262,7 +1262,7 @@ struct Cmpge
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1270,7 +1270,7 @@ struct Cmpge
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Cmpgt
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmpgt"); }
@@ -1280,7 +1280,7 @@ struct Cmpgt
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1288,7 +1288,7 @@ struct Cmpgt
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Cmpneq
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("cmpneq"); }
@@ -1298,7 +1298,7 @@ struct Cmpneq
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1306,7 +1306,7 @@ struct Cmpneq
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct And
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("and"); }
@@ -1316,7 +1316,7 @@ struct And
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1324,7 +1324,7 @@ struct And
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Or
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("or"); }
@@ -1334,7 +1334,7 @@ struct Or
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1342,7 +1342,7 @@ struct Or
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Andnot
 {
   static SIMD_INLINE std::string name()
@@ -1355,7 +1355,7 @@ struct Andnot
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1363,7 +1363,7 @@ struct Andnot
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Xor
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("xor"); }
@@ -1373,7 +1373,7 @@ struct Xor
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1381,7 +1381,7 @@ struct Xor
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Not
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("not"); }
@@ -1391,14 +1391,14 @@ struct Not
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return bit_not(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Avg
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("avg"); }
@@ -1408,7 +1408,7 @@ struct Avg
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -1416,7 +1416,7 @@ struct Avg
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Test_all_zeros
 {
   static SIMD_INLINE std::string name()
@@ -1432,14 +1432,14 @@ struct Test_all_zeros
       vec.setzero();
   }
 
-  template <template <typename, int> class VEC>
-  static SIMD_INLINE int apply(const VEC<T, SIMD_WIDTH> &a)
+  template <template <typename, size_t> class VEC>
+  static SIMD_INLINE bool apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return test_all_zeros(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Test_all_ones
 {
   static SIMD_INLINE std::string name()
@@ -1455,14 +1455,14 @@ struct Test_all_ones
       vec.setones();
   }
 
-  template <template <typename, int> class VEC>
-  static SIMD_INLINE int apply(const VEC<T, SIMD_WIDTH> &a)
+  template <template <typename, size_t> class VEC>
+  static SIMD_INLINE bool apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return test_all_ones(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Reverse
 {
   static SIMD_INLINE std::string name()
@@ -1475,14 +1475,14 @@ struct Reverse
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return reverse(a);
   }
 };
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 struct Convert
 {
   static SIMD_INLINE std::string name()
@@ -1490,17 +1490,17 @@ struct Convert
     return tt2s<Tout, Tin, SIMD_WIDTH>("convert");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
-  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  static constexpr size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr size_t numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
+  static constexpr size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE void randomizeInput(SerialVec<Tin, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> inVecs[numInVecs],
                                 VEC<Tout, SIMD_WIDTH> outVecs[numOutVecs])
   {
@@ -1508,7 +1508,7 @@ struct Convert
   }
 };
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 struct Fdivmul
 {
   static SIMD_INLINE std::string name()
@@ -1516,10 +1516,10 @@ struct Fdivmul
     return tt2s<Tout, Tin, SIMD_WIDTH>("fdivmul");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
-  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  static constexpr size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr size_t numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
+  static constexpr size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   using Tfloat = BigEnoughFloat<Tout, Tin>;
 
@@ -1538,7 +1538,7 @@ struct Fdivmul
     vec.randomizeRangesNonZero();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsNum[numInVecs],
                                 const VEC<Tin, SIMD_WIDTH> vecsDenom[numInVecs],
                                 Tfloat fac,
@@ -1548,7 +1548,7 @@ struct Fdivmul
   }
 };
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 struct Fmul
 {
   static SIMD_INLINE std::string name()
@@ -1556,10 +1556,10 @@ struct Fmul
     return tt2s<Tout, Tin, SIMD_WIDTH>("fmul");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
-  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  static constexpr size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr size_t numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
+  static constexpr size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   using Tfloat = BigEnoughFloat<Tout, Tin>;
 
@@ -1576,7 +1576,7 @@ struct Fmul
     vec.randomizeRanges();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
                                 Tfloat fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
@@ -1585,7 +1585,7 @@ struct Fmul
   }
 };
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 struct Faddmul
 {
   static SIMD_INLINE std::string name()
@@ -1593,10 +1593,10 @@ struct Faddmul
     return tt2s<Tout, Tin, SIMD_WIDTH>("faddmul");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
-  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  static constexpr size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr size_t numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
+  static constexpr size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   using Tfloat = BigEnoughFloat<Tout, Tin>;
 
@@ -1613,7 +1613,7 @@ struct Faddmul
     vec.randomizeRanges();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
                                 Tfloat off, Tfloat fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
@@ -1622,7 +1622,7 @@ struct Faddmul
   }
 };
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 struct Fmuladd
 {
   static SIMD_INLINE std::string name()
@@ -1630,10 +1630,10 @@ struct Fmuladd
     return tt2s<Tout, Tin, SIMD_WIDTH>("fmuladd");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
-  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  static constexpr size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr size_t numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
+  static constexpr size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   using Tfloat = BigEnoughFloat<Tout, Tin>;
 
@@ -1650,7 +1650,7 @@ struct Fmuladd
     vec.randomizeRanges();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn[numInVecs],
                                 Tfloat off, Tfloat fac,
                                 VEC<Tout, SIMD_WIDTH> vecsOut[numOutVecs])
@@ -1659,7 +1659,7 @@ struct Fmuladd
   }
 };
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 struct Fwaddmul
 {
   static SIMD_INLINE std::string name()
@@ -1667,10 +1667,10 @@ struct Fwaddmul
     return tt2s<Tout, Tin, SIMD_WIDTH>("fwaddmul");
   }
 
-  static constexpr int numInVecs   = ::simd::numInVecs<Tout, Tin>();
-  static constexpr int numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
-  static constexpr int numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
-  static constexpr int numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
+  static constexpr size_t numInVecs   = ::simd::numInVecs<Tout, Tin>();
+  static constexpr size_t numInElems  = Vec<Tin, SIMD_WIDTH>::elems;
+  static constexpr size_t numOutVecs  = ::simd::numOutVecs<Tout, Tin>();
+  static constexpr size_t numOutElems = Vec<Tout, SIMD_WIDTH>::elems;
 
   using Tfloat = BigEnoughFloat<Tout, Tin>;
 
@@ -1689,7 +1689,7 @@ struct Fwaddmul
     vec.randomizeRanges();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(const VEC<Tin, SIMD_WIDTH> vecsIn1[numInVecs],
                                 const VEC<Tin, SIMD_WIDTH> vecsIn2[numInVecs],
                                 Tfloat w, Tfloat fac,
@@ -1699,20 +1699,20 @@ struct Fwaddmul
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct HaddMulti
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadd"); }
 
   // number of input elements
-  static constexpr int nInputs = SerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr size_t nInputs = SerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(
     const VEC<T, SIMD_WIDTH> a[nInputs])
   {
@@ -1720,20 +1720,20 @@ struct HaddMulti
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct HaddsMulti
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadds"); }
 
   // number of input elements
-  static constexpr int nInputs = SerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr size_t nInputs = SerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(
     const VEC<T, SIMD_WIDTH> a[nInputs])
   {
@@ -1741,7 +1741,7 @@ struct HaddsMulti
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct HaddSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadd"); }
@@ -1751,14 +1751,14 @@ struct HaddSingle
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE T apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return hadd(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct HaddsSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hadds"); }
@@ -1768,14 +1768,14 @@ struct HaddsSingle
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE T apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return hadds(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct HminSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hmin"); }
@@ -1785,14 +1785,14 @@ struct HminSingle
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE T apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return hmin(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct HmaxSingle
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("hmax"); }
@@ -1802,7 +1802,7 @@ struct HmaxSingle
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE T apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return hmax(a);
@@ -1810,7 +1810,7 @@ struct HmaxSingle
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Transpose to Transpose_a
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose_a
 {
   static SIMD_INLINE std::string name()
@@ -1823,7 +1823,7 @@ struct Transpose_a
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -1834,7 +1834,7 @@ struct Transpose_a
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Transpose2 to Transpose_e
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose_e
 {
   static SIMD_INLINE std::string name()
@@ -1847,7 +1847,7 @@ struct Transpose_e
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -1857,7 +1857,7 @@ struct Transpose_e
   }
 };
 
-template <int SLOPE, typename T, int SIMD_WIDTH>
+template <size_t SLOPE, typename T, size_t SIMD_WIDTH>
 struct BitonicSort
 {
   static SIMD_INLINE std::string name()
@@ -1865,24 +1865,24 @@ struct BitonicSort
     return ti2s<SLOPE, T, SIMD_WIDTH>("bitonicSort");
   }
 
-  static constexpr int minI    = 0;
-  static constexpr int maxI    = 2;
-  static constexpr int nextI   = SLOPE + 1;
-  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr size_t minI    = 0;
+  static constexpr size_t maxI    = 2;
+  static constexpr size_t nextI   = SLOPE + 1;
+  static constexpr size_t numVecs = SerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
     bitonicSort<static_cast<SortSlope>(SLOPE)>(vecs);
   }
 };
 
-template <int SLOPE, typename T, int SIMD_WIDTH>
+template <size_t SLOPE, typename T, size_t SIMD_WIDTH>
 struct BitonicSortSortedPairs
 {
   static SIMD_INLINE std::string name()
@@ -1890,17 +1890,17 @@ struct BitonicSortSortedPairs
     return ti2s<SLOPE, T, SIMD_WIDTH>("bitonicSortSortedPairs");
   }
 
-  static constexpr int minI    = 0;
-  static constexpr int maxI    = 2;
-  static constexpr int nextI   = SLOPE + 1;
-  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr size_t minI    = 0;
+  static constexpr size_t maxI    = 2;
+  static constexpr size_t nextI   = SLOPE + 1;
+  static constexpr size_t numVecs = SerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomizeSorted(static_cast<SortSlope>(SLOPE));
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> vecs[numVecs])
   {
     bitonicSortSortedPairs<static_cast<SortSlope>(SLOPE)>(vecs);
@@ -1908,7 +1908,7 @@ struct BitonicSortSortedPairs
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Transpose0 to Transpose_b
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose_b
 {
   static SIMD_INLINE std::string name()
@@ -1921,7 +1921,7 @@ struct Transpose_b
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -1932,7 +1932,7 @@ struct Transpose_b
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Transpose16 to Transpose_d
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose_d
 {
   static SIMD_INLINE std::string name()
@@ -1945,7 +1945,7 @@ struct Transpose_d
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -1956,7 +1956,7 @@ struct Transpose_d
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Transpose3 to Transpose_f
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose_f
 {
   static SIMD_INLINE std::string name()
@@ -1969,7 +1969,7 @@ struct Transpose_f
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -1980,7 +1980,7 @@ struct Transpose_f
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Transpose4 to Transpose_g
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose_g
 {
   static SIMD_INLINE std::string name()
@@ -1993,7 +1993,7 @@ struct Transpose_g
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -2004,7 +2004,7 @@ struct Transpose_g
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Transpose5 to Transpose_h
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose_h
 {
   static SIMD_INLINE std::string name()
@@ -2017,7 +2017,7 @@ struct Transpose_h
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -2028,7 +2028,7 @@ struct Transpose_h
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Transpose1_16 to Transpose_c
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose_c
 {
   static SIMD_INLINE std::string name()
@@ -2041,7 +2041,7 @@ struct Transpose_c
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -2052,7 +2052,7 @@ struct Transpose_c
 };
 
 // 02. Aug 23 (Jonas Keller): renamed Transpose6 to Transpose_i
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose_i
 {
   static SIMD_INLINE std::string name()
@@ -2065,7 +2065,7 @@ struct Transpose_i
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -2078,7 +2078,7 @@ struct Transpose_i
 // 06. Sep 23 (Jonas Keller): added Transpose1inplc, Transpose2inplc,
 // Transpose1inplcLane and Transpose2inplcLane
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose1inplc
 {
   static SIMD_INLINE std::string name()
@@ -2086,14 +2086,14 @@ struct Transpose1inplc
     return t2s<T, SIMD_WIDTH>("transpose1inplc");
   }
 
-  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr size_t numVecs = SerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -2103,7 +2103,7 @@ struct Transpose1inplc
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose2inplc
 {
   static SIMD_INLINE std::string name()
@@ -2111,14 +2111,14 @@ struct Transpose2inplc
     return t2s<T, SIMD_WIDTH>("transpose2inplc");
   }
 
-  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr size_t numVecs = SerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -2128,7 +2128,7 @@ struct Transpose2inplc
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose1inplcLane
 {
   static SIMD_INLINE std::string name()
@@ -2136,14 +2136,14 @@ struct Transpose1inplcLane
     return t2s<T, SIMD_WIDTH>("transpose1inplcLane");
   }
 
-  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr size_t numVecs = SerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -2153,7 +2153,7 @@ struct Transpose1inplcLane
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Transpose2inplcLane
 {
   static SIMD_INLINE std::string name()
@@ -2161,14 +2161,14 @@ struct Transpose2inplcLane
     return t2s<T, SIMD_WIDTH>("transpose2inplcLane");
   }
 
-  static constexpr int numVecs = SerialVec<T, SIMD_WIDTH>::elements;
+  static constexpr size_t numVecs = SerialVec<T, SIMD_WIDTH>::elements;
 
   static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
   {
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE void apply(
     const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
@@ -2178,7 +2178,7 @@ struct Transpose2inplcLane
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Avgru
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("avgru"); }
@@ -2188,7 +2188,7 @@ struct Avgru
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -2196,7 +2196,7 @@ struct Avgru
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Avgrd
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("avgrd"); }
@@ -2206,7 +2206,7 @@ struct Avgrd
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
   {
@@ -2214,7 +2214,7 @@ struct Avgrd
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Setones
 {
   static SIMD_INLINE std::string name()
@@ -2227,14 +2227,14 @@ struct Setones
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply()
   {
     return Deductor<VEC>::template _setones<T, SIMD_WIDTH>();
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Setmin
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("setmin"); }
@@ -2244,14 +2244,14 @@ struct Setmin
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply()
   {
     return Deductor<VEC>::template _setmin<T, SIMD_WIDTH>();
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Setmax
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("setmax"); }
@@ -2261,14 +2261,14 @@ struct Setmax
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply()
   {
     return Deductor<VEC>::template _setmax<T, SIMD_WIDTH>();
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Setnegunity
 {
   static SIMD_INLINE std::string name()
@@ -2281,14 +2281,14 @@ struct Setnegunity
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply()
   {
     return Deductor<VEC>::template _setnegunity<T, SIMD_WIDTH>();
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Setunity
 {
   static SIMD_INLINE std::string name()
@@ -2301,7 +2301,7 @@ struct Setunity
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply()
   {
     return Deductor<VEC>::template _setunity<T, SIMD_WIDTH>();
@@ -2309,7 +2309,7 @@ struct Setunity
 };
 
 // TODO: generate random inputs which are often also small
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 struct PacksMulti
 {
   static SIMD_INLINE std::string name()
@@ -2318,14 +2318,14 @@ struct PacksMulti
   }
 
   // number of input elements
-  static constexpr int nInputs = sizeof(Tin) / sizeof(Tout);
+  static constexpr size_t nInputs = sizeof(Tin) / sizeof(Tout);
 
   static SIMD_INLINE void randomizeInput(SerialVec<Tin, SIMD_WIDTH> &vec)
   {
     vec.randomizeRanges();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<Tout, SIMD_WIDTH> apply(
     const VEC<Tin, SIMD_WIDTH> a[nInputs])
   {
@@ -2333,7 +2333,7 @@ struct PacksMulti
   }
 };
 
-template <typename Tcond, typename T, int SIMD_WIDTH>
+template <typename Tcond, typename T, size_t SIMD_WIDTH>
 struct Ifelse
 {
   static SIMD_INLINE std::string name()
@@ -2351,7 +2351,7 @@ struct Ifelse
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<Tcond, SIMD_WIDTH> &m,
                                               const VEC<T, SIMD_WIDTH> &a,
                                               const VEC<T, SIMD_WIDTH> &b)
@@ -2360,7 +2360,7 @@ struct Ifelse
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Div2r0
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("div2r0"); }
@@ -2370,14 +2370,14 @@ struct Div2r0
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return div2r0(a);
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Div2rd
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("div2rd"); }
@@ -2387,7 +2387,7 @@ struct Div2rd
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return div2rd(a);
@@ -2396,7 +2396,7 @@ struct Div2rd
 
 // 27. Aug 22 (Jonas Keller): added msb2int
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Msb2int
 {
   static SIMD_INLINE std::string name()
@@ -2409,7 +2409,7 @@ struct Msb2int
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE uint64_t apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return msb2int(a);
@@ -2418,7 +2418,7 @@ struct Msb2int
 
 // 06. Oct 22 (Jonas Keller): added int2msb
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Int2msb
 {
   static SIMD_INLINE std::string name()
@@ -2431,7 +2431,7 @@ struct Int2msb
     return getRandom<uint64_t>();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const uint64_t &a)
   {
     return Deductor<VEC>::template _int2msb<T, SIMD_WIDTH>(a);
@@ -2440,7 +2440,7 @@ struct Int2msb
 
 // 09. Oct 22 (Jonas Keller): added int2bits
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Int2bits
 {
   static SIMD_INLINE std::string name()
@@ -2453,7 +2453,7 @@ struct Int2bits
     return getRandom<uint64_t>();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const uint64_t &a)
   {
     return Deductor<VEC>::template _int2bits<T, SIMD_WIDTH>(a);
@@ -2462,7 +2462,7 @@ struct Int2bits
 
 // 07. Feb 23 (Jonas Keller): added Iota
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Iota
 {
   static SIMD_INLINE std::string name() { return t2s<T, SIMD_WIDTH>("iota"); }
@@ -2472,7 +2472,7 @@ struct Iota
     vec.randomize();
   }
 
-  template <template <typename, int> class VEC>
+  template <template <typename, size_t> class VEC>
   static SIMD_INLINE VEC<T, SIMD_WIDTH> apply()
   {
     return Deductor<VEC>::template _iota<T, SIMD_WIDTH>();

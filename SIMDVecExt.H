@@ -60,8 +60,10 @@ namespace simd {
 namespace internal {
 namespace ext {
 // https://stackoverflow.com/questions/23781506/compile-time-computing-of-number-of-bits-needed-to-encode-n-different-states
-static constexpr SIMD_INLINE unsigned floorlog2(unsigned x)
+template <typename T>
+static constexpr SIMD_INLINE T floorlog2(T x)
 {
+  static_assert(std::is_integral<T>::value, "");
   return x == 1 ? 0 : 1 + floorlog2(x >> 1);
 }
 } // namespace ext
@@ -120,19 +122,19 @@ static constexpr SIMD_INLINE unsigned floorlog2(unsigned x)
  * element of the Vec using the fprintf function of the C standard library
  * @param vec Vec to print
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void fprint(FILE *f, const char *format,
                                const Vec<T, SIMD_WIDTH> &vec)
 {
   // buffer
   // 19. Jul 16 (rm)
-  const int elems = Vec<T, SIMD_WIDTH>::elems; // SIMD_WIDTH/sizeof(T)
+  const auto elems = Vec<T, SIMD_WIDTH>::elems; // SIMD_WIDTH/sizeof(T)
   // T buf[SIMD_WIDTH];
   T buf[elems];
   // store vector (unaligned, not time-critical)
   storeu(buf, vec);
   // print elements of vector to f
-  for (int i = 0; i < elems; i++)
+  for (size_t i = 0; i < elems; i++)
     // 04. Aug 22 (Jonas Keller):
     // removed mapping from -0.0f to 0.0f,
     // for debugging you want to see -0.0f
@@ -150,7 +152,7 @@ static SIMD_INLINE void fprint(FILE *f, const char *format,
  * element of the Vec using the fprintf function of the C standard library
  * @param vec Vec to print
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void print(const char *format, const Vec<T, SIMD_WIDTH> &vec)
 {
   fprint(stdout, format, vec);
@@ -170,7 +172,7 @@ static SIMD_INLINE void print(const char *format, const Vec<T, SIMD_WIDTH> &vec)
  * @param separator separator string
  * @param vec Vec to print
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void fprint(FILE *f, const char *format,
                                const char *separator,
                                const Vec<T, SIMD_WIDTH> &vec)
@@ -196,7 +198,7 @@ static SIMD_INLINE void fprint(FILE *f, const char *format,
  * @param separator separator string
  * @param vec Vec to print
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void print(const char *format, const char *separator,
                               const Vec<T, SIMD_WIDTH> &vec)
 {
@@ -219,33 +221,33 @@ static SIMD_INLINE void print(const char *format, const char *separator,
  * @param[out] inVecs array of Vec's to store the loaded values in
  * @param numInVecs number of Vec's to load
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void load(const T *const p, Vec<T, SIMD_WIDTH> inVecs[],
-                             int numInVecs)
+                             size_t numInVecs)
 {
-  const int vecElemsIn = Vec<T, SIMD_WIDTH>::elems;
-  for (int vi = 0, off = 0; vi < numInVecs; vi++, off += vecElemsIn)
-    inVecs[vi] = load<SIMD_WIDTH>(p + off);
+  for (size_t i = 0; i < numInVecs; i++) {
+    inVecs[i] = load<SIMD_WIDTH>(&p[i * Vec<T, SIMD_WIDTH>::elems]);
+  }
 }
 
 /**
  * @ingroup group_memory_load
  * @brief Loads multiple successive Vec's from unaligned memory.
  *
- * In contrast to load(const T *const, Vec<T, SIMD_WIDTH>[], int), the memory
- * location does not need to be aligned to any boundary.
+ * In contrast to load(const T *const, Vec<T, SIMD_WIDTH>[], size_t), the
+ * memory location does not need to be aligned to any boundary.
  *
  * @param[in] p pointer to the memory location to load from
  * @param[out] inVecs array of Vec's to store the loaded values in
  * @param numInVecs number of Vec's to load
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void loadu(const T *const p, Vec<T, SIMD_WIDTH> inVecs[],
-                              int numInVecs)
+                              size_t numInVecs)
 {
-  const int vecElemsIn = Vec<T, SIMD_WIDTH>::elems;
-  for (int vi = 0, off = 0; vi < numInVecs; vi++, off += vecElemsIn)
-    inVecs[vi] = loadu<SIMD_WIDTH>(p + off);
+  for (size_t i = 0; i < numInVecs; i++) {
+    inVecs[i] = loadu<SIMD_WIDTH>(&p[i * Vec<T, SIMD_WIDTH>::elems]);
+  }
 }
 
 /**
@@ -258,33 +260,33 @@ static SIMD_INLINE void loadu(const T *const p, Vec<T, SIMD_WIDTH> inVecs[],
  * @param[in] outVecs array of Vec's to store
  * @param numOutVecs number of Vec's to store
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> outVecs[],
-                              int numOutVecs)
+                              size_t numOutVecs)
 {
-  const int vecElemsOut = Vec<T, SIMD_WIDTH>::elems;
-  for (int vo = 0, off = 0; vo < numOutVecs; vo++, off += vecElemsOut)
-    store(p + off, outVecs[vo]);
+  for (size_t i = 0; i < numOutVecs; i++) {
+    store(&p[i * Vec<T, SIMD_WIDTH>::elems], outVecs[i]);
+  }
 }
 
 /**
  * @ingroup group_memory_store
  * @brief Stores multiple successive Vec's to unaligned memory.
  *
- * In contrast to store(T *const, const Vec<T, SIMD_WIDTH>[], int), the memory
- * location does not need to be aligned to any boundary.
+ * In contrast to store(T *const, const Vec<T, SIMD_WIDTH>[], size_t), the
+ * memory location does not need to be aligned to any boundary.
  *
  * @param[out] p pointer to the memory location to store to
  * @param[in] outVecs array of Vec's to store
  * @param numOutVecs number of Vec's to store
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> outVecs[],
-                               int numOutVecs)
+                               size_t numOutVecs)
 {
-  const int vecElemsOut = Vec<T, SIMD_WIDTH>::elems;
-  for (int vo = 0, off = 0; vo < numOutVecs; vo++, off += vecElemsOut)
-    storeu(p + off, outVecs[vo]);
+  for (size_t i = 0; i < numOutVecs; i++) {
+    storeu(&p[i * Vec<T, SIMD_WIDTH>::elems], outVecs[i]);
+  }
 }
 
 /**
@@ -297,40 +299,40 @@ static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> outVecs[],
  * @param[in] outVec Vec to store
  * @param numOutVecs number of times to store the Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> &outVec,
-                              int numOutVecs)
+                              size_t numOutVecs)
 {
-  const int vecElemsOut = Vec<T, SIMD_WIDTH>::elems;
-  for (int vo = 0, off = 0; vo < numOutVecs; vo++, off += vecElemsOut)
-    store(p + off, outVec);
+  for (size_t i = 0; i < numOutVecs; i++) {
+    store(&p[i * Vec<T, SIMD_WIDTH>::elems], outVec);
+  }
 }
 
 /**
  * @ingroup group_memory_store
  * @brief Stores a single Vec multiple times to unaligned memory.
  *
- * In contrast to store(T *const p, const Vec<T, SIMD_WIDTH> &outVec, int
- * numOutVecs), the memory location does not need to be aligned to any
- * boundary.
+ * In contrast to store(T *const p, const Vec<T, SIMD_WIDTH> &outVec,
+ * size_t numOutVecs), the memory location does not need to be aligned to
+ * any boundary.
  *
  * @param[out] p pointer to the memory location to store to
  * @param[in] outVec Vec to store
  * @param numOutVecs number of times to store the Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> &outVec,
-                               int numOutVecs)
+                               size_t numOutVecs)
 {
-  const int vecElemsOut = Vec<T, SIMD_WIDTH>::elems;
-  for (int vo = 0, off = 0; vo < numOutVecs; vo++, off += vecElemsOut)
-    storeu(p + off, outVec);
+  for (size_t i = 0; i < numOutVecs; i++) {
+    storeu(&p[i * Vec<T, SIMD_WIDTH>::elems], outVec);
+  }
 }
 
 // -------------------- different store functions ----------------------------
 namespace internal {
 namespace ext {
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Store
 {
   static SIMD_INLINE void _store(T *const p, const Vec<T, SIMD_WIDTH> &outVec)
@@ -339,7 +341,7 @@ struct Store
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct StoreU
 {
   static SIMD_INLINE void _store(T *const p, const Vec<T, SIMD_WIDTH> &outVec)
@@ -358,9 +360,9 @@ struct StoreU
 // always_inline ‘void storeu16(..) [..]’: recursive inlining
 // ---------------------------------------------------------------------------
 
-template <template <typename, int> class Store, typename T, int SIMD_WIDTH,
-          int NUMROWS, int ROW, int STORE_STOP, int STORE_WIDTH, int SRC_OFF,
-          int DST_OFF>
+template <template <typename, size_t> class Store, typename T,
+          size_t SIMD_WIDTH, size_t NUMROWS, size_t ROW, size_t STORE_STOP,
+          size_t STORE_WIDTH, size_t SRC_OFF, size_t DST_OFF>
 struct Store16
 {
   static SIMD_INLINE void _store16(
@@ -376,14 +378,15 @@ struct Store16
   }
 };
 
-template <template <typename, int> class Store, typename T, int SIMD_WIDTH,
-          int NUMROWS, int ROW, int STORE_STOP, int SRC_OFF, int DST_OFF>
+template <template <typename, size_t> class Store, typename T,
+          size_t SIMD_WIDTH, size_t NUMROWS, size_t ROW, size_t STORE_STOP,
+          size_t SRC_OFF, size_t DST_OFF>
 struct Store16<Store, T, SIMD_WIDTH, NUMROWS, ROW, STORE_STOP, 16, SRC_OFF,
                DST_OFF>
 {
-  static constexpr int STEP = SIMD_WIDTH / 16;
-  static constexpr int VO   = SRC_OFF + ROW * STEP;
-  static constexpr int OFF  = (DST_OFF + ROW) * NUMROWS;
+  static constexpr auto STEP = SIMD_WIDTH / 16;
+  static constexpr auto VO   = SRC_OFF + ROW * STEP;
+  static constexpr auto OFF  = (DST_OFF + ROW) * NUMROWS;
 
   static SIMD_INLINE void _store16(
     T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
@@ -395,8 +398,9 @@ struct Store16<Store, T, SIMD_WIDTH, NUMROWS, ROW, STORE_STOP, 16, SRC_OFF,
   }
 };
 
-template <template <typename, int> class Store, typename T, int SIMD_WIDTH,
-          int NUMROWS, int STORE_STOP, int SRC_OFF, int DST_OFF>
+template <template <typename, size_t> class Store, typename T,
+          size_t SIMD_WIDTH, size_t NUMROWS, size_t STORE_STOP, size_t SRC_OFF,
+          size_t DST_OFF>
 struct Store16<Store, T, SIMD_WIDTH, NUMROWS, STORE_STOP, STORE_STOP, 16,
                SRC_OFF, DST_OFF>
 {
@@ -407,22 +411,22 @@ struct Store16<Store, T, SIMD_WIDTH, NUMROWS, STORE_STOP, STORE_STOP, 16,
 
 // -------------------- store16 functions ------------------------------------
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void store16(
   T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
 {
-  const int numRows   = SIMD_WIDTH / sizeof(T);
-  const int storeStop = 16 / sizeof(T);
+  const auto numRows   = SIMD_WIDTH / sizeof(T);
+  const auto storeStop = 16 / sizeof(T);
   internal::ext::Store16<internal::ext::Store, T, SIMD_WIDTH, numRows, 0,
                          storeStop, SIMD_WIDTH, 0, 0>::_store16(p, outVecs);
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void storeu16(
   T *const p, const Vec<T, SIMD_WIDTH> outVecs[Vec<T, SIMD_WIDTH>::elems])
 {
-  const int numRows   = SIMD_WIDTH / sizeof(T);
-  const int storeStop = 16 / sizeof(T);
+  const auto numRows   = SIMD_WIDTH / sizeof(T);
+  const auto storeStop = 16 / sizeof(T);
   internal::ext::Store16<internal::ext::StoreU, T, SIMD_WIDTH, numRows, 0,
                          storeStop, SIMD_WIDTH, 0, 0>::_store16(p, outVecs);
 }
@@ -448,7 +452,7 @@ static SIMD_INLINE void storeu16(
  * @param[in] src pointer to the aligned source memory location
  * @param[out] dst pointer to the aligned destination memory location
  */
-template <int SIMD_WIDTH, typename T>
+template <size_t SIMD_WIDTH, typename T>
 static SIMD_INLINE void load_store(const T *const src, T *const dst)
 {
   Vec<T, SIMD_WIDTH> copy = load<SIMD_WIDTH>(src);
@@ -465,7 +469,7 @@ static SIMD_INLINE void load_store(const T *const src, T *const dst)
  * @param[in] src pointer to the unaligned source memory location
  * @param[out] dst pointer to the aligned destination memory location
  */
-template <int SIMD_WIDTH, typename T>
+template <size_t SIMD_WIDTH, typename T>
 static SIMD_INLINE void loadu_store(const T *const src, T *const dst)
 {
   Vec<T, SIMD_WIDTH> copy = loadu<SIMD_WIDTH>(src);
@@ -482,7 +486,7 @@ static SIMD_INLINE void loadu_store(const T *const src, T *const dst)
  * @param[in] src pointer to the aligned source memory location
  * @param[out] dst pointer to the unaligned destination memory location
  */
-template <int SIMD_WIDTH, typename T>
+template <size_t SIMD_WIDTH, typename T>
 static SIMD_INLINE void load_storeu(const T *const src, T *const dst)
 {
   Vec<T, SIMD_WIDTH> copy = load<SIMD_WIDTH>(src);
@@ -498,7 +502,7 @@ static SIMD_INLINE void load_storeu(const T *const src, T *const dst)
  * @param[in] src pointer to the unaligned source memory location
  * @param[out] dst pointer to the unaligned destination memory location
  */
-template <int SIMD_WIDTH, typename T>
+template <size_t SIMD_WIDTH, typename T>
 static SIMD_INLINE void loadu_storeu(const T *const src, T *const dst)
 {
   Vec<T, SIMD_WIDTH> copy = loadu<SIMD_WIDTH>(src);
@@ -528,7 +532,7 @@ namespace ext {
 
 // no stage
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> packs(const Vec<T, SIMD_WIDTH> a[1],
                                             OutputType<T>, Compression<1>)
 {
@@ -537,7 +541,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> packs(const Vec<T, SIMD_WIDTH> a[1],
 
 // single stage
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[2],
                                                OutputType<Tout>, Compression<2>)
 {
@@ -546,7 +550,7 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[2],
 
 // two stages
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[4],
                                                OutputType<Tout>, Compression<4>)
 {
@@ -556,7 +560,7 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[4],
 
 // two stages from Double
 
-template <typename Tout, int SIMD_WIDTH>
+template <typename Tout, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(
   const Vec<Double, SIMD_WIDTH> a[4], OutputType<Tout>, Compression<4>)
 {
@@ -566,7 +570,7 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(
 
 // three stages
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[8],
                                                OutputType<Tout>, Compression<8>)
 {
@@ -579,7 +583,7 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[8],
 
 // special case: int <-> float
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Float, SIMD_WIDTH> packs(const Vec<Int, SIMD_WIDTH> a[1],
                                                 OutputType<Float>,
                                                 Compression<1>)
@@ -587,7 +591,7 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> packs(const Vec<Int, SIMD_WIDTH> a[1],
   return cvts<Float>(a[0]);
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Int, SIMD_WIDTH> packs(const Vec<Float, SIMD_WIDTH> a[1],
                                               OutputType<Int>, Compression<1>)
 {
@@ -617,7 +621,7 @@ static SIMD_INLINE Vec<Int, SIMD_WIDTH> packs(const Vec<Float, SIMD_WIDTH> a[1],
  * @param[in] a array of input Vec's
  * @return Vec with the packed elements
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(
   const Vec<Tin, SIMD_WIDTH> a[sizeof(Tin) / sizeof(Tout)])
 {
@@ -651,7 +655,7 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(
 
 namespace internal {
 namespace ext {
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE void convert(
   CompareLess, const Vec<Tin, SIMD_WIDTH> inVecs[sizeof(Tin) / sizeof(Tout)],
   Vec<Tout, SIMD_WIDTH> outVecs[1])
@@ -659,7 +663,7 @@ static SIMD_INLINE void convert(
   outVecs[0] = packs<Tout>(inVecs);
 }
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE void convert(CompareEqual,
                                 const Vec<Tin, SIMD_WIDTH> inVecs[1],
                                 Vec<Tout, SIMD_WIDTH> outVecs[1])
@@ -667,7 +671,7 @@ static SIMD_INLINE void convert(CompareEqual,
   extend(inVecs[0], outVecs);
 }
 
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE void convert(
   CompareGreater, const Vec<Tin, SIMD_WIDTH> inVecs[1],
   Vec<Tout, SIMD_WIDTH> outVecs[sizeof(Tout) / sizeof(Tin)])
@@ -698,7 +702,7 @@ static SIMD_INLINE void convert(
  * @param[in] inVecs input Vec's
  * @param[out] outVecs output Vec's
  */
-template <typename Tout, typename Tin, int SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE void convert(
   const Vec<Tin, SIMD_WIDTH> inVecs[numInVecs<Tout, Tin>()],
   Vec<Tout, SIMD_WIDTH> outVecs[numOutVecs<Tout, Tin>()])
@@ -714,7 +718,7 @@ static SIMD_INLINE void convert(
 namespace internal {
 namespace ext {
 template <typename Tin, typename Tout, typename Tfloat>
-static constexpr SIMD_INLINE int numCalcVecs()
+static constexpr SIMD_INLINE size_t numCalcVecs()
 {
   static_assert(numInVecs<Tout, Tin>() * sizeof(Tfloat) / sizeof(Tin) ==
                   numOutVecs<Tout, Tin>() * sizeof(Tfloat) / sizeof(Tout),
@@ -722,22 +726,22 @@ static constexpr SIMD_INLINE int numCalcVecs()
   return numInVecs<Tout, Tin>() * sizeof(Tfloat) / sizeof(Tin);
 }
 
-template <typename Tin, typename Tout, typename Tfloat, int SIMD_WIDTH>
+template <typename Tin, typename Tout, typename Tfloat, size_t SIMD_WIDTH>
 static SIMD_INLINE void extendInToFloat(
   const Vec<Tin, SIMD_WIDTH> inVecs[numInVecs<Tout, Tin>()],
   Vec<Tfloat, SIMD_WIDTH> floatVecs[numCalcVecs<Tout, Tin, Tfloat>()])
 {
-  for (int i = 0; i < numInVecs<Tout, Tin>(); ++i) {
+  for (size_t i = 0; i < numInVecs<Tout, Tin>(); ++i) {
     extend(inVecs[i], &floatVecs[i * sizeof(Tfloat) / sizeof(Tin)]);
   }
 }
 
-template <typename Tin, typename Tout, typename Tfloat, int SIMD_WIDTH>
+template <typename Tin, typename Tout, typename Tfloat, size_t SIMD_WIDTH>
 static SIMD_INLINE void packsOutFromFloat(
   const Vec<Tfloat, SIMD_WIDTH> floatVecs[numCalcVecs<Tout, Tin, Tfloat>()],
   Vec<Tout, SIMD_WIDTH> outVecs[numOutVecs<Tout, Tin>()])
 {
-  for (int i = 0; i < numOutVecs<Tout, Tin>(); ++i) {
+  for (size_t i = 0; i < numOutVecs<Tout, Tin>(); ++i) {
     outVecs[i] = packs<Tout>(&floatVecs[i * sizeof(Tfloat) / sizeof(Tout)]);
   }
 }
@@ -770,7 +774,7 @@ static SIMD_INLINE void packsOutFromFloat(
  * @sa numInVecs(), numOutVecs()
  */
 template <typename Tout, typename Tin,
-          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, size_t SIMD_WIDTH>
 static SIMD_INLINE void fdivmul(
   const Vec<Tin, SIMD_WIDTH> vecsNum[numInVecs<Tout, Tin>()],
   const Vec<Tin, SIMD_WIDTH> vecsDenom[numInVecs<Tout, Tin>()],
@@ -785,7 +789,7 @@ static SIMD_INLINE void fdivmul(
     resF[nFloatVecs];
   internal::ext::extendInToFloat<Tin, Tout>(vecsNum, numF);
   internal::ext::extendInToFloat<Tin, Tout>(vecsDenom, denomF);
-  for (std::size_t i = 0; i < nFloatVecs; i++) {
+  for (size_t i = 0; i < nFloatVecs; i++) {
     resF[i] = mul(div(numF[i], denomF[i]), facVec);
   }
   internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
@@ -801,19 +805,20 @@ static SIMD_INLINE void fdivmul(
 
 namespace internal {
 namespace ext {
-template <int DIM, int NVEC, typename Tout, typename Tin, int SIMD_WIDTH>
+template <size_t DIM, size_t NVEC, typename Tout, typename Tin,
+          size_t SIMD_WIDTH>
 static SIMD_INLINE void fdivMsigmoidmul(
   CompareLess, const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
   const Vec<Tin, SIMD_WIDTH> vecsDenom[DIM][NVEC], const double w[DIM],
   const double w0[DIM], double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
 {
-  const int nIn   = sizeof(Tin) / sizeof(Tout);
-  const int fanIn = sizeof(Float) / sizeof(Tin);
-  const auto facF = set1<Float, SIMD_WIDTH>(fac / 2.0);
-  const auto oneF = set1<Float, SIMD_WIDTH>(1.0f);
+  const auto nIn   = sizeof(Tin) / sizeof(Tout);
+  const auto fanIn = sizeof(Float) / sizeof(Tin);
+  const auto facF  = set1<Float, SIMD_WIDTH>(fac / 2.0);
+  const auto oneF  = set1<Float, SIMD_WIDTH>(1.0f);
   Vec<Float, SIMD_WIDTH> wF[DIM], w0F[DIM], numF[DIM][fanIn],
     denomF[DIM][fanIn], resF[nIn * fanIn];
-  for (int d = 0; d < DIM; d++) {
+  for (size_t d = 0; d < DIM; d++) {
     wF[d]  = set1<Float, SIMD_WIDTH>(-0.433 * w[d]);
     w0F[d] = set1<Float, SIMD_WIDTH>(w0[d]);
   }
@@ -821,14 +826,14 @@ static SIMD_INLINE void fdivMsigmoidmul(
   // j: index of extended input vector
   // k: index of output vectors
   // TODO: sometimes i < nIn does not work with -O2 is always true?
-  for (int i = 0, k = 0; i < nIn; i++) {
-    for (int d = 0; d < DIM; d++) {
+  for (size_t i = 0, k = 0; i < nIn; i++) {
+    for (size_t d = 0; d < DIM; d++) {
       extend(vecsNum[d][i], numF[d]);
       extend(vecsDenom[d][i], denomF[d]);
     }
-    for (int j = 0; j < fanIn; j++, k++) {
+    for (size_t j = 0; j < fanIn; j++, k++) {
       auto yF = setzero<Float, SIMD_WIDTH>();
-      for (int d = 0; d < DIM; d++) {
+      for (size_t d = 0; d < DIM; d++) {
         yF = add(yF, mul(wF[d], sub(div(numF[d][j], denomF[d][j]), w0F[d])));
       }
       auto y4F = mul(yF, yF);
@@ -839,20 +844,21 @@ static SIMD_INLINE void fdivMsigmoidmul(
   vecsOut[0] = packs<Tout>(resF);
 }
 
-template <int DIM, int NVEC, typename Tout, typename Tin, int SIMD_WIDTH>
+template <size_t DIM, size_t NVEC, typename Tout, typename Tin,
+          size_t SIMD_WIDTH>
 static SIMD_INLINE void fdivMsigmoidmul(
   CompareGreater, const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
   const Vec<Tin, SIMD_WIDTH> vecsDenom[DIM][NVEC], const double w[DIM],
   const double w0[DIM], double fac,
   Vec<Tout, SIMD_WIDTH> vecsOut[sizeof(Tout) / sizeof(Tin)])
 {
-  const int nOut   = sizeof(Tout) / sizeof(Tin);
-  const int fanOut = sizeof(Float) / sizeof(Tout);
-  const auto facF  = set1<Float, SIMD_WIDTH>(fac / 2.0);
-  const auto oneF  = set1<Float, SIMD_WIDTH>(1.0f);
+  const auto nOut   = sizeof(Tout) / sizeof(Tin);
+  const auto fanOut = sizeof(Float) / sizeof(Tout);
+  const auto facF   = set1<Float, SIMD_WIDTH>(fac / 2.0);
+  const auto oneF   = set1<Float, SIMD_WIDTH>(1.0f);
   Vec<Float, SIMD_WIDTH> wF[DIM], w0F[DIM], numF[DIM][nOut * fanOut],
     denomF[DIM][nOut * fanOut], resF[fanOut];
-  for (int d = 0; d < DIM; d++) {
+  for (size_t d = 0; d < DIM; d++) {
     wF[d]  = set1<Float, SIMD_WIDTH>(-0.433 * w[d]);
     w0F[d] = set1<Float, SIMD_WIDTH>(w0[d]);
     extend(*vecsNum[d], numF[d]);
@@ -861,10 +867,10 @@ static SIMD_INLINE void fdivMsigmoidmul(
   // i: index of output vector
   // j: index of partial output vectors
   // k: index of input vector
-  for (int i = 0, k = 0; i < nOut; i++) {
-    for (int j = 0; j < fanOut; j++, k++) {
+  for (size_t i = 0, k = 0; i < nOut; i++) {
+    for (size_t j = 0; j < fanOut; j++, k++) {
       auto yF = setzero<Float, SIMD_WIDTH>();
-      for (int d = 0; d < DIM; d++) {
+      for (size_t d = 0; d < DIM; d++) {
         yF = add(yF, mul(wF[d], sub(div(numF[d][k], denomF[d][k]), w0F[d])));
       }
       auto y4F = mul(yF, yF);
@@ -875,27 +881,28 @@ static SIMD_INLINE void fdivMsigmoidmul(
   }
 }
 
-template <int DIM, int NVEC, typename Tout, typename Tin, int SIMD_WIDTH>
+template <size_t DIM, size_t NVEC, typename Tout, typename Tin,
+          size_t SIMD_WIDTH>
 static SIMD_INLINE void fdivMsigmoidmul(
   CompareEqual, const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
   const Vec<Tin, SIMD_WIDTH> vecsDenom[DIM][NVEC], const double w[DIM],
   const double w0[DIM], double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
 {
-  const int fanInOut = sizeof(Float) / sizeof(Tin);
-  const auto facF    = set1<Float, SIMD_WIDTH>(fac / 2.0);
-  const auto oneF    = set1<Float, SIMD_WIDTH>(1.0f);
+  const auto fanInOut = sizeof(Float) / sizeof(Tin);
+  const auto facF     = set1<Float, SIMD_WIDTH>(fac / 2.0);
+  const auto oneF     = set1<Float, SIMD_WIDTH>(1.0f);
   Vec<Float, SIMD_WIDTH> wF[DIM], w0F[DIM], numF[DIM][fanInOut],
     denomF[DIM][fanInOut], resF[fanInOut];
-  for (int d = 0; d < DIM; d++) {
+  for (size_t d = 0; d < DIM; d++) {
     wF[d]  = set1<Float, SIMD_WIDTH>(-0.433 * w[d]);
     w0F[d] = set1<Float, SIMD_WIDTH>(w0[d]);
     extend(*vecsNum[d], numF[d]);
     extend(*vecsDenom[d], denomF[d]);
   }
   // j: index of extended input/output vector
-  for (int j = 0; j < fanInOut; j++) {
+  for (size_t j = 0; j < fanInOut; j++) {
     auto yF = setzero<Float, SIMD_WIDTH>();
-    for (int d = 0; d < DIM; d++) {
+    for (size_t d = 0; d < DIM; d++) {
       yF = add(yF, mul(wF[d], sub(div(numF[d][j], denomF[d][j]), w0F[d])));
     }
     auto y4F = mul(yF, yF);
@@ -917,7 +924,8 @@ static SIMD_INLINE void fdivMsigmoidmul(
  * @param fac Factor.
  * @param[out] vecsOut Output vectors.
  */
-template <int DIM, int NVEC, typename Tout, typename Tin, int SIMD_WIDTH>
+template <size_t DIM, size_t NVEC, typename Tout, typename Tin,
+          size_t SIMD_WIDTH>
 static SIMD_INLINE void fdivMsigmoidmul(
   const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
   const Vec<Tin, SIMD_WIDTH> vecsDenom[DIM][NVEC], const double w[DIM],
@@ -948,7 +956,7 @@ static SIMD_INLINE void fdivMsigmoidmul(
  * @param[out] vecsOut output Vec's
  */
 template <typename Tout, typename Tin,
-          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, size_t SIMD_WIDTH>
 static SIMD_INLINE void fmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()],
   dont_deduce<Tfloat> fac,
@@ -960,9 +968,7 @@ static SIMD_INLINE void fmul(
   const auto facVec         = set1<Tfloat, SIMD_WIDTH>(fac);
   Vec<Tfloat, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
   internal::ext::extendInToFloat<Tin, Tout>(vecsIn, inF);
-  for (std::size_t i = 0; i < nFloatVecs; i++) {
-    resF[i] = mul(inF[i], facVec);
-  }
+  for (size_t i = 0; i < nFloatVecs; i++) { resF[i] = mul(inF[i], facVec); }
   internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
 }
 
@@ -984,7 +990,7 @@ static SIMD_INLINE void fmul(
  * @param[out] vecsOut output Vec's
  */
 template <typename Tout, typename Tin,
-          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, size_t SIMD_WIDTH>
 static SIMD_INLINE void faddmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()],
   dont_deduce<Tfloat> off, dont_deduce<Tfloat> fac,
@@ -997,7 +1003,7 @@ static SIMD_INLINE void faddmul(
   const auto facVec         = set1<Tfloat, SIMD_WIDTH>(fac);
   Vec<Tfloat, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
   internal::ext::extendInToFloat<Tin, Tout>(vecsIn, inF);
-  for (std::size_t i = 0; i < nFloatVecs; i++) {
+  for (size_t i = 0; i < nFloatVecs; i++) {
     resF[i] = mul(add(inF[i], offVec), facVec);
   }
   internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
@@ -1023,7 +1029,7 @@ static SIMD_INLINE void faddmul(
  * @param[out] vecsOut output Vec's
  */
 template <typename Tout, typename Tin,
-          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, size_t SIMD_WIDTH>
 static SIMD_INLINE void fmuladd(
   const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()],
   dont_deduce<Tfloat> fac, dont_deduce<Tfloat> off,
@@ -1036,7 +1042,7 @@ static SIMD_INLINE void fmuladd(
   const auto offVec         = set1<Tfloat, SIMD_WIDTH>(off);
   Vec<Tfloat, SIMD_WIDTH> inF[nFloatVecs], resF[nFloatVecs];
   internal::ext::extendInToFloat<Tin, Tout>(vecsIn, inF);
-  for (std::size_t i = 0; i < nFloatVecs; i++) {
+  for (size_t i = 0; i < nFloatVecs; i++) {
     resF[i] = add(mul(inF[i], facVec), offVec);
   }
   internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
@@ -1069,7 +1075,7 @@ static SIMD_INLINE void fmuladd(
  * @param[out] vecsOut output Vec's
  */
 template <typename Tout, typename Tin,
-          typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
+          typename Tfloat = BigEnoughFloat<Tout, Tin>, size_t SIMD_WIDTH>
 static SIMD_INLINE void fwaddmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn1[numInVecs<Tout, Tin>()],
   const Vec<Tin, SIMD_WIDTH> vecsIn2[numInVecs<Tout, Tin>()],
@@ -1084,7 +1090,7 @@ static SIMD_INLINE void fwaddmul(
   Vec<Tfloat, SIMD_WIDTH> inF1[nFloatVecs], inF2[nFloatVecs], resF[nFloatVecs];
   internal::ext::extendInToFloat<Tin, Tout>(vecsIn1, inF1);
   internal::ext::extendInToFloat<Tin, Tout>(vecsIn2, inF2);
-  for (std::size_t i = 0; i < nFloatVecs; i++) {
+  for (size_t i = 0; i < nFloatVecs; i++) {
     resF[i] = mul(facVec, add(inF2[i], mul(wVec, sub(inF1[i], inF2[i]))));
   }
   internal::ext::packsOutFromFloat<Tin, Tout>(resF, vecsOut);
@@ -1109,7 +1115,7 @@ namespace ext {
 // primary template
 // num: number of elements processed
 // i0, i1: indices of lowest elements of block
-template <typename T, int SIMD_WIDTH, int num, int i0, int i1>
+template <typename T, size_t SIMD_WIDTH, size_t num, size_t i0, size_t i1>
 struct Horizontal
 {
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hadd(
@@ -1129,7 +1135,7 @@ struct Horizontal
 };
 
 // partial specialization to end the recursion
-template <typename T, int SIMD_WIDTH, int i0, int i1>
+template <typename T, size_t SIMD_WIDTH, size_t i0, size_t i1>
 struct Horizontal<T, SIMD_WIDTH, 2, i0, i1>
 {
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hadd(
@@ -1157,7 +1163,7 @@ struct Horizontal<T, SIMD_WIDTH, 2, i0, i1>
  * to the number of elements in a Vec
  * @return Vec with the results of the horizontal sums
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(
   const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
 {
@@ -1176,7 +1182,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(
  * @param[in] v array of Vec's to be summed
  * @return Vec with the results of the saturated horizontal sums
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(
   const Vec<T, SIMD_WIDTH> v[Vec<T, SIMD_WIDTH>::elems])
 {
@@ -1198,7 +1204,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(
 
 namespace internal {
 namespace ext {
-template <typename T, int SIMD_WIDTH, int NUM>
+template <typename T, size_t SIMD_WIDTH, size_t NUM>
 struct Horizontal1
 {
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hadd(const Vec<T, SIMD_WIDTH> &v)
@@ -1224,7 +1230,7 @@ struct Horizontal1
   }
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Horizontal1<T, SIMD_WIDTH, 1>
 {
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _hadd(const Vec<T, SIMD_WIDTH> &v)
@@ -1256,7 +1262,7 @@ struct Horizontal1<T, SIMD_WIDTH, 1>
  * @param v input Vec
  * @return sum of all elements of the Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T hadd(const Vec<T, SIMD_WIDTH> &v)
 {
   return extract<0>(
@@ -1272,7 +1278,7 @@ static SIMD_INLINE T hadd(const Vec<T, SIMD_WIDTH> &v)
  * @param v Vec to add all elements of
  * @return saturated sum of all elements of the Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T hadds(const Vec<T, SIMD_WIDTH> &v)
 {
   return extract<0>(
@@ -1286,7 +1292,7 @@ static SIMD_INLINE T hadds(const Vec<T, SIMD_WIDTH> &v)
  * @param v Vec to calculate the minimum of all elements of
  * @return minimum of all elements of the Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T hmin(const Vec<T, SIMD_WIDTH> &v)
 {
   return extract<0>(
@@ -1300,7 +1306,7 @@ static SIMD_INLINE T hmin(const Vec<T, SIMD_WIDTH> &v)
  * @param v Vec to calculate the maximum of all elements of
  * @return maximum of all elements of the Vec
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T hmax(const Vec<T, SIMD_WIDTH> &v)
 {
   return extract<0>(
@@ -1329,7 +1335,7 @@ static SIMD_INLINE T hmax(const Vec<T, SIMD_WIDTH> &v)
  *
  * @tparam HOp horizontal accumulation operation, one of HAdd, HAdds, HMin, HMax
  */
-template <class HOp, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <class HOp, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 struct HAcc
 {
 private:
@@ -1413,7 +1419,7 @@ public:
  *
  * @tparam HOp horizontal accumulation operation, one of HAdd, HAdds, HMin, HMax
  */
-template <class HOp, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <class HOp, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 class HAccStore
 {
 private:
@@ -1473,7 +1479,7 @@ public:
  */
 struct HAdd
 {
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
                                               const Vec<T, SIMD_WIDTH> &b)
   {
@@ -1494,7 +1500,7 @@ struct HAdd
  */
 struct HAdds
 {
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
                                               const Vec<T, SIMD_WIDTH> &b)
   {
@@ -1514,7 +1520,7 @@ struct HAdds
  */
 struct HMin
 {
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
                                               const Vec<T, SIMD_WIDTH> &b)
   {
@@ -1534,7 +1540,7 @@ struct HMin
  */
 struct HMax
 {
-  template <typename T, int SIMD_WIDTH>
+  template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
                                               const Vec<T, SIMD_WIDTH> &b)
   {
@@ -1571,7 +1577,7 @@ struct HMax
  * @copydetails avg(const Vec<T, SIMD_WIDTH> &,
  * const Vec<T, SIMD_WIDTH> &)
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> avgru(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
@@ -1587,7 +1593,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avgru(const Vec<T, SIMD_WIDTH> &a,
 namespace internal {
 namespace ext {
 // int types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
@@ -1600,7 +1606,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
 }
 
 // NOTE: no rounding for floating-point types
-template <typename T, int SIMD_WIDTH,
+template <typename T, size_t SIMD_WIDTH,
           SIMD_ENABLE_IF(std::is_floating_point<T>::value), typename = void>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
@@ -1618,7 +1624,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
  * @return Vec containing the rounded down average of the elements of the two
  * input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
                                             const Vec<T, SIMD_WIDTH> &b)
 {
@@ -1631,14 +1637,14 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avgrd(const Vec<T, SIMD_WIDTH> &a,
 
 namespace internal {
 namespace ext {
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Byte, SIMD_WIDTH> div2r0(const Vec<Byte, SIMD_WIDTH> &a)
 {
   return srli<1>(a);
 }
 
 // 16. Oct 22 (Jonas Keller): added missing version for SignedByte
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<SignedByte, SIMD_WIDTH> div2r0(
   const Vec<SignedByte, SIMD_WIDTH> &a)
 {
@@ -1646,13 +1652,13 @@ static SIMD_INLINE Vec<SignedByte, SIMD_WIDTH> div2r0(
   return srai<1>(add(a, srli<7>(a)));
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Word, SIMD_WIDTH> div2r0(const Vec<Word, SIMD_WIDTH> &a)
 {
   return srli<1>(a);
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Short, SIMD_WIDTH> div2r0(
   const Vec<Short, SIMD_WIDTH> &a)
 {
@@ -1660,7 +1666,7 @@ static SIMD_INLINE Vec<Short, SIMD_WIDTH> div2r0(
   return srai<1>(add(a, srli<15>(a)));
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Int, SIMD_WIDTH> div2r0(const Vec<Int, SIMD_WIDTH> &a)
 {
   // add 1 if number is negative
@@ -1668,7 +1674,7 @@ static SIMD_INLINE Vec<Int, SIMD_WIDTH> div2r0(const Vec<Int, SIMD_WIDTH> &a)
 }
 
 // NOTE: no rounding for float
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Float, SIMD_WIDTH> div2r0(
   const Vec<Float, SIMD_WIDTH> &a)
 {
@@ -1676,7 +1682,7 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> div2r0(
 }
 
 // NOTE: no rounding for double
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Double, SIMD_WIDTH> div2r0(
   const Vec<Double, SIMD_WIDTH> &a)
 {
@@ -1696,7 +1702,7 @@ static SIMD_INLINE Vec<Double, SIMD_WIDTH> div2r0(
  *
  * @sa div2rd()
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> div2r0(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::ext::div2r0(a);
@@ -1708,41 +1714,41 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> div2r0(const Vec<T, SIMD_WIDTH> &a)
 
 namespace internal {
 namespace ext {
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Byte, SIMD_WIDTH> div2rd(const Vec<Byte, SIMD_WIDTH> &a)
 {
   return srli<1>(a);
 }
 
 // 16. Oct 22 (Jonas Keller): added missing version for SignedByte
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<SignedByte, SIMD_WIDTH> div2rd(
   const Vec<SignedByte, SIMD_WIDTH> &a)
 {
   return srai<1>(a);
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Word, SIMD_WIDTH> div2rd(const Vec<Word, SIMD_WIDTH> &a)
 {
   return srli<1>(a);
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Short, SIMD_WIDTH> div2rd(
   const Vec<Short, SIMD_WIDTH> &a)
 {
   return srai<1>(a);
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Int, SIMD_WIDTH> div2rd(const Vec<Int, SIMD_WIDTH> &a)
 {
   return srai<1>(a);
 }
 
 // NOTE: no rounding for float
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Float, SIMD_WIDTH> div2rd(
   const Vec<Float, SIMD_WIDTH> &a)
 {
@@ -1750,7 +1756,7 @@ static SIMD_INLINE Vec<Float, SIMD_WIDTH> div2rd(
 }
 
 // NOTE: no rounding for double
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Double, SIMD_WIDTH> div2rd(
   const Vec<Double, SIMD_WIDTH> &a)
 {
@@ -1770,7 +1776,7 @@ static SIMD_INLINE Vec<Double, SIMD_WIDTH> div2rd(
  *
  * @sa div2r0()
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> div2rd(const Vec<T, SIMD_WIDTH> &a)
 {
   return internal::ext::div2rd(a);
@@ -1794,7 +1800,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> div2rd(const Vec<T, SIMD_WIDTH> &a)
  * are negated
  * @return resulting Vec of floating-point numbers
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sign(const Vec<T, SIMD_WIDTH> &a,
                                            const Vec<T, SIMD_WIDTH> &b)
 {
@@ -1818,7 +1824,7 @@ namespace ext {
 
 // Use these overloads of the function template if Type is unsigned
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Byte, SIMD_WIDTH> absDiff(
   const Vec<Byte, SIMD_WIDTH> &v1, const Vec<Byte, SIMD_WIDTH> &v2)
 {
@@ -1826,7 +1832,7 @@ static SIMD_INLINE Vec<Byte, SIMD_WIDTH> absDiff(
   return bit_or(subs(v1, v2), subs(v2, v1));
 }
 
-template <int SIMD_WIDTH>
+template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Word, SIMD_WIDTH> absDiff(
   const Vec<Word, SIMD_WIDTH> &v1, const Vec<Word, SIMD_WIDTH> &v2)
 {
@@ -1836,7 +1842,7 @@ static SIMD_INLINE Vec<Word, SIMD_WIDTH> absDiff(
 
 // Use these overloads of the function template if Type is signed
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> absDiff(const Vec<T, SIMD_WIDTH> &v1,
                                               const Vec<T, SIMD_WIDTH> &v2)
 {
@@ -1854,7 +1860,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> absDiff(const Vec<T, SIMD_WIDTH> &v1,
  * @return Vec containing the absolute difference of the elements of the two
  * input Vec's
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> absDiff(const Vec<T, SIMD_WIDTH> &v1,
                                               const Vec<T, SIMD_WIDTH> &v2)
 {
@@ -1872,7 +1878,7 @@ namespace ext {
 
 // -------------------- different unpack functions ---------------------------
 
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t PART, size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 struct Unpack
 {
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _unpack(const Vec<T, SIMD_WIDTH> &a,
@@ -1882,7 +1888,7 @@ struct Unpack
   }
 };
 
-template <int PART, int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t PART, size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 struct Unpack16
 {
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _unpack(const Vec<T, SIMD_WIDTH> &a,
@@ -1895,19 +1901,19 @@ struct Unpack16
 // ------------------------ transpose a single row ---------------------------
 
 // primary template
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH,
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH,
           // INDEX: index of first input element to unpack
           // NLOHI: low/high unpack selector index
           // ELEMS: number of elements to unpack in this stage
-          int INDEX, int NLOHI, int ELEMS>
+          size_t INDEX, size_t NLOHI, size_t ELEMS>
 struct Transpose1
 {
-  static constexpr int PART = (NLOHI & 0x01);
-  static constexpr int NEXT = (NLOHI >> 1);
-  static constexpr int LIDX = INDEX;
-  static constexpr int RIDX = INDEX + ELEMS;
-  static constexpr int HALF = ELEMS / 2;
+  static constexpr auto PART = (NLOHI & 0x01);
+  static constexpr auto NEXT = (NLOHI >> 1);
+  static constexpr auto LIDX = INDEX;
+  static constexpr auto RIDX = INDEX + ELEMS;
+  static constexpr auto HALF = ELEMS / 2;
 
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _transpose1(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems])
@@ -1923,11 +1929,11 @@ struct Transpose1
 };
 
 // partial specialization to end the iteration (ELEMS=1)
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int INDEX, int NLOHI>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t INDEX, size_t NLOHI>
 struct Transpose1<Unpack, T, SIMD_WIDTH, INDEX, NLOHI, 1>
 {
-  static constexpr int PART = (NLOHI & 0x01);
+  static constexpr auto PART = (NLOHI & 0x01);
 
   static SIMD_INLINE Vec<T, SIMD_WIDTH> _transpose1(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems])
@@ -1943,12 +1949,12 @@ struct Transpose1<Unpack, T, SIMD_WIDTH, INDEX, NLOHI, 1>
 // ----------------------- transpose multiple rows --------------------------
 
 // primary template
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH,
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH,
           // NUMROWS: total number of rows
           // NUM_TRANSPOSE_ROWS: number of rows to transpose
           // ROW: index of row to transpose
-          int NUMROWS, int NUM_TRANSPOSE_ROWS, int ROW>
+          size_t NUMROWS, size_t NUM_TRANSPOSE_ROWS, size_t ROW>
 struct Transpose
 {
   static SIMD_INLINE void _transpose(
@@ -1969,8 +1975,8 @@ struct Transpose
 };
 
 // partial specialization to end the iteration
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int NUMROWS, int NUM_TRANSPOSE_ROWS>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t NUMROWS, size_t NUM_TRANSPOSE_ROWS>
 struct Transpose<Unpack, T, SIMD_WIDTH, NUMROWS, NUM_TRANSPOSE_ROWS,
                  NUM_TRANSPOSE_ROWS>
 {
@@ -1981,7 +1987,7 @@ struct Transpose<Unpack, T, SIMD_WIDTH, NUMROWS, NUM_TRANSPOSE_ROWS,
 };
 
 // function template: partial transpose
-template <int NUM_TRANSPOSE_ROWS, typename T, int SIMD_WIDTH>
+template <size_t NUM_TRANSPOSE_ROWS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_a_partial(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[NUM_TRANSPOSE_ROWS])
@@ -1993,7 +1999,7 @@ static SIMD_INLINE void transpose_a_partial(
 }
 
 // function template: full transpose
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_a(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -2006,7 +2012,7 @@ static SIMD_INLINE void transpose_a(
 // ===========================================================================
 
 // primary template
-template <typename T, int SIMD_WIDTH, int ROW, int ROW_STOP>
+template <typename T, size_t SIMD_WIDTH, size_t ROW, size_t ROW_STOP>
 struct CopyMatrix
 {
   static_assert(ROW < ROW_STOP, "ROW must be less than ROW_STOP");
@@ -2020,7 +2026,7 @@ struct CopyMatrix
 };
 
 // partial specialization to end the iteration
-template <typename T, int SIMD_WIDTH, int ROW_STOP>
+template <typename T, size_t SIMD_WIDTH, size_t ROW_STOP>
 struct CopyMatrix<T, SIMD_WIDTH, ROW_STOP, ROW_STOP>
 {
   static SIMD_INLINE void _copy(Vec<T, SIMD_WIDTH>[ROW_STOP],
@@ -2036,8 +2042,9 @@ struct CopyMatrix<T, SIMD_WIDTH, ROW_STOP, ROW_STOP>
 //            Used to post-process transposed matrix using unpack16
 
 // primary template
-template <typename T, int SIMD_WIDTH, int NUMROWS, int ROW, int ROW_STOP,
-          int TRANSPOSE_WIDTH, int SRC_OFF, int DST_OFF>
+template <typename T, size_t SIMD_WIDTH, size_t NUMROWS, size_t ROW,
+          size_t ROW_STOP, size_t TRANSPOSE_WIDTH, size_t SRC_OFF,
+          size_t DST_OFF>
 struct TransposePostprocess16
 {
   static SIMD_INLINE void _transpose(
@@ -2057,14 +2064,14 @@ struct TransposePostprocess16
 };
 
 // partial specialization
-template <typename T, int SIMD_WIDTH, int NUMROWS, int ROW, int ROW_STOP,
-          int SRC_OFF, int DST_OFF>
+template <typename T, size_t SIMD_WIDTH, size_t NUMROWS, size_t ROW,
+          size_t ROW_STOP, size_t SRC_OFF, size_t DST_OFF>
 struct TransposePostprocess16<T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16,
                               SRC_OFF, DST_OFF>
 {
-  static constexpr int STEP    = SIMD_WIDTH / 16;
-  static constexpr int SRC_ROW = SRC_OFF + ROW * STEP;
-  static constexpr int DST_ROW = DST_OFF + ROW;
+  static constexpr auto STEP    = SIMD_WIDTH / 16;
+  static constexpr auto SRC_ROW = SRC_OFF + ROW * STEP;
+  static constexpr auto DST_ROW = DST_OFF + ROW;
 
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2080,8 +2087,8 @@ struct TransposePostprocess16<T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16,
 };
 
 // partial specialization to end the iteration
-template <typename T, int SIMD_WIDTH, int NUMROWS, int ROW_STOP, int SRC_OFF,
-          int DST_OFF>
+template <typename T, size_t SIMD_WIDTH, size_t NUMROWS, size_t ROW_STOP,
+          size_t SRC_OFF, size_t DST_OFF>
 struct TransposePostprocess16<T, SIMD_WIDTH, NUMROWS, ROW_STOP, ROW_STOP, 16,
                               SRC_OFF, DST_OFF>
 {
@@ -2094,8 +2101,8 @@ struct TransposePostprocess16<T, SIMD_WIDTH, NUMROWS, ROW_STOP, ROW_STOP, 16,
 // ------------------------ transpose post-process hub -----------------------
 
 // primary template
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH>
 struct TransposePostprocess
 {
   static SIMD_INLINE void _transpose(
@@ -2105,11 +2112,11 @@ struct TransposePostprocess
 };
 
 // partial specialization to post-process Transpose<Unpack16>
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct TransposePostprocess<Unpack16, T, SIMD_WIDTH>
 {
-  static constexpr int NUMROWS  = SIMD_WIDTH / sizeof(T);
-  static constexpr int ROW_STOP = 16 / sizeof(T);
+  static constexpr auto NUMROWS  = SIMD_WIDTH / sizeof(T);
+  static constexpr auto ROW_STOP = 16 / sizeof(T);
 
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2127,7 +2134,7 @@ struct TransposePostprocess<Unpack16, T, SIMD_WIDTH>
 // ===========================================================================
 
 // function template: full transpose
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_b(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -2143,7 +2150,7 @@ static SIMD_INLINE void transpose_b(
 // ===========================================================================
 
 // function template: full transpose (includes store16)
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_c(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -2154,7 +2161,7 @@ static SIMD_INLINE void transpose_c(
             SIMD_WIDTH / sizeof(T), 0>::_transpose(inRows, tempOutRows);
 
   // post-process with store16 ...
-  const int N = SIMD_WIDTH / sizeof(T);
+  const auto N = SIMD_WIDTH / sizeof(T);
   T outArray[N * N];
   storeu16(outArray, tempOutRows);
   // ... and load to outRows
@@ -2170,12 +2177,12 @@ static SIMD_INLINE void transpose_c(
 // ----------------------- transpose multiple rows --------------------------
 
 // primary template
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH,
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH,
           // NUMROWS: total number of rows
           // ROW: index of row to transpose
-          int NUMROWS, int ROW, int ROW_STOP, int TRANSPOSE_WIDTH, int SRC_OFF,
-          int DST_OFF>
+          size_t NUMROWS, size_t ROW, size_t ROW_STOP, size_t TRANSPOSE_WIDTH,
+          size_t SRC_OFF, size_t DST_OFF>
 struct Transpose16
 {
   static SIMD_INLINE void _transpose(
@@ -2192,15 +2199,15 @@ struct Transpose16
 };
 
 // partial specialization to end first iteration
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int NUMROWS, int ROW, int ROW_STOP, int SRC_OFF,
-          int DST_OFF>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t NUMROWS, size_t ROW, size_t ROW_STOP,
+          size_t SRC_OFF, size_t DST_OFF>
 struct Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16, SRC_OFF,
                    DST_OFF>
 {
-  static constexpr int STEP    = SIMD_WIDTH / 16;
-  static constexpr int SRC_ROW = SRC_OFF + ROW * STEP;
-  static constexpr int DST_ROW = DST_OFF + ROW;
+  static constexpr auto STEP    = SIMD_WIDTH / 16;
+  static constexpr auto SRC_ROW = SRC_OFF + ROW * STEP;
+  static constexpr auto DST_ROW = DST_OFF + ROW;
 
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2220,8 +2227,9 @@ struct Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW, ROW_STOP, 16, SRC_OFF,
 };
 
 // partial specialization to end the iteration
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int NUMROWS, int ROW_STOP, int SRC_OFF, int DST_OFF>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t NUMROWS, size_t ROW_STOP, size_t SRC_OFF,
+          size_t DST_OFF>
 struct Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW_STOP, ROW_STOP, 16,
                    SRC_OFF, DST_OFF>
 {
@@ -2231,7 +2239,7 @@ struct Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW_STOP, ROW_STOP, 16,
   {}
 };
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_d(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -2257,21 +2265,21 @@ static SIMD_INLINE void transpose_d(
 
 // FINALBLKSIZE template argument is required since function is also
 // used for transpose_e
-template <int N, int FINALBLKSIZE, typename T, int SIMD_WIDTH>
+template <size_t N, size_t FINALBLKSIZE, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle2_a(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   Vec<T, SIMD_WIDTH> v2[2 * N];
-  for (int blkSize = 1; blkSize <= FINALBLKSIZE; blkSize *= 2) {
+  for (size_t blkSize = 1; blkSize <= FINALBLKSIZE; blkSize *= 2) {
     // zip
-    for (int src = 0, dst = 0; src < N; src++, dst += 2)
+    for (size_t src = 0, dst = 0; src < N; src++, dst += 2)
       zip<1>(v[src], v[src + N], v2[dst], v2[dst + 1]);
     // copy result back to v
     // TODO: swizzle2_a: check code produced by compiler for copying
-    for (int i = 0; i < 2 * N; i++) v[i] = v2[i];
+    for (size_t i = 0; i < 2 * N; i++) v[i] = v2[i];
   }
 }
 
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle2_a(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   swizzle2_a<N, Vec<T, SIMD_WIDTH>::elements>(v);
@@ -2281,14 +2289,14 @@ static SIMD_INLINE void swizzle2_a(Vec<T, SIMD_WIDTH> v[2 * N])
 // transpose_e
 // ===========================================================================
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_e(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
-  constexpr int n = Vec<T, SIMD_WIDTH>::elements, N = n / 2;
-  for (int i = 0; i < n; i++) outRows[i] = inRows[i];
-  swizzle2_a<N, N>(outRows);
+  constexpr auto num = Vec<T, SIMD_WIDTH>::elements;
+  for (size_t i = 0; i < num; i++) outRows[i] = inRows[i];
+  swizzle2_a<num / 2, num / 2>(outRows);
 }
 
 // ===========================================================================
@@ -2303,21 +2311,21 @@ static SIMD_INLINE void transpose_e(
 
 // FINALBLKSIZE template argument is required since function is also
 // used for transpose_f
-template <int N, int FINALBLKSIZE, typename T, int SIMD_WIDTH>
+template <size_t N, size_t FINALBLKSIZE, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle2_b(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   Vec<T, SIMD_WIDTH> v2[2 * N];
-  int origReps  = log2(FINALBLKSIZE) + 1;
-  int finalReps = origReps / 2;
+  const auto origReps  = floorlog2(FINALBLKSIZE) + 1;
+  const auto finalReps = origReps / 2;
   // printf("origReps=%d finalReps=%d\n", origReps, finalReps);
 
-  for (int rep = 0; rep < finalReps; rep++) {
+  for (size_t rep = 0; rep < finalReps; rep++) {
     // zip there ...
-    for (int src = 0, dst = 0; src < N; src++, dst += 2)
+    for (size_t src = 0, dst = 0; src < N; src++, dst += 2)
       zip<1>(v[src], v[src + N], v2[dst], v2[dst + 1]);
 
     // ... and zip back again
-    for (int src = 0, dst = 0; src < N; src++, dst += 2)
+    for (size_t src = 0, dst = 0; src < N; src++, dst += 2)
       zip<1>(v2[src], v2[src + N], v[dst], v[dst + 1]);
   }
 
@@ -2325,14 +2333,14 @@ static SIMD_INLINE void swizzle2_b(Vec<T, SIMD_WIDTH> v[2 * N])
   if (origReps % 2 == 0) return;
 
   // zip there ...
-  for (int src = 0, dst = 0; src < N; src++, dst += 2)
+  for (size_t src = 0, dst = 0; src < N; src++, dst += 2)
     zip<1>(v[src], v[src + N], v2[dst], v2[dst + 1]);
 
   // ...and copy back again
-  for (int i = 0; i < 2 * N; i++) v[i] = v2[i];
+  for (size_t i = 0; i < 2 * N; i++) v[i] = v2[i];
 }
 
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle2_b(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   swizzle2_b<N, Vec<T, SIMD_WIDTH>::elements>(v);
@@ -2344,14 +2352,14 @@ static SIMD_INLINE void swizzle2_b(Vec<T, SIMD_WIDTH> v[2 * N])
 
 // contributed by Adam Marschall
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_f(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
-  const int n = Vec<T, SIMD_WIDTH>::elements, N = n / 2;
-  for (int i = 0; i < n; i++) outRows[i] = inRows[i];
-  swizzle2_b<N, N>(outRows);
+  const auto elems = Vec<T, SIMD_WIDTH>::elements;
+  for (size_t i = 0; i < elems; i++) outRows[i] = inRows[i];
+  swizzle2_b<elems / 2, elems / 2>(outRows);
 }
 
 // ===========================================================================
@@ -2362,7 +2370,7 @@ static SIMD_INLINE void transpose_f(
 
 // -------------------- different zip functions ------------------------------
 
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 struct Zip
 {
   static SIMD_INLINE void _zip(Vec<T, SIMD_WIDTH> a, Vec<T, SIMD_WIDTH> b,
@@ -2372,7 +2380,7 @@ struct Zip
   }
 };
 
-template <int NUM_ELEMS, typename T, int SIMD_WIDTH>
+template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 struct Zip16
 {
   static SIMD_INLINE void _zip(Vec<T, SIMD_WIDTH> a, Vec<T, SIMD_WIDTH> b,
@@ -2385,12 +2393,12 @@ struct Zip16
 // ------------------------ swizzle matrix once ------------------------------
 
 // primary template
-template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
-          int N, int SRC, int DST>
+template <template <size_t, typename, size_t> class Zip, typename T,
+          size_t SIMD_WIDTH, size_t N, size_t SRC, size_t DST>
 struct Swizzle2Once
 {
-  static constexpr int SRC2 = SRC + N;
-  static constexpr int DST2 = DST + 1;
+  static constexpr auto SRC2 = SRC + N;
+  static constexpr auto DST2 = DST + 1;
 
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
@@ -2403,14 +2411,14 @@ struct Swizzle2Once
 };
 
 // partial specialization to end the iteration
-template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
-          int N, int DST>
+template <template <size_t, typename, size_t> class Zip, typename T,
+          size_t SIMD_WIDTH, size_t N, size_t DST>
 struct Swizzle2Once<Zip, T, SIMD_WIDTH, N, N, DST>
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N] /*v*/,
                                    Vec<T, SIMD_WIDTH>[2 * N] /*v2*/)
   {
-    // for (int i = 0; i < 2 * N; i++) {
+    // for (size_t i = 0; i < 2 * N; i++) {
     //   print("%4d", v2[i]);
     //   puts("");
     // }
@@ -2420,8 +2428,9 @@ struct Swizzle2Once<Zip, T, SIMD_WIDTH, N, N, DST>
 // ------------------------ swizzle matrix multiple times --------------------
 
 // primary template
-template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
-          int N, int REP, int FINAL_REPS, int ODD>
+template <template <size_t, typename, size_t> class Zip, typename T,
+          size_t SIMD_WIDTH, size_t N, size_t REP, size_t FINAL_REPS,
+          size_t ODD>
 struct Swizzle2Multiple
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
@@ -2437,8 +2446,8 @@ struct Swizzle2Multiple
 };
 
 // partial specialization to end the iteration without swizzle post-amble
-template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
-          int N, int FINAL_REPS, int ODD>
+template <template <size_t, typename, size_t> class Zip, typename T,
+          size_t SIMD_WIDTH, size_t N, size_t FINAL_REPS, size_t ODD>
 struct Swizzle2Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N],
@@ -2447,11 +2456,11 @@ struct Swizzle2Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
 };
 
 // partial specialization to end the iteration with swizzle post-amble
-template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
-          int N, int FINAL_REPS>
+template <template <size_t, typename, size_t> class Zip, typename T,
+          size_t SIMD_WIDTH, size_t N, size_t FINAL_REPS>
 struct Swizzle2Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 {
-  static constexpr int ROW_STOP = 2 * N;
+  static constexpr auto ROW_STOP = 2 * N;
 
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
@@ -2468,13 +2477,13 @@ struct Swizzle2Multiple<Zip, T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 // https://stackoverflow.com/a/15377386/3852630
 
 // primary template
-template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
-          int N, int FINALBLKSIZE>
+template <template <size_t, typename, size_t> class Zip, typename T,
+          size_t SIMD_WIDTH, size_t N, size_t FINALBLKSIZE>
 struct Swizzle2
 {
-  static constexpr int ORIG_REPS  = (int) floorlog2(FINALBLKSIZE) + 1;
-  static constexpr int FINAL_REPS = ORIG_REPS / 2;
-  static constexpr int ODD        = (ORIG_REPS & 0x01);
+  static constexpr auto ORIG_REPS  = floorlog2(FINALBLKSIZE) + 1;
+  static constexpr auto FINAL_REPS = ORIG_REPS / 2;
+  static constexpr auto ODD        = (ORIG_REPS & 0x01);
 
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N])
   {
@@ -2494,7 +2503,7 @@ struct Swizzle2
 
 // 15. Oct 22 (Jonas Keller): added swizzle2_c wrapper function
 
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle2_c(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   Swizzle2<Zip, T, SIMD_WIDTH, N, Vec<T, SIMD_WIDTH>::elements>::_swizzle(v);
@@ -2513,7 +2522,7 @@ static SIMD_INLINE void swizzle2_c(Vec<T, SIMD_WIDTH> v[2 * N])
 // classes. The Unswizzle classes are not used by Transpose_g, so the Zip
 // template parameter is not needed.
 
-template <typename T, int SIMD_WIDTH, int N, int SRC, int DST>
+template <typename T, size_t SIMD_WIDTH, size_t N, size_t SRC, size_t DST>
 struct UnswizzleOnce
 {
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N],
@@ -2525,7 +2534,7 @@ struct UnswizzleOnce
 };
 
 // partial specialization to end the iteration
-template <typename T, int SIMD_WIDTH, int N, int SRC>
+template <typename T, size_t SIMD_WIDTH, size_t N, size_t SRC>
 struct UnswizzleOnce<T, SIMD_WIDTH, N, SRC, N>
 {
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH>[2 * N],
@@ -2533,7 +2542,8 @@ struct UnswizzleOnce<T, SIMD_WIDTH, N, SRC, N>
   {}
 };
 
-template <typename T, int SIMD_WIDTH, int N, int REP, int FINAL_REPS, int ODD>
+template <typename T, size_t SIMD_WIDTH, size_t N, size_t REP,
+          size_t FINAL_REPS, size_t ODD>
 struct UnswizzleMultiple
 {
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N],
@@ -2547,7 +2557,8 @@ struct UnswizzleMultiple
 };
 
 // partial specialization to end the iteration without unswizzle post-amble
-template <typename T, int SIMD_WIDTH, int N, int FINAL_REPS, int ODD>
+template <typename T, size_t SIMD_WIDTH, size_t N, size_t FINAL_REPS,
+          size_t ODD>
 struct UnswizzleMultiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
 {
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH>[2 * N],
@@ -2556,7 +2567,7 @@ struct UnswizzleMultiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, ODD>
 };
 
 // partial specialization to end the iteration with unswizzle post-amble
-template <typename T, int SIMD_WIDTH, int N, int FINAL_REPS>
+template <typename T, size_t SIMD_WIDTH, size_t N, size_t FINAL_REPS>
 struct UnswizzleMultiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 {
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N],
@@ -2569,13 +2580,13 @@ struct UnswizzleMultiple<T, SIMD_WIDTH, N, FINAL_REPS, FINAL_REPS, 1>
 
 // ------------------------ unswizzle main meta template ---------------------
 
-template <typename T, int SIMD_WIDTH, int N>
+template <typename T, size_t SIMD_WIDTH, size_t N>
 struct Unswizzle
 {
-  static constexpr int FINALBLKSIZE = Vec<T, SIMD_WIDTH>::elements;
-  static constexpr int ORIG_REPS    = (int) floorlog2(FINALBLKSIZE) + 1;
-  static constexpr int FINAL_REPS   = ORIG_REPS / 2;
-  static constexpr int ODD          = (ORIG_REPS & 0x01);
+  static constexpr auto FINALBLKSIZE = Vec<T, SIMD_WIDTH>::elements;
+  static constexpr auto ORIG_REPS    = floorlog2(FINALBLKSIZE) + 1;
+  static constexpr auto FINAL_REPS   = ORIG_REPS / 2;
+  static constexpr auto ODD          = (ORIG_REPS & 0x01);
 
   static SIMD_INLINE void _unswizzle(Vec<T, SIMD_WIDTH> v[2 * N])
   {
@@ -2590,7 +2601,7 @@ struct Unswizzle
 
 // 15. Oct 22 (Jonas Keller): added unswizzle_b wrapper function
 
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void unswizzle_b(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   Unswizzle<T, SIMD_WIDTH, N>::_unswizzle(v);
@@ -2602,14 +2613,14 @@ static SIMD_INLINE void unswizzle_b(Vec<T, SIMD_WIDTH> v[2 * N])
 
 // contributed by Adam Marschall
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_g(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
-  const int n = Vec<T, SIMD_WIDTH>::elements, N = n / 2;
-  for (int i = 0; i < n; i++) outRows[i] = inRows[i];
-  Swizzle2<Zip, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
+  const auto elems = Vec<T, SIMD_WIDTH>::elements;
+  for (size_t i = 0; i < elems; i++) outRows[i] = inRows[i];
+  Swizzle2<Zip, T, SIMD_WIDTH, elems / 2, elems / 2>::_swizzle(outRows);
 }
 
 // ===========================================================================
@@ -2621,11 +2632,12 @@ static SIMD_INLINE void transpose_g(
 // ------------------------ swizzle post-process 16 once ---------------------
 
 // primary template
-template <typename T, int SIMD_WIDTH, int N, int SRC, int DST, int LANE_ELEMS>
+template <typename T, size_t SIMD_WIDTH, size_t N, size_t SRC, size_t DST,
+          size_t LANE_ELEMS>
 struct Swizzle2Postprocess16Once
 {
-  static constexpr int SRC2 = SRC + 1;
-  static constexpr int DST2 = DST + N;
+  static constexpr auto SRC2 = SRC + 1;
+  static constexpr auto DST2 = DST + N;
 
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
@@ -2639,13 +2651,14 @@ struct Swizzle2Postprocess16Once
 };
 
 // partial specialization to end the iteration
-template <typename T, int SIMD_WIDTH, int N, int SRC, int LANE_ELEMS>
+template <typename T, size_t SIMD_WIDTH, size_t N, size_t SRC,
+          size_t LANE_ELEMS>
 struct Swizzle2Postprocess16Once<T, SIMD_WIDTH, N, SRC, N, LANE_ELEMS>
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N] /*v*/,
                                    Vec<T, SIMD_WIDTH>[2 * N] /*v2*/)
   {
-    // for (int i = 0; i < 2 * N; i++) {
+    // for (size_t i = 0; i < 2 * N; i++) {
     //   print("%4d", v2[i]);
     //   puts("");
     // }
@@ -2655,8 +2668,8 @@ struct Swizzle2Postprocess16Once<T, SIMD_WIDTH, N, SRC, N, LANE_ELEMS>
 // ------------------------ swizzle post-process 16 --------------------------
 
 // primary template
-template <typename T, int SIMD_WIDTH, int N, int LANE_ELEMS, int REP,
-          int FINAL_REPS, int ODD>
+template <typename T, size_t SIMD_WIDTH, size_t N, size_t LANE_ELEMS,
+          size_t REP, size_t FINAL_REPS, size_t ODD>
 struct Swizzle2Postprocess16
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
@@ -2675,8 +2688,8 @@ struct Swizzle2Postprocess16
 };
 
 // partial specialization to end the iteration without post-process post-amble
-template <typename T, int SIMD_WIDTH, int N, int LANE_ELEMS, int FINAL_REPS,
-          int ODD>
+template <typename T, size_t SIMD_WIDTH, size_t N, size_t LANE_ELEMS,
+          size_t FINAL_REPS, size_t ODD>
 struct Swizzle2Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
                              FINAL_REPS, ODD>
 {
@@ -2686,11 +2699,12 @@ struct Swizzle2Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
 };
 
 // partial specialization to end the iteration with post-process post-amble
-template <typename T, int SIMD_WIDTH, int N, int LANE_ELEMS, int FINAL_REPS>
+template <typename T, size_t SIMD_WIDTH, size_t N, size_t LANE_ELEMS,
+          size_t FINAL_REPS>
 struct Swizzle2Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
                              FINAL_REPS, 1>
 {
-  static constexpr int ROW_STOP = 2 * N;
+  static constexpr auto ROW_STOP = 2 * N;
 
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N],
                                    Vec<T, SIMD_WIDTH> v2[2 * N])
@@ -2704,21 +2718,21 @@ struct Swizzle2Postprocess16<T, SIMD_WIDTH, N, LANE_ELEMS, FINAL_REPS,
 // ------------------------ swizzle post-process hub -------------------------
 
 // primary template
-template <template <int, typename, int> class Zip, typename T, int SIMD_WIDTH,
-          int N>
+template <template <size_t, typename, size_t> class Zip, typename T,
+          size_t SIMD_WIDTH, size_t N>
 struct Swizzle2Postprocess
 {
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH>[2 * N]) {}
 };
 
 // partial specialization to post-process Swizzle<Zip16>
-template <typename T, int SIMD_WIDTH, int N>
+template <typename T, size_t SIMD_WIDTH, size_t N>
 struct Swizzle2Postprocess<Zip16, T, SIMD_WIDTH, N>
 {
-  static constexpr int ORIG_REPS  = (int) floorlog2(SIMD_WIDTH) - 4;
-  static constexpr int FINAL_REPS = ORIG_REPS / 2;
-  static constexpr int ODD        = (ORIG_REPS & 0x01);
-  static constexpr int LANE_ELEMS = 16 / sizeof(T);
+  static constexpr auto ORIG_REPS  = floorlog2(SIMD_WIDTH) - 4;
+  static constexpr auto FINAL_REPS = ORIG_REPS / 2;
+  static constexpr auto ODD        = (ORIG_REPS & 0x01);
+  static constexpr auto LANE_ELEMS = 16 / sizeof(T);
 
   static SIMD_INLINE void _swizzle(Vec<T, SIMD_WIDTH> v[2 * N])
   {
@@ -2730,15 +2744,15 @@ struct Swizzle2Postprocess<Zip16, T, SIMD_WIDTH, N>
 
 // ------------------------ transpose_h function call -------------------------
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_h(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
 {
-  const int n = Vec<T, SIMD_WIDTH>::elements, N = n / 2;
-  for (int i = 0; i < n; i++) outRows[i] = inRows[i];
-  Swizzle2<Zip16, T, SIMD_WIDTH, N, N>::_swizzle(outRows);
-  Swizzle2Postprocess<Zip16, T, SIMD_WIDTH, N>::_swizzle(outRows);
+  const auto elems = Vec<T, SIMD_WIDTH>::elements;
+  for (size_t i = 0; i < elems; i++) outRows[i] = inRows[i];
+  Swizzle2<Zip16, T, SIMD_WIDTH, elems / 2, elems / 2>::_swizzle(outRows);
+  Swizzle2Postprocess<Zip16, T, SIMD_WIDTH, elems / 2>::_swizzle(outRows);
 }
 
 // ===========================================================================
@@ -2748,23 +2762,18 @@ static SIMD_INLINE void transpose_h(
 // contributed by Adam Marschall
 
 // primary template: unpack repetition
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int PROCESS_ROW, int PROCESS_ROWS, int UNPACK_ELEMS,
-          int UNPACK_REP, int UNPACK_REPS, int SUB_BASE, int SUB>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t PROCESS_ROW, size_t PROCESS_ROWS,
+          size_t UNPACK_ELEMS, size_t UNPACK_REP, size_t UNPACK_REPS,
+          size_t SUB_BASE, size_t SUB>
 struct TransposeRcUnpackSingle
 {
-  static constexpr int UNPACK_PART =
+  static constexpr auto UNPACK_PART =
     (PROCESS_ROW >> (UNPACK_REPS - UNPACK_REP - 1)) & 0x01;
-  static constexpr int UNPACK_PART_NEXT =
+  static constexpr auto UNPACK_PART_NEXT =
     ((PROCESS_ROW + 1) >> (UNPACK_REPS - UNPACK_REP - 1)) & 0x01;
-  static constexpr int SRC1 = (PROCESS_ROW - SUB) * 2;
-  static constexpr int SRC2 = (PROCESS_ROW - SUB) * 2 + 1;
-
-  // wrong numbering of rows
-  // static constexpr int HALF_ROWS = PROCESS_ROWS / 2 ;
-  // static constexpr int UNPACK_PART = PROCESS_ROW / HALF_ROWS ;
-  // static constexpr int SRC1 = ((PROCESS_ROW * 2) % PROCESS_ROWS) ;
-  // static constexpr int SRC2 = ((PROCESS_ROW * 2) % PROCESS_ROWS) + 1 ;
+  static constexpr auto SRC1 = (PROCESS_ROW - SUB) * 2;
+  static constexpr auto SRC2 = (PROCESS_ROW - SUB) * 2 + 1;
 
   static SIMD_INLINE void _transpose(
     const Vec<T, SIMD_WIDTH> inRows[PROCESS_ROWS],
@@ -2786,9 +2795,9 @@ struct TransposeRcUnpackSingle
 };
 
 // partial specialisation to end iteration PROCESS_REP
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int PROCESS_ROWS, int UNPACK_ELEMS, int UNPACK_REP,
-          int UNPACK_REPS, int SUB_BASE, int SUB>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t PROCESS_ROWS, size_t UNPACK_ELEMS,
+          size_t UNPACK_REP, size_t UNPACK_REPS, size_t SUB_BASE, size_t SUB>
 struct TransposeRcUnpackSingle<Unpack, T, SIMD_WIDTH, PROCESS_ROWS,
                                PROCESS_ROWS, UNPACK_ELEMS, UNPACK_REP,
                                UNPACK_REPS, SUB_BASE, SUB>
@@ -2798,7 +2807,7 @@ struct TransposeRcUnpackSingle<Unpack, T, SIMD_WIDTH, PROCESS_ROWS,
     Vec<T, SIMD_WIDTH>[PROCESS_ROWS] /*outRows*/)
   {
     // printf("%2d\n", PROCESS_ROWS);
-    // for (int i = 0; i < PROCESS_ROWS; i++) {
+    // for (size_t i = 0; i < PROCESS_ROWS; i++) {
     //   print("%5d", outRows[i]);
     //   puts("");
     // }
@@ -2809,9 +2818,10 @@ struct TransposeRcUnpackSingle<Unpack, T, SIMD_WIDTH, PROCESS_ROWS,
 // ---------------------------------------------------------------------------
 
 // primary template: unpack repetition
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int UNPACK_REP, int UNPACK_REPS, int PROCESS_ROWS,
-          int UNPACK_ELEMS, int SUB_BASE, int UNPACK_ODD>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t UNPACK_REP, size_t UNPACK_REPS,
+          size_t PROCESS_ROWS, size_t UNPACK_ELEMS, size_t SUB_BASE,
+          size_t UNPACK_ODD>
 struct TransposeRcUnpackMultiple
 {
   static SIMD_INLINE void _transpose(Vec<T, SIMD_WIDTH> inRows[PROCESS_ROWS],
@@ -2830,9 +2840,9 @@ struct TransposeRcUnpackMultiple
 };
 
 // partial specialisation to end iteration UNPACK_REP
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int UNPACK_REPS, int PROCESS_ROWS, int UNPACK_ELEMS,
-          int SUB_BASE, int UNPACK_ODD>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t UNPACK_REPS, size_t PROCESS_ROWS,
+          size_t UNPACK_ELEMS, size_t SUB_BASE, size_t UNPACK_ODD>
 struct TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH, UNPACK_REPS,
                                  UNPACK_REPS, PROCESS_ROWS, UNPACK_ELEMS,
                                  SUB_BASE, UNPACK_ODD>
@@ -2843,9 +2853,9 @@ struct TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH, UNPACK_REPS,
 };
 
 // partial specialisation to end iteration UNPACK_REP
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int UNPACK_REPS, int PROCESS_ROWS, int UNPACK_ELEMS,
-          int SUB_BASE>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t UNPACK_REPS, size_t PROCESS_ROWS,
+          size_t UNPACK_ELEMS, size_t SUB_BASE>
 struct TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH, UNPACK_REPS,
                                  UNPACK_REPS, PROCESS_ROWS, UNPACK_ELEMS,
                                  SUB_BASE, 0>
@@ -2862,11 +2872,12 @@ struct TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH, UNPACK_REPS,
 // ---------------------------------------------------------------------------
 
 // primary template: store all registers lane-wise
-template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
-          int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF, int VO, int LANE>
+template <typename T, size_t SIMD_WIDTH, size_t PROCESS_REP,
+          size_t PROCESS_REPS, size_t PROCESS_ROWS, size_t UNPACK_REPS,
+          size_t STORE_OFF, size_t VO, size_t LANE>
 struct TransposeRcStoreLane
 {
-  static constexpr int VEC_ELEMS_OUT = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr auto VEC_ELEMS_OUT = Vec<T, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE void _store(
     T outArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
@@ -2880,8 +2891,9 @@ struct TransposeRcStoreLane
 };
 
 // partial specialisation to end iteration LANE=PROCESS_REPS
-template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
-          int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF, int VO>
+template <typename T, size_t SIMD_WIDTH, size_t PROCESS_REP,
+          size_t PROCESS_REPS, size_t PROCESS_ROWS, size_t UNPACK_REPS,
+          size_t STORE_OFF, size_t VO>
 struct TransposeRcStoreLane<T, SIMD_WIDTH, PROCESS_REP, PROCESS_REPS,
                             PROCESS_ROWS, UNPACK_REPS, STORE_OFF, VO,
                             PROCESS_REPS>
@@ -2895,11 +2907,12 @@ struct TransposeRcStoreLane<T, SIMD_WIDTH, PROCESS_REP, PROCESS_REPS,
 // ---------------------------------------------------------------------------
 
 // primary template: store all registers lane-wise
-template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
-          int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF, int VO>
+template <typename T, size_t SIMD_WIDTH, size_t PROCESS_REP,
+          size_t PROCESS_REPS, size_t PROCESS_ROWS, size_t UNPACK_REPS,
+          size_t STORE_OFF, size_t VO>
 struct TransposeRcStoreLanes
 {
-  static constexpr int VEC_ELEMS_OUT = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr auto VEC_ELEMS_OUT = Vec<T, SIMD_WIDTH>::elems;
 
   static SIMD_INLINE void _store(
     T outArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
@@ -2915,8 +2928,9 @@ struct TransposeRcStoreLanes
 };
 
 // partial specialisation to end iteration VO=PROCESS_ROWS
-template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
-          int PROCESS_ROWS, int UNPACK_REPS, int STORE_OFF>
+template <typename T, size_t SIMD_WIDTH, size_t PROCESS_REP,
+          size_t PROCESS_REPS, size_t PROCESS_ROWS, size_t UNPACK_REPS,
+          size_t STORE_OFF>
 struct TransposeRcStoreLanes<T, SIMD_WIDTH, PROCESS_REP, PROCESS_REPS,
                              PROCESS_ROWS, UNPACK_REPS, STORE_OFF, PROCESS_ROWS>
 {
@@ -2930,12 +2944,12 @@ struct TransposeRcStoreLanes<T, SIMD_WIDTH, PROCESS_REP, PROCESS_REPS,
 
 // primary template: store hub
 // decides whether to store directly (Store16) or to store lane-wise
-template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS,
-          int PROCESS_ROWS, int UNPACK_REPS>
+template <typename T, size_t SIMD_WIDTH, size_t PROCESS_REP,
+          size_t PROCESS_REPS, size_t PROCESS_ROWS, size_t UNPACK_REPS>
 struct TransposeRcStore
 {
-  static constexpr int ELEMS_PER_LANE = 16 / sizeof(T);
-  static constexpr int STORE_OFF      = PROCESS_REP * ELEMS_PER_LANE;
+  static constexpr auto ELEMS_PER_LANE = 16 / sizeof(T);
+  static constexpr auto STORE_OFF      = PROCESS_REP * ELEMS_PER_LANE;
 
   static SIMD_INLINE void _store(
     T outArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
@@ -2947,8 +2961,8 @@ struct TransposeRcStore
   }
 };
 
-template <typename T, int SIMD_WIDTH, int PROCESS_REP, int PROCESS_ROWS,
-          int UNPACK_REPS>
+template <typename T, size_t SIMD_WIDTH, size_t PROCESS_REP,
+          size_t PROCESS_ROWS, size_t UNPACK_REPS>
 struct TransposeRcStore<T, SIMD_WIDTH, PROCESS_REP, 1, PROCESS_ROWS,
                         UNPACK_REPS>
 {
@@ -2966,14 +2980,14 @@ struct TransposeRcStore<T, SIMD_WIDTH, PROCESS_REP, 1, PROCESS_ROWS,
 
 // primary template: main repetition
 // loads, transposes, stores chunk of matrix
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int PROCESS_REP, int PROCESS_REPS, int PROCESS_ROWS,
-          int UNPACK_REPS, int UNPACK_ODD>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t PROCESS_REP, size_t PROCESS_REPS,
+          size_t PROCESS_ROWS, size_t UNPACK_REPS, size_t UNPACK_ODD>
 struct TransposeRcRep
 {
-  static constexpr int LOAD_OFF =
+  static constexpr auto LOAD_OFF =
     PROCESS_REP * PROCESS_ROWS * SIMD_WIDTH / sizeof(T);
-  static constexpr int SUB_BASE = 1 << (floorlog2(PROCESS_ROWS) - 1);
+  static constexpr auto SUB_BASE = 1 << (floorlog2(PROCESS_ROWS) - 1);
 
   static SIMD_INLINE void _transpose(
     const T inArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
@@ -2985,7 +2999,7 @@ struct TransposeRcRep
     Vec<T, SIMD_WIDTH> inRows[PROCESS_ROWS];
     Vec<T, SIMD_WIDTH> outRows[PROCESS_ROWS];
     load(inArray + LOAD_OFF, inRows, PROCESS_ROWS);
-    // for (int i = 0; i < PROCESS_ROWS; i++) {
+    // for (size_t i = 0; i < PROCESS_ROWS; i++) {
     //   print("%5d", inRows[i]);
     //   puts("");
     // }
@@ -2993,7 +3007,7 @@ struct TransposeRcRep
     TransposeRcUnpackMultiple<Unpack, T, SIMD_WIDTH, 0, UNPACK_REPS,
                               PROCESS_ROWS, 1, SUB_BASE,
                               UNPACK_ODD>::_transpose(inRows, outRows);
-    // for (int i = 0; i < PROCESS_ROWS; i++) {
+    // for (size_t i = 0; i < PROCESS_ROWS; i++) {
     //   print("%5d", outRows[i]);
     //   puts("");
     // }
@@ -3007,9 +3021,9 @@ struct TransposeRcRep
 };
 
 // partial specialisation to end iteration PROCESS_REP
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH, int PROCESS_REPS, int PROCESS_ROWS, int UNPACK_REPS,
-          int UNPACK_ODD>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH, size_t PROCESS_REPS, size_t PROCESS_ROWS,
+          size_t UNPACK_REPS, size_t UNPACK_ODD>
 struct TransposeRcRep<Unpack, T, SIMD_WIDTH, PROCESS_REPS, PROCESS_REPS,
                       PROCESS_ROWS, UNPACK_REPS, UNPACK_ODD>
 {
@@ -3022,18 +3036,18 @@ struct TransposeRcRep<Unpack, T, SIMD_WIDTH, PROCESS_REPS, PROCESS_REPS,
 // ---------------------------------------------------------------------------
 
 // primary template: main entrance
-template <template <int, int, typename, int> class Unpack, typename T,
-          int SIMD_WIDTH>
+template <template <size_t, size_t, typename, size_t> class Unpack, typename T,
+          size_t SIMD_WIDTH>
 struct TransposeRc
 {
-  static constexpr int SIMD_REGS = NATIVE_SIMD_REG_COUNT / 2;
-  static constexpr int NUM_ROWS  = SIMD_WIDTH / sizeof(T);
-  static constexpr int PROCESS_REPS =
+  static constexpr auto SIMD_REGS = NATIVE_SIMD_REG_COUNT / 2;
+  static constexpr auto NUM_ROWS  = SIMD_WIDTH / sizeof(T);
+  static constexpr auto PROCESS_REPS =
     NUM_ROWS > SIMD_REGS ? SIMD_WIDTH / 16 : 1;
-  static constexpr int PROCESS_ROWS = NUM_ROWS / PROCESS_REPS;
-  static constexpr int UNPACK_REPS =
+  static constexpr auto PROCESS_ROWS = NUM_ROWS / PROCESS_REPS;
+  static constexpr auto UNPACK_REPS =
     PROCESS_REPS == 1 ? floorlog2(PROCESS_ROWS) : floorlog2(16 / sizeof(T));
-  static constexpr int UNPACK_ODD = (UNPACK_REPS & 0x01);
+  static constexpr auto UNPACK_ODD = (UNPACK_REPS & 0x01);
 
   static SIMD_INLINE void _transpose(
     const T inArray[Vec<T, SIMD_WIDTH>::elems * Vec<T, SIMD_WIDTH>::elems],
@@ -3049,7 +3063,7 @@ struct TransposeRc
 // ---------------------------------------------------------------------------
 
 // function template: full transpose
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_i(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -3060,7 +3074,7 @@ static SIMD_INLINE void transpose_i(
   // 30. Jul 23 (Jonas Keller):
   // put inArray and outArray on the stack instead of heap to avoid allocation
   // and possibly allow for better compiler optimisation
-  const int N = Vec<T, SIMD_WIDTH>::elements;
+  const auto N = Vec<T, SIMD_WIDTH>::elements;
   T inArray[N * N] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   T outArray[N * N] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   store(inArray, inRows, N);
@@ -3072,18 +3086,18 @@ static SIMD_INLINE void transpose_i(
 // unswizzle_a (interleave)
 // ===========================================================================
 
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void unswizzle_a(Vec<T, SIMD_WIDTH> v[2 * N])
 {
-  const int finalBlkSize = Vec<T, SIMD_WIDTH>::elements;
+  const auto finalBlkSize = Vec<T, SIMD_WIDTH>::elements;
   Vec<T, SIMD_WIDTH> v2[2 * N];
-  for (int blkSize = 1; blkSize <= finalBlkSize; blkSize *= 2) {
+  for (size_t blkSize = 1; blkSize <= finalBlkSize; blkSize *= 2) {
     // zip
-    for (int dst = 0, src = 0; dst < N; dst++, src += 2)
+    for (size_t dst = 0, src = 0; dst < N; dst++, src += 2)
       unzip<1>(v[src], v[src + 1], v2[dst], v2[dst + N]);
     // copy result back to v
     // TODO: unswizzle_a: check code produced by compiler for copying
-    for (int i = 0; i < 2 * N; i++) v[i] = v2[i];
+    for (size_t i = 0; i < 2 * N; i++) v[i] = v2[i];
   }
 }
 
@@ -3132,7 +3146,7 @@ static SIMD_INLINE void unswizzle_a(Vec<T, SIMD_WIDTH> v[2 * N])
  * @sa swizzle(): swizzles half the number of Vec's as this function
  * @sa unswizzle()
  */
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   // uncomment fastest version
@@ -3175,7 +3189,7 @@ static SIMD_INLINE void swizzle2(Vec<T, SIMD_WIDTH> v[2 * N])
  *
  * @sa swizzle(), swizzle2(): %swizzle functions
  */
-template <int N, typename T, int SIMD_WIDTH>
+template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void unswizzle(Vec<T, SIMD_WIDTH> v[2 * N])
 {
   // uncomment fastest version
@@ -3195,7 +3209,7 @@ static SIMD_INLINE void unswizzle(Vec<T, SIMD_WIDTH> v[2 * N])
  * @param[in] inRows array of Vec's holding the matrix to be transposed
  * @param[out] outRows array of Vec's where the transposed matrix is stored
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
   Vec<T, SIMD_WIDTH> outRows[Vec<T, SIMD_WIDTH>::elems])
@@ -3231,7 +3245,7 @@ static SIMD_INLINE void transpose(
  *
  * @return Vec with all bits set to 1
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setones()
 {
   Vec<T, SIMD_WIDTH> zero = setzero<T, SIMD_WIDTH>();
@@ -3248,20 +3262,20 @@ namespace internal {
 namespace ext {
 // ---------- signed int ----------
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin(IsIntIsSigned<true, true>)
 {
   return slli<8 * sizeof(T) - 1>(setones<T, SIMD_WIDTH>());
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax(IsIntIsSigned<true, true>)
 {
   return srli<1>(setones<T, SIMD_WIDTH>());
 }
 
 // only for signed int
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity(IsIntIsSigned<true, true>)
 {
   return setones<T, SIMD_WIDTH>();
@@ -3269,13 +3283,13 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity(IsIntIsSigned<true, true>)
 
 // ---------- unsigned int ----------
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin(IsIntIsSigned<true, false>)
 {
   return setzero<T, SIMD_WIDTH>();
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax(IsIntIsSigned<true, false>)
 {
   return setones<T, SIMD_WIDTH>();
@@ -3283,7 +3297,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax(IsIntIsSigned<true, false>)
 
 // ----------- int ------------
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity(IsFloatingPoint<false>)
 {
   return srli<8 * sizeof(T) - 1>(setones<T, SIMD_WIDTH>());
@@ -3293,25 +3307,25 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity(IsFloatingPoint<false>)
 
 // here we need set1()
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin(IsIntIsSigned<false, true>)
 {
   return set1<T, SIMD_WIDTH>(TypeInfo<T>::min());
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax(IsIntIsSigned<false, true>)
 {
   return set1<T, SIMD_WIDTH>(TypeInfo<T>::max());
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity(IsFloatingPoint<true>)
 {
   return set1<T, SIMD_WIDTH>(T(1.0));
 }
 
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity(IsIntIsSigned<false, true>)
 {
   return set1<T, SIMD_WIDTH>(T(-1.0));
@@ -3328,7 +3342,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity(IsIntIsSigned<false, true>)
  *
  * @return Vec with all elements set to the minimum value of the element type
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin()
 {
   return internal::ext::setmin<T, SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
@@ -3341,7 +3355,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin()
  *
  * @return Vec with all elements set to the maximum value of the element type
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax()
 {
   return internal::ext::setmax<T, SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
@@ -3353,7 +3367,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax()
  *
  * @return Vec with all elements set to the value 1
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity()
 {
   return internal::ext::setunity<T, SIMD_WIDTH>(
@@ -3368,7 +3382,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity()
  *
  * @return Vec with all elements set to the value -1
  */
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity()
 {
   return internal::ext::setnegunity<T, SIMD_WIDTH>(
@@ -3389,11 +3403,11 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity()
 namespace internal {
 namespace ext {
 // compare-and-swap
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 struct Cas;
 
 // specialization for DESCENDING
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Cas<SortSlope::DESCENDING, T, SIMD_WIDTH>
 {
   static void compareAndSwap(Vec<T, SIMD_WIDTH> &a, Vec<T, SIMD_WIDTH> &b)
@@ -3405,7 +3419,7 @@ struct Cas<SortSlope::DESCENDING, T, SIMD_WIDTH>
 };
 
 // specialization for ASCENDING
-template <typename T, int SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH>
 struct Cas<SortSlope::ASCENDING, T, SIMD_WIDTH>
 {
   static void compareAndSwap(Vec<T, SIMD_WIDTH> &a, Vec<T, SIMD_WIDTH> &b)
@@ -3419,23 +3433,23 @@ struct Cas<SortSlope::ASCENDING, T, SIMD_WIDTH>
 // in-place sorting of multiple arbitrary vectors;
 // transVecs have to be transposed vectors (same number of elements
 // as in Vec), are still transposed afterwards
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortTransposed(
   Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elems])
 {
-  constexpr unsigned int numVecs = Vec<T, SIMD_WIDTH>::elements;
+  constexpr auto numVecs = Vec<T, SIMD_WIDTH>::elements;
   /* Dependent Loops */
-  for (unsigned int blkSize = 2; blkSize <= numVecs; blkSize *= 2) {
+  for (size_t blkSize = 2; blkSize <= numVecs; blkSize *= 2) {
     /*
      * Bitonic Core
      * Independent Loops
      */
-    for (unsigned int blkStart = 0; blkStart < numVecs; blkStart += blkSize) {
-      unsigned int halfBlk      = blkSize / 2;
-      unsigned int leftCounter  = blkStart;
-      unsigned int rightCounter = blkStart + (blkSize - 1);
+    for (size_t blkStart = 0; blkStart < numVecs; blkStart += blkSize) {
+      size_t halfBlk      = blkSize / 2;
+      size_t leftCounter  = blkStart;
+      size_t rightCounter = blkStart + (blkSize - 1);
       /* Independent Loops */
-      for (unsigned int i = 0; i < halfBlk; i++) {
+      for (size_t i = 0; i < halfBlk; i++) {
         Cas<SLOPE, T, SIMD_WIDTH>::compareAndSwap(transVecs[leftCounter],
                                                   transVecs[rightCounter]);
         leftCounter++;
@@ -3447,13 +3461,13 @@ static SIMD_INLINE void bitonicSortTransposed(
        *
        * Dependent Loops
        */
-      for (unsigned int step = blkSize / 4; step > 0; step /= 2) {
+      for (size_t step = blkSize / 4; step > 0; step /= 2) {
         /* Independent Loops */
-        for (unsigned int jump = 0; jump < blkSize; jump += step * 2) {
+        for (size_t jump = 0; jump < blkSize; jump += step * 2) {
           leftCounter  = blkStart + jump;
           rightCounter = blkStart + jump + step;
           /* Independent Loops */
-          for (unsigned int k = 0; k < step; k++) {
+          for (size_t k = 0; k < step; k++) {
             Cas<SLOPE, T, SIMD_WIDTH>::compareAndSwap(transVecs[leftCounter],
                                                       transVecs[rightCounter]);
             leftCounter++;
@@ -3471,18 +3485,18 @@ static SIMD_INLINE void bitonicSortTransposed(
 // in-place sorting; transVecs have to be transposed vectors (same
 // number of elements as in Vec), are still transposed
 // afterwards
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortReducedTransposed(
   Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elems])
 {
-  constexpr unsigned int numVecs = Vec<T, SIMD_WIDTH>::elements;
-  for (unsigned int step = numVecs / 2; step > 0; step /= 2) {
+  constexpr auto numVecs = Vec<T, SIMD_WIDTH>::elements;
+  for (size_t step = numVecs / 2; step > 0; step /= 2) {
     /* Independent Loops */
-    for (unsigned int jump = 0; jump < numVecs; jump += step * 2) {
-      unsigned int leftCounter  = jump;
-      unsigned int rightCounter = jump + step;
+    for (size_t jump = 0; jump < numVecs; jump += step * 2) {
+      size_t leftCounter  = jump;
+      size_t rightCounter = jump + step;
       /* Independent Loops */
-      for (unsigned int k = 0; k < step; k++) {
+      for (size_t k = 0; k < step; k++) {
         Cas<SLOPE, T, SIMD_WIDTH>::compareAndSwap(transVecs[leftCounter],
                                                   transVecs[rightCounter]);
         leftCounter++;
@@ -3501,7 +3515,7 @@ static SIMD_INLINE void bitonicSortReducedTransposed(
  * SortSlope::DESCENDING)
  * @param[in, out] vecs array of Vec's to sort
  */
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSort(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {
@@ -3516,7 +3530,7 @@ namespace ext {
 // second vector is reversed and fused with first vector
 // we don't have to reverse b after the compare-swap since it is
 // bitonic
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicFusion(Vec<T, SIMD_WIDTH> &a,
                                       Vec<T, SIMD_WIDTH> &b)
 {
@@ -3537,13 +3551,13 @@ static SIMD_INLINE void bitonicFusion(Vec<T, SIMD_WIDTH> &a,
  * SortSlope::DESCENDING)
  * @param vecs array of Vec's to sort (Vec's must be sorted individually)
  */
-template <SortSlope SLOPE, typename T, int SIMD_WIDTH_DEFAULT_NATIVE>
+template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortSortedPairs(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {
   Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
   // second vector of each pair is reversed and fused with first vector
-  for (int i = 0; i < Vec<T, SIMD_WIDTH>::elements; i += 2)
+  for (size_t i = 0; i < Vec<T, SIMD_WIDTH>::elements; i += 2)
     internal::ext::bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
   transpose(vecs, transVecs);
   internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
@@ -3559,7 +3573,7 @@ static SIMD_INLINE void bitonicSortSortedPairs(
 // C++ Coding Standards p.49 (item 27)
 
 #define SIMDVEC_BINOPEQ(OP, FCT)                                               \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   static SIMD_INLINE Vec<T, SIMD_WIDTH> OP(Vec<T, SIMD_WIDTH> &a,              \
                                            const Vec<T, SIMD_WIDTH> &b)        \
   {                                                                            \
@@ -3568,7 +3582,7 @@ static SIMD_INLINE void bitonicSortSortedPairs(
   }
 
 #define SIMDVEC_BINOP(OP, FCT)                                                 \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   static SIMD_INLINE Vec<T, SIMD_WIDTH> OP(const Vec<T, SIMD_WIDTH> &a,        \
                                            const Vec<T, SIMD_WIDTH> &b)        \
   {                                                                            \
@@ -3576,7 +3590,7 @@ static SIMD_INLINE void bitonicSortSortedPairs(
   }
 
 #define SIMDVEC_UNOP(OP, FCT)                                                  \
-  template <typename T, int SIMD_WIDTH>                                        \
+  template <typename T, size_t SIMD_WIDTH>                                     \
   static SIMD_INLINE Vec<T, SIMD_WIDTH> OP(const Vec<T, SIMD_WIDTH> &a)        \
   {                                                                            \
     return FCT(a);                                                             \

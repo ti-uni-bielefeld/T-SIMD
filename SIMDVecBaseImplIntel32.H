@@ -87,10 +87,10 @@ class Vec<T, 32>
   __m256i ymm = _mm256_setzero_si256();
 
 public:
-  using Type                    = T;
-  static constexpr int elements = 32 / sizeof(T);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = 32;
+  using Type                       = T;
+  static constexpr size_t elements = 32 / sizeof(T);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = 32;
 
   Vec() = default;
   Vec(const __m256i &x) { ymm = x; }
@@ -128,10 +128,10 @@ class Vec<Float, 32>
   __m256 ymm = _mm256_setzero_ps();
 
 public:
-  using Type                    = Float;
-  static constexpr int elements = 32 / sizeof(Float);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = 32;
+  using Type                       = Float;
+  static constexpr size_t elements = 32 / sizeof(Float);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = 32;
 
   Vec() = default;
   Vec(const __m256 &x) { ymm = x; }
@@ -172,10 +172,10 @@ class Vec<Double, 32>
   __m256d ymm;
 
 public:
-  using Type                    = Double;
-  static constexpr int elements = 32 / sizeof(Double);
-  static constexpr int elems    = elements;
-  static constexpr int bytes    = 32;
+  using Type                       = Double;
+  static constexpr size_t elements = 32 / sizeof(Double);
+  static constexpr size_t elems    = elements;
+  static constexpr size_t bytes    = 32;
 
   Vec() = default;
   Vec(const __m256d &x) { ymm = x; }
@@ -249,7 +249,7 @@ namespace base {
 //                        a1 b1  I=3, a=v1, b=v3
 
 // primary template
-template <int N, int I = 0>
+template <size_t N, size_t I = 0>
 struct Swizzle_32_16
 {
   template <typename T>
@@ -296,7 +296,7 @@ struct Swizzle_32_16
 };
 
 // termination
-template <int N>
+template <size_t N>
 struct Swizzle_32_16<N, N>
 {
   template <typename T>
@@ -306,7 +306,7 @@ struct Swizzle_32_16<N, N>
 
 // swizzle lanes (for implementation of swizzle functions)
 // from Stan Melax: 3D Vector Normalization... (adapted)
-template <int N, typename T>
+template <size_t N, typename T>
 static SIMD_INLINE void swizzle_32_16(const Vec<T, 32> vIn[N],
                                       Vec<T, 32> vOut[N])
 {
@@ -314,439 +314,61 @@ static SIMD_INLINE void swizzle_32_16(const Vec<T, 32> vIn[N],
 }
 
 // ---------------------------------------------------------------------------
-// byte-wise shifts
-// ---------------------------------------------------------------------------
-
-#ifdef __AVX2__
-
-// positive and in range: apply shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli_si256(__m256i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm256_srli_si256(a, IMM);
-}
-
-// positive and out of range: return zero vector
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli_si256(__m256i,
-                                              IsPosInRange<true, false>)
-{
-  return _mm256_setzero_si256();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli_si256(__m256i a)
-{
-  return x_mm256_srli_si256<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: apply shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli_si256(__m256i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm256_slli_si256(a, IMM);
-}
-
-// positive and out of range: return zero vector
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli_si256(__m256i,
-                                              IsPosInRange<true, false>)
-{
-  return _mm256_setzero_si256();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli_si256(__m256i a)
-{
-  return x_mm256_slli_si256<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-#else
-
-// non-avx2 workarounds
-// (easy since AVX2 instructions operate on lanes anyhow)
-
-// IMM range handling is done at SSE level
-
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli_si256(__m256i a)
-{
-  return _mm256_set_m128i(x_mm_srli_si128<IMM>(_mm256_extractf128_si256(a, 1)),
-                          x_mm_srli_si128<IMM>(_mm256_castsi256_si128(a)));
-}
-
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli_si256(__m256i a)
-{
-  return _mm256_set_m128i(x_mm_slli_si128<IMM>(_mm256_extractf128_si256(a, 1)),
-                          x_mm_slli_si128<IMM>(_mm256_castsi256_si128(a)));
-}
-
-#endif
-
-// ---------------------------------------------------------------------------
-// element-wise shifts
-// ---------------------------------------------------------------------------
-
-#ifdef __AVX2__
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli_epi16(__m256i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm256_slli_epi16(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli_epi16(__m256i,
-                                              IsPosInRange<true, false>)
-{
-  return _mm256_setzero_si256();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli_epi16(__m256i a)
-{
-  return x_mm256_slli_epi16<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli_epi16(__m256i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm256_srli_epi16(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli_epi16(__m256i,
-                                              IsPosInRange<true, false>)
-{
-  return _mm256_setzero_si256();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli_epi16(__m256i a)
-{
-  return x_mm256_srli_epi16<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli_epi32(__m256i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm256_slli_epi32(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli_epi32(__m256i,
-                                              IsPosInRange<true, false>)
-{
-  return _mm256_setzero_si256();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli_epi32(__m256i a)
-{
-  return x_mm256_slli_epi32<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli_epi32(__m256i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm256_srli_epi32(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli_epi32(__m256i,
-                                              IsPosInRange<true, false>)
-{
-  return _mm256_setzero_si256();
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli_epi32(__m256i a)
-{
-  return x_mm256_srli_epi32<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-// 16. Oct 22 (Jonas Keller): added x_mm256_srai_epi8
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srai_epi8(__m256i a,
-                                             IsPosInRange<true, true>)
-{
-  __m256i odd  = _mm256_srai_epi16(a, IMM);
-  __m256i even = _mm256_srai_epi16(_mm256_slli_epi16(a, 8), IMM + 8);
-  return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16((int16_t) 0xff00));
-}
-
-// positive and out of range: maximal shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srai_epi8(__m256i a,
-                                             IsPosInRange<true, false>)
-{
-  // result should be all ones if a is negative, all zeros otherwise
-  return _mm256_cmpgt_epi8(_mm256_setzero_si256(), a);
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srai_epi8(__m256i a)
-{
-  return x_mm256_srai_epi8<IMM>(a, IsPosInGivenRange<7, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srai_epi16(__m256i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm256_srai_epi16(a, IMM);
-}
-
-// positive and out of range: maximal shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srai_epi16(__m256i a,
-                                              IsPosInRange<true, false>)
-{
-  return _mm256_srai_epi16(a, 15);
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srai_epi16(__m256i a)
-{
-  return x_mm256_srai_epi16<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srai_epi32(__m256i a,
-                                              IsPosInRange<true, true>)
-{
-  return _mm256_srai_epi32(a, IMM);
-}
-
-// positive and out of range: maximal shift
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srai_epi32(__m256i a,
-                                              IsPosInRange<true, false>)
-{
-  return _mm256_srai_epi32(a, 31);
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srai_epi32(__m256i a)
-{
-  return x_mm256_srai_epi32<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-#endif
-
-// ---------------------------------------------------------------------------
-// extract
-// ---------------------------------------------------------------------------
-
-// NOTE: extract functions for AVX don't tolerate range errors for
-// their IMM argument; the reason is that there is actually no
-// extract on 32-byte vectors, but only on 16-byte vectors; e.g.
-// in /usr/lib/gcc/x86_64-linux-gnu/4.8/include/avxintrin.h we have
-// int _mm256_extract_epi16 (__m256i __X, int const __N)
-// {
-//   __m128i __Y = _mm256_extractf128_si256 (__X, __N >> 3);
-//   return _mm_extract_epi16 (__Y, __N % 8);
-// }
-// which uses _mm256_extractf128_si256 where the immediate argument can only
-// be 0 or 1; if this is not case (if IMM is out of range), we get
-// error: the last argument must be a 1-bit immediate
-// return (__m128i) __builtin_ia32_vextractf128_si256 ((__v8si)__X, __N);
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE int x_mm256_extract_epi16(__m256i a,
-                                             IsPosInRange<true, true>)
-{
-  // strange, Intel intrinsics guide says this is AVX2, but it is
-  // already available in avxintrin.h
-  return _mm256_extract_epi16(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm256_extract_epi16(__m256i, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE int x_mm256_extract_epi16(__m256i a)
-{
-  // 16 * epi16
-  return x_mm256_extract_epi16<IMM>(a, IsPosInGivenRange<16, IMM>());
-}
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE int x_mm256_extract_epi8(__m256i a, IsPosInRange<true, true>)
-{
-  // strange, Intel intrinsics guide says this is AVX2, but it is
-  // already available in avxintrin.h
-  return _mm256_extract_epi8(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm256_extract_epi8(__m256i, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE int x_mm256_extract_epi8(__m256i a)
-{
-  // 32 * epi8
-  return x_mm256_extract_epi8<IMM>(a, IsPosInGivenRange<32, IMM>());
-}
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE int x_mm256_extract_epi32(__m256i a,
-                                             IsPosInRange<true, true>)
-{
-  // TODO: extract: is conversion from return type int to Int always safe?
-  return _mm256_extract_epi32(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE int x_mm256_extract_epi32(__m256i, IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE int x_mm256_extract_epi32(__m256i a)
-{
-  // 8 * epi32
-  return x_mm256_extract_epi32<IMM>(a, IsPosInGivenRange<8, IMM>());
-}
-
-// positive and in range: extract
-template <int IMM>
-static SIMD_INLINE long long x_mm256_extract_epi64(__m256i a,
-                                                   IsPosInRange<true, true>)
-{
-  return _mm256_extract_epi64(a, IMM);
-}
-
-// positive and out of range: return zero
-template <int IMM>
-static SIMD_INLINE long long x_mm256_extract_epi64(__m256i,
-                                                   IsPosInRange<true, false>)
-{
-  return 0;
-}
-
-// hub
-template <int IMM>
-static SIMD_INLINE long long x_mm256_extract_epi64(__m256i a)
-{
-  // 4 * epi64
-  return x_mm256_extract_epi64<IMM>(a, IsPosInGivenRange<4, IMM>());
-}
-
-// _mm256_extract_ps doesn't exist, workaround in extract template function
-
-// ---------------------------------------------------------------------------
 // alignr
 // ---------------------------------------------------------------------------
-
-#ifdef __AVX2__
 
 // 21. Apr 23 (Jonas Keller): replaced IMM range handling via tag dispatch
 // with static_assert, since we don't need the range handling anymore,
 // we just assert that IMM is in range
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_alignr_epi8(__m256i h, __m256i l)
 {
   //  2. Jul 18 (rm) BUGFIX: 64 -> 32 (2 lanes only, lane-oriented!)
-  // IMM < 32
-  static_assert(IMM >= 0 && IMM < 32, "");
-  return _mm256_alignr_epi8(h, l, IMM);
-}
-
+  static_assert(COUNT < 32, "");
+#ifdef __AVX2__
+  return _mm256_alignr_epi8(h, l, COUNT);
 #else
-
-// non-avx2 workarounds
-// (easy since AVX2 instructions operate on lanes anyhow)
-
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_alignr_epi8(__m256i h, __m256i l)
-{
-  static_assert(IMM >= 0 && IMM < 32, "");
-  return _mm256_set_m128i(
-    _mm_alignr_epi8(_mm256_extractf128_si256(h, 1),
-                    _mm256_extractf128_si256(l, 1), IMM),
-    _mm_alignr_epi8(_mm256_castsi256_si128(h), _mm256_castsi256_si128(l), IMM));
-}
+  // non-avx2 workaround
+  // (easy since AVX2 instructions operate on lanes anyhow)
+  return _mm256_set_m128i(_mm_alignr_epi8(_mm256_extractf128_si256(h, 1),
+                                          _mm256_extractf128_si256(l, 1),
+                                          COUNT),
+                          _mm_alignr_epi8(_mm256_castsi256_si128(h),
+                                          _mm256_castsi256_si128(l), COUNT));
 
 #endif
+}
 
 // ---------------------------------------------------------------------------
 // auxiliary function for right shift over full 32 byte
 // ---------------------------------------------------------------------------
 
 // (difficulty: _mm256_srli_si256 only works in 128-bit lanes)
-// http://stackoverflow.com/questions/25248766/
-//        emulating-shifts-on-32-bytes-with-avx
+// http://stackoverflow.com/questions/25248766/emulating-shifts-on-32-bytes-with-avx
 // TODO: finer case distinction using permute4x64?
 
 //  7. Jun 16 (rm): if replaced by tag dispatching
 // (reason: all branches are compiles and at least icc complains
 // about exceeded ranges in immediates)
 
-// IMM = 0
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a,
-                                                 Range<true, true, 0, 16>)
+// COUNT = 0
+template <size_t COUNT>
+static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a, Range<true, 0, 16>)
 {
   return a;
 }
 
-// IMM = 1..15
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a,
-                                                 Range<true, false, 0, 16>)
+// COUNT = 1..15
+template <size_t COUNT>
+static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a, Range<false, 0, 16>)
 {
   // _MM_SHUFFLE(2,0, 0,1) = 0x81, MS-bit set -> setting elements to zero
   // higher lane set to zero (2,0), lower lane taken from higher lane (0,1)
   // a:              HHHHHHHHhhhhhhhh LLLLLLLllllllll
   // _0h:            0000000000000000 HHHHHHHhhhhhhhh (2,0) (0,1)
   __m256i _0h = _mm256_permute2f128_si256(a, a, _MM_SHUFFLE(2, 0, 0, 1));
-  // e.g. IMM=5
+  // e.g. COUNT=5
   // a:              HHHHHHHHhhhhhhhh LLLLLLLllllllll
   // _0h:            0000000000000000 HHHHHHHhhhhhhhh
   // alignr H lane:  0000000000000000 HHHHHHHHhhhhhhh
@@ -754,13 +376,12 @@ static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a,
   // alignr L lane:  HHHHHHHHhhhhhhhh LLLLLLLLlllllll
   // selected:                  ----- -----------
   // alignr:         00000HHHHHHHHhhh hhhhhLLLLLLLlll
-  return x_mm256_alignr_epi8<IMM>(_0h, a);
+  return x_mm256_alignr_epi8<COUNT>(_0h, a);
 }
 
-// IMM = 16
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a,
-                                                 Range<true, true, 16, 32>)
+// COUNT = 16
+template <size_t COUNT>
+static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a, Range<true, 16, 32>)
 {
   // _MM_SHUFFLE(2,0, 0,1) = 0x81, MS-bit set -> setting elements to zero
   // higher lane set to zero (2,0), lower lane taken from higher lane (0,1)
@@ -771,35 +392,41 @@ static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a,
   return _0h;
 }
 
-// IMM = 17..31
-template <int IMM>
+// COUNT = 17..31
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a,
-                                                 Range<true, false, 16, 32>)
+                                                 Range<false, 16, 32>)
 {
   // _MM_SHUFFLE(2,0, 0,1) = 0x81, MS-bit set -> setting elements to zero
   // higher lane set to zero (2,0), lower lane taken from higher lane (0,1)
   // a:              HHHHHHHHhhhhhhhh LLLLLLLllllllll
   // _0h:            0000000000000000 HHHHHHHhhhhhhhh (2,0) (0,1)
   __m256i _0h = _mm256_permute2f128_si256(a, a, _MM_SHUFFLE(2, 0, 0, 1));
-  // e.g. IMM=18 (18-16 = 2)
+  // e.g. COUNT=18 (18-16 = 2)
   // _0h:            0000000000000000 HHHHHHHhhhhhhhh
   // srli:           0000000000000000 00HHHHHHHHhhhhh
-  return x_mm256_srli_si256<IMM - 16>(_0h);
+#ifdef __AVX2__
+  return _mm256_srli_si256(_0h, COUNT - 16);
+#else
+  return _mm256_set_m128i(
+    _mm_srli_si128(_mm256_extractf128_si256(_0h, 1), COUNT - 16),
+    _mm_srli_si128(_mm256_castsi256_si128(_0h), COUNT - 16));
+#endif
 }
 
-// IMM >= 32
-template <int IMM, bool AT_LOW_LIM, int LOW_LIM_INCL, int UP_LIM_EXCL>
-static SIMD_INLINE __m256i x_mm256_srli256_si256(
-  __m256i, Range<true, AT_LOW_LIM, LOW_LIM_INCL, UP_LIM_EXCL>)
+// COUNT >= 32
+template <size_t, bool AT_LOW_LIM, size_t LOW_LIM_INCL, size_t UP_LIM_EXCL>
+static SIMD_INLINE __m256i
+x_mm256_srli256_si256(__m256i, Range<AT_LOW_LIM, LOW_LIM_INCL, UP_LIM_EXCL>)
 {
   return _mm256_setzero_si256();
 }
 
 // hub
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a)
 {
-  return x_mm256_srli256_si256<IMM>(a, SizeRange<IMM, 16>());
+  return x_mm256_srli256_si256<COUNT>(a, SizeRange<COUNT, 16>());
 }
 
 // ---------------------------------------------------------------------------
@@ -814,25 +441,23 @@ static SIMD_INLINE __m256i x_mm256_srli256_si256(__m256i a)
 // (reason: all branches are compiles and at least icc complains
 // about exceeded ranges in immediates)
 
-// IMM = 0
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a,
-                                                 Range<true, true, 0, 16>)
+// COUNT = 0
+template <size_t COUNT>
+static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a, Range<true, 0, 16>)
 {
   return a;
 }
 
-// IMM = 1..15
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a,
-                                                 Range<true, false, 0, 16>)
+// COUNT = 1..15
+template <size_t COUNT>
+static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a, Range<false, 0, 16>)
 {
   // _MM_SHUFFLE(0,0, 2,0) = 0x08, MS-bit set -> setting elements to zero
   // higher lane taken from lower lane (0,0), lower lane set to zero (2,0)
   // a:              HHHHHHHHhhhhhhhh LLLLLLLLllllllll
   // _l0:            LLLLLLLLllllllll 0000000000000000 (0,0) (2,0)
   __m256i _l0 = _mm256_permute2f128_si256(a, a, _MM_SHUFFLE(0, 0, 2, 0));
-  // e.g. IMM = 5: (16-5=11)
+  // e.g. COUNT = 5: (16-5=11)
   // _l0:            LLLLLLLLllllllll 0000000000000000
   // a:              HHHHHHHHhhhhhhhh LLLLLLLLllllllll
   // alignr H lane:  HHHHHHHHhhhhhhhh LLLLLLLLllllllll
@@ -840,13 +465,12 @@ static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a,
   // alignr L lane:  LLLLLLLLllllllll 0000000000000000
   // selected:            ----------- -----
   // alignr:         HHHhhhhhhhhLLLLL LLLllllllll00000
-  return x_mm256_alignr_epi8<16 - IMM>(a, _l0);
+  return x_mm256_alignr_epi8<16 - COUNT>(a, _l0);
 }
 
-// IMM = 16
-template <int IMM>
-static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a,
-                                                 Range<true, true, 16, 32>)
+// COUNT = 16
+template <size_t COUNT>
+static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a, Range<true, 16, 32>)
 {
   // _MM_SHUFFLE(0,0, 2,0) = 0x08, MS-bit set -> setting elements to zero
   // higher lane taken from lower lane (0,0), lower lane set to zero (2,0)
@@ -857,35 +481,41 @@ static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a,
   return _l0;
 }
 
-// IMM = 17..31
-template <int IMM>
+// COUNT = 17..31
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a,
-                                                 Range<true, false, 16, 32>)
+                                                 Range<false, 16, 32>)
 {
   // _MM_SHUFFLE(0,0, 2,0) = 0x08, MS-bit set -> setting elements to zero
   // higher lane taken from lower lane (0,0), lower lane set to zero (2,0)
   // a:              HHHHHHHHhhhhhhhh LLLLLLLLllllllll
   // _l0:            LLLLLLLLllllllll 0000000000000000 (0,0) (2,0)
   __m256i _l0 = _mm256_permute2f128_si256(a, a, _MM_SHUFFLE(0, 0, 2, 0));
-  // e.g. IMM = 18 (18-16=2)
+  // e.g. COUNT = 18 (18-16=2)
   // _l0:            LLLLLLLLllllllll 0000000000000000
   // slri:           LLLLLLllllllll00 0000000000000000
-  return x_mm256_slli_si256<IMM - 16>(_l0);
+#ifdef __AVX2__
+  return _mm256_slli_si256(_l0, COUNT - 16);
+#else
+  return _mm256_set_m128i(
+    _mm_slli_si128(_mm256_extractf128_si256(_l0, 1), COUNT - 16),
+    _mm_slli_si128(_mm256_castsi256_si128(_l0), COUNT - 16));
+#endif
 }
 
-// IMM >= 32
-template <int IMM, bool AT_LOW_LIM, int LOW_LIM_INCL, int UP_LIM_EXCL>
-static SIMD_INLINE __m256i x_mm256_slli256_si256(
-  __m256i, Range<true, AT_LOW_LIM, LOW_LIM_INCL, UP_LIM_EXCL>)
+// COUNT >= 32
+template <size_t, bool AT_LOW_LIM, size_t LOW_LIM_INCL, size_t UP_LIM_EXCL>
+static SIMD_INLINE __m256i
+x_mm256_slli256_si256(__m256i, Range<AT_LOW_LIM, LOW_LIM_INCL, UP_LIM_EXCL>)
 {
   return _mm256_setzero_si256();
 }
 
 // hub
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a)
 {
-  return x_mm256_slli256_si256<IMM>(a, SizeRange<IMM, 16>());
+  return x_mm256_slli256_si256<COUNT>(a, SizeRange<COUNT, 16>());
 }
 
 // ---------------------------------------------------------------------------
@@ -909,28 +539,28 @@ static SIMD_INLINE __m256i x_mm256_slli256_si256(__m256i a)
 // (reason: all branches are compiles and at least icc complains
 // about exceeded ranges in immediates)
 
-// IMM = 0
-template <int IMM>
+// COUNT = 0
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i, __m256i low,
-                                                  Range<true, true, 0, 16>)
+                                                  Range<true, 0, 16>)
 {
   // high:            HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // low:             LLLLLLLLLLLLLLLL llllllllllllllll
-  // IMM == 0:        LLLLLLLLLLLLLLLL llllllllllllllll
+  // COUNT == 0:        LLLLLLLLLLLLLLLL llllllllllllllll
   return low;
 }
 
-// IMM = 1..15
-template <int IMM>
+// COUNT = 1..15
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i low,
-                                                  Range<true, false, 0, 16>)
+                                                  Range<false, 0, 16>)
 {
   // high:            HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // low:             LLLLLLLLLLLLLLLL llllllllllllllll
   // high0low1:       hhhhhhhhhhhhhhhh LLLLLLLLLLLLLLLL (0,2) (0,1)
   __m256i high0_low1 =
     _mm256_permute2f128_si256(low, high, _MM_SHUFFLE(0, 2, 0, 1));
-  // e.g. IMM = 5
+  // e.g. COUNT = 5
   // low:             LLLLLLLLLLLLLLLL llllllllllllllll
   // high0low1:       hhhhhhhhhhhhhhhh LLLLLLLLLLLLLLLL (0,2) (0,1)
   // alignr H lane:   hhhhhhhhhhhhhhhh LLLLLLLLLLLLLLLL
@@ -938,34 +568,34 @@ static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i low,
   // alignr L lane:   LLLLLLLLLLLLLLLL llllllllllllllll
   // selected:                   ----- -----------
   // alignr:          hhhhhLLLLLLLLLLL LLLLLlllllllllll
-  return x_mm256_alignr_epi8<IMM>(high0_low1, low);
+  return x_mm256_alignr_epi8<COUNT>(high0_low1, low);
 }
 
-// IMM = 16
-template <int IMM>
+// COUNT = 16
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i low,
-                                                  Range<true, true, 16, 32>)
+                                                  Range<true, 16, 32>)
 {
   // high:            HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // low:             LLLLLLLLLLLLLLLL llllllllllllllll
   // high0low1:       hhhhhhhhhhhhhhhh LLLLLLLLLLLLLLLL (0,2) (0,1)
   __m256i high0_low1 =
     _mm256_permute2f128_si256(low, high, _MM_SHUFFLE(0, 2, 0, 1));
-  // IMM == 16:       hhhhhhhhhhhhhhhh LLLLLLLLLLLLLLLL
+  // COUNT == 16:       hhhhhhhhhhhhhhhh LLLLLLLLLLLLLLLL
   return high0_low1;
 }
 
-// IMM = 17..31
-template <int IMM>
+// COUNT = 17..31
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i low,
-                                                  Range<true, false, 16, 32>)
+                                                  Range<false, 16, 32>)
 {
   // high:            HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // low:             LLLLLLLLLLLLLLLL llllllllllllllll
   // high0low1:       hhhhhhhhhhhhhhhh LLLLLLLLLLLLLLLL (0,2) (0,1)
   __m256i high0_low1 =
     _mm256_permute2f128_si256(low, high, _MM_SHUFFLE(0, 2, 0, 1));
-  // e.g. IMM = 18 (IMM - 16 = 2)
+  // e.g. COUNT = 18 (COUNT - 16 = 2)
   // high0low1:       hhhhhhhhhhhhhhhh LLLLLLLLLLLLLLLL
   // high:            HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // alignr H lane:   HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
@@ -973,13 +603,13 @@ static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i low,
   // alignr L lane:   hhhhhhhhhhhhhhhh LLLLLLLLLLLLLLLL
   // selected:                      -- --------------
   // alignr:          HHhhhhhhhhhhhhhh hhLLLLLLLLLLLLLL
-  return x_mm256_alignr_epi8<IMM - 16>(high, high0_low1);
+  return x_mm256_alignr_epi8<COUNT - 16>(high, high0_low1);
 }
 
-// IMM = 32
-template <int IMM>
+// COUNT = 32
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i,
-                                                  Range<true, true, 32, 48>)
+                                                  Range<true, 32, 48>)
 {
   // high:            HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // low:             LLLLLLLLLLLLLLLL llllllllllllllll
@@ -987,17 +617,17 @@ static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i,
   return high;
 }
 
-// IMM = 33..47
-template <int IMM>
+// COUNT = 33..47
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i,
-                                                  Range<true, false, 32, 48>)
+                                                  Range<false, 32, 48>)
 {
   // high:            HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // low:             LLLLLLLLLLLLLLLL llllllllllllllll
   // null_high1:      0000000000000000 HHHHHHHHHHHHHHHH (2,0) (0,1)
   __m256i null_high1 =
     _mm256_permute2f128_si256(high, high, _MM_SHUFFLE(2, 0, 0, 1));
-  // e.g. IMM = 37 (37-32 = 5)
+  // e.g. COUNT = 37 (37-32 = 5)
   // high:            HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // null_high1:      0000000000000000 HHHHHHHHHHHHHHHH
   // alignr H lane    0000000000000000 HHHHHHHHHHHHHHHH
@@ -1005,13 +635,13 @@ static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i,
   // alignr L lane    HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // selected:                   ----- -----------
   // alignr:          00000HHHHHHHHHHH HHHHHhhhhhhhhhhh
-  return x_mm256_alignr_epi8<IMM - 32>(null_high1, high);
+  return x_mm256_alignr_epi8<COUNT - 32>(null_high1, high);
 }
 
-// IMM == 48
-template <int IMM>
+// COUNT == 48
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i,
-                                                  Range<true, true, 48, 64>)
+                                                  Range<true, 48, 64>)
 {
   // high:            HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // low:             LLLLLLLLLLLLLLLL llllllllllllllll
@@ -1022,17 +652,17 @@ static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i,
   return null_high1;
 }
 
-// IMM = 49..63
-template <int IMM>
+// COUNT = 49..63
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i,
-                                                  Range<true, false, 48, 64>)
+                                                  Range<false, 48, 64>)
 {
   // high:            HHHHHHHHHHHHHHHH hhhhhhhhhhhhhhhh
   // low:             LLLLLLLLLLLLLLLL llllllllllllllll
   // null_high1:      0000000000000000 HHHHHHHHHHHHHHHH (2,0) (0,1)
   __m256i null_high1 =
     _mm256_permute2f128_si256(high, high, _MM_SHUFFLE(2, 0, 0, 1));
-  // e.g. IMM = 50 (50 - 48 = 2)
+  // e.g. COUNT = 50 (50 - 48 = 2)
   // null_high1:      0000000000000000 HHHHHHHHHHHHHHHH
   // zero:            0000000000000000 0000000000000000
   // alignr H lane:   0000000000000000 0000000000000000
@@ -1040,22 +670,23 @@ static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i,
   // alignr L lane:   0000000000000000 HHHHHHHHHHHHHHHH
   // selected:                      -- --------------
   // alignr:          0000000000000000 00HHHHHHHHHHHHHH
-  return x_mm256_alignr_epi8<IMM - 48>(_mm256_setzero_si256(), null_high1);
+  return x_mm256_alignr_epi8<COUNT - 48>(_mm256_setzero_si256(), null_high1);
 }
 
-// IMM >= 64
-template <int IMM, bool AT_LOW_LIM, int LOW_LIM_INCL, int UP_LIM_EXCL>
+// COUNT >= 64
+template <size_t COUNT, bool AT_LOW_LIM, size_t LOW_LIM_INCL,
+          size_t UP_LIM_EXCL>
 static SIMD_INLINE __m256i x_mm256_alignr256_epi8(
-  __m256i, __m256i, Range<true, AT_LOW_LIM, LOW_LIM_INCL, UP_LIM_EXCL>)
+  __m256i, __m256i, Range<AT_LOW_LIM, LOW_LIM_INCL, UP_LIM_EXCL>)
 {
   return _mm256_setzero_si256();
 }
 
 // hub
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE __m256i x_mm256_alignr256_epi8(__m256i high, __m256i low)
 {
-  return x_mm256_alignr256_epi8<IMM>(high, low, SizeRange<IMM, 16>());
+  return x_mm256_alignr256_epi8<COUNT>(high, low, SizeRange<COUNT, 16>());
 }
 
 // ---------------------------------------------------------------------------
@@ -1212,29 +843,6 @@ SIMDVEC_INTEL_X_INT_BINFCT_PSPD_32(unpacklo, epi32, ps)
 SIMDVEC_INTEL_X_INT_BINFCT_PSPD_32(unpackhi, epi32, ps)
 SIMDVEC_INTEL_X_INT_BINFCT_PSPD_32(unpacklo, epi64, pd)
 SIMDVEC_INTEL_X_INT_BINFCT_PSPD_32(unpackhi, epi64, pd)
-
-#ifdef __AVX2__
-// avx2 is available
-#define SIMDVEC_INTEL_X_INT_UNFCT_IMM_PSPD_32(INTRIN, INTSUFFIX, PSPDSUFFIX)   \
-  template <int IMM>                                                           \
-  static SIMD_INLINE __m256i x_mm256_##INTRIN##_##INTSUFFIX(__m256i a)         \
-  {                                                                            \
-    return _mm256_##INTRIN##_##INTSUFFIX(a, IMM);                              \
-  }
-#else
-// non-avx2 workaround
-#define SIMDVEC_INTEL_X_INT_UNFCT_IMM_PSPD_32(INTRIN, INTSUFFIX, PSPDSUFFIX)   \
-  template <int IMM>                                                           \
-  static SIMD_INLINE __m256i x_mm256_##INTRIN##_##INTSUFFIX(__m256i a)         \
-  {                                                                            \
-    __m256 as = _mm256_castsi256##_##PSPDSUFFIX(a);                            \
-    return _mm256_cast##PSPDSUFFIX##_si256(                                    \
-      _mm256_##INTRIN##_##PSPDSUFFIX(as, as, IMM));                            \
-  }
-#endif
-
-// non-avx2 workaround for shuffle_epi32
-SIMDVEC_INTEL_X_INT_UNFCT_IMM_PSPD_32(shuffle, epi32, ps)
 
 // ###########################################################################
 // ###########################################################################
@@ -1562,51 +1170,70 @@ static SIMD_INLINE void stream_store(Double *const p, const Vec<Double, 32> &a)
 // extract
 // ---------------------------------------------------------------------------
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Byte extract(const Vec<Byte, 32> &a)
 {
-  return x_mm256_extract_epi8<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    // strange, Intel intrinsics guide says this is AVX2, but it is already
+    // available in avxintrin.h
+    return _mm256_extract_epi8(a, COUNT);
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE SignedByte extract(const Vec<SignedByte, 32> &a)
 {
-  return x_mm256_extract_epi8<IMM>(a);
+  return ::simd::internal::bit_cast<SignedByte>(
+    extract<COUNT>(reinterpret(a, OutputType<Byte>())));
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Word extract(const Vec<Word, 32> &a)
 {
-  return x_mm256_extract_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    // strange, Intel intrinsics guide says this is AVX2, but it is already
+    // available in avxintrin.h
+    return _mm256_extract_epi16(a, COUNT);
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Short extract(const Vec<Short, 32> &a)
 {
-  return x_mm256_extract_epi16<IMM>(a);
+  return ::simd::internal::bit_cast<Short>(
+    extract<COUNT>(reinterpret(a, OutputType<Word>())));
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Int extract(const Vec<Int, 32> &a)
 {
-  // TODO: extract: is conversion from return type int to Int always safe?
-  return x_mm256_extract_epi32<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    return _mm256_extract_epi32(a, COUNT);
+  } else {
+    return 0;
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Float extract(const Vec<Float, 32> &a)
 {
-  SIMD_RETURN_REINTERPRET_INT(
-    Float, extract<IMM>(reinterpret(a, OutputType<Int>())), 0);
+  return ::simd::internal::bit_cast<Float>(
+    extract<COUNT>(reinterpret(a, OutputType<Int>())));
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Double extract(const Vec<Double, 32> &a)
 {
-  const uint64_t resInt = x_mm256_extract_epi64<IMM>(_mm256_castpd_si256(a));
-  Double res;
-  memcpy(&res, &resInt, sizeof(res));
-  return res;
+  SIMD_IF_CONSTEXPR (COUNT < 4) {
+    return ::simd::internal::bit_cast<Double>(
+      _mm256_extract_epi64(_mm256_castpd_si256(a), COUNT));
+  } else {
+    return 0;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -2622,33 +2249,14 @@ static SIMD_INLINE Vec<Double, 32> unpack16(const Vec<Double, 32> &a,
 // contributed by Adam Marschall
 
 // generalized extract of 128-bit-lanes
-// IMM=0: first lane of input vector,
-// IMM=1: second lane of input vector
-// all integer versions
-template <int IMM, typename T>
+// LANE_INDEX=0: first lane of input vector,
+// LANE_INDEX=1: second lane of input vector
+template <size_t LANE_INDEX, typename T>
 static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, 32> &a)
 {
-  return _mm256_extractf128_si256(a, IMM);
-}
-
-// generalized extract of 128-bit-lanes
-// IMM=0: first lane of input vector,
-// IMM=1: second lane of input vector
-// float version
-template <int IMM>
-static SIMD_INLINE Vec<Float, 16> extractLane(const Vec<Float, 32> &a)
-{
-  return _mm256_extractf128_ps(a, IMM);
-}
-
-// generalized extract of 128-bit-lanes
-// IMM=0: first lane of input vector,
-// IMM=1: second lane of input vector
-// double version
-template <int IMM>
-static SIMD_INLINE Vec<Double, 16> extractLane(const Vec<Double, 32> &a)
-{
-  return _mm256_extractf128_pd(a, IMM);
+  const auto intA           = reinterpret(a, OutputType<Int>());
+  const Vec<Int, 16> intRes = _mm256_extractf128_si256(intA, LANE_INDEX);
+  return reinterpret(intRes, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
@@ -2766,7 +2374,7 @@ static SIMD_INLINE void zip(const Vec<Double, 32> a, const Vec<Double, 32> b,
 // ---------------------------------------------------------------------------
 
 // zips blocks of NUM_ELEMS elements of type T
-template <int NUM_ELEMS, typename T>
+template <size_t NUM_ELEMS, typename T>
 static SIMD_INLINE void zip(const Vec<T, 32> a, const Vec<T, 32> b,
                             Vec<T, 32> &l, Vec<T, 32> &h)
 {
@@ -2780,7 +2388,7 @@ static SIMD_INLINE void zip(const Vec<T, 32> a, const Vec<T, 32> b,
 // contributed by Adam Marschall
 
 // zips blocks of NUM_ELEMS elements of type T
-template <int NUM_ELEMS, typename T>
+template <size_t NUM_ELEMS, typename T>
 static SIMD_INLINE void zip16(const Vec<T, 32> a, const Vec<T, 32> b,
                               Vec<T, 32> &l, Vec<T, 32> &h)
 {
@@ -2804,13 +2412,15 @@ static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
                               Vec<T, 32> &l, Vec<T, 32> &h, Bytes<1>)
 {
   // mask is hopefully only set once if unzip is used multiple times
-  __m256i mask =
+  const __m256i mask =
     _mm256_set_epi8(15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0, 15,
                     13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0);
-  __m256i atmp = x_mm256_transpose4x64_epi64(x_mm256_shuffle_epi8(a, mask));
-  __m256i btmp = x_mm256_transpose4x64_epi64(x_mm256_shuffle_epi8(b, mask));
-  l            = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
-  h            = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
+  const __m256i atmp =
+    x_mm256_transpose4x64_epi64(x_mm256_shuffle_epi8(a, mask));
+  const __m256i btmp =
+    x_mm256_transpose4x64_epi64(x_mm256_shuffle_epi8(b, mask));
+  l = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
+  h = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
 }
 
 // all integer versions
@@ -2819,13 +2429,15 @@ static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
                               Vec<T, 32> &l, Vec<T, 32> &h, Bytes<2>)
 {
   // mask is hopefully only set once if unzip is used multiple times
-  __m256i mask =
+  const __m256i mask =
     _mm256_set_epi8(15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0, 15,
                     14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0);
-  __m256i atmp = x_mm256_transpose4x64_epi64(x_mm256_shuffle_epi8(a, mask));
-  __m256i btmp = x_mm256_transpose4x64_epi64(x_mm256_shuffle_epi8(b, mask));
-  l            = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
-  h            = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
+  const __m256i atmp =
+    x_mm256_transpose4x64_epi64(x_mm256_shuffle_epi8(a, mask));
+  const __m256i btmp =
+    x_mm256_transpose4x64_epi64(x_mm256_shuffle_epi8(b, mask));
+  l = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
+  h = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
 }
 
 // all integer versions
@@ -2833,10 +2445,17 @@ template <typename T>
 static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
                               Vec<T, 32> &l, Vec<T, 32> &h, Bytes<4>)
 {
-  __m256i atmp = x_mm256_transpose4x64_epi64(
-    x_mm256_shuffle_epi32<_MM_SHUFFLE(3, 1, 2, 0)>(a));
-  __m256i btmp = x_mm256_transpose4x64_epi64(
-    x_mm256_shuffle_epi32<_MM_SHUFFLE(3, 1, 2, 0)>(b));
+#ifdef __AVX2__
+  const __m256i aShuffled = _mm256_shuffle_epi32(a, _MM_SHUFFLE(3, 1, 2, 0));
+  const __m256i bShuffled = _mm256_shuffle_epi32(b, _MM_SHUFFLE(3, 1, 2, 0));
+#else
+  const __m256i aShuffled = _mm256_castps_si256(_mm256_shuffle_ps(
+    _mm256_castsi256_ps(a), _mm256_castsi256_ps(a), _MM_SHUFFLE(3, 1, 2, 0)));
+  const __m256i bShuffled = _mm256_castps_si256(_mm256_shuffle_ps(
+    _mm256_castsi256_ps(b), _mm256_castsi256_ps(b), _MM_SHUFFLE(3, 1, 2, 0)));
+#endif
+  const __m256i atmp = x_mm256_transpose4x64_epi64(aShuffled);
+  const __m256i btmp = x_mm256_transpose4x64_epi64(bShuffled);
   l = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
   h = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
 }
@@ -2846,10 +2465,10 @@ template <typename T>
 static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
                               Vec<T, 32> &l, Vec<T, 32> &h, Bytes<8>)
 {
-  __m256i atmp = x_mm256_transpose4x64_epi64(a);
-  __m256i btmp = x_mm256_transpose4x64_epi64(b);
-  l            = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
-  h            = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
+  const __m256i atmp = x_mm256_transpose4x64_epi64(a);
+  const __m256i btmp = x_mm256_transpose4x64_epi64(b);
+  l = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
+  h = _mm256_permute2f128_si256(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
 }
 
 // all types
@@ -2865,9 +2484,9 @@ static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
 static SIMD_INLINE void unzip(const Vec<Float, 32> a, const Vec<Float, 32> b,
                               Vec<Float, 32> &l, Vec<Float, 32> &h, Bytes<4>)
 {
-  __m256 atmp =
+  const __m256 atmp =
     x_mm256_transpose4x64_ps(_mm256_shuffle_ps(a, a, _MM_SHUFFLE(3, 1, 2, 0)));
-  __m256 btmp =
+  const __m256 btmp =
     x_mm256_transpose4x64_ps(_mm256_shuffle_ps(b, b, _MM_SHUFFLE(3, 1, 2, 0)));
   l = _mm256_permute2f128_ps(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
   h = _mm256_permute2f128_ps(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
@@ -2877,20 +2496,20 @@ static SIMD_INLINE void unzip(const Vec<Float, 32> a, const Vec<Float, 32> b,
 static SIMD_INLINE void unzip(const Vec<Float, 32> a, const Vec<Float, 32> b,
                               Vec<Float, 32> &l, Vec<Float, 32> &h, Bytes<8>)
 {
-  __m256 atmp = x_mm256_transpose4x64_ps(a);
-  __m256 btmp = x_mm256_transpose4x64_ps(b);
-  l           = _mm256_permute2f128_ps(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
-  h           = _mm256_permute2f128_ps(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
+  const __m256 atmp = x_mm256_transpose4x64_ps(a);
+  const __m256 btmp = x_mm256_transpose4x64_ps(b);
+  l = _mm256_permute2f128_ps(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
+  h = _mm256_permute2f128_ps(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
 }
 
 // double version
 static SIMD_INLINE void unzip(const Vec<Double, 32> a, const Vec<Double, 32> b,
                               Vec<Double, 32> &l, Vec<Double, 32> &h, Bytes<8>)
 {
-  __m256d atmp = x_mm256_transpose4x64_pd(a);
-  __m256d btmp = x_mm256_transpose4x64_pd(b);
-  l            = _mm256_permute2f128_pd(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
-  h            = _mm256_permute2f128_pd(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
+  const __m256d atmp = x_mm256_transpose4x64_pd(a);
+  const __m256d btmp = x_mm256_transpose4x64_pd(b);
+  l = _mm256_permute2f128_pd(atmp, btmp, _MM_SHUFFLE(0, 2, 0, 0));
+  h = _mm256_permute2f128_pd(atmp, btmp, _MM_SHUFFLE(0, 3, 0, 1));
 }
 
 // ---------------------------------------------------------------------------
@@ -2898,7 +2517,7 @@ static SIMD_INLINE void unzip(const Vec<Double, 32> a, const Vec<Double, 32> b,
 // ---------------------------------------------------------------------------
 
 // hub
-template <int NUM_ELEMS, typename T>
+template <size_t NUM_ELEMS, typename T>
 static SIMD_INLINE void unzip(const Vec<T, 32> a, const Vec<T, 32> b,
                               Vec<T, 32> &l, Vec<T, 32> &h)
 {
@@ -3102,7 +2721,7 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
 {
   Vec<Int, 32> vTmp[4];
   extend(vIn, vTmp);
-  for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
+  for (size_t i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
 static SIMD_INLINE void extend(const Vec<Short, 32> &vIn,
@@ -3130,7 +2749,7 @@ static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn, Vec<Float, 32> vOut[4])
 {
   Vec<Int, 32> vTmp[4];
   extend(vIn, vTmp);
-  for (int i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
+  for (size_t i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
 static SIMD_INLINE void extend(const Vec<Word, 32> &vIn,
@@ -3183,11 +2802,11 @@ template <typename Tout, typename Tin>
 static SIMD_INLINE void extend(const Vec<Tin, 32> &vIn,
                                Vec<Tout, 32> vOut[sizeof(Tout) / sizeof(Tin)])
 {
-  const int nOut = sizeof(Tout) / sizeof(Tin), nOutHalf = nOut / 2;
+  const size_t nOut = sizeof(Tout) / sizeof(Tin), nOutHalf = nOut / 2;
   Vec<Tout, 16> vOutLo16[nOut], vOutHi16[nOut];
   extend(vIn.lo(), vOutLo16);
   extend(vIn.hi(), vOutHi16);
-  for (int i = 0; i < nOutHalf; i++) {
+  for (size_t i = 0; i < nOutHalf; i++) {
     vOut[i]            = Vec<Tout, 32>(vOutLo16[2 * i], vOutLo16[2 * i + 1]);
     vOut[i + nOutHalf] = Vec<Tout, 32>(vOutHi16[2 * i], vOutHi16[2 * i + 1]);
   }
@@ -3216,43 +2835,57 @@ static SIMD_INLINE void extend(const Vec<Float, 32> &vIn, Vec<Int, 32> vOut[1])
 #ifdef __AVX2__
 // 16. Oct 22 (Jonas Keller): added missing Byte and SignedByte versions
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 32> srai(const Vec<Byte, 32> &a)
 {
-  return x_mm256_srai_epi8<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    const __m256i odd  = _mm256_srai_epi16(a, COUNT);
+    const __m256i even = _mm256_srai_epi16(_mm256_slli_epi16(a, 8), COUNT + 8);
+    return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16((int16_t) 0xff00));
+  } else {
+    // result should be all ones if a is negative, all zeros otherwise
+    return _mm256_cmpgt_epi8(_mm256_setzero_si256(), a);
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 32> srai(const Vec<SignedByte, 32> &a)
 {
-  return x_mm256_srai_epi8<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    const __m256i odd  = _mm256_srai_epi16(a, COUNT);
+    const __m256i even = _mm256_srai_epi16(_mm256_slli_epi16(a, 8), COUNT + 8);
+    return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16((int16_t) 0xff00));
+  } else {
+    // result should be all ones if a is negative, all zeros otherwise
+    return _mm256_cmpgt_epi8(_mm256_setzero_si256(), a);
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 32> srai(const Vec<Word, 32> &a)
 {
-  return x_mm256_srai_epi16<IMM>(a);
+  return _mm256_srai_epi16(a, std::min(COUNT, 15ul));
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 32> srai(const Vec<Short, 32> &a)
 {
-  return x_mm256_srai_epi16<IMM>(a);
+  return _mm256_srai_epi16(a, std::min(COUNT, 15ul));
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 32> srai(const Vec<Int, 32> &a)
 {
-  return x_mm256_srai_epi32<IMM>(a);
+  return _mm256_srai_epi32(a, std::min(COUNT, 31ul));
 }
 
 #else
 
 // non-avx2 workaround
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 32> srai(const Vec<T, 32> &a)
 {
-  return Vec<T, 32>(srai<IMM>(a.lo()), srai<IMM>(a.hi()));
+  return Vec<T, 32>(srai<COUNT>(a.lo()), srai<COUNT>(a.hi()));
 }
 
 #endif
@@ -3265,47 +2898,67 @@ static SIMD_INLINE Vec<T, 32> srai(const Vec<T, 32> &a)
 
 // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
 // License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 32> srli(const Vec<Byte, 32> &a)
 {
-  return _mm256_and_si256(_mm256_set1_epi8((int8_t) (0xff >> IMM)),
-                          x_mm256_srli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    return _mm256_and_si256(_mm256_set1_epi8((int8_t) (0xff >> COUNT)),
+                            _mm256_srli_epi32(a, COUNT));
+  } else {
+    return _mm256_setzero_si256();
+  }
 }
 
 // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
 // License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 32> srli(const Vec<SignedByte, 32> &a)
 {
-  return _mm256_and_si256(_mm256_set1_epi8((int8_t) (0xff >> IMM)),
-                          x_mm256_srli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    return _mm256_and_si256(_mm256_set1_epi8((int8_t) (0xff >> COUNT)),
+                            _mm256_srli_epi32(a, COUNT));
+  } else {
+    return _mm256_setzero_si256();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 32> srli(const Vec<Word, 32> &a)
 {
-  return x_mm256_srli_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm256_srli_epi16(a, COUNT);
+  } else {
+    return _mm256_setzero_si256();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 32> srli(const Vec<Short, 32> &a)
 {
-  return x_mm256_srli_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm256_srli_epi16(a, COUNT);
+  } else {
+    return _mm256_setzero_si256();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 32> srli(const Vec<Int, 32> &a)
 {
-  return x_mm256_srli_epi32<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm256_srli_epi32(a, COUNT);
+  } else {
+    return _mm256_setzero_si256();
+  }
 }
 
 #else
 
 // non-avx2 workaround
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 32> srli(const Vec<T, 32> &a)
 {
-  return Vec<T, 32>(srli<IMM>(a.lo()), srli<IMM>(a.hi()));
+  return Vec<T, 32>(srli<COUNT>(a.lo()), srli<COUNT>(a.hi()));
 }
 
 #endif
@@ -3316,51 +2969,71 @@ static SIMD_INLINE Vec<T, 32> srli(const Vec<T, 32> &a)
 
 #ifdef __AVX2__
 
-// https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
-// License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 32> slli(const Vec<Byte, 32> &a)
 {
-  return _mm256_and_si256(
-    _mm256_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << IMM))),
-    x_mm256_slli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
+    // License: not specified
+    return _mm256_and_si256(
+      _mm256_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << COUNT))),
+      _mm256_slli_epi32(a, COUNT));
+  } else {
+    return _mm256_setzero_si256();
+  }
 }
 
-// https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
-// License: not specified
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 32> slli(const Vec<SignedByte, 32> &a)
 {
-  return _mm256_and_si256(
-    _mm256_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << IMM))),
-    x_mm256_slli_epi32<IMM>(a));
+  SIMD_IF_CONSTEXPR (COUNT < 8) {
+    // https://github.com/grumpos/spu_intrin/blob/master/src/sse_extensions.h
+    // License: not specified
+    return _mm256_and_si256(
+      _mm256_set1_epi8((int8_t) (uint8_t) (0xff & (0xff << COUNT))),
+      _mm256_slli_epi32(a, COUNT));
+  } else {
+    return _mm256_setzero_si256();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 32> slli(const Vec<Word, 32> &a)
 {
-  return x_mm256_slli_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm256_slli_epi16(a, COUNT);
+  } else {
+    return _mm256_setzero_si256();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 32> slli(const Vec<Short, 32> &a)
 {
-  return x_mm256_slli_epi16<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 16) {
+    return _mm256_slli_epi16(a, COUNT);
+  } else {
+    return _mm256_setzero_si256();
+  }
 }
 
-template <int IMM>
+template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 32> slli(const Vec<Int, 32> &a)
 {
-  return x_mm256_slli_epi32<IMM>(a);
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    return _mm256_slli_epi32(a, COUNT);
+  } else {
+    return _mm256_setzero_si256();
+  }
 }
 
 #else
 
 // non-avx2 workaround
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 32> slli(const Vec<T, 32> &a)
 {
-  return Vec<T, 32>(slli<IMM>(a.lo()), slli<IMM>(a.hi()));
+  return Vec<T, 32>(slli<COUNT>(a.lo()), slli<COUNT>(a.hi()));
 }
 
 #endif
@@ -3380,8 +3053,8 @@ static SIMD_INLINE Vec<Byte, 32> sra(const Vec<Byte, 32> &a,
     // result should be all ones if a is negative, all zeros otherwise
     return _mm256_cmpgt_epi8(_mm256_setzero_si256(), a);
   }
-  __m256i odd = _mm256_sra_epi16(a, _mm_cvtsi32_si128(count));
-  __m256i even =
+  const __m256i odd = _mm256_sra_epi16(a, _mm_cvtsi32_si128(count));
+  const __m256i even =
     _mm256_sra_epi16(_mm256_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
   return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16((int16_t) 0xff00));
 }
@@ -3393,8 +3066,8 @@ static SIMD_INLINE Vec<SignedByte, 32> sra(const Vec<SignedByte, 32> &a,
     // result should be all ones if a is negative, all zeros otherwise
     return _mm256_cmpgt_epi8(_mm256_setzero_si256(), a);
   }
-  __m256i odd = _mm256_sra_epi16(a, _mm_cvtsi32_si128(count));
-  __m256i even =
+  const __m256i odd = _mm256_sra_epi16(a, _mm_cvtsi32_si128(count));
+  const __m256i even =
     _mm256_sra_epi16(_mm256_slli_epi16(a, 8), _mm_cvtsi32_si128(count + 8));
   return _mm256_blendv_epi8(even, odd, _mm256_set1_epi16((int16_t) 0xff00));
 }
@@ -3701,11 +3374,11 @@ static SIMD_INLINE Vec<Double, 32> hsubs(const Vec<Double, 32> &a,
 // element-wise shift right
 // ---------------------------------------------------------------------------
 
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 32> srle(const Vec<T, 32> &a)
 {
   const __m256i aInt          = reinterpret(a, OutputType<Int>());
-  const Vec<Int, 32> aShifted = x_mm256_srli256_si256<IMM * sizeof(T)>(aInt);
+  const Vec<Int, 32> aShifted = x_mm256_srli256_si256<COUNT * sizeof(T)>(aInt);
   return reinterpret(aShifted, OutputType<T>());
 }
 
@@ -3713,11 +3386,11 @@ static SIMD_INLINE Vec<T, 32> srle(const Vec<T, 32> &a)
 // element-wise shift left
 // ---------------------------------------------------------------------------
 
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 32> slle(const Vec<T, 32> &a)
 {
   const __m256i aInt          = reinterpret(a, OutputType<Int>());
-  const Vec<Int, 32> aShifted = x_mm256_slli256_si256<IMM * sizeof(T)>(aInt);
+  const Vec<Int, 32> aShifted = x_mm256_slli256_si256<COUNT * sizeof(T)>(aInt);
   return reinterpret(aShifted, OutputType<T>());
 }
 
@@ -3726,28 +3399,14 @@ static SIMD_INLINE Vec<T, 32> slle(const Vec<T, 32> &a)
 // ---------------------------------------------------------------------------
 
 // all integer versions
-template <int IMM, typename T>
+template <size_t COUNT, typename T>
 static SIMD_INLINE Vec<T, 32> alignre(const Vec<T, 32> &h, const Vec<T, 32> &l)
 {
-  return x_mm256_alignr256_epi8<IMM * sizeof(T)>(h, l);
-}
-
-// float version
-template <int IMM>
-static SIMD_INLINE Vec<Float, 32> alignre(const Vec<Float, 32> &h,
-                                          const Vec<Float, 32> &l)
-{
-  return _mm256_castsi256_ps(x_mm256_alignr256_epi8<IMM * sizeof(Float)>(
-    _mm256_castps_si256(h), _mm256_castps_si256(l)));
-}
-
-// double version
-template <int IMM>
-static SIMD_INLINE Vec<Double, 32> alignre(const Vec<Double, 32> &h,
-                                           const Vec<Double, 32> &l)
-{
-  return _mm256_castsi256_pd(x_mm256_alignr256_epi8<IMM * sizeof(Double)>(
-    _mm256_castpd_si256(h), _mm256_castpd_si256(l)));
+  const auto intH = reinterpret(h, OutputType<Int>());
+  const auto intL = reinterpret(l, OutputType<Int>());
+  const Vec<Int, 32> intRes =
+    x_mm256_alignr256_epi8<COUNT * sizeof(T)>(intH, intL);
+  return reinterpret(intRes, OutputType<T>());
 }
 
 // ---------------------------------------------------------------------------
@@ -3757,11 +3416,11 @@ static SIMD_INLINE Vec<Double, 32> alignre(const Vec<Double, 32> &h,
 // ---------- swizzle aux functions -----------
 
 // alignoff is the element-wise offset (relates to size of byte)
-template <int ALIGNOFF>
+template <size_t ALIGNOFF>
 static SIMD_INLINE __m256i align_shuffle_256(__m256i lo, __m256i hi,
                                              __m256i mask)
 {
-  static_assert(ALIGNOFF >= 0 && ALIGNOFF < 32, "");
+  static_assert(ALIGNOFF < 32, "");
   return x_mm256_shuffle_epi8(x_mm256_alignr_epi8<ALIGNOFF>(hi, lo), mask);
 }
 
@@ -3789,10 +3448,11 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[2], Integer<2>)
 {
   Vec<T, 32> vs[2];
   swizzle_32_16<2>(v, vs);
-  __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<2, T>());
-  __m256i s[2];
-  s[0] = x_mm256_shuffle_epi8(vs[0], mask);
-  s[1] = x_mm256_shuffle_epi8(vs[1], mask);
+  const __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<2, T>());
+  const __m256i s[2] = {
+    x_mm256_shuffle_epi8(vs[0], mask),
+    x_mm256_shuffle_epi8(vs[1], mask),
+  };
   v[0] = x_mm256_unpacklo_epi64(s[0], s[1]);
   v[1] = x_mm256_unpackhi_epi64(s[0], s[1]);
 }
@@ -3843,18 +3503,19 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[3], Integer<3>)
 {
   Vec<T, 32> vs[3];
   swizzle_32_16<3>(v, vs);
-  __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<3, T>());
-  __m256i s0   = align_shuffle_256<0>(vs[0], vs[1], mask);
-  __m256i s1   = align_shuffle_256<12>(vs[0], vs[1], mask);
-  __m256i s2   = align_shuffle_256<8>(vs[1], vs[2], mask);
-  __m256i s3   = align_shuffle_256<4>(vs[2], _mm256_undefined_si256(), mask);
-  __m256i l01  = x_mm256_unpacklo_epi32(s0, s1);
-  __m256i h01  = x_mm256_unpackhi_epi32(s0, s1);
-  __m256i l23  = x_mm256_unpacklo_epi32(s2, s3);
-  __m256i h23  = x_mm256_unpackhi_epi32(s2, s3);
-  v[0]         = x_mm256_unpacklo_epi64(l01, l23);
-  v[1]         = x_mm256_unpackhi_epi64(l01, l23);
-  v[2]         = x_mm256_unpacklo_epi64(h01, h23);
+  const __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<3, T>());
+  const __m256i s0   = align_shuffle_256<0>(vs[0], vs[1], mask);
+  const __m256i s1   = align_shuffle_256<12>(vs[0], vs[1], mask);
+  const __m256i s2   = align_shuffle_256<8>(vs[1], vs[2], mask);
+  const __m256i s3 =
+    align_shuffle_256<4>(vs[2], _mm256_undefined_si256(), mask);
+  const __m256i l01 = x_mm256_unpacklo_epi32(s0, s1);
+  const __m256i h01 = x_mm256_unpackhi_epi32(s0, s1);
+  const __m256i l23 = x_mm256_unpacklo_epi32(s2, s3);
+  const __m256i h23 = x_mm256_unpackhi_epi32(s2, s3);
+  v[0]              = x_mm256_unpacklo_epi64(l01, l23);
+  v[1]              = x_mm256_unpackhi_epi64(l01, l23);
+  v[2]              = x_mm256_unpacklo_epi64(h01, h23);
 }
 
 // 32 bit types
@@ -3925,20 +3586,21 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[4], Integer<4>)
 {
   Vec<T, 32> vs[4];
   swizzle_32_16<4>(v, vs);
-  __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<4, T>());
-  __m256i s[4];
-  s[0]        = x_mm256_shuffle_epi8(vs[0], mask);
-  s[1]        = x_mm256_shuffle_epi8(vs[1], mask);
-  s[2]        = x_mm256_shuffle_epi8(vs[2], mask);
-  s[3]        = x_mm256_shuffle_epi8(vs[3], mask);
-  __m256i l01 = x_mm256_unpacklo_epi32(s[0], s[1]);
-  __m256i h01 = x_mm256_unpackhi_epi32(s[0], s[1]);
-  __m256i l23 = x_mm256_unpacklo_epi32(s[2], s[3]);
-  __m256i h23 = x_mm256_unpackhi_epi32(s[2], s[3]);
-  v[0]        = x_mm256_unpacklo_epi64(l01, l23);
-  v[1]        = x_mm256_unpackhi_epi64(l01, l23);
-  v[2]        = x_mm256_unpacklo_epi64(h01, h23);
-  v[3]        = x_mm256_unpackhi_epi64(h01, h23);
+  const __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<4, T>());
+  const __m256i s[4] = {
+    x_mm256_shuffle_epi8(vs[0], mask),
+    x_mm256_shuffle_epi8(vs[1], mask),
+    x_mm256_shuffle_epi8(vs[2], mask),
+    x_mm256_shuffle_epi8(vs[3], mask),
+  };
+  const __m256i l01 = x_mm256_unpacklo_epi32(s[0], s[1]);
+  const __m256i h01 = x_mm256_unpackhi_epi32(s[0], s[1]);
+  const __m256i l23 = x_mm256_unpacklo_epi32(s[2], s[3]);
+  const __m256i h23 = x_mm256_unpackhi_epi32(s[2], s[3]);
+  v[0]              = x_mm256_unpacklo_epi64(l01, l23);
+  v[1]              = x_mm256_unpackhi_epi64(l01, l23);
+  v[2]              = x_mm256_unpacklo_epi64(h01, h23);
+  v[3]              = x_mm256_unpackhi_epi64(h01, h23);
 }
 
 // 32 bit types
@@ -3946,22 +3608,26 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void>
 static SIMD_INLINE void swizzle(Vec<T, 32> v[4], Integer<4>)
 {
   Vec<Float, 32> vInt[4];
-  for (int i = 0; i < 4; ++i) {
+  for (size_t i = 0; i < 4; ++i) {
     vInt[i] = reinterpret(v[i], OutputType<Float>());
   }
   Vec<Float, 32> vs[4];
   swizzle_32_16<4>(vInt, vs);
-  __m256 s[4];
-  s[0] = _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(1, 0, 1, 0));
-  s[1] = _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(3, 2, 3, 2));
-  s[2] = _mm256_shuffle_ps(vs[2], vs[3], _MM_SHUFFLE(1, 0, 1, 0));
-  s[3] = _mm256_shuffle_ps(vs[2], vs[3], _MM_SHUFFLE(3, 2, 3, 2));
-  Vec<Float, 32> vOut[4];
-  vOut[0] = _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(2, 0, 2, 0));
-  vOut[1] = _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1));
-  vOut[2] = _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0));
-  vOut[3] = _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(3, 1, 3, 1));
-  for (int i = 0; i < 4; ++i) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
+  const __m256 s[4] = {
+    _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(1, 0, 1, 0)),
+    _mm256_shuffle_ps(vs[0], vs[1], _MM_SHUFFLE(3, 2, 3, 2)),
+    _mm256_shuffle_ps(vs[2], vs[3], _MM_SHUFFLE(1, 0, 1, 0)),
+    _mm256_shuffle_ps(vs[2], vs[3], _MM_SHUFFLE(3, 2, 3, 2)),
+  };
+  const Vec<Float, 32> vOut[4] = {
+    _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(2, 0, 2, 0)),
+    _mm256_shuffle_ps(s[0], s[2], _MM_SHUFFLE(3, 1, 3, 1)),
+    _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(2, 0, 2, 0)),
+    _mm256_shuffle_ps(s[1], s[3], _MM_SHUFFLE(3, 1, 3, 1)),
+  };
+  for (size_t i = 0; i < 4; ++i) {
+    v[i] = reinterpret(vOut[i], OutputType<T>());
+  }
 }
 
 // 64 bit types
@@ -3991,7 +3657,9 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[4], Integer<4>)
     // w0w1w2w3
     _mm256_shuffle_pd(vs[1], vs[3], 0xF), // 0b1111
   };
-  for (int i = 0; i < 4; ++i) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
+  for (size_t i = 0; i < 4; ++i) {
+    v[i] = reinterpret(vOut[i], OutputType<T>());
+  }
 }
 
 // -------------------- n = 5 --------------------
@@ -4003,34 +3671,35 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
 {
   Vec<T, 32> vs[5];
   swizzle_32_16<5>(v, vs);
-  __m256i mask    = x_mm256_duplicate_si128(get_swizzle_mask<5, T>());
-  __m256i s0      = align_shuffle_256<0>(vs[0], vs[1], mask);
-  __m256i s1      = align_shuffle_256<10>(vs[0], vs[1], mask);
-  __m256i s2      = align_shuffle_256<4>(vs[1], vs[2], mask);
-  __m256i s3      = align_shuffle_256<14>(vs[1], vs[2], mask);
-  __m256i s4      = align_shuffle_256<8>(vs[2], vs[3], mask);
-  __m256i s5      = align_shuffle_256<2>(vs[3], vs[4], mask);
-  __m256i s6      = align_shuffle_256<12>(vs[3], vs[4], mask);
-  __m256i s7      = align_shuffle_256<6>(vs[4], _mm256_undefined_si256(), mask);
-  __m256i l01     = x_mm256_unpacklo_epi16(s0, s1);
-  __m256i h01     = x_mm256_unpackhi_epi16(s0, s1);
-  __m256i l23     = x_mm256_unpacklo_epi16(s2, s3);
-  __m256i h23     = x_mm256_unpackhi_epi16(s2, s3);
-  __m256i l45     = x_mm256_unpacklo_epi16(s4, s5);
-  __m256i h45     = x_mm256_unpackhi_epi16(s4, s5);
-  __m256i l67     = x_mm256_unpacklo_epi16(s6, s7);
-  __m256i h67     = x_mm256_unpackhi_epi16(s6, s7);
-  __m256i ll01l23 = x_mm256_unpacklo_epi32(l01, l23);
-  __m256i hl01l23 = x_mm256_unpackhi_epi32(l01, l23);
-  __m256i ll45l67 = x_mm256_unpacklo_epi32(l45, l67);
-  __m256i hl45l67 = x_mm256_unpackhi_epi32(l45, l67);
-  __m256i lh01h23 = x_mm256_unpacklo_epi32(h01, h23);
-  __m256i lh45h67 = x_mm256_unpacklo_epi32(h45, h67);
-  v[0]            = x_mm256_unpacklo_epi64(ll01l23, ll45l67);
-  v[1]            = x_mm256_unpackhi_epi64(ll01l23, ll45l67);
-  v[2]            = x_mm256_unpacklo_epi64(hl01l23, hl45l67);
-  v[3]            = x_mm256_unpackhi_epi64(hl01l23, hl45l67);
-  v[4]            = x_mm256_unpacklo_epi64(lh01h23, lh45h67);
+  const __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<5, T>());
+  const __m256i s0   = align_shuffle_256<0>(vs[0], vs[1], mask);
+  const __m256i s1   = align_shuffle_256<10>(vs[0], vs[1], mask);
+  const __m256i s2   = align_shuffle_256<4>(vs[1], vs[2], mask);
+  const __m256i s3   = align_shuffle_256<14>(vs[1], vs[2], mask);
+  const __m256i s4   = align_shuffle_256<8>(vs[2], vs[3], mask);
+  const __m256i s5   = align_shuffle_256<2>(vs[3], vs[4], mask);
+  const __m256i s6   = align_shuffle_256<12>(vs[3], vs[4], mask);
+  const __m256i s7 =
+    align_shuffle_256<6>(vs[4], _mm256_undefined_si256(), mask);
+  const __m256i l01     = x_mm256_unpacklo_epi16(s0, s1);
+  const __m256i h01     = x_mm256_unpackhi_epi16(s0, s1);
+  const __m256i l23     = x_mm256_unpacklo_epi16(s2, s3);
+  const __m256i h23     = x_mm256_unpackhi_epi16(s2, s3);
+  const __m256i l45     = x_mm256_unpacklo_epi16(s4, s5);
+  const __m256i h45     = x_mm256_unpackhi_epi16(s4, s5);
+  const __m256i l67     = x_mm256_unpacklo_epi16(s6, s7);
+  const __m256i h67     = x_mm256_unpackhi_epi16(s6, s7);
+  const __m256i ll01l23 = x_mm256_unpacklo_epi32(l01, l23);
+  const __m256i hl01l23 = x_mm256_unpackhi_epi32(l01, l23);
+  const __m256i ll45l67 = x_mm256_unpacklo_epi32(l45, l67);
+  const __m256i hl45l67 = x_mm256_unpackhi_epi32(l45, l67);
+  const __m256i lh01h23 = x_mm256_unpacklo_epi32(h01, h23);
+  const __m256i lh45h67 = x_mm256_unpacklo_epi32(h45, h67);
+  v[0]                  = x_mm256_unpacklo_epi64(ll01l23, ll45l67);
+  v[1]                  = x_mm256_unpackhi_epi64(ll01l23, ll45l67);
+  v[2]                  = x_mm256_unpacklo_epi64(hl01l23, hl45l67);
+  v[3]                  = x_mm256_unpackhi_epi64(hl01l23, hl45l67);
+  v[4]                  = x_mm256_unpacklo_epi64(lh01h23, lh45h67);
 }
 
 // 16 bit integer types
@@ -4041,26 +3710,27 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
 {
   Vec<T, 32> vs[5];
   swizzle_32_16<5>(v, vs);
-  __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<5, T>());
-  __m256i s0   = align_shuffle_256<0>(vs[0], vs[1], mask);
-  __m256i s1   = align_shuffle_256<6>(vs[0], vs[1], mask);
-  __m256i s2   = align_shuffle_256<4>(vs[1], vs[2], mask);
-  __m256i s3   = align_shuffle_256<10>(vs[1], vs[2], mask);
-  __m256i s4   = align_shuffle_256<8>(vs[2], vs[3], mask);
-  __m256i s5   = align_shuffle_256<14>(vs[2], vs[3], mask);
-  __m256i s6   = align_shuffle_256<12>(vs[3], vs[4], mask);
-  __m256i s7   = align_shuffle_256<2>(vs[4], _mm256_undefined_si256(), mask);
-  __m256i l02  = x_mm256_unpacklo_epi32(s0, s2);
-  __m256i h02  = x_mm256_unpackhi_epi32(s0, s2);
-  __m256i l13  = x_mm256_unpacklo_epi32(s1, s3);
-  __m256i l46  = x_mm256_unpacklo_epi32(s4, s6);
-  __m256i h46  = x_mm256_unpackhi_epi32(s4, s6);
-  __m256i l57  = x_mm256_unpacklo_epi32(s5, s7);
-  v[0]         = x_mm256_unpacklo_epi64(l02, l46);
-  v[1]         = x_mm256_unpackhi_epi64(l02, l46);
-  v[2]         = x_mm256_unpacklo_epi64(h02, h46);
-  v[3]         = x_mm256_unpacklo_epi64(l13, l57);
-  v[4]         = x_mm256_unpackhi_epi64(l13, l57);
+  const __m256i mask = x_mm256_duplicate_si128(get_swizzle_mask<5, T>());
+  const __m256i s0   = align_shuffle_256<0>(vs[0], vs[1], mask);
+  const __m256i s1   = align_shuffle_256<6>(vs[0], vs[1], mask);
+  const __m256i s2   = align_shuffle_256<4>(vs[1], vs[2], mask);
+  const __m256i s3   = align_shuffle_256<10>(vs[1], vs[2], mask);
+  const __m256i s4   = align_shuffle_256<8>(vs[2], vs[3], mask);
+  const __m256i s5   = align_shuffle_256<14>(vs[2], vs[3], mask);
+  const __m256i s6   = align_shuffle_256<12>(vs[3], vs[4], mask);
+  const __m256i s7 =
+    align_shuffle_256<2>(vs[4], _mm256_undefined_si256(), mask);
+  const __m256i l02 = x_mm256_unpacklo_epi32(s0, s2);
+  const __m256i h02 = x_mm256_unpackhi_epi32(s0, s2);
+  const __m256i l13 = x_mm256_unpacklo_epi32(s1, s3);
+  const __m256i l46 = x_mm256_unpacklo_epi32(s4, s6);
+  const __m256i h46 = x_mm256_unpackhi_epi32(s4, s6);
+  const __m256i l57 = x_mm256_unpacklo_epi32(s5, s7);
+  v[0]              = x_mm256_unpacklo_epi64(l02, l46);
+  v[1]              = x_mm256_unpackhi_epi64(l02, l46);
+  v[2]              = x_mm256_unpacklo_epi64(h02, h46);
+  v[3]              = x_mm256_unpacklo_epi64(l13, l57);
+  v[4]              = x_mm256_unpackhi_epi64(l13, l57);
 }
 
 // 32 bit types
@@ -4069,7 +3739,7 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4), typename = void,
 static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
 {
   Vec<Int, 32> vInt[5];
-  for (int i = 0; i < 5; i++) {
+  for (size_t i = 0; i < 5; i++) {
     vInt[i] = reinterpret(v[i], OutputType<Int>());
   }
   Vec<Int, 32> vs[5];
@@ -4080,37 +3750,37 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                   x x x   x
   // 5 6 7 8
-  __m256i s2 = x_mm256_alignr_epi8<4>(vs[2], vs[1]);
+  const __m256i s2 = x_mm256_alignr_epi8<4>(vs[2], vs[1]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                             x  x  x    x
   // 9 x x x
-  __m256i s3 = x_mm256_alignr_epi8<4>(vs[3], vs[2]);
+  const __m256i s3 = x_mm256_alignr_epi8<4>(vs[3], vs[2]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                x  x    x  x
   // 10 11 12 13
-  __m256i s4 = x_mm256_alignr_epi8<8>(vs[3], vs[2]);
+  const __m256i s4 = x_mm256_alignr_epi8<8>(vs[3], vs[2]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                              x  x    x  x
   // 14 x x x
-  __m256i s5 = x_mm256_alignr_epi8<8>(vs[4], vs[3]);
+  const __m256i s5 = x_mm256_alignr_epi8<8>(vs[4], vs[3]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                 X    X  X  X
   // 15 16 17 18
-  __m256i s6 = x_mm256_alignr_epi8<12>(vs[4], vs[3]);
+  const __m256i s6 = x_mm256_alignr_epi8<12>(vs[4], vs[3]);
   // v:    0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19
   //                                                               X X X X
   // 19 x x x
-  __m256i s7 = x_mm256_alignr_epi8<12>(vs[0], vs[4]);
+  const __m256i s7 = x_mm256_alignr_epi8<12>(vs[0], vs[4]);
   // 0 1 2 3 / 5 6 7 8 -> 0 5 1 6 / 2 7 3 8
-  __m256i l02 = x_mm256_unpacklo_epi32(vs[0], s2);
-  __m256i h02 = x_mm256_unpackhi_epi32(vs[0], s2);
+  const __m256i l02 = x_mm256_unpacklo_epi32(vs[0], s2);
+  const __m256i h02 = x_mm256_unpackhi_epi32(vs[0], s2);
   // 4 x x x / 9 x x x -> 4 9 x x
-  __m256i l13 = x_mm256_unpacklo_epi32(vs[1], s3);
+  const __m256i l13 = x_mm256_unpacklo_epi32(vs[1], s3);
   // 10 11 12 13 / 15 16 17 18 -> 10 15 11 13 / 12 17 13 18
-  __m256i l46 = x_mm256_unpacklo_epi32(s4, s6);
-  __m256i h46 = x_mm256_unpackhi_epi32(s4, s6);
+  const __m256i l46 = x_mm256_unpacklo_epi32(s4, s6);
+  const __m256i h46 = x_mm256_unpackhi_epi32(s4, s6);
   // 14 x x x / 19 x x x -> 14 19 x x
-  __m256i l57                = x_mm256_unpacklo_epi32(s5, s7);
+  const __m256i l57          = x_mm256_unpacklo_epi32(s5, s7);
   const Vec<Int, 32> vOut[5] = {
     // 0 5 1 6 / 10 15 11 13 -> 0 5 10 15 / 1 6 11 16
     x_mm256_unpacklo_epi64(l02, l46),
@@ -4121,7 +3791,9 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
     // 4 9 x x / 14 19 x x -> 4 9 14 19
     x_mm256_unpacklo_epi64(l13, l57),
   };
-  for (int i = 0; i < 5; i++) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
+  for (size_t i = 0; i < 5; i++) {
+    v[i] = reinterpret(vOut[i], OutputType<T>());
+  }
 }
 
 // 64 bit types
@@ -4155,7 +3827,9 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
     // v0v1v2v3
     _mm256_shuffle_pd(vs[2], vs[4], 0xa), // 0b1010
   };
-  for (int i = 0; i < 5; i++) { v[i] = reinterpret(vOut[i], OutputType<T>()); }
+  for (size_t i = 0; i < 5; i++) {
+    v[i] = reinterpret(vOut[i], OutputType<T>());
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -4178,9 +3852,9 @@ static SIMD_INLINE void swizzle(Vec<T, 32> v[5], Integer<5>)
 static SIMD_INLINE Vec<Byte, 32> cmplt(const Vec<Byte, 32> &a,
                                        const Vec<Byte, 32> &b)
 {
-  __m256i signbit = _mm256_set1_epi32(0x80808080);
-  __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
-  __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x80
+  const __m256i signbit = _mm256_set1_epi32(0x80808080);
+  const __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
+  const __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x80
   return _mm256_cmpgt_epi8(b1, a1);
 }
 
@@ -4193,9 +3867,9 @@ static SIMD_INLINE Vec<SignedByte, 32> cmplt(const Vec<SignedByte, 32> &a,
 static SIMD_INLINE Vec<Word, 32> cmplt(const Vec<Word, 32> &a,
                                        const Vec<Word, 32> &b)
 {
-  __m256i signbit = _mm256_set1_epi32(0x80008000);
-  __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
-  __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x8000
+  const __m256i signbit = _mm256_set1_epi32(0x80008000);
+  const __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
+  const __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x8000
   return _mm256_cmpgt_epi16(b1, a1);
 }
 
@@ -4248,9 +3922,9 @@ static SIMD_INLINE Vec<Double, 32> cmplt(const Vec<Double, 32> &a,
 static SIMD_INLINE Vec<Byte, 32> cmple(const Vec<Byte, 32> &a,
                                        const Vec<Byte, 32> &b)
 {
-  __m256i signbit = _mm256_set1_epi32(0x80808080);
-  __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
-  __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x80
+  const __m256i signbit = _mm256_set1_epi32(0x80808080);
+  const __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
+  const __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x80
   return _mm256_or_si256(_mm256_cmpgt_epi8(b1, a1), _mm256_cmpeq_epi8(a1, b1));
 }
 
@@ -4263,9 +3937,9 @@ static SIMD_INLINE Vec<SignedByte, 32> cmple(const Vec<SignedByte, 32> &a,
 static SIMD_INLINE Vec<Word, 32> cmple(const Vec<Word, 32> &a,
                                        const Vec<Word, 32> &b)
 {
-  __m256i signbit = _mm256_set1_epi32(0x80008000);
-  __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
-  __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x8000
+  const __m256i signbit = _mm256_set1_epi32(0x80008000);
+  const __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
+  const __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x8000
   return _mm256_or_si256(_mm256_cmpgt_epi16(b1, a1),
                          _mm256_cmpeq_epi16(a1, b1));
 }
@@ -4380,9 +4054,9 @@ static SIMD_INLINE Vec<Double, 32> cmpeq(const Vec<Double, 32> &a,
 static SIMD_INLINE Vec<Byte, 32> cmpgt(const Vec<Byte, 32> &a,
                                        const Vec<Byte, 32> &b)
 {
-  __m256i signbit = _mm256_set1_epi32(0x80808080);
-  __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
-  __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x80
+  const __m256i signbit = _mm256_set1_epi32(0x80808080);
+  const __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
+  const __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x80
   return _mm256_cmpgt_epi8(a1, b1);
 }
 
@@ -4395,9 +4069,9 @@ static SIMD_INLINE Vec<SignedByte, 32> cmpgt(const Vec<SignedByte, 32> &a,
 static SIMD_INLINE Vec<Word, 32> cmpgt(const Vec<Word, 32> &a,
                                        const Vec<Word, 32> &b)
 {
-  __m256i signbit = _mm256_set1_epi32(0x80008000);
-  __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
-  __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x8000
+  const __m256i signbit = _mm256_set1_epi32(0x80008000);
+  const __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
+  const __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x8000
   return _mm256_cmpgt_epi16(a1, b1);
 }
 
@@ -4450,9 +4124,9 @@ static SIMD_INLINE Vec<Double, 32> cmpgt(const Vec<Double, 32> &a,
 static SIMD_INLINE Vec<Byte, 32> cmpge(const Vec<Byte, 32> &a,
                                        const Vec<Byte, 32> &b)
 {
-  __m256i signbit = _mm256_set1_epi32(0x80808080);
-  __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
-  __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x80
+  const __m256i signbit = _mm256_set1_epi32(0x80808080);
+  const __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x80
+  const __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x80
   return _mm256_or_si256(_mm256_cmpgt_epi8(a1, b1), _mm256_cmpeq_epi8(a1, b1));
 }
 
@@ -4465,9 +4139,9 @@ static SIMD_INLINE Vec<SignedByte, 32> cmpge(const Vec<SignedByte, 32> &a,
 static SIMD_INLINE Vec<Word, 32> cmpge(const Vec<Word, 32> &a,
                                        const Vec<Word, 32> &b)
 {
-  __m256i signbit = _mm256_set1_epi32(0x80008000);
-  __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
-  __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x8000
+  const __m256i signbit = _mm256_set1_epi32(0x80008000);
+  const __m256i a1      = _mm256_xor_si256(a, signbit); // sub 0x8000
+  const __m256i b1      = _mm256_xor_si256(b, signbit); // sub 0x8000
   return _mm256_or_si256(_mm256_cmpgt_epi16(a1, b1),
                          _mm256_cmpeq_epi16(a1, b1));
 }
@@ -4788,11 +4462,11 @@ static SIMD_INLINE Vec<SignedByte, 32> avg(const Vec<SignedByte, 32> &a,
                                            const Vec<SignedByte, 32> &b)
 {
   // from Agner Fog's VCL vectori128.h
-  __m256i signbit = _mm256_set1_epi32(0x80808080);
-  __m256i a1      = _mm256_xor_si256(a, signbit); // add 0x80
-  __m256i b1      = _mm256_xor_si256(b, signbit); // add 0x80
-  __m256i m1      = _mm256_avg_epu8(a1, b1);      // unsigned avg
-  return _mm256_xor_si256(m1, signbit);           // sub 0x80
+  const __m256i signbit = _mm256_set1_epi8(int8_t(0x80));
+  const __m256i a1      = _mm256_xor_si256(a, signbit); // add 0x80
+  const __m256i b1      = _mm256_xor_si256(b, signbit); // add 0x80
+  const __m256i m1      = _mm256_avg_epu8(a1, b1);      // unsigned avg
+  return _mm256_xor_si256(m1, signbit);                 // sub 0x80
 }
 
 static SIMD_INLINE Vec<Word, 32> avg(const Vec<Word, 32> &a,
@@ -4807,11 +4481,11 @@ static SIMD_INLINE Vec<Short, 32> avg(const Vec<Short, 32> &a,
                                       const Vec<Short, 32> &b)
 {
   // from Agner Fog's VCL vectori128.h
-  __m256i signbit = _mm256_set1_epi32(0x80008000);
-  __m256i a1      = _mm256_xor_si256(a, signbit); // add 0x8000
-  __m256i b1      = _mm256_xor_si256(b, signbit); // add 0x8000
-  __m256i m1      = _mm256_avg_epu16(a1, b1);     // unsigned avg
-  return _mm256_xor_si256(m1, signbit);           // sub 0x8000
+  const __m256i signbit = _mm256_set1_epi16(int16_t(0x8000));
+  const __m256i a1      = _mm256_xor_si256(a, signbit); // add 0x8000
+  const __m256i b1      = _mm256_xor_si256(b, signbit); // add 0x8000
+  const __m256i m1      = _mm256_avg_epu16(a1, b1);     // unsigned avg
+  return _mm256_xor_si256(m1, signbit);                 // sub 0x8000
 }
 
 #else
@@ -4830,104 +4504,47 @@ static SIMD_INLINE Vec<T, 32> avg(const Vec<T, 32> &a, const Vec<T, 32> &b)
 static SIMD_INLINE Vec<Int, 32> avg(const Vec<Int, 32> &a,
                                     const Vec<Int, 32> &b)
 {
-  Vec<Int, 32> one = set1(Int(1), Integer<32>()), as, bs, lsb;
-  lsb              = bit_and(bit_or(a, b), one);
-  as               = srai<1>(a);
-  bs               = srai<1>(b);
-  return add(lsb, add(as, bs));
+  const auto halfA = srai<1>(a);
+  const auto halfB = srai<1>(b);
+  const auto sum   = add(halfA, halfB);
+  const auto lsb   = bit_and(bit_or(a, b), set1(Int(1), Integer<32>()));
+  return add(sum, lsb);
 }
 
 // NOTE: Float version doesn't round!
 static SIMD_INLINE Vec<Float, 32> avg(const Vec<Float, 32> &a,
                                       const Vec<Float, 32> &b)
 {
-  __m256 half = _mm256_set1_ps(0.5f);
-  return _mm256_mul_ps(_mm256_add_ps(a, b), half);
+  return _mm256_mul_ps(_mm256_add_ps(a, b), _mm256_set1_ps(0.5f));
 }
 
 // NOTE: Double version doesn't round!
 static SIMD_INLINE Vec<Double, 32> avg(const Vec<Double, 32> &a,
                                        const Vec<Double, 32> &b)
 {
-  __m256d half = _mm256_set1_pd(0.5);
-  return _mm256_mul_pd(_mm256_add_pd(a, b), half);
+  return _mm256_mul_pd(_mm256_add_pd(a, b), _mm256_set1_pd(0.5));
 }
 
 // ---------------------------------------------------------------------------
 // test_all_zeros
 // ---------------------------------------------------------------------------
 
-// all integer versions
 template <typename T>
 static SIMD_INLINE bool test_all_zeros(const Vec<T, 32> &a)
 {
-  // 2nd argument: generates vector full of ones (epiX: X irrelevant)
-  // 10. Oct 22 (Jonas Keller):
-  // replaced unnecessary "_mm256_cmpeq_epi8(a, a)" with "a"
-  // return _mm256_testz_si256(a, _mm256_cmpeq_epi8(a, a));
-  return _mm256_testz_si256(a, a);
-  // 13. Nov. 22 (Jonas Keller):
-  // removed workaround for when AVX2 is not available, since it is not
-  // needed anymore now that _mm256_cmpeq_epi8 is not used above anymore
-}
-
-// float version
-// NOTE: _mm256_testz_ps only tests the sign bits!
-// 28. Sep 17 (rm) BUGFIX: using _mm256_testz_si256 instead
-static SIMD_INLINE bool test_all_zeros(const Vec<Float, 32> &a)
-{
-  // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
-  // 10. Oct 22 (Jonas Keller):
-  // replaced unnecessary "_mm256_cmp_ps(a, a, _CMP_EQ_UQ)" with "a"
-  // return _mm256_testz_si256
-  //   (_mm256_castps_si256(a),
-  //    _mm256_castps_si256(_mm256_cmp_ps(a, a, _CMP_EQ_UQ)));
-  return _mm256_testz_si256(_mm256_castps_si256(a), _mm256_castps_si256(a));
-}
-
-// double version
-static SIMD_INLINE int test_all_zeros(const Vec<Double, 32> &a)
-{
-  return _mm256_testz_si256(_mm256_castpd_si256(a), _mm256_castpd_si256(a));
+  const auto intA = reinterpret(a, OutputType<Int>());
+  return _mm256_testz_si256(intA, intA);
 }
 
 // ---------------------------------------------------------------------------
 // test_all_ones
 // ---------------------------------------------------------------------------
 
-// all integer versions
 template <typename T>
 static SIMD_INLINE bool test_all_ones(const Vec<T, 32> &a)
 {
-  // 2nd argument: generates vector full of ones (epiX: X irrelevant)
-#ifdef __AVX2__
-  return _mm256_testc_si256(a, _mm256_cmpeq_epi8(a, a));
-#else
-  // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
-  return _mm256_testc_si256(
-    a, _mm256_castps_si256(_mm256_cmp_ps(_mm256_castsi256_ps(a),
-                                         _mm256_castsi256_ps(a), _CMP_EQ_UQ)));
-#endif
-}
-
-// float version
-// NOTE: _mm256_testc_ps only tests the sign bits!
-// 28. Sep 17 (rm) BUGFIX: using _mm256_testc_si256 instead
-static SIMD_INLINE bool test_all_ones(const Vec<Float, 32> &a)
-{
-  // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
-  return _mm256_testc_si256(
-    _mm256_castps_si256(a),
-    _mm256_castps_si256(_mm256_cmp_ps(a, a, _CMP_EQ_UQ)));
-}
-
-// double version
-static SIMD_INLINE int test_all_ones(const Vec<Double, 32> &a)
-{
-  // _CMP_EQ_UQ! (11..11 is NaN, not treated differently for Unordered)
-  return _mm256_testc_si256(
-    _mm256_castpd_si256(a),
-    _mm256_castpd_si256(_mm256_cmp_pd(a, a, _CMP_EQ_UQ)));
+  const auto intA = reinterpret(a, OutputType<Int>());
+  return _mm256_testc_si256(intA, _mm256_set1_epi32(-1));
 }
 
 // ---------------------------------------------------------------------------
@@ -4943,21 +4560,13 @@ static SIMD_INLINE Vec<Byte, 32> reverse(const Vec<Byte, 32> &a)
   const __m256i mask =
     _mm256_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1,
                     2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
-
-  /**
-   * _mm256_shuffle_epi8 reverses the upper and lower lane of a individually
-   * the to lanes have to be swapped as well to perform a full reverse
-   */
-  __m256i shuffled_lanes = _mm256_shuffle_epi8(a, mask);
-  __m256i swapped_lanes =
-    _mm256_permute4x64_epi64(shuffled_lanes, _MM_SHUFFLE(1, 0, 3, 2));
-
-  return swapped_lanes;
-
+  // _mm256_shuffle_epi8 reverses the upper and lower lane of a individually the
+  // two lanes have to be swapped as well to perform a full reverse
+  const __m256i shuffled_lanes = _mm256_shuffle_epi8(a, mask);
+  // swap lanes
+  return _mm256_permute4x64_epi64(shuffled_lanes, _MM_SHUFFLE(1, 0, 3, 2));
 #else // AVX fallback
-  const Vec<Byte, 16> h = _mm256_extractf128_si256(a, 0);
-  const Vec<Byte, 16> l = _mm256_extractf128_si256(a, 1);
-  return _mm256_set_m128i(reverse(h), reverse(l));
+  return _mm256_set_m128i(reverse(a.lo()), reverse(a.hi()));
 #endif
 }
 
@@ -4967,21 +4576,13 @@ static SIMD_INLINE Vec<SignedByte, 32> reverse(const Vec<SignedByte, 32> &a)
   const __m256i mask =
     _mm256_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1,
                     2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
-
-  /**
-   * _mm256_shuffle_epi8 reverses the upper and lower lane of a individually
-   * the to lanes have to be swapped as well to perform a full reverse
-   */
-  __m256i shuffled_lanes = _mm256_shuffle_epi8(a, mask);
-  __m256i swapped_lanes =
-    _mm256_permute4x64_epi64(shuffled_lanes, _MM_SHUFFLE(1, 0, 3, 2));
-
-  return swapped_lanes;
-
-#else // AVX fallback
-  const Vec<SignedByte, 16> h = _mm256_extractf128_si256(a, 0);
-  const Vec<SignedByte, 16> l = _mm256_extractf128_si256(a, 1);
-  return _mm256_set_m128i(reverse(h), reverse(l));
+  // _mm256_shuffle_epi8 reverses the upper and lower lane of a individually the
+  // two lanes have to be swapped as well to perform a full reverse
+  const __m256i shuffled_lanes = _mm256_shuffle_epi8(a, mask);
+  // swap lanes
+  return _mm256_permute4x64_epi64(shuffled_lanes, _MM_SHUFFLE(1, 0, 3, 2));
+#else
+  return _mm256_set_m128i(reverse(a.lo()), reverse(a.hi()));
 #endif
 }
 
@@ -4991,16 +4592,11 @@ static SIMD_INLINE Vec<Short, 32> reverse(const Vec<Short, 32> &a)
   const __m256i mask =
     _mm256_set_epi8(1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14, 17,
                     16, 19, 18, 21, 20, 23, 22, 25, 24, 27, 26, 29, 28, 31, 30);
-
-  __m256i shuffled_lanes = _mm256_shuffle_epi8(a, mask);
-  __m256i swapped_lanes =
-    _mm256_permute4x64_epi64(shuffled_lanes, _MM_SHUFFLE(1, 0, 3, 2));
-
-  return swapped_lanes;
-#else // AVX fallback
-  const Vec<Short, 16> h = _mm256_extractf128_si256(a, 0);
-  const Vec<Short, 16> l = _mm256_extractf128_si256(a, 1);
-  return _mm256_set_m128i(reverse(h), reverse(l));
+  const __m256i shuffled_lanes = _mm256_shuffle_epi8(a, mask);
+  // swap lanes
+  return _mm256_permute4x64_epi64(shuffled_lanes, _MM_SHUFFLE(1, 0, 3, 2));
+#else
+  return _mm256_set_m128i(reverse(a.lo()), reverse(a.hi()));
 #endif
 }
 
@@ -5010,16 +4606,11 @@ static SIMD_INLINE Vec<Word, 32> reverse(const Vec<Word, 32> &a)
   const __m256i mask =
     _mm256_set_epi8(1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 13, 12, 15, 14, 17,
                     16, 19, 18, 21, 20, 23, 22, 25, 24, 27, 26, 29, 28, 31, 30);
-
-  __m256i shuffled_lanes = _mm256_shuffle_epi8(a, mask);
-  __m256i swapped_lanes =
-    _mm256_permute4x64_epi64(shuffled_lanes, _MM_SHUFFLE(1, 0, 3, 2));
-
-  return swapped_lanes;
-#else // AVX fallback
-  const Vec<Word, 16> h = _mm256_extractf128_si256(a, 0);
-  const Vec<Word, 16> l = _mm256_extractf128_si256(a, 1);
-  return _mm256_set_m128i(reverse(h), reverse(l));
+  const __m256i shuffled_lanes = _mm256_shuffle_epi8(a, mask);
+  // swap lanes
+  return _mm256_permute4x64_epi64(shuffled_lanes, _MM_SHUFFLE(1, 0, 3, 2));
+#else
+  return _mm256_set_m128i(reverse(a.lo()), reverse(a.hi()));
 #endif
 }
 
@@ -5028,10 +4619,8 @@ static SIMD_INLINE Vec<Int, 32> reverse(const Vec<Int, 32> &a)
 #ifdef __AVX2__
   const __m256i mask = _mm256_set_epi32(0, 1, 2, 3, 4, 5, 6, 7);
   return _mm256_permutevar8x32_epi32(a, mask);
-#else // AVX fallback
-  const Vec<Int, 16> h = _mm256_extractf128_si256(a, 0);
-  const Vec<Int, 16> l = _mm256_extractf128_si256(a, 1);
-  return _mm256_set_m128i(reverse(h), reverse(l));
+#else
+  return _mm256_set_m128i(reverse(a.lo()), reverse(a.hi()));
 #endif
 }
 
@@ -5040,10 +4629,8 @@ static SIMD_INLINE Vec<Float, 32> reverse(const Vec<Float, 32> &a)
 #ifdef __AVX2__
   const __m256i mask = _mm256_set_epi32(0, 1, 2, 3, 4, 5, 6, 7);
   return _mm256_permutevar8x32_ps(a, mask);
-#else // AVX fallback
-  const Vec<Float, 16> h = _mm256_extractf128_ps(a, 0);
-  const Vec<Float, 16> l = _mm256_extractf128_ps(a, 1);
-  return _mm256_set_m128(reverse(h), reverse(l));
+#else
+  return _mm256_set_m128(reverse(a.lo()), reverse(a.hi()));
 #endif
 }
 
@@ -5052,10 +4639,8 @@ static SIMD_INLINE Vec<Double, 32> reverse(const Vec<Double, 32> &a)
 #ifdef __AVX2__
   const __m256i mask = _mm256_set_epi32(1, 0, 3, 2, 5, 4, 7, 6);
   return _mm256_castps_pd(_mm256_permutevar8x32_ps(_mm256_castpd_ps(a), mask));
-#else // AVX fallback
-  const Vec<Double, 16> h = _mm256_extractf128_pd(a, 0);
-  const Vec<Double, 16> l = _mm256_extractf128_pd(a, 1);
-  return _mm256_set_m128d(reverse(h), reverse(l));
+#else
+  return _mm256_set_m128d(reverse(a.lo()), reverse(a.hi()));
 #endif
 }
 
@@ -5157,23 +4742,25 @@ static SIMD_INLINE Vec<Byte, 32> int2msb(const uint64_t a, OutputType<Byte>,
                                          Integer<32>)
 {
 #ifdef __AVX2__
-  __m256i shuffleIndeces = _mm256_set_epi64x(
+  const __m256i shuffleIndeces = _mm256_set_epi64x(
     0x0303030303030303, 0x0202020202020202, 0x0101010101010101, 0);
-  __m256i aVec     = _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
-  __m256i sel      = _mm256_set1_epi64x(0x8040201008040201);
-  __m256i selected = _mm256_and_si256(aVec, sel);
-  __m256i result   = _mm256_cmpeq_epi8(selected, sel);
+  const __m256i aVec =
+    _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
+  const __m256i sel      = _mm256_set1_epi64x(0x8040201008040201);
+  const __m256i selected = _mm256_and_si256(aVec, sel);
+  const __m256i result   = _mm256_cmpeq_epi8(selected, sel);
   return _mm256_and_si256(result, _mm256_set1_epi8((int8_t) 0x80));
 #else
-  __m128i shuffleIndeces = _mm_set_epi64x(0x0101010101010101, 0);
-  __m128i aVecLo = _mm_shuffle_epi8(_mm_cvtsi32_si128(a), shuffleIndeces);
-  __m128i aVecHi = _mm_shuffle_epi8(_mm_cvtsi32_si128(a >> 16), shuffleIndeces);
-  __m128i sel    = _mm_set1_epi64x(0x8040201008040201);
-  __m128i selectedLo = _mm_and_si128(aVecLo, sel);
-  __m128i selectedHi = _mm_and_si128(aVecHi, sel);
-  __m128i resultLo   = _mm_cmpeq_epi8(selectedLo, sel);
-  __m128i resultHi   = _mm_cmpeq_epi8(selectedHi, sel);
-  __m256i result     = _mm256_set_m128i(resultHi, resultLo);
+  const __m128i shuffleIndeces = _mm_set_epi64x(0x0101010101010101, 0);
+  const __m128i aVecLo = _mm_shuffle_epi8(_mm_cvtsi32_si128(a), shuffleIndeces);
+  const __m128i aVecHi =
+    _mm_shuffle_epi8(_mm_cvtsi32_si128(a >> 16), shuffleIndeces);
+  const __m128i sel        = _mm_set1_epi64x(0x8040201008040201);
+  const __m128i selectedLo = _mm_and_si128(aVecLo, sel);
+  const __m128i selectedHi = _mm_and_si128(aVecHi, sel);
+  const __m128i resultLo   = _mm_cmpeq_epi8(selectedLo, sel);
+  const __m128i resultHi   = _mm_cmpeq_epi8(selectedHi, sel);
+  const __m256i result     = _mm256_set_m128i(resultHi, resultLo);
   return _mm256_castps_si256(
     _mm256_and_ps(_mm256_castsi256_ps(result),
                   _mm256_castsi256_ps(_mm256_set1_epi8((int8_t) 0x80))));
@@ -5192,24 +4779,24 @@ static SIMD_INLINE Vec<Short, 32> int2msb(const uint64_t a, OutputType<Short>,
                                           Integer<32>)
 {
 #ifdef __AVX2__
-  __m256i aVec = _mm256_set1_epi16(a);
-  __m256i sel  = _mm256_set_epi16(
+  const __m256i aVec = _mm256_set1_epi16(a);
+  const __m256i sel  = _mm256_set_epi16(
     (int16_t) 0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
     0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
-  __m256i selected = _mm256_and_si256(aVec, sel);
-  __m256i result   = _mm256_cmpeq_epi16(selected, sel);
+  const __m256i selected = _mm256_and_si256(aVec, sel);
+  const __m256i result   = _mm256_cmpeq_epi16(selected, sel);
   return _mm256_and_si256(result, _mm256_set1_epi16((int16_t) 0x8000));
 #else
-  __m128i aVec  = _mm_set1_epi16(a);
-  __m128i selLo = _mm_set_epi16(0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004,
-                                0x0002, 0x0001);
-  __m128i selHi = _mm_set_epi16((int16_t) 0x8000, 0x4000, 0x2000, 0x1000,
-                                0x0800, 0x0400, 0x0200, 0x0100);
-  __m128i selectedLo = _mm_and_si128(aVec, selLo);
-  __m128i selectedHi = _mm_and_si128(aVec, selHi);
-  __m128i resultLo   = _mm_cmpeq_epi16(selectedLo, selLo);
-  __m128i resultHi   = _mm_cmpeq_epi16(selectedHi, selHi);
-  __m256i result     = _mm256_set_m128i(resultHi, resultLo);
+  const __m128i aVec  = _mm_set1_epi16(a);
+  const __m128i selLo = _mm_set_epi16(0x0080, 0x0040, 0x0020, 0x0010, 0x0008,
+                                      0x0004, 0x0002, 0x0001);
+  const __m128i selHi = _mm_set_epi16((int16_t) 0x8000, 0x4000, 0x2000, 0x1000,
+                                      0x0800, 0x0400, 0x0200, 0x0100);
+  const __m128i selectedLo = _mm_and_si128(aVec, selLo);
+  const __m128i selectedHi = _mm_and_si128(aVec, selHi);
+  const __m128i resultLo   = _mm_cmpeq_epi16(selectedLo, selLo);
+  const __m128i resultHi   = _mm_cmpeq_epi16(selectedHi, selHi);
+  const __m256i result     = _mm256_set_m128i(resultHi, resultLo);
   return _mm256_castps_si256(
     _mm256_and_ps(_mm256_castsi256_ps(result),
                   _mm256_castsi256_ps(_mm256_set1_epi16((int16_t) 0x8000))));
@@ -5227,20 +4814,20 @@ static SIMD_INLINE Vec<Int, 32> int2msb(const uint64_t a, OutputType<Int>,
                                         Integer<32>)
 {
 #ifdef __AVX2__
-  __m256i aVec = _mm256_set1_epi32(a);
-  __m256i sel =
+  const __m256i aVec = _mm256_set1_epi32(a);
+  const __m256i sel =
     _mm256_set_epi32(0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01);
-  __m256i selected = _mm256_and_si256(aVec, sel);
-  __m256i result   = _mm256_cmpeq_epi32(selected, sel);
+  const __m256i selected = _mm256_and_si256(aVec, sel);
+  const __m256i result   = _mm256_cmpeq_epi32(selected, sel);
   return _mm256_and_si256(result, _mm256_set1_epi32(0x80000000));
 #else
-  __m128i aVec       = _mm_set1_epi32(a);
-  __m128i selLo      = _mm_set_epi32(0x08, 0x04, 0x02, 0x01);
-  __m128i selHi      = _mm_set_epi32(0x80, 0x40, 0x20, 0x10);
-  __m128i selectedLo = _mm_and_si128(aVec, selLo);
-  __m128i selectedHi = _mm_and_si128(aVec, selHi);
-  __m256i result     = _mm256_set_m128i(_mm_cmpeq_epi32(selectedHi, selHi),
-                                        _mm_cmpeq_epi32(selectedLo, selLo));
+  const __m128i aVec       = _mm_set1_epi32(a);
+  const __m128i selLo      = _mm_set_epi32(0x08, 0x04, 0x02, 0x01);
+  const __m128i selHi      = _mm_set_epi32(0x80, 0x40, 0x20, 0x10);
+  const __m128i selectedLo = _mm_and_si128(aVec, selLo);
+  const __m128i selectedHi = _mm_and_si128(aVec, selHi);
+  const __m256i result = _mm256_set_m128i(_mm_cmpeq_epi32(selectedHi, selHi),
+                                          _mm_cmpeq_epi32(selectedLo, selLo));
   return _mm256_castps_si256(
     _mm256_and_ps(_mm256_castsi256_ps(result),
                   _mm256_castsi256_ps(_mm256_set1_epi32(0x80000000))));
@@ -5288,11 +4875,12 @@ static SIMD_INLINE Vec<Byte, 32> int2bits(const uint64_t a, OutputType<Byte>,
                                           Integer<32>)
 {
 #ifdef __AVX2__
-  __m256i shuffleIndeces = _mm256_set_epi64x(
+  const __m256i shuffleIndeces = _mm256_set_epi64x(
     0x0303030303030303, 0x0202020202020202, 0x0101010101010101, 0);
-  __m256i aVec     = _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
-  __m256i sel      = _mm256_set1_epi64x(0x8040201008040201);
-  __m256i selected = _mm256_and_si256(aVec, sel);
+  const __m256i aVec =
+    _mm256_shuffle_epi8(_mm256_set1_epi32(a), shuffleIndeces);
+  const __m256i sel      = _mm256_set1_epi64x(0x8040201008040201);
+  const __m256i selected = _mm256_and_si256(aVec, sel);
   return _mm256_cmpeq_epi8(selected, sel);
 #else
   return _mm256_set_m128i(int2bits(a >> 16, OutputType<Byte>(), Integer<16>()),
@@ -5312,11 +4900,11 @@ static SIMD_INLINE Vec<Short, 32> int2bits(const uint64_t a, OutputType<Short>,
                                            Integer<32>)
 {
 #ifdef __AVX2__
-  __m256i aVec = _mm256_set1_epi16(a);
-  __m256i sel  = _mm256_set_epi16(
+  const __m256i aVec = _mm256_set1_epi16(a);
+  const __m256i sel  = _mm256_set_epi16(
     (int16_t) 0x8000, 0x4000, 0x2000, 0x1000, 0x0800, 0x0400, 0x0200, 0x0100,
     0x0080, 0x0040, 0x0020, 0x0010, 0x0008, 0x0004, 0x0002, 0x0001);
-  __m256i selected = _mm256_and_si256(aVec, sel);
+  const __m256i selected = _mm256_and_si256(aVec, sel);
   return _mm256_cmpeq_epi16(selected, sel);
 #else
   return _mm256_set_m128i(int2bits(a >> 8, OutputType<Short>(), Integer<16>()),
@@ -5335,10 +4923,10 @@ static SIMD_INLINE Vec<Int, 32> int2bits(const uint64_t a, OutputType<Int>,
                                          Integer<32>)
 {
 #ifdef __AVX2__
-  __m256i aVec = _mm256_set1_epi32(a);
-  __m256i sel =
+  const __m256i aVec = _mm256_set1_epi32(a);
+  const __m256i sel =
     _mm256_set_epi32(0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01);
-  __m256i selected = _mm256_and_si256(aVec, sel);
+  const __m256i selected = _mm256_and_si256(aVec, sel);
   return _mm256_cmpeq_epi32(selected, sel);
 #else
   return _mm256_set_m128i(int2bits(a >> 4, OutputType<Int>(), Integer<16>()),

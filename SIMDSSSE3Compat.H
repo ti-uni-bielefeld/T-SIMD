@@ -31,6 +31,7 @@
 #include "SIMDIntrinsIntel.H"
 
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 
 // SSE3/SSSE3 emulation for very old CPUs (very inefficient sequential code!)
@@ -105,28 +106,25 @@ static inline __m128 _mm_hsub_ps(__m128 a, __m128 b)
 
 static inline __m128i _mm_abs_epi8(__m128i a)
 {
-  int i;
   int8_t tmp[16] SIMD_ATTR_ALIGNED(16);
   _mm_store_si128((__m128i *) tmp, a);
-  for (i = 0; i < 16; i++) tmp[i] = std::abs(tmp[i]);
+  for (size_t i = 0; i < 16; i++) tmp[i] = std::abs(tmp[i]);
   return _mm_load_si128((__m128i *) tmp);
 }
 
 static inline __m128i _mm_abs_epi16(__m128i a)
 {
-  int i;
   int16_t tmp[8] SIMD_ATTR_ALIGNED(16);
   _mm_store_si128((__m128i *) tmp, a);
-  for (i = 0; i < 8; i++) tmp[i] = std::abs(tmp[i]);
+  for (size_t i = 0; i < 8; i++) tmp[i] = std::abs(tmp[i]);
   return _mm_load_si128((__m128i *) tmp);
 }
 
 static inline __m128i _mm_abs_epi32(__m128i a)
 {
-  int i;
   int32_t tmp[4] SIMD_ATTR_ALIGNED(16);
   _mm_store_si128((__m128i *) tmp, a);
-  for (i = 0; i < 4; i++) tmp[i] = std::abs(tmp[i]);
+  for (size_t i = 0; i < 4; i++) tmp[i] = std::abs(tmp[i]);
   return _mm_load_si128((__m128i *) tmp);
 }
 
@@ -148,12 +146,13 @@ static inline __m128i _mm_alignr_epi8(__m128i a, __m128i b, int n)
   int8_t rtmp[16] SIMD_ATTR_ALIGNED(16);
   _mm_store_si128((__m128i *) abtmp, b);
   _mm_store_si128((__m128i *) (abtmp + 16), a);
-  int i, j;
-  for (j = 0, i = n; j < 16; i++, j++)
-    if ((i >= 0) && (i < 32))
-      rtmp[j] = abtmp[i];
+  for (size_t i = 0; i < 16; i++) {
+    const size_t j = i + n;
+    if (j < 32)
+      rtmp[i] = abtmp[j];
     else
-      rtmp[j] = 0;
+      rtmp[i] = 0;
+  }
   return _mm_load_si128((__m128i *) rtmp);
 }
 
@@ -272,13 +271,12 @@ static inline __m128i _mm_hsubs_epi16(__m128i a, __m128i b)
 
 static inline __m128i _mm_shuffle_epi8(__m128i a, __m128i mask)
 {
-  int i;
   uint8_t atmp[16] SIMD_ATTR_ALIGNED(16);
   uint8_t masktmp[16] SIMD_ATTR_ALIGNED(16);
   uint8_t rtmp[16] SIMD_ATTR_ALIGNED(16);
   _mm_store_si128((__m128i *) atmp, a);
   _mm_store_si128((__m128i *) masktmp, mask);
-  for (i = 0; i < 16; i++)
+  for (size_t i = 0; i < 16; i++)
     rtmp[i] = (masktmp[i] & 0x80) ? 0 : atmp[masktmp[i] & 0x0f];
   return _mm_load_si128((__m128i *) rtmp);
 }
@@ -286,12 +284,11 @@ static inline __m128i _mm_shuffle_epi8(__m128i a, __m128i mask)
 //  1. Oct 14 (rm): added
 static inline __m128i _mm_sign_epi16(__m128i a, __m128i b)
 {
-  int i;
   int16_t atmp[8] SIMD_ATTR_ALIGNED(16);
   int16_t btmp[8] SIMD_ATTR_ALIGNED(16);
   _mm_store_si128((__m128i *) atmp, a);
   _mm_store_si128((__m128i *) btmp, b);
-  for (i = 0; i < 8; i++)
+  for (size_t i = 0; i < 8; i++)
     if (btmp[i] < 0) atmp[i] = -atmp[i];
   return _mm_load_si128((__m128i *) atmp);
 }

@@ -407,6 +407,27 @@ struct Decimal
 
 /** @} */
 
+// 07. Oct 23 (Jonas Keller): added dont_deduce
+
+namespace internal {
+template <typename T>
+struct dont_deduce
+{
+  using type = T;
+};
+} // namespace internal
+
+/**
+ * @brief Helper type to prevent template argument deduction.
+ *
+ * This type can be used to prevent template argument deduction for a given
+ * type.
+ *
+ * @tparam T The type to prevent deduction for.
+ */
+template <typename T>
+using dont_deduce = typename internal::dont_deduce<T>::type;
+
 // 22. Jan 23 (Jonas Keller): moved tag dispatching classes into internal
 // namespace
 

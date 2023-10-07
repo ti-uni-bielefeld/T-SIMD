@@ -773,7 +773,8 @@ template <typename Tout, typename Tin,
           typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fdivmul(
   const Vec<Tin, SIMD_WIDTH> vecsNum[numInVecs<Tout, Tin>()],
-  const Vec<Tin, SIMD_WIDTH> vecsDenom[numInVecs<Tout, Tin>()], Tfloat fac,
+  const Vec<Tin, SIMD_WIDTH> vecsDenom[numInVecs<Tout, Tin>()],
+  dont_deduce<Tfloat> fac,
   Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   static_assert(sizeof(Tin) <= sizeof(Tfloat), "");
@@ -949,7 +950,8 @@ static SIMD_INLINE void fdivMsigmoidmul(
 template <typename Tout, typename Tin,
           typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fmul(
-  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat fac,
+  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()],
+  dont_deduce<Tfloat> fac,
   Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   static_assert(sizeof(Tin) <= sizeof(Tfloat), "");
@@ -984,8 +986,9 @@ static SIMD_INLINE void fmul(
 template <typename Tout, typename Tin,
           typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void faddmul(
-  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat off,
-  Tfloat fac, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
+  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()],
+  dont_deduce<Tfloat> off, dont_deduce<Tfloat> fac,
+  Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   static_assert(sizeof(Tin) <= sizeof(Tfloat), "");
   static_assert(sizeof(Tout) <= sizeof(Tfloat), "");
@@ -1022,8 +1025,9 @@ static SIMD_INLINE void faddmul(
 template <typename Tout, typename Tin,
           typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fmuladd(
-  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()], Tfloat fac,
-  Tfloat off, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
+  const Vec<Tin, SIMD_WIDTH> vecsIn[numInVecs<Tout, Tin>()],
+  dont_deduce<Tfloat> fac, dont_deduce<Tfloat> off,
+  Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   static_assert(sizeof(Tin) <= sizeof(Tfloat), "");
   static_assert(sizeof(Tout) <= sizeof(Tfloat), "");
@@ -1068,8 +1072,9 @@ template <typename Tout, typename Tin,
           typename Tfloat = BigEnoughFloat<Tout, Tin>, int SIMD_WIDTH>
 static SIMD_INLINE void fwaddmul(
   const Vec<Tin, SIMD_WIDTH> vecsIn1[numInVecs<Tout, Tin>()],
-  const Vec<Tin, SIMD_WIDTH> vecsIn2[numInVecs<Tout, Tin>()], Tfloat w,
-  Tfloat fac, Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
+  const Vec<Tin, SIMD_WIDTH> vecsIn2[numInVecs<Tout, Tin>()],
+  dont_deduce<Tfloat> w, dont_deduce<Tfloat> fac,
+  Vec<Tout, SIMD_WIDTH> vecsOut[numOutVecs<Tout, Tin>()])
 {
   static_assert(sizeof(Tin) <= sizeof(Tfloat), "");
   static_assert(sizeof(Tout) <= sizeof(Tfloat), "");

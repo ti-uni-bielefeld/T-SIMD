@@ -83,7 +83,7 @@ struct SerialVec
   static constexpr size_t elems    = elements;
   static constexpr size_t bytes    = SIMD_WIDTH;
 
-  T vec[elements] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  T vec[elements];
 
   SerialVec() = default;
   template <typename U>
@@ -97,7 +97,7 @@ struct SerialVec
     memcpy(vec, x.vec, SIMD_WIDTH);
     return *this;
   }
-  Vec<T, SIMD_WIDTH> getVec() const { return load<SIMD_WIDTH>(vec); }
+  Vec<T, SIMD_WIDTH> getVec() const { return loadu<SIMD_WIDTH>(vec); }
   void setVec(const Vec<T, SIMD_WIDTH> &x) { storeu(vec, x); }
   static SerialVec<T, SIMD_WIDTH> fromVec(const Vec<T, SIMD_WIDTH> &x)
   {
@@ -115,13 +115,6 @@ struct SerialVec
     assert(i < elements);
     return vec[i];
   }
-  // 29. Nov 22 (Jonas Keller):
-  // defined operators new and delete to ensure proper alignment, since
-  // the default new and delete are not guaranteed to do so before C++17
-  void *operator new(size_t size) { return simd_aligned_malloc(bytes, size); }
-  void operator delete(void *p) { simd_aligned_free(p); }
-  void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
-  void operator delete[](void *p) { simd_aligned_free(p); }
   void randomize()
   {
     // random init

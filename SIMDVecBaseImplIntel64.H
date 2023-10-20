@@ -2325,46 +2325,33 @@ static SIMD_INLINE void extend(const Vec<Float, 64> &vIn, Vec<Int, 64> vOut[1])
 template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 64> srai(const Vec<Byte, 64> &a)
 {
-  SIMD_IF_CONSTEXPR (COUNT < 8) {
-    const __m512i odd  = _mm512_srai_epi16(a, COUNT);
-    const __m512i even = _mm512_srai_epi16(_mm512_slli_epi16(a, 8), COUNT + 8);
-    return _mm512_mask_blend_epi8(__mmask64(0x5555555555555555), odd, even);
-  } else {
-    return _mm512_setzero_si512();
-  }
+  const __m512i odd = _mm512_srai_epi16(a, std::min(COUNT, 7ul));
+  const __m512i even =
+    _mm512_srai_epi16(_mm512_slli_epi16(a, 8), std::min(COUNT, 7ul) + 8);
+  const __mmask64 mask = __mmask64(0x5555555555555555);
+  return _mm512_mask_blend_epi8(mask, odd, even);
 }
 
 template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 64> srai(const Vec<SignedByte, 64> &a)
 {
-  SIMD_IF_CONSTEXPR (COUNT < 8) {
-    const __m512i odd  = _mm512_srai_epi16(a, COUNT);
-    const __m512i even = _mm512_srai_epi16(_mm512_slli_epi16(a, 8), COUNT + 8);
-    const __mmask64 mask = __mmask64(0x5555555555555555);
-    return _mm512_mask_blend_epi8(mask, odd, even);
-  } else {
-    return _mm512_setzero_si512();
-  }
+  const __m512i odd = _mm512_srai_epi16(a, std::min(COUNT, 7ul));
+  const __m512i even =
+    _mm512_srai_epi16(_mm512_slli_epi16(a, 8), std::min(COUNT, 7ul) + 8);
+  const __mmask64 mask = __mmask64(0x5555555555555555);
+  return _mm512_mask_blend_epi8(mask, odd, even);
 }
 
 template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 64> srai(const Vec<Word, 64> &a)
 {
-  SIMD_IF_CONSTEXPR (COUNT < 16) {
-    return _mm512_srai_epi16(a, COUNT);
-  } else {
-    return _mm512_setzero_si512();
-  }
+  return _mm512_srai_epi16(a, std::min(COUNT, 15ul));
 }
 
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> srai(const Vec<Short, 64> &a)
 {
-  SIMD_IF_CONSTEXPR (COUNT < 16) {
-    return _mm512_srai_epi16(a, COUNT);
-  } else {
-    return _mm512_setzero_si512();
-  }
+  return _mm512_srai_epi16(a, std::min(COUNT, 15ul));
 }
 
 #else
@@ -2381,11 +2368,7 @@ static SIMD_INLINE Vec<T, 64> srai(const Vec<T, 64> &a)
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> srai(const Vec<Int, 64> &a)
 {
-  SIMD_IF_CONSTEXPR (COUNT < 32) {
-    return _mm512_srai_epi32(a, COUNT);
-  } else {
-    return _mm512_setzero_si512();
-  }
+  return _mm512_srai_epi32(a, std::min(COUNT, 31ul));
 }
 
 // ---------------------------------------------------------------------------
@@ -2525,7 +2508,7 @@ static SIMD_INLINE Vec<Short, 64> slli(const Vec<Short, 64> &a)
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> slli(const Vec<Int, 64> &a)
 {
-  SIMD_IF_CONSTEXPR (COUNT < 16) {
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
     return _mm512_slli_epi32(a, COUNT);
   } else {
     return _mm512_setzero_si512();

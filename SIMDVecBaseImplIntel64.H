@@ -1986,12 +1986,172 @@ static SIMD_INLINE void zip16(const Vec<T, 64> a, const Vec<T, 64> b,
 // a, b are passed by-value to avoid problems with identical
 // input/output args.
 
-template <typename T, size_t BYTES>
+// integer version
+template <typename T>
 static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
-                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<BYTES>)
+                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<1>)
 {
-  l = unpack(a, b, Part<0>(), Bytes<BYTES>());
-  h = unpack(a, b, Part<1>(), Bytes<BYTES>());
+#ifdef __AVX512VBMI__
+  const __m512i idxL = _mm512_set_epi8(
+    126, 124, 122, 120, 118, 116, 114, 112, 110, 108, 106, 104, 102, 100, 98,
+    96, 94, 92, 90, 88, 86, 84, 82, 80, 78, 76, 74, 72, 70, 68, 66, 64, 62, 60,
+    58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22,
+    20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
+  const __m512i idxH = _mm512_set_epi8(
+    127, 125, 123, 121, 119, 117, 115, 113, 111, 109, 107, 105, 103, 101, 99,
+    97, 95, 93, 91, 89, 87, 85, 83, 81, 79, 77, 75, 73, 71, 69, 67, 65, 63, 61,
+    59, 57, 55, 53, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33, 31, 29, 27, 25, 23,
+    21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1);
+  l = _mm512_permutex2var_epi8(a, idxL, b);
+  h = _mm512_permutex2var_epi8(a, idxH, b);
+#else
+  const __m512i mask = _mm512_set_epi8(
+    15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0, 15, 13, 11, 9, 7, 5,
+    3, 1, 14, 12, 10, 8, 6, 4, 2, 0, 15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8,
+    6, 4, 2, 0, 15, 13, 11, 9, 7, 5, 3, 1, 14, 12, 10, 8, 6, 4, 2, 0);
+  const __m512i atmp = x_mm512_shuffle_epi8(a, mask);
+  const __m512i btmp = x_mm512_shuffle_epi8(b, mask);
+  l                  = _mm512_permutex2var_epi64(
+    atmp, _mm512_set_epi64(14, 12, 10, 8, 6, 4, 2, 0), btmp);
+  h = _mm512_permutex2var_epi64(
+    atmp, _mm512_set_epi64(15, 13, 11, 9, 7, 5, 3, 1), btmp);
+#endif
+}
+
+// integer version
+template <typename T>
+static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
+                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<2>)
+{
+#ifdef __AVX512BW__
+  const __m512i idxL = _mm512_set_epi16(
+    62, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34, 32, 30, 28, 26,
+    24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
+  const __m512i idxH = _mm512_set_epi16(
+    63, 61, 59, 57, 55, 53, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33, 31, 29, 27,
+    25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1);
+  l = _mm512_permutex2var_epi16(a, idxL, b);
+  h = _mm512_permutex2var_epi16(a, idxH, b);
+#else
+  const __m512i mask = x_mm512_set_epi8(
+    15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0, 15, 14, 11, 10, 7, 6,
+    3, 2, 13, 12, 9, 8, 5, 4, 1, 0, 15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5,
+    4, 1, 0, 15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0);
+  const __m512i atmp = x_mm512_shuffle_epi8(a, mask);
+  const __m512i btmp = x_mm512_shuffle_epi8(b, mask);
+  l                  = _mm512_permutex2var_epi64(
+    atmp, _mm512_set_epi64(14, 12, 10, 8, 6, 4, 2, 0), btmp);
+  h = _mm512_permutex2var_epi64(
+    atmp, _mm512_set_epi64(15, 13, 11, 9, 7, 5, 3, 1), btmp);
+#endif
+}
+
+// integer version
+template <typename T>
+static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
+                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<4>)
+{
+  const __m512i idxL =
+    _mm512_set_epi32(30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
+  const __m512i idxH =
+    _mm512_set_epi32(31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1);
+  l = _mm512_permutex2var_epi32(a, idxL, b);
+  h = _mm512_permutex2var_epi32(a, idxH, b);
+}
+
+// integer version
+template <typename T>
+static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
+                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<8>)
+{
+  const __m512i idxL = _mm512_set_epi64(14, 12, 10, 8, 6, 4, 2, 0);
+  const __m512i idxH = _mm512_set_epi64(15, 13, 11, 9, 7, 5, 3, 1);
+  l                  = _mm512_permutex2var_epi64(a, idxL, b);
+  h                  = _mm512_permutex2var_epi64(a, idxH, b);
+}
+
+// integer version
+template <typename T>
+static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
+                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<16>)
+{
+  const __m512i idxL = _mm512_set_epi64(13, 12, 9, 8, 5, 4, 1, 0);
+  const __m512i idxH = _mm512_set_epi64(15, 14, 11, 10, 7, 6, 3, 2);
+  l                  = _mm512_permutex2var_epi64(a, idxL, b);
+  h                  = _mm512_permutex2var_epi64(a, idxH, b);
+}
+
+// integer version
+template <typename T>
+static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
+                              Vec<T, 64> &l, Vec<T, 64> &h, Bytes<32>)
+{
+  l = unpack(a, b, Part<0>(), Bytes<32>());
+  h = unpack(a, b, Part<1>(), Bytes<32>());
+}
+
+// float version
+static SIMD_INLINE void unzip(const Vec<Float, 64> a, const Vec<Float, 64> b,
+                              Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<4>)
+{
+  const __m512i idxL =
+    _mm512_set_epi32(30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
+  const __m512i idxH =
+    _mm512_set_epi32(31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1);
+  l = _mm512_permutex2var_ps(a, idxL, b);
+  h = _mm512_permutex2var_ps(a, idxH, b);
+}
+
+// float version
+static SIMD_INLINE void unzip(const Vec<Float, 64> a, const Vec<Float, 64> b,
+                              Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<8>)
+{
+  const __m512i idxL = _mm512_set_epi64(14, 12, 10, 8, 6, 4, 2, 0);
+  const __m512i idxH = _mm512_set_epi64(15, 13, 11, 9, 7, 5, 3, 1);
+  l                  = _mm512_castpd_ps(
+    _mm512_permutex2var_pd(_mm512_castps_pd(a), idxL, _mm512_castps_pd(b)));
+  h = _mm512_castpd_ps(
+    _mm512_permutex2var_pd(_mm512_castps_pd(a), idxH, _mm512_castps_pd(b)));
+}
+
+// float version
+static SIMD_INLINE void unzip(const Vec<Float, 64> a, const Vec<Float, 64> b,
+                              Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<16>)
+{
+  const __m512i idxL = _mm512_set_epi64(13, 12, 9, 8, 5, 4, 1, 0);
+  const __m512i idxH = _mm512_set_epi64(15, 14, 11, 10, 7, 6, 3, 2);
+  l                  = _mm512_castpd_ps(
+    _mm512_permutex2var_pd(_mm512_castps_pd(a), idxL, _mm512_castps_pd(b)));
+  h = _mm512_castpd_ps(
+    _mm512_permutex2var_pd(_mm512_castps_pd(a), idxH, _mm512_castps_pd(b)));
+}
+
+// float version
+static SIMD_INLINE void unzip(const Vec<Float, 64> a, const Vec<Float, 64> b,
+                              Vec<Float, 64> &l, Vec<Float, 64> &h, Bytes<32>)
+{
+  l = unpack(a, b, Part<0>(), Bytes<32>());
+  h = unpack(a, b, Part<1>(), Bytes<32>());
+}
+
+// double version
+static SIMD_INLINE void unzip(const Vec<Double, 64> a, const Vec<Double, 64> b,
+                              Vec<Double, 64> &l, Vec<Double, 64> &h, Bytes<8>)
+{
+  const __m512i idxL = _mm512_set_epi64(14, 12, 10, 8, 6, 4, 2, 0);
+  const __m512i idxH = _mm512_set_epi64(15, 13, 11, 9, 7, 5, 3, 1);
+  l                  = _mm512_permutex2var_pd(a, idxL, b);
+  h                  = _mm512_permutex2var_pd(a, idxH, b);
+}
+
+// double version
+static SIMD_INLINE void unzip(const Vec<Double, 64> a, const Vec<Double, 64> b,
+                              Vec<Double, 64> &l, Vec<Double, 64> &h, Bytes<16>)
+{
+  const __m512i idxL = _mm512_set_epi64(13, 12, 9, 8, 5, 4, 1, 0);
+  const __m512i idxH = _mm512_set_epi64(15, 14, 11, 10, 7, 6, 3, 2);
+  l                  = _mm512_permutex2var_pd(a, idxL, b);
+  h                  = _mm512_permutex2var_pd(a, idxH, b);
 }
 
 // ---------------------------------------------------------------------------

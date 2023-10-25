@@ -2033,7 +2033,7 @@ static SIMD_INLINE void unzip(const Vec<T, 64> a, const Vec<T, 64> b,
   l = _mm512_permutex2var_epi16(a, idxL, b);
   h = _mm512_permutex2var_epi16(a, idxH, b);
 #else
-  const __m512i mask = x_mm512_set_epi8(
+  const __m512i mask = _mm512_set_epi8(
     15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0, 15, 14, 11, 10, 7, 6,
     3, 2, 13, 12, 9, 8, 5, 4, 1, 0, 15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5,
     4, 1, 0, 15, 14, 11, 10, 7, 6, 3, 2, 13, 12, 9, 8, 5, 4, 1, 0);

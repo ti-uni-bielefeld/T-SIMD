@@ -74,7 +74,7 @@ template <typename Tdst, typename Tsrc, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tdst, SIMD_WIDTH> reinterpret(
   const Vec<Tsrc, SIMD_WIDTH> &, OutputType<Tdst>)
 {
-  printf("reinterpret<%s,%s,%d>(V)\n", TypeInfo<Tdst>::name(),
+  printf("reinterpret<%s,%s,%zu>(V)\n", TypeInfo<Tdst>::name(),
          TypeInfo<Tsrc>::name(), SIMD_WIDTH);
   return Vec<Tdst, SIMD_WIDTH>();
 }
@@ -87,14 +87,14 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setzero(OutputType<T>,
                                               Integer<SIMD_WIDTH>)
 {
-  printf("setzero<%s,%d>()\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("setzero<%s,%zu>()\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> set1(T, Integer<SIMD_WIDTH>)
 {
-  printf("set1<%s,%d>()\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("set1<%s,%zu>()\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -103,7 +103,7 @@ template <size_t SIMD_WIDTH, typename T>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> load(const T *const p,
                                            Integer<SIMD_WIDTH>)
 {
-  printf("load<%d,%s>(%p)\n", SIMD_WIDTH, TypeInfo<T>::name(), (void *) p);
+  printf("load<%zu,%s>(%p)\n", SIMD_WIDTH, TypeInfo<T>::name(), (void *) p);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -112,26 +112,26 @@ template <size_t SIMD_WIDTH, typename T>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> loadu(const T *const p,
                                             Integer<SIMD_WIDTH>)
 {
-  printf("loadu<%d,%s>(%p)\n", SIMD_WIDTH, TypeInfo<T>::name(), (void *) p);
+  printf("loadu<%zu,%s>(%p)\n", SIMD_WIDTH, TypeInfo<T>::name(), (void *) p);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void store(T *const p, const Vec<T, SIMD_WIDTH> &)
 {
-  printf("store<%s,%d>(%p,V)\n", TypeInfo<T>::name(), SIMD_WIDTH, (void *) p);
+  printf("store<%s,%zu>(%p,V)\n", TypeInfo<T>::name(), SIMD_WIDTH, (void *) p);
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void storeu(T *const p, const Vec<T, SIMD_WIDTH> &)
 {
-  printf("storeu<%s,%d>(%p,V)\n", TypeInfo<T>::name(), SIMD_WIDTH, (void *) p);
+  printf("storeu<%s,%zu>(%p,V)\n", TypeInfo<T>::name(), SIMD_WIDTH, (void *) p);
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void stream_store(T *const p, const Vec<T, SIMD_WIDTH> &)
 {
-  printf("stream_store<%s,%d>(%p,V)\n", TypeInfo<T>::name(), SIMD_WIDTH,
+  printf("stream_store<%s,%zu>(%p,V)\n", TypeInfo<T>::name(), SIMD_WIDTH,
          (void *) p);
 }
 
@@ -153,7 +153,7 @@ static SIMD_INLINE void mfence()
 template <size_t INDEX, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE T extract(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("extract<%d,%s,%d>(V)\n", INDEX, TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("extract<%zu,%s,%zu>(V)\n", INDEX, TypeInfo<T>::name(), SIMD_WIDTH);
   return T(0);
 }
 
@@ -161,7 +161,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> add(const Vec<T, SIMD_WIDTH> &,
                                           const Vec<T, SIMD_WIDTH> &)
 {
-  printf("add<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("add<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -169,7 +169,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> adds(const Vec<T, SIMD_WIDTH> &,
                                            const Vec<T, SIMD_WIDTH> &)
 {
-  printf("adds<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("adds<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -177,7 +177,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sub(const Vec<T, SIMD_WIDTH> &,
                                           const Vec<T, SIMD_WIDTH> &)
 {
-  printf("sub<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("sub<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -185,14 +185,14 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> subs(const Vec<T, SIMD_WIDTH> &,
                                            const Vec<T, SIMD_WIDTH> &)
 {
-  printf("subs<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("subs<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> neg(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("neg<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("neg<%s,%zu>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -200,7 +200,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mul(const Vec<T, SIMD_WIDTH> &,
                                           const Vec<T, SIMD_WIDTH> &)
 {
-  printf("mul<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("mul<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -208,56 +208,56 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> div(const Vec<T, SIMD_WIDTH> &,
                                           const Vec<T, SIMD_WIDTH> &)
 {
-  printf("div<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("div<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> ceil(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("ceil<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("ceil<%s,%zu>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> floor(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("floor<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("floor<%s,%zu>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> round(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("round<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("round<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> truncate(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("truncate<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("truncate<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> rcp(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("rcp<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("rcp<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> rsqrt(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("rsqrt<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("rsqrt<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sqrt(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("sqrt<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("sqrt<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -265,7 +265,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> min(const Vec<T, SIMD_WIDTH> &,
                                           const Vec<T, SIMD_WIDTH> &)
 {
-  printf("min<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("min<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -273,14 +273,14 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> max(const Vec<T, SIMD_WIDTH> &,
                                           const Vec<T, SIMD_WIDTH> &)
 {
-  printf("max<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("max<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> abs(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("abs<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("abs<%s,%zu>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -292,7 +292,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack(const Vec<T, SIMD_WIDTH> &,
                                              const Vec<T, SIMD_WIDTH> &,
                                              Part<PART>, Bytes<BYTES>)
 {
-  printf("unpack<PART=%d,BYTES=%d,%s,%d>(V,V)\n", PART, BYTES,
+  printf("unpack<PART=%zu,BYTES=%zu,%s,%zu>(V,V)\n", PART, BYTES,
          TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
@@ -303,7 +303,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack16(const Vec<T, SIMD_WIDTH> &,
                                                const Vec<T, SIMD_WIDTH> &,
                                                Part<PART>, Bytes<BYTES>)
 {
-  printf("unpack16<PART=%d,BYTES=%d,%s,%d>(V,V)\n", PART, BYTES,
+  printf("unpack16<PART=%zu,BYTES=%zu,%s,%zu>(V,V)\n", PART, BYTES,
          TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
@@ -312,7 +312,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> unpack16(const Vec<T, SIMD_WIDTH> &,
 template <size_t LANE_INDEX, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, 16> extractLane(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("extractLane<IMM=%d,%s,%d>(V)\n", LANE_INDEX, TypeInfo<T>::name(),
+  printf("extractLane<IMM=%zu,%s,%zu>(V)\n", LANE_INDEX, TypeInfo<T>::name(),
          SIMD_WIDTH);
   return Vec<T, 16>();
 }
@@ -322,8 +322,8 @@ template <size_t NUM_ELEMS, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void zip(const Vec<T, SIMD_WIDTH>, const Vec<T, SIMD_WIDTH>,
                             Vec<T, SIMD_WIDTH> &, Vec<T, SIMD_WIDTH> &)
 {
-  printf("zip<NUM_ELEMS=%d,%s,%d>(V,V,V&,V&)\n", NUM_ELEMS, TypeInfo<T>::name(),
-         SIMD_WIDTH);
+  printf("zip<NUM_ELEMS=%zu,%s,%zu>(V,V,V&,V&)\n", NUM_ELEMS,
+         TypeInfo<T>::name(), SIMD_WIDTH);
 }
 
 // zip16
@@ -332,7 +332,7 @@ static SIMD_INLINE void zip16(const Vec<T, SIMD_WIDTH>,
                               const Vec<T, SIMD_WIDTH>, Vec<T, SIMD_WIDTH> &,
                               Vec<T, SIMD_WIDTH> &)
 {
-  printf("zip16<NUM_ELEMS=%d,%s,%d>(V,V,V&,V&)\n", NUM_ELEMS,
+  printf("zip16<NUM_ELEMS=%zu,%s,%zu>(V,V,V&,V&)\n", NUM_ELEMS,
          TypeInfo<T>::name(), SIMD_WIDTH);
 }
 
@@ -342,7 +342,7 @@ static SIMD_INLINE void unzip(const Vec<T, SIMD_WIDTH>,
                               const Vec<T, SIMD_WIDTH>, Vec<T, SIMD_WIDTH> &,
                               Vec<T, SIMD_WIDTH> &, Bytes<BYTES>)
 {
-  printf("unzip<BYTES=%d,%s,%d>(V,V,V&,V&)\n", BYTES, TypeInfo<T>::name(),
+  printf("unzip<BYTES=%zu,%s,%zu>(V,V,V&,V&)\n", BYTES, TypeInfo<T>::name(),
          SIMD_WIDTH);
 }
 
@@ -352,7 +352,7 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> &,
                                                const Vec<Tin, SIMD_WIDTH> &,
                                                OutputType<Tout>)
 {
-  printf("packs<%s,%s,%d>(V,V)\n", TypeInfo<Tout>::name(),
+  printf("packs<%s,%s,%zu>(V,V)\n", TypeInfo<Tout>::name(),
          TypeInfo<Tin>::name(), SIMD_WIDTH);
   return Vec<Tout, SIMD_WIDTH>();
 }
@@ -365,28 +365,28 @@ static SIMD_INLINE void extend(
   const Vec<Tin, SIMD_WIDTH> &,
   Vec<Tout, SIMD_WIDTH>[sizeof(Tout) / sizeof(Tin)])
 {
-  printf("extend<%s,%s,%d>>(V,V*)\n", TypeInfo<Tout>::name(),
+  printf("extend<%s,%s,%zu>>(V,V*)\n", TypeInfo<Tout>::name(),
          TypeInfo<Tin>::name(), SIMD_WIDTH);
 }
 
 template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srai(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("srai<%d,%s,%d>(V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("srai<%zu,%s,%zu>(V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srli(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("srli<%d,%s,%d>(V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("srli<%zu,%s,%zu>(V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
 template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> slli(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("slli<%d,%s,%d>(V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("slli<%zu,%s,%zu>(V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -396,7 +396,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sra(const Vec<T, SIMD_WIDTH> &,
                                           const uint8_t)
 {
-  printf("sra<%s,%d>(V, U8)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("sra<%s,%zu>(V, U8)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -404,7 +404,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srl(const Vec<T, SIMD_WIDTH> &,
                                           const uint8_t)
 {
-  printf("srl<%s,%d>(V, U8)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("srl<%s,%zu>(V, U8)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -412,7 +412,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sll(const Vec<T, SIMD_WIDTH> &,
                                           const uint8_t)
 {
-  printf("sll<%s,%d>(V, U8)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("sll<%s,%zu>(V, U8)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -422,7 +422,7 @@ template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> cvts(const Vec<Tin, SIMD_WIDTH> &,
                                               OutputType<Tout>)
 {
-  printf("cvts<%s,%s,%d>(V)\n", TypeInfo<Tout>::name(), TypeInfo<Tin>::name(),
+  printf("cvts<%s,%s,%zu>(V)\n", TypeInfo<Tout>::name(), TypeInfo<Tin>::name(),
          SIMD_WIDTH);
   return Vec<Tout, SIMD_WIDTH>();
 }
@@ -432,7 +432,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hadd(const Vec<T, SIMD_WIDTH> &,
                                            const Vec<T, SIMD_WIDTH> &)
 {
-  printf("hadd<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("hadd<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -441,7 +441,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hadds(const Vec<T, SIMD_WIDTH> &,
                                             const Vec<T, SIMD_WIDTH> &)
 {
-  printf("hadds<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("hadds<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -450,7 +450,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hsub(const Vec<T, SIMD_WIDTH> &,
                                            const Vec<T, SIMD_WIDTH> &)
 {
-  printf("hsub<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("hsub<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -459,7 +459,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(const Vec<T, SIMD_WIDTH> &,
                                             const Vec<T, SIMD_WIDTH> &)
 {
-  printf("hsubs<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("hsubs<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -467,7 +467,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> hsubs(const Vec<T, SIMD_WIDTH> &,
 template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> srle(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("srle<%d,%s,%d>(V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("srle<%zu,%s,%zu>(V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -475,7 +475,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> srle(const Vec<T, SIMD_WIDTH> &)
 template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> slle(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("slle<%d,%s,%d>(V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("slle<%zu,%s,%zu>(V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -484,7 +484,7 @@ template <size_t COUNT, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &,
                                               const Vec<T, SIMD_WIDTH> &)
 {
-  printf("alignre<%d,%s,%d>(V,V)\n", IMM, TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("alignre<%zu,%s,%zu>(V,V)\n", COUNT, TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -492,7 +492,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &,
 template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle(Vec<T, SIMD_WIDTH>[N], Integer<N>)
 {
-  printf("swizzle<%d,%s,%d>(V,V*)\n", N, TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("swizzle<%zu,%s,%zu>(V,V*)\n", N, TypeInfo<T>::name(), SIMD_WIDTH);
 }
 
 // ifelse
@@ -501,7 +501,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> ifelse(const Vec<T, SIMD_WIDTH> &,
                                              const Vec<T, SIMD_WIDTH> &,
                                              const Vec<T, SIMD_WIDTH> &)
 {
-  printf("ifelse<%s,%d>(V,V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("ifelse<%s,%zu>(V,V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -510,7 +510,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmplt(const Vec<T, SIMD_WIDTH> &,
                                             const Vec<T, SIMD_WIDTH> &)
 {
-  printf("cmplt<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("cmplt<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -519,7 +519,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmple(const Vec<T, SIMD_WIDTH> &,
                                             const Vec<T, SIMD_WIDTH> &)
 {
-  printf("cmple<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("cmple<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -528,7 +528,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpeq(const Vec<T, SIMD_WIDTH> &,
                                             const Vec<T, SIMD_WIDTH> &)
 {
-  printf("cmpeq<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("cmpeq<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -537,7 +537,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpge(const Vec<T, SIMD_WIDTH> &,
                                             const Vec<T, SIMD_WIDTH> &)
 {
-  printf("cmpge<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("cmpge<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -546,7 +546,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpgt(const Vec<T, SIMD_WIDTH> &,
                                             const Vec<T, SIMD_WIDTH> &)
 {
-  printf("cmpgt<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("cmpgt<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -555,7 +555,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> cmpneq(const Vec<T, SIMD_WIDTH> &,
                                              const Vec<T, SIMD_WIDTH> &)
 {
-  printf("cmpneq<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("cmpneq<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -564,7 +564,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_and(const Vec<T, SIMD_WIDTH> &,
                                               const Vec<T, SIMD_WIDTH> &)
 {
-  printf("and<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("and<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -573,7 +573,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_or(const Vec<T, SIMD_WIDTH> &,
                                              const Vec<T, SIMD_WIDTH> &)
 {
-  printf("or<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("or<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -582,7 +582,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_andnot(const Vec<T, SIMD_WIDTH> &,
                                                  const Vec<T, SIMD_WIDTH> &)
 {
-  printf("bit_andnot<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("bit_andnot<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -591,7 +591,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_xor(const Vec<T, SIMD_WIDTH> &,
                                               const Vec<T, SIMD_WIDTH> &)
 {
-  printf("xor<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("xor<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -599,7 +599,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_xor(const Vec<T, SIMD_WIDTH> &,
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> bit_not(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("not<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("not<%s,%zu>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -607,7 +607,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> avg(const Vec<T, SIMD_WIDTH> &,
                                           const Vec<T, SIMD_WIDTH> &)
 {
-  printf("avg<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("avg<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -615,7 +615,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> avg(const Vec<T, SIMD_WIDTH> &,
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE bool test_all_zeros(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("test_all_zeros<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("test_all_zeros<%s,%zu>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return 0;
 }
 
@@ -623,7 +623,7 @@ static SIMD_INLINE bool test_all_zeros(const Vec<T, SIMD_WIDTH> &)
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE bool test_all_ones(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("test_all_ones<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("test_all_ones<%s,%zu>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return 0;
 }
 
@@ -633,7 +633,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> sign(const Vec<T, SIMD_WIDTH> &,
                                            const Vec<T, SIMD_WIDTH> &)
 {
-  printf("sign<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("sign<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -643,7 +643,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> absDiff(const Vec<T, SIMD_WIDTH> &,
                                               const Vec<T, SIMD_WIDTH> &)
 {
-  printf("absDiff<%s,%d>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("absDiff<%s,%zu>(V,V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -651,7 +651,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> absDiff(const Vec<T, SIMD_WIDTH> &,
 template <typename T, size_t SIMD_WIDTH>
 static Vec<T, SIMD_WIDTH> reverse(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("reverse<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("reverse<%s,%zu>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -659,7 +659,7 @@ static Vec<T, SIMD_WIDTH> reverse(const Vec<T, SIMD_WIDTH> &)
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE uint64_t msb2int(const Vec<T, SIMD_WIDTH> &)
 {
-  printf("msb2int<%s,%d>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("msb2int<%s,%zu>(V)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return 0;
 }
 
@@ -668,7 +668,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> int2msb(const uint64_t, OutputType<T>,
                                               Integer<SIMD_WIDTH>)
 {
-  printf("int2msb<%s,%d>(U64)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("int2msb<%s,%zu>(U64)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -677,7 +677,7 @@ template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> int2bits(const uint64_t, OutputType<T>,
                                                Integer<SIMD_WIDTH>)
 {
-  printf("int2bits<%s,%d>(U64)\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("int2bits<%s,%zu>(U64)\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 
@@ -686,7 +686,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> int2bits(const uint64_t, OutputType<T>,
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> iota(OutputType<T>, Integer<SIMD_WIDTH>)
 {
-  printf("iota<%s,%d>()\n", TypeInfo<T>::name(), SIMD_WIDTH);
+  printf("iota<%s,%zu>()\n", TypeInfo<T>::name(), SIMD_WIDTH);
   return Vec<T, SIMD_WIDTH>();
 }
 } // namespace base

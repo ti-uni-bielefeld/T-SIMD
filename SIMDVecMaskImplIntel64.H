@@ -912,26 +912,26 @@ static SIMD_INLINE Vec<Word, 64> mask_srai(const Vec<Word, 64> &src,
                                            const Mask<Word, 64> &k,
                                            const Vec<Word, 64> &a)
 {
-  return _mm512_mask_srai_epi16(src, k, a, std::min(COUNT, 15ul));
+  return _mm512_mask_srai_epi16(src, k, a, vec::min(COUNT, 15ul));
 }
 template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 64> maskz_srai(const Mask<Word, 64> &k,
                                             const Vec<Word, 64> &a)
 {
-  return _mm512_maskz_srai_epi16(k, a, std::min(COUNT, 15ul));
+  return _mm512_maskz_srai_epi16(k, a, vec::min(COUNT, 15ul));
 }
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> mask_srai(const Vec<Short, 64> &src,
                                             const Mask<Short, 64> &k,
                                             const Vec<Short, 64> &a)
 {
-  return _mm512_mask_srai_epi16(src, k, a, std::min(COUNT, 15ul));
+  return _mm512_mask_srai_epi16(src, k, a, vec::min(COUNT, 15ul));
 }
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> maskz_srai(const Mask<Short, 64> &k,
                                              const Vec<Short, 64> &a)
 {
-  return _mm512_maskz_srai_epi16(k, a, std::min(COUNT, 15ul));
+  return _mm512_maskz_srai_epi16(k, a, vec::min(COUNT, 15ul));
 }
 #endif
 template <size_t COUNT>
@@ -939,13 +939,13 @@ static SIMD_INLINE Vec<Int, 64> mask_srai(const Vec<Int, 64> &src,
                                           const Mask<Int, 64> &k,
                                           const Vec<Int, 64> &a)
 {
-  return _mm512_mask_srai_epi32(src, k, a, std::min(COUNT, 31ul));
+  return _mm512_mask_srai_epi32(src, k, a, vec::min(COUNT, 31ul));
 }
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> maskz_srai(const Mask<Int, 64> &k,
                                            const Vec<Int, 64> &a)
 {
-  return _mm512_maskz_srai_epi32(k, a, std::min(COUNT, 31ul));
+  return _mm512_maskz_srai_epi32(k, a, vec::min(COUNT, 31ul));
 }
 
 // ---------------------------------------------------------------------------

@@ -2149,19 +2149,19 @@ static SIMD_INLINE Vec<SignedByte, 16> srai(const Vec<SignedByte, 16> &a)
 template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 16> srai(const Vec<Word, 16> &a)
 {
-  return _mm_srai_epi16(a, std::min(COUNT, 15ul));
+  return _mm_srai_epi16(a, vec::min(COUNT, 15ul));
 }
 
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 16> srai(const Vec<Short, 16> &a)
 {
-  return _mm_srai_epi16(a, std::min(COUNT, 15ul));
+  return _mm_srai_epi16(a, vec::min(COUNT, 15ul));
 }
 
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 16> srai(const Vec<Int, 16> &a)
 {
-  return _mm_srai_epi32(a, std::min(COUNT, 31ul));
+  return _mm_srai_epi32(a, vec::min(COUNT, 31ul));
 }
 
 // ---------------------------------------------------------------------------
@@ -2588,7 +2588,7 @@ static SIMD_INLINE Vec<T, 16> srle(const Vec<T, 16> &a)
 {
   const auto intA = reinterpret(a, OutputType<Int>());
   const Vec<Int, 16> result =
-    _mm_srli_si128(intA, std::min(COUNT * sizeof(T), 16lu));
+    _mm_srli_si128(intA, vec::min(COUNT * sizeof(T), 16lu));
   return reinterpret(result, OutputType<T>());
 }
 
@@ -2602,7 +2602,7 @@ static SIMD_INLINE Vec<T, 16> slle(const Vec<T, 16> &a)
 {
   const auto intA = reinterpret(a, OutputType<Int>());
   const Vec<Int, 16> result =
-    _mm_slli_si128(intA, std::min(COUNT * sizeof(T), 16lu));
+    _mm_slli_si128(intA, vec::min(COUNT * sizeof(T), 16lu));
   return reinterpret(result, OutputType<T>());
 }
 

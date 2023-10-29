@@ -2864,19 +2864,19 @@ static SIMD_INLINE Vec<SignedByte, 32> srai(const Vec<SignedByte, 32> &a)
 template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 32> srai(const Vec<Word, 32> &a)
 {
-  return _mm256_srai_epi16(a, std::min(COUNT, 15ul));
+  return _mm256_srai_epi16(a, vec::min(COUNT, 15ul));
 }
 
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 32> srai(const Vec<Short, 32> &a)
 {
-  return _mm256_srai_epi16(a, std::min(COUNT, 15ul));
+  return _mm256_srai_epi16(a, vec::min(COUNT, 15ul));
 }
 
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 32> srai(const Vec<Int, 32> &a)
 {
-  return _mm256_srai_epi32(a, std::min(COUNT, 31ul));
+  return _mm256_srai_epi32(a, vec::min(COUNT, 31ul));
 }
 
 #else

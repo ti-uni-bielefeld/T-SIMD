@@ -2485,9 +2485,9 @@ static SIMD_INLINE void extend(const Vec<Float, 64> &vIn, Vec<Int, 64> vOut[1])
 template <size_t COUNT>
 static SIMD_INLINE Vec<Byte, 64> srai(const Vec<Byte, 64> &a)
 {
-  const __m512i odd = _mm512_srai_epi16(a, std::min(COUNT, 7ul));
+  const __m512i odd = _mm512_srai_epi16(a, vec::min(COUNT, 7ul));
   const __m512i even =
-    _mm512_srai_epi16(_mm512_slli_epi16(a, 8), std::min(COUNT, 7ul) + 8);
+    _mm512_srai_epi16(_mm512_slli_epi16(a, 8), vec::min(COUNT, 7ul) + 8);
   const __mmask64 mask = __mmask64(0x5555555555555555);
   return _mm512_mask_blend_epi8(mask, odd, even);
 }
@@ -2495,9 +2495,9 @@ static SIMD_INLINE Vec<Byte, 64> srai(const Vec<Byte, 64> &a)
 template <size_t COUNT>
 static SIMD_INLINE Vec<SignedByte, 64> srai(const Vec<SignedByte, 64> &a)
 {
-  const __m512i odd = _mm512_srai_epi16(a, std::min(COUNT, 7ul));
+  const __m512i odd = _mm512_srai_epi16(a, vec::min(COUNT, 7ul));
   const __m512i even =
-    _mm512_srai_epi16(_mm512_slli_epi16(a, 8), std::min(COUNT, 7ul) + 8);
+    _mm512_srai_epi16(_mm512_slli_epi16(a, 8), vec::min(COUNT, 7ul) + 8);
   const __mmask64 mask = __mmask64(0x5555555555555555);
   return _mm512_mask_blend_epi8(mask, odd, even);
 }
@@ -2505,13 +2505,13 @@ static SIMD_INLINE Vec<SignedByte, 64> srai(const Vec<SignedByte, 64> &a)
 template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 64> srai(const Vec<Word, 64> &a)
 {
-  return _mm512_srai_epi16(a, std::min(COUNT, 15ul));
+  return _mm512_srai_epi16(a, vec::min(COUNT, 15ul));
 }
 
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> srai(const Vec<Short, 64> &a)
 {
-  return _mm512_srai_epi16(a, std::min(COUNT, 15ul));
+  return _mm512_srai_epi16(a, vec::min(COUNT, 15ul));
 }
 
 #else
@@ -2528,7 +2528,7 @@ static SIMD_INLINE Vec<T, 64> srai(const Vec<T, 64> &a)
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> srai(const Vec<Int, 64> &a)
 {
-  return _mm512_srai_epi32(a, std::min(COUNT, 31ul));
+  return _mm512_srai_epi32(a, vec::min(COUNT, 31ul));
 }
 
 // ---------------------------------------------------------------------------

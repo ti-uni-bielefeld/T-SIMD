@@ -94,35 +94,35 @@ int main(int argc, char *argv[])
   ArrayTemplateType<SignedByte, Short, SW, PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<SignedByte, Int, SW, PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<SignedByte, Float, SW, PacksMulti>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayTemplateType<SignedByte, Double, SW, PacksMulti>::test(repeats1,
                                                               pattern);
 #endif
   ArrayTemplateType<Byte, Short, SW, PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<Byte, Int, SW, PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<Byte, Float, SW, PacksMulti>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayTemplateType<Byte, Double, SW, PacksMulti>::test(repeats1, pattern);
 #endif
   ArrayTemplateType<Short, Short, SW, PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<Short, Int, SW, PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<Short, Float, SW, PacksMulti>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayTemplateType<Short, Double, SW, PacksMulti>::test(repeats1, pattern);
 #endif
   ArrayTemplateType<Word, Int, SW, PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<Word, Float, SW, PacksMulti>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayTemplateType<Word, Double, SW, PacksMulti>::test(repeats1, pattern);
 #endif
   ArrayTemplateType<Int, Int, SW, PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<Int, Float, SW, PacksMulti>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayTemplateType<Int, Double, SW, PacksMulti>::test(repeats1, pattern);
 #endif
   ArrayTemplateType<Float, Int, SW, PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<Float, Float, SW, PacksMulti>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayTemplateType<Float, Double, SW, PacksMulti>::test(repeats1, pattern);
   ArrayTemplateType<Double, Double, SW, PacksMulti>::test(repeats1, pattern);
 #endif
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
                                                                  pattern);
   ArrayArrayVoidTemplateType<SignedByte, Float, SW, Convert>::test(repeats1,
                                                                    pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayArrayVoidTemplateType<SignedByte, Double, SW, Convert>::test(repeats1,
                                                                     pattern);
 #endif
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
   // ArrayArrayVoidTemplateType<Byte, Word, SW, Convert>::test(r, p);
   ArrayArrayVoidTemplateType<Byte, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Byte, Float, SW, Convert>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayArrayVoidTemplateType<Byte, Double, SW, Convert>::test(repeats1,
                                                               pattern);
 #endif
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
   ArrayArrayVoidTemplateType<Short, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Short, Float, SW, Convert>::test(repeats1,
                                                               pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayArrayVoidTemplateType<Short, Double, SW, Convert>::test(repeats1,
                                                                pattern);
 #endif
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
   ArrayArrayVoidTemplateType<Word, Word, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Word, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Word, Float, SW, Convert>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayArrayVoidTemplateType<Word, Double, SW, Convert>::test(repeats1,
                                                               pattern);
 #endif
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
   ArrayArrayVoidTemplateType<Int, Word, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Int, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Int, Float, SW, Convert>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayArrayVoidTemplateType<Int, Double, SW, Convert>::test(repeats1, pattern);
 #endif
   ArrayArrayVoidTemplateType<Float, SignedByte, SW, Convert>::test(repeats1,
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
   ArrayArrayVoidTemplateType<Float, Int, SW, Convert>::test(repeats1, pattern);
   ArrayArrayVoidTemplateType<Float, Float, SW, Convert>::test(repeats1,
                                                               pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   ArrayArrayVoidTemplateType<Float, Double, SW, Convert>::test(repeats1,
                                                                pattern);
   ArrayArrayVoidTemplateType<Double, SignedByte, SW, Convert>::test(repeats1,

@@ -72,6 +72,17 @@ SIMD_INLINE Int getRandom<Int>()
   return i;
 }
 
+template <>
+SIMD_INLINE Long getRandom<Long>()
+{
+  Int i[2];
+  i[0] = getRandom<Int>();
+  i[1] = getRandom<Int>();
+  Long l;
+  memcpy(&l, i, 8);
+  return l;
+}
+
 // we only generate finite floats, since the behavior e.g. in SIMD
 // min/max differs from std::min/max for NaN (maybe also for
 // infinite)
@@ -238,6 +249,13 @@ std::vector<Int> specialValues<Int>()
 }
 
 template <>
+std::vector<Long> specialValues<Long>()
+{
+  return {SIMDLONG_MIN,     SIMDLONG_MIN + 1, SIMDLONG_MIN / 2, -1, 0, 1,
+          SIMDLONG_MAX / 2, SIMDLONG_MAX - 1, SIMDLONG_MAX};
+}
+
+template <>
 std::vector<Float> specialValues<Float>()
 {
   return {SIMDFLOAT_MIN,
@@ -339,6 +357,13 @@ SIMD_INLINE Int getRandomOrSpecialValueRanges<Int>()
 {
   if (rand() & 0x01) return getRandomOrSpecialValueRanges<Short>();
   return getRandomOrSpecialValue<Int>();
+}
+
+template <>
+SIMD_INLINE Long getRandomOrSpecialValueRanges<Long>()
+{
+  if (rand() & 0x01) return getRandomOrSpecialValueRanges<Int>();
+  return getRandomOrSpecialValue<Long>();
 }
 
 template <>

@@ -144,7 +144,9 @@ int main(int argc, char *argv[])
   BinaryTemplateType<Byte, Short, SW, Packs>::test(repeats1, pattern);
   BinaryTemplateType<Word, Int, SW, Packs>::test(repeats1, pattern);
   BinaryTemplateType<Word, Float, SW, Packs>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+  BinaryTemplateType<Float, Long, SW, Packs>::test(repeats1, pattern);
+  BinaryTemplateType<Int, Long, SW, Packs>::test(repeats1, pattern);
   BinaryTemplateType<Float, Double, SW, Packs>::test(repeats1, pattern);
   BinaryTemplateType<Int, Double, SW, Packs>::test(repeats1, pattern);
 #endif
@@ -155,7 +157,8 @@ int main(int argc, char *argv[])
   UnaryArrayTemplateType<Int, SignedByte, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, SignedByte, SW, Extend>::test(repeats1,
                                                               pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+  UnaryArrayTemplateType<Long, SignedByte, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Double, SignedByte, SW, Extend>::test(repeats1,
                                                                pattern);
 #endif
@@ -164,31 +167,39 @@ int main(int argc, char *argv[])
   UnaryArrayTemplateType<Word, Byte, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Int, Byte, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, Byte, SW, Extend>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+  UnaryArrayTemplateType<Long, Byte, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Double, Byte, SW, Extend>::test(repeats1, pattern);
 #endif
   UnaryArrayTemplateType<Short, Short, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Int, Short, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, Short, SW, Extend>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+  UnaryArrayTemplateType<Long, Short, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Double, Short, SW, Extend>::test(repeats1, pattern);
 #endif
   UnaryArrayTemplateType<Word, Word, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Int, Word, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, Word, SW, Extend>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+  UnaryArrayTemplateType<Long, Word, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Double, Word, SW, Extend>::test(repeats1, pattern);
 #endif
   UnaryArrayTemplateType<Int, Int, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, Int, SW, Extend>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+  UnaryArrayTemplateType<Long, Int, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Double, Int, SW, Extend>::test(repeats1, pattern);
 #endif
   UnaryArrayTemplateType<Int, Float, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Float, Float, SW, Extend>::test(repeats1, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+  UnaryArrayTemplateType<Long, Float, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Long, Long, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Double, Float, SW, Extend>::test(repeats1, pattern);
   UnaryArrayTemplateType<Double, Double, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Double, Long, SW, Extend>::test(repeats1, pattern);
+  UnaryArrayTemplateType<Long, Double, SW, Extend>::test(repeats1, pattern);
 #endif
   TestIntTI<UnaryTemplateIntMinToMax, SW, Srai>::test(repeats1, pattern);
   TestIntTI<UnaryTemplateIntMinToMax, SW, Srli>::test(repeats1, pattern);
@@ -199,6 +210,10 @@ int main(int argc, char *argv[])
   TestInt<UnaryUInt8, SW, Sll>::test(repeats1, pattern);
   UnaryTemplateType<Int, Float, SW, Cvts>::test(repeats1, pattern);
   UnaryTemplateType<Float, Int, SW, Cvts>::test(repeats1, pattern);
+#ifdef SIMD_64BIT_TYPES
+  UnaryTemplateType<Long, Double, SW, Cvts>::test(repeats1, pattern);
+  UnaryTemplateType<Double, Long, SW, Cvts>::test(repeats1, pattern);
+#endif
   TestAll<Binary, SW, Hadd>::test(repeats1, pattern);
   TestAll<Binary, SW, Hadds>::test(repeats1, pattern);
   TestAll<Binary, SW, Hsub>::test(repeats1, pattern);

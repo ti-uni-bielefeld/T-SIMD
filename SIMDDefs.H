@@ -116,7 +116,7 @@
 
 // determine double support
 #if defined(SIMDVEC_INTEL_ENABLE) || defined(__aarch64__)
-#define SIMD_DOUBLE 1
+#define SIMD_64BIT_TYPES 1
 #endif
 
 // set NATIVE_SIMD_WIDTH to be at most MAX_SIMD_WIDTH

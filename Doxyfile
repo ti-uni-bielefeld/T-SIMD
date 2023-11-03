@@ -2422,7 +2422,7 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = DOXYGEN \
                          SIMD_INLINE=inline \
-                         SIMD_DOUBLE=1
+                         SIMD_64BIT_TYPES=1
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

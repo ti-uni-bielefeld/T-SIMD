@@ -572,7 +572,8 @@ void testAll(const size_t reps)
   TEST<Word, SIMD_WIDTH, FCT>::test(reps);
   TEST<Int, SIMD_WIDTH, FCT>::test(reps);
   TEST<Float, SIMD_WIDTH, FCT>::test(reps);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+  TEST<Long, SIMD_WIDTH, FCT>::test(reps);
   TEST<Double, SIMD_WIDTH, FCT>::test(reps);
 #endif
 }

@@ -951,32 +951,49 @@ static SIMD_INLINE Vec<Float, 32> cvts(const Vec<Int, 32> &a, OutputType<Float>)
   return _mm256_cvtepi32_ps(a);
 }
 
+static SIMD_INLINE Vec<Long, 32> cvts(const Vec<Double, 32> &a,
+                                      OutputType<Long>)
+{
+  // _mm256_cvtpd_epi64 is only available with AVX512
+  // using serial workaround instead
+  Double tmpD[4] SIMD_ATTR_ALIGNED(32);
+  _mm256_store_pd(tmpD, a);
+  Long tmpL[4] SIMD_ATTR_ALIGNED(32);
+  for (int i = 0; i < 4; ++i) {
+    tmpL[i] =
+      Long(std::rint(std::min(tmpD[i], MAX_POS_DOUBLE_CONVERTIBLE_TO_INT64)));
+  }
+  return _mm256_load_si256((__m256i *) tmpL);
+}
+
+static SIMD_INLINE Vec<Double, 32> cvts(const Vec<Long, 32> &a,
+                                        OutputType<Double>)
+{
+#ifdef __AVX2__
+  // workaround from https://stackoverflow.com/a/41148578 (modified)
+  __m256i xH = _mm256_srai_epi32(a, 16);
+  xH         = _mm256_and_si256(xH, _mm256_set1_epi32(0xffff0000));
+  xH         = _mm256_add_epi64(
+    xH, _mm256_castpd_si256(_mm256_set1_pd(442721857769029238784.))); // 3*2^67
+  __m256i xL = _mm256_blend_epi16(
+    a, _mm256_castpd_si256(_mm256_set1_pd(0x0010000000000000)), 0x88); //  2^52
+  __m256d f =
+    _mm256_sub_pd(_mm256_castsi256_pd(xH),
+                  _mm256_set1_pd(442726361368656609280.)); //  3*2^67 + 2^52
+  return _mm256_add_pd(f, _mm256_castsi256_pd(xL));
+#else
+  // non-avx2 workaround
+  return Vec<Double, 32>(cvts(a.lo(), OutputType<Double>()),
+                         cvts(a.hi(), OutputType<Double>()));
+#endif
+}
+
 // ---------------------------------------------------------------------------
 // setzero
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 32> setzero(OutputType<Byte>, Integer<32>)
-{
-  return _mm256_setzero_si256();
-}
-
-static SIMD_INLINE Vec<SignedByte, 32> setzero(OutputType<SignedByte>,
-                                               Integer<32>)
-{
-  return _mm256_setzero_si256();
-}
-
-static SIMD_INLINE Vec<Word, 32> setzero(OutputType<Word>, Integer<32>)
-{
-  return _mm256_setzero_si256();
-}
-
-static SIMD_INLINE Vec<Short, 32> setzero(OutputType<Short>, Integer<32>)
-{
-  return _mm256_setzero_si256();
-}
-
-static SIMD_INLINE Vec<Int, 32> setzero(OutputType<Int>, Integer<32>)
+template <typename T, SIMD_ENABLE_IF(std::is_integral<T>::value)>
+static SIMD_INLINE Vec<T, 32> setzero(OutputType<T>, Integer<32>)
 {
   return _mm256_setzero_si256();
 }
@@ -1018,6 +1035,11 @@ static SIMD_INLINE Vec<Short, 32> set1(Short a, Integer<32>)
 static SIMD_INLINE Vec<Int, 32> set1(Int a, Integer<32>)
 {
   return _mm256_set1_epi32(a);
+}
+
+static SIMD_INLINE Vec<Long, 32> set1(Long a, Integer<32>)
+{
+  return _mm256_set1_epi64x(a);
 }
 
 static SIMD_INLINE Vec<Float, 32> set1(Float a, Integer<32>)
@@ -1219,6 +1241,16 @@ static SIMD_INLINE Int extract(const Vec<Int, 32> &a)
 }
 
 template <size_t COUNT>
+static SIMD_INLINE Long extract(const Vec<Long, 32> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 4) {
+    return _mm256_extract_epi64(a, COUNT);
+  } else {
+    return 0;
+  }
+}
+
+template <size_t COUNT>
 static SIMD_INLINE Float extract(const Vec<Float, 32> &a)
 {
   return ::simd::internal::bit_cast<Float>(
@@ -1270,6 +1302,12 @@ static SIMD_INLINE Vec<Int, 32> add(const Vec<Int, 32> &a,
                                     const Vec<Int, 32> &b)
 {
   return _mm256_add_epi32(a, b);
+}
+
+static SIMD_INLINE Vec<Long, 32> add(const Vec<Long, 32> &a,
+                                     const Vec<Long, 32> &b)
+{
+  return _mm256_add_epi64(a, b);
 }
 
 #else
@@ -1351,6 +1389,32 @@ static SIMD_INLINE Vec<Int, 32> adds(const Vec<Int, 32> &a,
                          _mm256_and_si256(overflow, saturatedSum));
 }
 
+static SIMD_INLINE Vec<Long, 32> adds(const Vec<Long, 32> &a,
+                                      const Vec<Long, 32> &b)
+{
+  // _mm256_adds_epi64 does not exist, workaround:
+  // Hacker's Delight, 2-13 Overflow Detection: "Signed integer overflow of
+  // addition occurs if and only if the operands have the same sign and the
+  // sum has a sign opposite to that of the operands."
+  __m256i sum             = _mm256_add_epi64(a, b);
+  __m256i opsHaveDiffSign = _mm256_xor_si256(a, b);
+  __m256i sumHasDiffSign  = _mm256_xor_si256(a, sum);
+  // indicates when an overflow has occurred
+  __m256i overflow32 =
+    _mm256_srai_epi32(_mm256_andnot_si256(opsHaveDiffSign, sumHasDiffSign), 31);
+  // duplicate result to other half of 64 bit int
+  __m256i overflow = _mm256_shuffle_epi32(overflow32, _MM_SHUFFLE(3, 3, 1, 1));
+  // saturated sum for if overflow occurred (0x7FFFFFFFFFFFFFFF=max positive
+  // long, when sign of a (and thus b as well) is 0, 0x8000000000000000=min
+  // negative long, when sign of a (and thus b as well) is 1)
+  __m256i saturatedSum = _mm256_xor_si256(
+    _mm256_shuffle_epi32(_mm256_srai_epi32(a, 31), _MM_SHUFFLE(3, 3, 1, 1)),
+    _mm256_set1_epi64x(0x7FFFFFFFFFFFFFFF));
+  // return saturated sum if overflow occurred, otherwise return sum
+  return _mm256_or_si256(_mm256_andnot_si256(overflow, sum),
+                         _mm256_and_si256(overflow, saturatedSum));
+}
+
 #else
 
 // non-avx2 workaround
@@ -1410,6 +1474,12 @@ static SIMD_INLINE Vec<Int, 32> sub(const Vec<Int, 32> &a,
                                     const Vec<Int, 32> &b)
 {
   return _mm256_sub_epi32(a, b);
+}
+
+static SIMD_INLINE Vec<Long, 32> sub(const Vec<Long, 32> &a,
+                                     const Vec<Long, 32> &b)
+{
+  return _mm256_sub_epi64(a, b);
 }
 
 #else
@@ -1491,6 +1561,32 @@ static SIMD_INLINE Vec<Int, 32> subs(const Vec<Int, 32> &a,
                          _mm256_and_si256(overflow, saturatedDiff));
 }
 
+static SIMD_INLINE Vec<Long, 32> subs(const Vec<Long, 32> &a,
+                                      const Vec<Long, 32> &b)
+{
+  // _mm256_subs_epi64 does not exist, workaround:
+  // Hacker's Delight, 2-13 Overflow Detection: "[...] overflow in the final
+  // value of x−y [...] occurs if and only if x and y have opposite signs and
+  // the sign of x−y [...] is opposite to that of x [...]"
+  __m256i diff            = _mm256_sub_epi64(a, b);
+  __m256i opsHaveDiffSign = _mm256_xor_si256(a, b);
+  __m256i diffHasDiffSign = _mm256_xor_si256(a, diff);
+  // indicates when an overflow has occurred
+  __m256i overflow32 =
+    _mm256_srai_epi32(_mm256_and_si256(opsHaveDiffSign, diffHasDiffSign), 31);
+  // duplicate result to other half of 64 bit int
+  __m256i overflow = _mm256_shuffle_epi32(overflow32, _MM_SHUFFLE(3, 3, 1, 1));
+  // saturated diff for if overflow occurred (0x7FFFFFFFFFFFFFFF=max positive
+  // long, when sign of a (and thus b as well) is 0, 0x8000000000000000=min
+  // negative long, when sign of a (and thus b as well) is 1)
+  __m256i saturatedDiff = _mm256_xor_si256(
+    _mm256_shuffle_epi32(_mm256_srai_epi32(a, 31), _MM_SHUFFLE(3, 3, 1, 1)),
+    _mm256_set1_epi64x(0x7FFFFFFFFFFFFFFF));
+  // return saturated diff if overflow occurred, otherwise return diff
+  return _mm256_or_si256(_mm256_andnot_si256(overflow, diff),
+                         _mm256_and_si256(overflow, saturatedDiff));
+}
+
 #else
 
 // non-avx2 workaround
@@ -1535,6 +1631,11 @@ static SIMD_INLINE Vec<Short, 32> neg(const Vec<Short, 32> &a)
 static SIMD_INLINE Vec<Int, 32> neg(const Vec<Int, 32> &a)
 {
   return _mm256_sub_epi32(_mm256_setzero_si256(), a);
+}
+
+static SIMD_INLINE Vec<Long, 32> neg(const Vec<Long, 32> &a)
+{
+  return _mm256_sub_epi64(_mm256_setzero_si256(), a);
 }
 
 #else
@@ -1597,6 +1698,28 @@ static SIMD_INLINE Vec<Int, 32> min(const Vec<Int, 32> &a,
 // there is an unsigned version of min for 32 bit but we currently
 // don't have an element type for it
 
+static SIMD_INLINE Vec<Long, 32> min(const Vec<Long, 32> &a,
+                                     const Vec<Long, 32> &b)
+{
+  // from Hacker's Delight, 2-12 Comparison Predicates: (swapped lt)
+  const __m256i diff = _mm256_sub_epi64(b, a);
+#if 1 // TODO: check which is faster
+  const __m256i res = _mm256_xor_si256(
+    diff, _mm256_and_si256(_mm256_xor_si256(b, a), _mm256_xor_si256(diff, b)));
+#else
+  const __m256i res =
+    _mm256_or_si256(_mm256_andnot_si256(a, b),
+                    _mm256_andnot_si256(_mm256_xor_si256(b, a), diff));
+#endif
+  // result in highest bit of res
+  // spread highest bit to all bits
+  const __m256i spread32 = _mm256_srai_epi32(res, 31);
+  const __m256i gt = _mm256_shuffle_epi32(spread32, _MM_SHUFFLE(3, 3, 1, 1));
+
+  // blend a and b according to gt
+  return _mm256_blendv_epi8(a, b, gt);
+}
+
 #else
 
 // non-avx2 workaround
@@ -1658,6 +1781,28 @@ static SIMD_INLINE Vec<Int, 32> max(const Vec<Int, 32> &a,
 
 // there is an unsigned version of max for 32 bit but we currently
 // don't have an element type for it
+
+static SIMD_INLINE Vec<Long, 32> max(const Vec<Long, 32> &a,
+                                     const Vec<Long, 32> &b)
+{
+  // from Hacker's Delight, 2-12 Comparison Predicates: (swapped lt)
+  const __m256i diff = _mm256_sub_epi64(b, a);
+#if 1 // TODO: check which is faster
+  const __m256i res = _mm256_xor_si256(
+    diff, _mm256_and_si256(_mm256_xor_si256(b, a), _mm256_xor_si256(diff, b)));
+#else
+  const __m256i res =
+    _mm256_or_si256(_mm256_andnot_si256(a, b),
+                    _mm256_andnot_si256(_mm256_xor_si256(b, a), diff));
+#endif
+  // result in highest bit of res
+  // spread highest bit to all bits
+  const __m256i spread32 = _mm256_srai_epi32(res, 31);
+  const __m256i gt = _mm256_shuffle_epi32(spread32, _MM_SHUFFLE(3, 3, 1, 1));
+
+  // blend a and b according to gt
+  return _mm256_blendv_epi8(b, a, gt);
+}
 
 #else
 
@@ -1872,6 +2017,20 @@ static SIMD_INLINE Vec<Int, 32> abs(const Vec<Int, 32> &a)
 #else
   // non-avx2 workaround
   return Vec<Int, 32>(abs(a.lo()), abs(a.hi()));
+#endif
+}
+
+static SIMD_INLINE Vec<Long, 32> abs(const Vec<Long, 32> &a)
+{
+#ifdef __AVX2__
+  // _mm256_abs_epi64 is only supported in avx512
+  // from Hacker's Delight, 2-4 Absolute Value Function:
+  const __m256i signMask =
+    _mm256_shuffle_epi32(_mm256_srai_epi32(a, 31), _MM_SHUFFLE(3, 3, 1, 1));
+  return _mm256_sub_epi64(_mm256_xor_si256(a, signMask), signMask);
+#else
+  // non-avx2 workaround
+  return Vec<Long, 32>(abs(a.lo()), abs(a.hi()));
 #endif
 }
 
@@ -2552,6 +2711,24 @@ static SIMD_INLINE Vec<Short, 32> packs(const Vec<Float, 32> &a,
                OutputType<Short>());
 }
 
+static SIMD_INLINE Vec<Float, 32> packs(const Vec<Long, 32> &a,
+                                        const Vec<Long, 32> &b,
+                                        OutputType<Float>)
+{
+  // _mm256_cvtepi64_ps is not available in avx
+  return _mm256_set_m128(_mm256_cvtpd_ps(cvts(a, OutputType<Double>())),
+                         _mm256_cvtpd_ps(cvts(b, OutputType<Double>())));
+}
+
+static SIMD_INLINE Vec<Int, 32> packs(const Vec<Long, 32> &a,
+                                      const Vec<Long, 32> &b, OutputType<Int>)
+{
+  // _mm256_packs_epi64 is not available in avx
+  // TODO: saturation
+  return _mm256_castps_si256(_mm256_shuffle_ps(
+    _mm256_castsi256_ps(a), _mm256_castsi256_ps(b), _MM_SHUFFLE(2, 0, 2, 0)));
+}
+
 static SIMD_INLINE Vec<Float, 32> packs(const Vec<Double, 32> &a,
                                         const Vec<Double, 32> &b,
                                         OutputType<Float>)
@@ -2652,10 +2829,25 @@ static SIMD_INLINE void extend(const Vec<Short, 32> &vIn,
     _mm256_cvtepi32_ps(_mm256_cvtepi16_epi32(_mm256_extractf128_si256(vIn, 1)));
 }
 
+static SIMD_INLINE void extend(const Vec<Int, 32> &vIn, Vec<Long, 32> vOut[2])
+{
+  vOut[0] = _mm256_cvtepi32_epi64(_mm256_castsi256_si128(vIn));
+  vOut[1] = _mm256_cvtepi32_epi64(_mm256_extractf128_si256(vIn, 1));
+}
+
 static SIMD_INLINE void extend(const Vec<Int, 32> &vIn, Vec<Double, 32> vOut[2])
 {
   vOut[0] = _mm256_cvtepi32_pd(_mm256_castsi256_si128(vIn));
   vOut[1] = _mm256_cvtepi32_pd(_mm256_extractf128_si256(vIn, 1));
+}
+
+static SIMD_INLINE void extend(const Vec<Float, 32> &vIn, Vec<Long, 32> vOut[2])
+{
+  // _mm256_cvtps_epi64 is not available in avx
+  vOut[0] =
+    cvts(_mm256_cvtps_pd(_mm256_castps256_ps128(vIn)), OutputType<Long>());
+  vOut[1] =
+    cvts(_mm256_cvtps_pd(_mm256_extractf128_ps(vIn, 1)), OutputType<Long>());
 }
 
 static SIMD_INLINE void extend(const Vec<Float, 32> &vIn,
@@ -2724,6 +2916,14 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
   for (size_t i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
+static SIMD_INLINE void extend(const Vec<Short, 32> &vIn, Vec<Long, 32> vOut[4])
+{
+  Vec<Int, 32> vTmp[2];
+  extend(vIn, vTmp);
+  extend(vTmp[0], vOut);
+  extend(vTmp[1], vOut + 2);
+}
+
 static SIMD_INLINE void extend(const Vec<Short, 32> &vIn,
                                Vec<Double, 32> vOut[4])
 {
@@ -2752,6 +2952,14 @@ static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn, Vec<Float, 32> vOut[4])
   for (size_t i = 0; i < 4; i++) vOut[i] = cvts(vTmp[i], OutputType<Float>());
 }
 
+static SIMD_INLINE void extend(const Vec<Word, 32> &vIn, Vec<Long, 32> vOut[4])
+{
+  Vec<Int, 32> vTmp[2];
+  extend(vIn, vTmp);
+  extend(vTmp[0], vOut);
+  extend(vTmp[1], vOut + 2);
+}
+
 static SIMD_INLINE void extend(const Vec<Word, 32> &vIn,
                                Vec<Double, 32> vOut[4])
 {
@@ -2768,6 +2976,17 @@ static SIMD_INLINE void extend(const Vec<Word, 32> &vIn,
 // signed -> signed
 
 static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
+                               Vec<Long, 32> vOut[8])
+{
+  Vec<Int, 32> vTmp[4];
+  extend(vIn, vTmp);
+  extend(vTmp[0], vOut);
+  extend(vTmp[1], vOut + 2);
+  extend(vTmp[2], vOut + 4);
+  extend(vTmp[3], vOut + 6);
+}
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
                                Vec<Double, 32> vOut[8])
 {
   Vec<Int, 32> vTmp[4];
@@ -2779,6 +2998,16 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
 }
 
 // unsigned -> signed
+
+static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn, Vec<Long, 32> vOut[8])
+{
+  Vec<Int, 32> vTmp[4];
+  extend(vIn, vTmp);
+  extend(vTmp[0], vOut);
+  extend(vTmp[1], vOut + 2);
+  extend(vTmp[2], vOut + 4);
+  extend(vTmp[3], vOut + 6);
+}
 
 static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn,
                                Vec<Double, 32> vOut[8])
@@ -2798,7 +3027,8 @@ static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn,
 // ---------------------------------------------------------------------------
 
 // non-avx2 workaround
-template <typename Tout, typename Tin>
+template <typename Tout, typename Tin,
+          SIMD_ENABLE_IF(sizeof(Tout) > sizeof(Tin))>
 static SIMD_INLINE void extend(const Vec<Tin, 32> &vIn,
                                Vec<Tout, 32> vOut[sizeof(Tout) / sizeof(Tin)])
 {
@@ -2815,17 +3045,16 @@ static SIMD_INLINE void extend(const Vec<Tin, 32> &vIn,
 #endif
 
 // ---------------------------------------------------------------------------
-// generalized extend: special case int <-> float
+// generalized extend: special case int <-> float, long <-> double
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE void extend(const Vec<Int, 32> &vIn, Vec<Float, 32> vOut[1])
+template <typename Tout, typename Tin,
+          SIMD_ENABLE_IF(sizeof(Tin) == sizeof(Tout)),
+          SIMD_ENABLE_IF(std::is_floating_point<Tin>::value !=
+                         std::is_floating_point<Tout>::value)>
+static SIMD_INLINE void extend(const Vec<Tin, 32> &vIn, Vec<Tout, 32> vOut[1])
 {
-  vOut[0] = cvts(vIn, OutputType<Float>());
-}
-
-static SIMD_INLINE void extend(const Vec<Float, 32> &vIn, Vec<Int, 32> vOut[1])
-{
-  vOut[0] = cvts(vIn, OutputType<Int>());
+  vOut[0] = cvts(vIn, OutputType<Tout>());
 }
 
 // ---------------------------------------------------------------------------
@@ -2877,6 +3106,23 @@ template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 32> srai(const Vec<Int, 32> &a)
 {
   return _mm256_srai_epi32(a, vec::min(COUNT, 31ul));
+}
+
+template <size_t COUNT>
+static SIMD_INLINE Vec<Long, 32> srai(const Vec<Long, 32> &a)
+{ // workaround from Hacker's Delight, 2–17 Double-Length Shifts, Shift right
+  // double signed:
+  const __m256i odd = _mm256_srai_epi32(a, vec::min(COUNT, 31ul));
+  __m256i even;
+  SIMD_IF_CONSTEXPR (COUNT < 32) {
+    even =
+      _mm256_or_si256(_mm256_srli_epi32(a, COUNT),
+                      _mm256_slli_epi32(_mm256_srli_si256(a, 4), 32 - COUNT));
+  } else {
+    even =
+      _mm256_srai_epi32(_mm256_srli_si256(a, 4), vec::min(COUNT - 32, 31ul));
+  }
+  return _mm256_blend_epi16(even, odd, 0xcc);
 }
 
 #else
@@ -2947,6 +3193,16 @@ static SIMD_INLINE Vec<Int, 32> srli(const Vec<Int, 32> &a)
 {
   SIMD_IF_CONSTEXPR (COUNT < 32) {
     return _mm256_srli_epi32(a, COUNT);
+  } else {
+    return _mm256_setzero_si256();
+  }
+}
+
+template <size_t COUNT>
+static SIMD_INLINE Vec<Long, 32> srli(const Vec<Long, 32> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 64) {
+    return _mm256_srli_epi64(a, COUNT);
   } else {
     return _mm256_setzero_si256();
   }
@@ -3027,6 +3283,16 @@ static SIMD_INLINE Vec<Int, 32> slli(const Vec<Int, 32> &a)
   }
 }
 
+template <size_t COUNT>
+static SIMD_INLINE Vec<Long, 32> slli(const Vec<Long, 32> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 64) {
+    return _mm256_slli_epi64(a, COUNT);
+  } else {
+    return _mm256_setzero_si256();
+  }
+}
+
 #else
 
 // non-avx2 workaround
@@ -3089,6 +3355,24 @@ static SIMD_INLINE Vec<Int, 32> sra(const Vec<Int, 32> &a, const uint8_t count)
   return _mm256_sra_epi32(a, _mm_cvtsi32_si128(count));
 }
 
+static SIMD_INLINE Vec<Long, 32> sra(const Vec<Long, 32> &a,
+                                     const uint8_t count)
+{
+  // workaround from Hacker's Delight, 2–17 Double-Length Shifts, Shift right
+  // double signed:
+  const __m256i odd = _mm256_sra_epi32(a, _mm_cvtsi32_si128(count));
+  __m256i even;
+  if (count < 32) {
+    even = _mm256_or_si256(
+      _mm256_srl_epi32(a, _mm_cvtsi32_si128(count)),
+      _mm256_sll_epi32(_mm256_srli_si256(a, 4), _mm_cvtsi32_si128(32 - count)));
+  } else {
+    even =
+      _mm256_sra_epi32(_mm256_srli_si256(a, 4), _mm_cvtsi32_si128(count - 32));
+  }
+  return _mm256_blend_epi16(even, odd, 0xcc);
+}
+
 #else
 
 // non-avx2 workaround
@@ -3135,6 +3419,12 @@ static SIMD_INLINE Vec<Short, 32> srl(const Vec<Short, 32> &a,
 static SIMD_INLINE Vec<Int, 32> srl(const Vec<Int, 32> &a, const uint8_t count)
 {
   return _mm256_srl_epi32(a, _mm_cvtsi32_si128(count));
+}
+
+static SIMD_INLINE Vec<Long, 32> srl(const Vec<Long, 32> &a,
+                                     const uint8_t count)
+{
+  return _mm256_srl_epi64(a, _mm_cvtsi32_si128(count));
 }
 
 #else
@@ -3187,6 +3477,12 @@ static SIMD_INLINE Vec<Int, 32> sll(const Vec<Int, 32> &a, const uint8_t count)
   return _mm256_sll_epi32(a, _mm_cvtsi32_si128(count));
 }
 
+static SIMD_INLINE Vec<Long, 32> sll(const Vec<Long, 32> &a,
+                                     const uint8_t count)
+{
+  return _mm256_sll_epi64(a, _mm_cvtsi32_si128(count));
+}
+
 #else
 
 // non-avx2 workaround
@@ -3206,18 +3502,10 @@ static SIMD_INLINE Vec<T, 32> sll(const Vec<T, 32> &a, const uint8_t count)
 // hadd
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 32> hadd(const Vec<Byte, 32> &a,
-                                      const Vec<Byte, 32> &b)
+template <typename T>
+static SIMD_INLINE Vec<T, 32> hadd(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  Vec<Byte, 32> x, y;
-  unzip<1>(a, b, x, y);
-  return add(x, y);
-}
-
-static SIMD_INLINE Vec<SignedByte, 32> hadd(const Vec<SignedByte, 32> &a,
-                                            const Vec<SignedByte, 32> &b)
-{
-  Vec<SignedByte, 32> x, y;
+  Vec<T, 32> x, y;
   unzip<1>(a, b, x, y);
   return add(x, y);
 }
@@ -3290,18 +3578,10 @@ static SIMD_INLINE Vec<Double, 32> hadds(const Vec<Double, 32> &a,
 // hsub
 // ---------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 32> hsub(const Vec<Byte, 32> &a,
-                                      const Vec<Byte, 32> &b)
+template <typename T>
+static SIMD_INLINE Vec<T, 32> hsub(const Vec<T, 32> &a, const Vec<T, 32> &b)
 {
-  Vec<Byte, 32> x, y;
-  unzip<1>(a, b, x, y);
-  return sub(x, y);
-}
-
-static SIMD_INLINE Vec<SignedByte, 32> hsub(const Vec<SignedByte, 32> &a,
-                                            const Vec<SignedByte, 32> &b)
-{
-  Vec<SignedByte, 32> x, y;
+  Vec<T, 32> x, y;
   unzip<1>(a, b, x, y);
   return sub(x, y);
 }
@@ -3885,6 +4165,12 @@ static SIMD_INLINE Vec<Int, 32> cmplt(const Vec<Int, 32> &a,
   return _mm256_cmpgt_epi32(b, a);
 }
 
+static SIMD_INLINE Vec<Long, 32> cmplt(const Vec<Long, 32> &a,
+                                       const Vec<Long, 32> &b)
+{
+  return _mm256_cmpgt_epi64(b, a);
+}
+
 #else
 
 // non-avx2 workaround
@@ -3956,6 +4242,12 @@ static SIMD_INLINE Vec<Int, 32> cmple(const Vec<Int, 32> &a,
   return _mm256_or_si256(_mm256_cmpgt_epi32(b, a), _mm256_cmpeq_epi32(a, b));
 }
 
+static SIMD_INLINE Vec<Long, 32> cmple(const Vec<Long, 32> &a,
+                                       const Vec<Long, 32> &b)
+{
+  return _mm256_or_si256(_mm256_cmpgt_epi64(b, a), _mm256_cmpeq_epi64(a, b));
+}
+
 #else
 
 // non-avx2 workaround
@@ -4015,6 +4307,12 @@ static SIMD_INLINE Vec<Int, 32> cmpeq(const Vec<Int, 32> &a,
                                       const Vec<Int, 32> &b)
 {
   return _mm256_cmpeq_epi32(a, b);
+}
+
+static SIMD_INLINE Vec<Long, 32> cmpeq(const Vec<Long, 32> &a,
+                                       const Vec<Long, 32> &b)
+{
+  return _mm256_cmpeq_epi64(a, b);
 }
 
 #else
@@ -4085,6 +4383,12 @@ static SIMD_INLINE Vec<Int, 32> cmpgt(const Vec<Int, 32> &a,
                                       const Vec<Int, 32> &b)
 {
   return _mm256_cmpgt_epi32(a, b);
+}
+
+static SIMD_INLINE Vec<Long, 32> cmpgt(const Vec<Long, 32> &a,
+                                       const Vec<Long, 32> &b)
+{
+  return _mm256_cmpgt_epi64(a, b);
 }
 
 #else
@@ -4158,6 +4462,12 @@ static SIMD_INLINE Vec<Int, 32> cmpge(const Vec<Int, 32> &a,
   return _mm256_or_si256(_mm256_cmpgt_epi32(a, b), _mm256_cmpeq_epi32(a, b));
 }
 
+static SIMD_INLINE Vec<Long, 32> cmpge(const Vec<Long, 32> &a,
+                                       const Vec<Long, 32> &b)
+{
+  return _mm256_or_si256(_mm256_cmpgt_epi64(a, b), _mm256_cmpeq_epi64(a, b));
+}
+
 #else
 
 // non-avx2 workaround
@@ -4220,6 +4530,12 @@ static SIMD_INLINE Vec<Int, 32> cmpneq(const Vec<Int, 32> &a,
                                        const Vec<Int, 32> &b)
 {
   return _mm256_xor_si256(_mm256_cmpeq_epi32(a, b), _mm256_set1_epi32(-1));
+}
+
+static SIMD_INLINE Vec<Long, 32> cmpneq(const Vec<Long, 32> &a,
+                                        const Vec<Long, 32> &b)
+{
+  return _mm256_xor_si256(_mm256_cmpeq_epi64(a, b), _mm256_set1_epi32(-1));
 }
 
 #else
@@ -4511,6 +4827,18 @@ static SIMD_INLINE Vec<Int, 32> avg(const Vec<Int, 32> &a,
   return add(sum, lsb);
 }
 
+// Paul R at
+// http://stackoverflow.com/questions/12152640/signed-16-bit-sse-average
+static SIMD_INLINE Vec<Long, 32> avg(const Vec<Long, 32> &a,
+                                     const Vec<Long, 32> &b)
+{
+  const auto halfA = srai<1>(a);
+  const auto halfB = srai<1>(b);
+  const auto sum   = add(halfA, halfB);
+  const auto lsb   = bit_and(bit_or(a, b), set1(Long(1), Integer<32>()));
+  return add(sum, lsb);
+}
+
 // NOTE: Float version doesn't round!
 static SIMD_INLINE Vec<Float, 32> avg(const Vec<Float, 32> &a,
                                       const Vec<Float, 32> &b)
@@ -4624,6 +4952,16 @@ static SIMD_INLINE Vec<Int, 32> reverse(const Vec<Int, 32> &a)
 #endif
 }
 
+static SIMD_INLINE Vec<Long, 32> reverse(const Vec<Long, 32> &a)
+{
+#ifdef __AVX2__
+  const __m256i mask = _mm256_set_epi32(1, 0, 3, 2, 5, 4, 7, 6);
+  return _mm256_permutevar8x32_epi32(a, mask);
+#else
+  return _mm256_set_m128i(reverse(a.lo()), reverse(a.hi()));
+#endif
+}
+
 static SIMD_INLINE Vec<Float, 32> reverse(const Vec<Float, 32> &a)
 {
 #ifdef __AVX2__
@@ -4674,16 +5012,6 @@ template <typename T,
           typename = void>
 static SIMD_INLINE uint64_t msb2int(const Vec<T, 32> &a)
 {
-#ifdef __AVX2__
-  return uint64_t(_mm256_movemask_epi8(a));
-#else
-  return uint64_t(_mm_movemask_epi8(a.lo()) |
-                  (_mm_movemask_epi8(a.hi()) << 16));
-#endif
-}
-
-static SIMD_INLINE uint64_t msb2int(const Vec<Short, 32> &a)
-{
   // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
   // and discard the even bits
   // discarding the even bytes in a with a shuffle does not work,
@@ -4720,6 +5048,11 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Short, 32> &a)
 static SIMD_INLINE uint64_t msb2int(const Vec<Int, 32> &a)
 {
   return _mm256_movemask_ps(_mm256_castsi256_ps(a));
+}
+
+static SIMD_INLINE uint64_t msb2int(const Vec<Long, 32> &a)
+{
+  return _mm256_movemask_pd(_mm256_castsi256_pd(a));
 }
 
 static SIMD_INLINE uint64_t msb2int(const Vec<Float, 32> &a)
@@ -4834,6 +5167,29 @@ static SIMD_INLINE Vec<Int, 32> int2msb(const uint64_t a, OutputType<Int>,
 #endif
 }
 
+static SIMD_INLINE Vec<Long, 32> int2msb(const uint64_t a, OutputType<Long>,
+                                         Integer<32>)
+{
+#ifdef __AVX2__
+  const __m256i aVec     = _mm256_set1_epi64x(a);
+  const __m256i sel      = _mm256_set_epi64x(8, 4, 2, 1);
+  const __m256i selected = _mm256_and_si256(aVec, sel);
+  const __m256i result   = _mm256_cmpeq_epi64(selected, sel);
+  return _mm256_and_si256(result, _mm256_set1_epi64x(0x8000000000000000));
+#else
+  const __m128i aVec       = _mm_set1_epi64x(a);
+  const __m128i selLo      = _mm_set_epi64x(2, 1);
+  const __m128i selHi      = _mm_set_epi64x(8, 4);
+  const __m128i selectedLo = _mm_and_si128(aVec, selLo);
+  const __m128i selectedHi = _mm_and_si128(aVec, selHi);
+  const __m256i result = _mm256_set_m128i(_mm_cmpeq_epi64(selectedHi, selHi),
+                                          _mm_cmpeq_epi64(selectedLo, selLo));
+  return _mm256_castpd_si256(
+    _mm256_and_pd(_mm256_castsi256_pd(result),
+                  _mm256_castsi256_pd(_mm256_set1_epi64x(0x8000000000000000))));
+#endif
+}
+
 static SIMD_INLINE Vec<Float, 32> int2msb(const uint64_t a, OutputType<Float>,
                                           Integer<32>)
 {
@@ -4844,25 +5200,8 @@ static SIMD_INLINE Vec<Float, 32> int2msb(const uint64_t a, OutputType<Float>,
 static SIMD_INLINE Vec<Double, 32> int2msb(const uint64_t a, OutputType<Double>,
                                            Integer<32>)
 {
-#ifdef __AVX2__
-  const __m256i aVec     = _mm256_set1_epi64x(a);
-  const __m256i sel      = _mm256_set_epi64x(8, 4, 2, 1);
-  const __m256i selected = _mm256_and_si256(aVec, sel);
-  const __m256i result   = _mm256_cmpeq_epi64(selected, sel);
-  return _mm256_castsi256_pd(
-    _mm256_and_si256(result, _mm256_set1_epi64x(0x8000000000000000)));
-#else
-  const __m128i aVec       = _mm_set1_epi64x(a);
-  const __m128i selLo      = _mm_set_epi64x(2, 1);
-  const __m128i selHi      = _mm_set_epi64x(8, 4);
-  const __m128i selectedLo = _mm_and_si128(aVec, selLo);
-  const __m128i selectedHi = _mm_and_si128(aVec, selHi);
-  const __m256i result = _mm256_set_m128i(_mm_cmpeq_epi64(selectedHi, selHi),
-                                          _mm_cmpeq_epi64(selectedLo, selLo));
-  return _mm256_and_pd(
-    _mm256_castsi256_pd(result),
-    _mm256_castsi256_pd(_mm256_set1_epi64x(0x8000000000000000)));
-#endif
+  return reinterpret(int2msb(a, OutputType<Long>(), Integer<32>()),
+                     OutputType<Double>());
 }
 
 // ---------------------------------------------------------------------------
@@ -4934,6 +5273,25 @@ static SIMD_INLINE Vec<Int, 32> int2bits(const uint64_t a, OutputType<Int>,
 #endif
 }
 
+static SIMD_INLINE Vec<Long, 32> int2bits(const uint64_t a, OutputType<Long>,
+                                          Integer<32>)
+{
+#ifdef __AVX2__
+  const __m256i aVec     = _mm256_set1_epi64x(a);
+  const __m256i sel      = _mm256_set_epi64x(8, 4, 2, 1);
+  const __m256i selected = _mm256_and_si256(aVec, sel);
+  return _mm256_cmpeq_epi64(selected, sel);
+#else
+  const __m128i aVec       = _mm_set1_epi64x(a);
+  const __m128i selLo      = _mm_set_epi64x(2, 1);
+  const __m128i selHi      = _mm_set_epi64x(8, 4);
+  const __m128i selectedLo = _mm_and_si128(aVec, selLo);
+  const __m128i selectedHi = _mm_and_si128(aVec, selHi);
+  return _mm256_set_m128i(_mm_cmpeq_epi64(selectedHi, selHi),
+                          _mm_cmpeq_epi64(selectedLo, selLo));
+#endif
+}
+
 static SIMD_INLINE Vec<Float, 32> int2bits(const uint64_t a, OutputType<Float>,
                                            Integer<32>)
 {
@@ -4944,22 +5302,8 @@ static SIMD_INLINE Vec<Float, 32> int2bits(const uint64_t a, OutputType<Float>,
 static SIMD_INLINE Vec<Double, 32> int2bits(const uint64_t a,
                                             OutputType<Double>, Integer<32>)
 {
-#ifdef __AVX2__
-  const __m256i aVec     = _mm256_set1_epi64x(a);
-  const __m256i sel      = _mm256_set_epi64x(8, 4, 2, 1);
-  const __m256i selected = _mm256_and_si256(aVec, sel);
-  const __m256i result   = _mm256_cmpeq_epi64(selected, sel);
-  return _mm256_castsi256_pd(result);
-#else
-  const __m128i aVec       = _mm_set1_epi64x(a);
-  const __m128i selLo      = _mm_set_epi64x(2, 1);
-  const __m128i selHi      = _mm_set_epi64x(8, 4);
-  const __m128i selectedLo = _mm_and_si128(aVec, selLo);
-  const __m128i selectedHi = _mm_and_si128(aVec, selHi);
-  const __m256i result = _mm256_set_m128i(_mm_cmpeq_epi64(selectedHi, selHi),
-                                          _mm_cmpeq_epi64(selectedLo, selLo));
-  return _mm256_castsi256_pd(result);
-#endif
+  return reinterpret(int2bits(a, OutputType<Long>(), Integer<32>()),
+                     OutputType<Double>());
 }
 
 // ---------------------------------------------------------------------------
@@ -4995,6 +5339,11 @@ static SIMD_INLINE Vec<Word, 32> iota(OutputType<Word>, Integer<32>)
 static SIMD_INLINE Vec<Int, 32> iota(OutputType<Int>, Integer<32>)
 {
   return _mm256_set_epi32(7, 6, 5, 4, 3, 2, 1, 0);
+}
+
+static SIMD_INLINE Vec<Long, 32> iota(OutputType<Long>, Integer<32>)
+{
+  return _mm256_set_epi64x(3, 2, 1, 0);
 }
 
 static SIMD_INLINE Vec<Float, 32> iota(OutputType<Float>, Integer<32>)

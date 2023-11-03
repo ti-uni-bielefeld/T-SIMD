@@ -44,10 +44,6 @@ namespace simd {
 // data types
 // ===========================================================================
 
-// these types indicate that data is processed by SIMD vector instructions;
-// constants are copied from stdint.h so that we don't have to fiddle
-// with __STDC_LIMIT_MACROS
-
 /**
  * @addtogroup group_element_types
  * @{
@@ -57,6 +53,7 @@ using SignedByte = int8_t;   ///< Signed 8-bit integer
 using Word       = uint16_t; ///< Unsigned 16-bit integer
 using Short      = int16_t;  ///< Signed 16-bit integer
 using Int        = int32_t;  ///< Signed 32-bit integer
+using Long       = int64_t;  ///< Signed 64-bit integer
 using Float      = float;  ///< Single-precision floating point number (32-bit)
 using Double     = double; ///< Double-precision floating point number (64-bit)
 /** @} */
@@ -72,6 +69,7 @@ using Double     = double; ///< Double-precision floating point number (64-bit)
 #define SIMDWORD_TRUE       (::simd::Word(~0))
 #define SIMDSHORT_TRUE      (::simd::Short(~0))
 #define SIMDINT_TRUE        (::simd::Int(~0))
+#define SIMDLONG_TRUE       (::simd::Long(~0))
 // use an immediately invoked lambda to be able to use memcpy
 #define SIMDFLOAT_TRUE                                                         \
   ([]() -> ::simd::Float {                                                     \
@@ -97,6 +95,7 @@ using Double     = double; ///< Double-precision floating point number (64-bit)
 #define SIMDWORD_MIN       (::std::numeric_limits<Word>::lowest())
 #define SIMDSHORT_MIN      (::std::numeric_limits<Short>::lowest())
 #define SIMDINT_MIN        (::std::numeric_limits<Int>::lowest())
+#define SIMDLONG_MIN       (::std::numeric_limits<Long>::lowest())
 #define SIMDFLOAT_MIN      (::std::numeric_limits<Float>::lowest())
 #define SIMDDOUBLE_MIN     (::std::numeric_limits<Double>::lowest())
 
@@ -105,11 +104,18 @@ using Double     = double; ///< Double-precision floating point number (64-bit)
 #define SIMDWORD_MAX       (::std::numeric_limits<Word>::max())
 #define SIMDSHORT_MAX      (::std::numeric_limits<Short>::max())
 #define SIMDINT_MAX        (::std::numeric_limits<Int>::max())
+#define SIMDLONG_MAX       (::std::numeric_limits<Long>::max())
 #define SIMDFLOAT_MAX      (::std::numeric_limits<Float>::max())
 #define SIMDDOUBLE_MAX     (::std::numeric_limits<Double>::max())
 
 // 0x7fffff80
 #define MAX_POS_FLOAT_CONVERTIBLE_TO_INT32 2147483520.0f
+// 0x7fffff8000000000
+#define MAX_POS_FLOAT_CONVERTIBLE_TO_INT64 9223371487098961920.0f
+// 0x7fffffff
+#define MAX_POS_DOUBLE_CONVERTIBLE_TO_INT32 2147483647.0
+// 0x7ffffffffffffc00
+#define MAX_POS_DOUBLE_CONVERTIBLE_TO_INT64 9223372036854774784.0
 /// @endcond
 
 // 28. Feb 23 (Jonas Keller): added SortSlope enum
@@ -230,9 +236,22 @@ struct TypeInfo<Int>
   static constexpr SIMD_INLINE const char *defaultFormat() { return "%d "; }
   static constexpr SIMD_INLINE const char *hexFormat() { return "%08x "; }
   static constexpr SIMD_INLINE Int trueval() { return SIMDINT_TRUE; }
-  using NextLargerType = Int;      // no larger integer type than Int
+  using NextLargerType = Long;
   using UnsignedType   = uint32_t; // not a SIMD type
   using SignedType     = Int;
+};
+
+template <>
+struct TypeInfo<Long>
+{
+  static constexpr SIMD_INLINE const char *name() { return "Long"; }
+  static constexpr SIMD_INLINE const char *format() { return "ld"; }
+  static constexpr SIMD_INLINE const char *defaultFormat() { return "%ld "; }
+  static constexpr SIMD_INLINE const char *hexFormat() { return "%016lx "; }
+  static constexpr SIMD_INLINE Long trueval() { return SIMDLONG_TRUE; }
+  using NextLargerType = Long;     // no larger integer type than Long
+  using UnsignedType   = uint64_t; // not a SIMD type
+  using SignedType     = Long;
 };
 
 template <>

@@ -88,7 +88,8 @@ template <> struct _NEONRegType<Word> { using Type = uint16x8_t; };
 template <> struct _NEONRegType<Short> { using Type = int16x8_t; };
 template <> struct _NEONRegType<Int> { using Type = int32x4_t; };
 template <> struct _NEONRegType<Float> { using Type = float32x4_t; };
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+template <> struct _NEONRegType<Long> { using Type = int64x2_t; };
 template <> struct _NEONRegType<Double> { using Type = float64x2_t; };
 #endif
 // clang-format on
@@ -123,7 +124,7 @@ SIMDVEC_NEON_ARRAY64_ALLNUM(Word, uint16x4)
 SIMDVEC_NEON_ARRAY64_ALLNUM(Short, int16x4)
 SIMDVEC_NEON_ARRAY64_ALLNUM(Int, int32x2)
 SIMDVEC_NEON_ARRAY64_ALLNUM(Float, float32x2)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 SIMDVEC_NEON_ARRAY64_ALLNUM(Double, float64x1)
 #endif
 
@@ -187,14 +188,24 @@ namespace base {
     return NEON_FCT##_##NEON_SUF(a, b);                                        \
   }
 
+#ifdef SIMD_64BIT_TYPES
+#define SIMDVEC_NEON_BINARY_ALLINT(FCT, NEON_FCT)                              \
+  SIMDVEC_NEON_BINARY(FCT, Byte, NEON_FCT, u8)                                 \
+  SIMDVEC_NEON_BINARY(FCT, SignedByte, NEON_FCT, s8)                           \
+  SIMDVEC_NEON_BINARY(FCT, Word, NEON_FCT, u16)                                \
+  SIMDVEC_NEON_BINARY(FCT, Short, NEON_FCT, s16)                               \
+  SIMDVEC_NEON_BINARY(FCT, Int, NEON_FCT, s32)                                 \
+  SIMDVEC_NEON_BINARY(FCT, Long, NEON_FCT, s64)
+#else
 #define SIMDVEC_NEON_BINARY_ALLINT(FCT, NEON_FCT)                              \
   SIMDVEC_NEON_BINARY(FCT, Byte, NEON_FCT, u8)                                 \
   SIMDVEC_NEON_BINARY(FCT, SignedByte, NEON_FCT, s8)                           \
   SIMDVEC_NEON_BINARY(FCT, Word, NEON_FCT, u16)                                \
   SIMDVEC_NEON_BINARY(FCT, Short, NEON_FCT, s16)                               \
   SIMDVEC_NEON_BINARY(FCT, Int, NEON_FCT, s32)
+#endif
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 #define SIMDVEC_NEON_BINARY_ALLFLOAT(FCT, NEON_FCT)                            \
   SIMDVEC_NEON_BINARY(FCT, Float, NEON_FCT, f32)                               \
   SIMDVEC_NEON_BINARY(FCT, Double, NEON_FCT, f64)
@@ -238,13 +249,14 @@ namespace base {
   }
 
 // wrapper for all dst types and same source type
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 #define SIMDVEC_NEON_REINTERP_ALLDST(TSRC, NEON_TSRC)                          \
   SIMDVEC_NEON_REINTERP(Byte, u8, TSRC, NEON_TSRC)                             \
   SIMDVEC_NEON_REINTERP(SignedByte, s8, TSRC, NEON_TSRC)                       \
   SIMDVEC_NEON_REINTERP(Word, u16, TSRC, NEON_TSRC)                            \
   SIMDVEC_NEON_REINTERP(Short, s16, TSRC, NEON_TSRC)                           \
   SIMDVEC_NEON_REINTERP(Int, s32, TSRC, NEON_TSRC)                             \
+  SIMDVEC_NEON_REINTERP(Long, s64, TSRC, NEON_TSRC)                            \
   SIMDVEC_NEON_REINTERP(Float, f32, TSRC, NEON_TSRC)                           \
   SIMDVEC_NEON_REINTERP(Double, f64, TSRC, NEON_TSRC)
 #else
@@ -264,7 +276,8 @@ SIMDVEC_NEON_REINTERP_ALLDST(Word, u16)
 SIMDVEC_NEON_REINTERP_ALLDST(Short, s16)
 SIMDVEC_NEON_REINTERP_ALLDST(Int, s32)
 SIMDVEC_NEON_REINTERP_ALLDST(Float, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_REINTERP_ALLDST(Long, s64)
 SIMDVEC_NEON_REINTERP_ALLDST(Double, f64)
 #endif
 
@@ -298,6 +311,20 @@ static SIMD_INLINE Vec<Float, 16> cvts(const Vec<Int, 16> &a, OutputType<Float>)
   return vcvtq_f32_s32(a);
 }
 
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> cvts(const Vec<Double, 16> &a,
+                                      OutputType<Long>)
+{
+  return vcvtq_s64_f64(a);
+}
+
+static SIMD_INLINE Vec<Double, 16> cvts(const Vec<Long, 16> &a,
+                                        OutputType<Double>)
+{
+  return vcvtq_f64_s64(a);
+}
+#endif
+
 // -------------------------------------------------------------------------
 // setzero
 // -------------------------------------------------------------------------
@@ -314,7 +341,8 @@ SIMDVEC_NEON_SETZERO(Word, u16)
 SIMDVEC_NEON_SETZERO(Short, s16)
 SIMDVEC_NEON_SETZERO(Int, s32)
 SIMDVEC_NEON_SETZERO(Float, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_SETZERO(Long, s64)
 SIMDVEC_NEON_SETZERO(Double, f64)
 #endif
 
@@ -336,7 +364,8 @@ SIMDVEC_NEON_SET1(Word, u16)
 SIMDVEC_NEON_SET1(Short, s16)
 SIMDVEC_NEON_SET1(Int, s32)
 SIMDVEC_NEON_SET1(Float, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_SET1(Long, s64)
 SIMDVEC_NEON_SET1(Double, f64)
 #endif
 
@@ -362,7 +391,8 @@ SIMDVEC_NEON_LOAD(Word, u16)
 SIMDVEC_NEON_LOAD(Short, s16)
 SIMDVEC_NEON_LOAD(Int, s32)
 SIMDVEC_NEON_LOAD(Float, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_LOAD(Long, s64)
 SIMDVEC_NEON_LOAD(Double, f64)
 #endif
 
@@ -392,7 +422,8 @@ SIMDVEC_NEON_STORE(Word, u16)
 SIMDVEC_NEON_STORE(Short, s16)
 SIMDVEC_NEON_STORE(Int, s32)
 SIMDVEC_NEON_STORE(Float, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_STORE(Long, s64)
 SIMDVEC_NEON_STORE(Double, f64)
 #endif
 
@@ -445,7 +476,8 @@ SIMDVEC_NEON_EXTRACT(Word, u16)
 SIMDVEC_NEON_EXTRACT(Short, s16)
 SIMDVEC_NEON_EXTRACT(Int, s32)
 SIMDVEC_NEON_EXTRACT(Float, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_EXTRACT(Long, s64)
 SIMDVEC_NEON_EXTRACT(Double, f64)
 #endif
 
@@ -464,7 +496,7 @@ SIMDVEC_NEON_BINARY_ALL(add, vaddq)
 SIMDVEC_NEON_BINARY_ALLINT(adds, vqaddq)
 // float NOT saturated
 SIMDVEC_NEON_BINARY(adds, Float, vaddq, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 SIMDVEC_NEON_BINARY(adds, Double, vaddq, f64)
 #endif
 
@@ -481,7 +513,7 @@ SIMDVEC_NEON_BINARY_ALL(sub, vsubq)
 SIMDVEC_NEON_BINARY_ALLINT(subs, vqsubq)
 // float NOT saturated
 SIMDVEC_NEON_BINARY(subs, Float, vsubq, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 SIMDVEC_NEON_BINARY(subs, Double, vsubq, f64)
 #endif
 
@@ -493,7 +525,8 @@ SIMDVEC_NEON_UNARY(neg, SignedByte, vnegq, s8)
 SIMDVEC_NEON_UNARY(neg, Short, vnegq, s16)
 SIMDVEC_NEON_UNARY(neg, Int, vnegq, s32)
 SIMDVEC_NEON_UNARY(neg, Float, vnegq, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_UNARY(neg, Long, vnegq, s64)
 SIMDVEC_NEON_UNARY(neg, Double, vnegq, f64)
 #endif
 
@@ -501,20 +534,48 @@ SIMDVEC_NEON_UNARY(neg, Double, vnegq, f64)
 // min
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_BINARY_ALL(min, vminq)
+SIMDVEC_NEON_BINARY(min, Byte, vminq, u8)
+SIMDVEC_NEON_BINARY(min, SignedByte, vminq, s8)
+SIMDVEC_NEON_BINARY(min, Word, vminq, u16)
+SIMDVEC_NEON_BINARY(min, Short, vminq, s16)
+SIMDVEC_NEON_BINARY(min, Int, vminq, s32)
+SIMDVEC_NEON_BINARY(min, Float, vminq, f32)
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> min(const Vec<Long, 16> &a,
+                                     const Vec<Long, 16> &b)
+{
+  // vminq_s64 does not exist
+  return vbslq_s64(vcltq_s64(a, b), a, b);
+}
+SIMDVEC_NEON_BINARY(min, Double, vminq, f64)
+#endif
 
 // -------------------------------------------------------------------------
 // max
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_BINARY_ALL(max, vmaxq)
+SIMDVEC_NEON_BINARY(max, Byte, vmaxq, u8)
+SIMDVEC_NEON_BINARY(max, SignedByte, vmaxq, s8)
+SIMDVEC_NEON_BINARY(max, Word, vmaxq, u16)
+SIMDVEC_NEON_BINARY(max, Short, vmaxq, s16)
+SIMDVEC_NEON_BINARY(max, Int, vmaxq, s32)
+SIMDVEC_NEON_BINARY(max, Float, vmaxq, f32)
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> max(const Vec<Long, 16> &a,
+                                     const Vec<Long, 16> &b)
+{
+  // vmaxq_s64 does not exist
+  return vbslq_s64(vcgtq_s64(a, b), a, b);
+}
+SIMDVEC_NEON_BINARY(max, Double, vmaxq, f64)
+#endif
 
 // -------------------------------------------------------------------------
 // mul, div
 // -------------------------------------------------------------------------
 
 SIMDVEC_NEON_BINARY(mul, Float, vmulq, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 SIMDVEC_NEON_BINARY(mul, Double, vmulq, f64)
 #endif
 
@@ -533,7 +594,7 @@ static SIMD_INLINE Vec<Float, 16> div(const Vec<Float, 16> &num,
   return vmulq_f32(num, reciprocal);
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 static SIMD_INLINE Vec<Double, 16> div(const Vec<Double, 16> &num,
                                        const Vec<Double, 16> &denom)
 {
@@ -595,7 +656,7 @@ SIMDVEC_NEON_UNARY(floor, Float, vrndmq, f32)
 SIMDVEC_NEON_UNARY(round, Float, vrndnq, f32)
 SIMDVEC_NEON_UNARY(truncate, Float, vrndq, f32)
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 SIMDVEC_NEON_UNARY(ceil, Double, vrndpq, f64)
 SIMDVEC_NEON_UNARY(floor, Double, vrndmq, f64)
 SIMDVEC_NEON_UNARY(round, Double, vrndnq, f64)
@@ -690,13 +751,13 @@ static SIMD_INLINE Vec<Float, 16> round(const Vec<Float, 16> &a)
 
 // estimate of a reciprocal
 SIMDVEC_NEON_UNARY(rcp, Float, vrecpeq, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 SIMDVEC_NEON_UNARY(rcp, Double, vrecpeq, f64)
 #endif
 
 // estimate of a reverse square root
 SIMDVEC_NEON_UNARY(rsqrt, Float, vrsqrteq, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 SIMDVEC_NEON_UNARY(rsqrt, Double, vrsqrteq, f64)
 #endif
 
@@ -722,7 +783,7 @@ static SIMD_INLINE Vec<Float, 16> sqrt(const Vec<Float, 16> &a)
   return vbslq_f32(isZero, zero, res);
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 static SIMD_INLINE Vec<Double, 16> sqrt(const Vec<Double, 16> &a)
 {
   // vector with 0s, vector with 1s
@@ -750,10 +811,10 @@ static SIMD_INLINE Vec<Double, 16> sqrt(const Vec<Double, 16> &a)
 // 25. Mar 25 (Jonas Keller): added abs for unsigned integers
 
 // unsigned integers
-template <typename T>
+template <typename T, SIMD_ENABLE_IF(std::is_unsigned<T>::value
+                                       &&std::is_integral<T>::value)>
 static SIMD_INLINE Vec<T, 16> abs(const Vec<T, 16> &a)
 {
-  static_assert(std::is_unsigned<T>::value && std::is_integral<T>::value, "");
   return a;
 }
 
@@ -761,7 +822,8 @@ SIMDVEC_NEON_UNARY(abs, SignedByte, vabsq, s8)
 SIMDVEC_NEON_UNARY(abs, Short, vabsq, s16)
 SIMDVEC_NEON_UNARY(abs, Int, vabsq, s32)
 SIMDVEC_NEON_UNARY(abs, Float, vabsq, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_UNARY(abs, Long, vabsq, s64)
 SIMDVEC_NEON_UNARY(abs, Double, vabsq, f64)
 #endif
 
@@ -819,7 +881,19 @@ SIMDVEC_NEON_UNPACK_HALFS(Int, 8, s32)
 SIMDVEC_NEON_UNPACK(Float, 4, f32, f32)
 SIMDVEC_NEON_UNPACK_HALFS(Float, 8, f32)
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> unpack(const Vec<Long, 16> &a,
+                                        const Vec<Long, 16> &b, Part<0>,
+                                        Bytes<8>)
+{
+  return vcombine_s64(vget_low_s64(a), vget_low_s64(b));
+}
+static SIMD_INLINE Vec<Long, 16> unpack(const Vec<Long, 16> &a,
+                                        const Vec<Long, 16> &b, Part<1>,
+                                        Bytes<8>)
+{
+  return vcombine_s64(vget_high_s64(a), vget_high_s64(b));
+}
 static SIMD_INLINE Vec<Double, 16> unpack(const Vec<Double, 16> &a,
                                           const Vec<Double, 16> &b, Part<0>,
                                           Bytes<8>)
@@ -911,7 +985,13 @@ SIMDVEC_NEON_ZIP_HALFS(Int, 2, s32)
 SIMDVEC_NEON_ZIP(Float, 1, f32, f32, float32x4x2_t)
 SIMDVEC_NEON_ZIP_HALFS(Float, 2, f32)
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE void zip(const Vec<Long, 16> a, const Vec<Long, 16> b,
+                            Vec<Long, 16> &c, Vec<Long, 16> &d, Elements<1>)
+{
+  c = vcombine_s64(vget_low_s64(a), vget_low_s64(b));
+  d = vcombine_s64(vget_high_s64(a), vget_high_s64(b));
+}
 static SIMD_INLINE void zip(const Vec<Double, 16> a, const Vec<Double, 16> b,
                             Vec<Double, 16> &c, Vec<Double, 16> &d, Elements<1>)
 {
@@ -1001,7 +1081,13 @@ SIMDVEC_NEON_UNZIP_HALFS(Int, 8, s32)
 SIMDVEC_NEON_UNZIP(Float, 4, f32, f32, float32x4x2_t)
 SIMDVEC_NEON_UNZIP_HALFS(Float, 8, f32)
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE void unzip(const Vec<Long, 16> a, const Vec<Long, 16> b,
+                              Vec<Long, 16> &c, Vec<Long, 16> &d, Bytes<8>)
+{
+  c = vcombine_s64(vget_low_s64(a), vget_low_s64(b));
+  d = vcombine_s64(vget_high_s64(a), vget_high_s64(b));
+}
 static SIMD_INLINE void unzip(const Vec<Double, 16> a, const Vec<Double, 16> b,
                               Vec<Double, 16> &c, Vec<Double, 16> &d, Bytes<8>)
 {
@@ -1041,12 +1127,25 @@ static SIMD_INLINE Vec<Short, 16> packs(const Vec<Float, 16> &a,
                OutputType<Short>());
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Int, 16> packs(const Vec<Long, 16> &a,
+                                      const Vec<Long, 16> &b, OutputType<Int>)
+{
+  return vcombine_s32(vqmovn_s64(a), vqmovn_s64(b));
+}
+
 static SIMD_INLINE Vec<Int, 16> packs(const Vec<Double, 16> &a,
                                       const Vec<Double, 16> &b, OutputType<Int>)
 {
   return vcombine_s32(vqmovn_s64(vcvtq_s64_f64(a)),
                       vqmovn_s64(vcvtq_s64_f64(b)));
+}
+
+static SIMD_INLINE Vec<Float, 16> packs(const Vec<Long, 16> &a,
+                                        const Vec<Long, 16> &b,
+                                        OutputType<Float>)
+{
+  return vcombine_f32(vcvt_f32_s32(vqmovn_s64(a)), vcvt_f32_s32(vqmovn_s64(b)));
 }
 
 static SIMD_INLINE Vec<Float, 16> packs(const Vec<Double, 16> &a,
@@ -1132,11 +1231,23 @@ static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
   vOut[1] = vcvtq_f32_s32(vmovl_s16(vget_high_s16(vIn)));
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE void extend(const Vec<Int, 16> &vIn, Vec<Long, 16> vOut[2])
+{
+  vOut[0] = vmovl_s32(vget_low_s32(vIn));
+  vOut[1] = vmovl_s32(vget_high_s32(vIn));
+}
+
 static SIMD_INLINE void extend(const Vec<Int, 16> &vIn, Vec<Double, 16> vOut[2])
 {
   vOut[0] = vcvtq_f64_s64(vmovl_s32(vget_low_s32(vIn)));
   vOut[1] = vcvtq_f64_s64(vmovl_s32(vget_high_s32(vIn)));
+}
+
+static SIMD_INLINE void extend(const Vec<Float, 16> &vIn, Vec<Long, 16> vOut[2])
+{
+  vOut[0] = vcvtq_s64_f64(vcvt_f64_f32(vget_low_f32(vIn)));
+  vOut[1] = vcvtq_s64_f64(vcvt_f64_f32(vget_high_f32(vIn)));
 }
 
 static SIMD_INLINE void extend(const Vec<Float, 16> &vIn,
@@ -1199,7 +1310,15 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
   extend(vShort[1], vOut + 2);
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE void extend(const Vec<Short, 16> &vIn, Vec<Long, 16> vOut[4])
+{
+  Vec<Int, 16> vInt[2];
+  extend(vIn, vInt);
+  extend(vInt[0], vOut);
+  extend(vInt[1], vOut + 2);
+}
+
 static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
                                Vec<Double, 16> vOut[4])
 {
@@ -1228,7 +1347,15 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Float, 16> vOut[4])
   extend(vShort[1], vOut + 2);
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Long, 16> vOut[4])
+{
+  Vec<Int, 16> vInt[2];
+  extend(vIn, vInt);
+  extend(vInt[0], vOut);
+  extend(vInt[1], vOut + 2);
+}
+
 static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
                                Vec<Double, 16> vOut[4])
 {
@@ -1245,7 +1372,18 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
 
 // signed -> signed
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
+                               Vec<Long, 16> vOut[8])
+{
+  Vec<Int, 16> vInt[4];
+  extend(vIn, vInt);
+  extend(vInt[0], vOut);
+  extend(vInt[1], vOut + 2);
+  extend(vInt[2], vOut + 4);
+  extend(vInt[3], vOut + 6);
+}
+
 static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
                                Vec<Double, 16> vOut[8])
 {
@@ -1260,7 +1398,17 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
 
 // unsigned -> signed
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Long, 16> vOut[8])
+{
+  Vec<Int, 16> vInt[4];
+  extend(vIn, vInt);
+  extend(vInt[0], vOut);
+  extend(vInt[1], vOut + 2);
+  extend(vInt[2], vOut + 4);
+  extend(vInt[3], vOut + 6);
+}
+
 static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
                                Vec<Double, 16> vOut[8])
 {
@@ -1274,7 +1422,7 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
 #endif
 
 // -------------------------------------------------------------------------
-// generalized extend: special case int <-> float
+// generalized extend: special case int <-> float, long <-> double
 // -------------------------------------------------------------------------
 
 static SIMD_INLINE void extend(const Vec<Int, 16> &vIn, Vec<Float, 16> vOut[1])
@@ -1286,6 +1434,20 @@ static SIMD_INLINE void extend(const Vec<Float, 16> &vIn, Vec<Int, 16> vOut[1])
 {
   vOut[0] = cvts(vIn, OutputType<Int>());
 }
+
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE void extend(const Vec<Long, 16> &vIn,
+                               Vec<Double, 16> vOut[1])
+{
+  vOut[0] = cvts(vIn, OutputType<Double>());
+}
+
+static SIMD_INLINE void extend(const Vec<Double, 16> &vIn,
+                               Vec<Long, 16> vOut[1])
+{
+  vOut[0] = cvts(vIn, OutputType<Long>());
+}
+#endif
 
 // -------------------------------------------------------------------------
 // shift functions
@@ -1391,6 +1553,9 @@ SIMDVEC_NEON_SHIFT_ARITH(srai, SignedByte, vshrq_n, s8, 8)
 SIMDVEC_NEON_SHIFT_REINTER_ARITH(srai, Word, vshrq_n, u16, s16, 16)
 SIMDVEC_NEON_SHIFT_ARITH(srai, Short, vshrq_n, s16, 16)
 SIMDVEC_NEON_SHIFT_ARITH(srai, Int, vshrq_n, s32, 32)
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_SHIFT_ARITH(srai, Long, vshrq_n, s64, 64)
+#endif
 
 // srli
 
@@ -1403,6 +1568,9 @@ SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, SignedByte, vshrq_n, s8, u8, 8)
 SIMDVEC_NEON_SHIFT_LOGICAL(srli, Word, vshrq_n, u16, 16)
 SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Short, vshrq_n, s16, u16, 16)
 SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Int, vshrq_n, s32, u32, 32)
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Long, vshrq_n, s64, u64, 64)
+#endif
 
 // slli
 
@@ -1412,6 +1580,9 @@ SIMDVEC_NEON_SHIFT_LOGICAL(slli, SignedByte, vshlq_n, s8, 8)
 SIMDVEC_NEON_SHIFT_LOGICAL(slli, Word, vshlq_n, u16, 16)
 SIMDVEC_NEON_SHIFT_LOGICAL(slli, Short, vshlq_n, s16, 16)
 SIMDVEC_NEON_SHIFT_LOGICAL(slli, Int, vshlq_n, s32, 32)
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, Long, vshlq_n, s64, 64)
+#endif
 
 #undef SIMDVEC_NEON_SHIFT
 #undef SIMDVEC_NEON_SHIFT_ARITH
@@ -1482,6 +1653,19 @@ static SIMD_INLINE Vec<Int, 16> sra(const Vec<Int, 16> &a, const uint8_t count)
   return vshlq_s32(a, vdupq_n_s32(scount));
 }
 
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> sra(const Vec<Long, 16> &a,
+                                     const uint8_t count)
+{
+  if (count == 0) {
+    // TODO: is this necessary? what does vshlq do for count==0?
+    return a;
+  }
+  int8_t scount = -((int8_t) std::min(count, uint8_t(64)));
+  return vshlq_s64(a, vdupq_n_s64(scount));
+}
+#endif
+
 // -------------------------------------------------------------------------
 // srl
 // -------------------------------------------------------------------------
@@ -1543,6 +1727,20 @@ static SIMD_INLINE Vec<Int, 16> srl(const Vec<Int, 16> &a, const uint8_t count)
     vshlq_u32(vreinterpretq_u32_s32(a), vdupq_n_s32(scount)));
 }
 
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> srl(const Vec<Long, 16> &a,
+                                     const uint8_t count)
+{
+  if (count == 0) {
+    // TODO: is this necessary? what does vshlq do for count==0?
+    return a;
+  }
+  int8_t scount = -((int8_t) std::min(count, uint8_t(64)));
+  return vreinterpretq_s64_u64(
+    vshlq_u64(vreinterpretq_u64_s64(a), vdupq_n_s64(scount)));
+}
+#endif
+
 // -------------------------------------------------------------------------
 // sll
 // -------------------------------------------------------------------------
@@ -1596,6 +1794,18 @@ static SIMD_INLINE Vec<Int, 16> sll(const Vec<Int, 16> &a, const uint8_t count)
   return vshlq_s32(a, vdupq_n_s32(std::min(count, uint8_t(32))));
 }
 
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> sll(const Vec<Long, 16> &a,
+                                     const uint8_t count)
+{
+  if (count == 0) {
+    // TODO: is this necessary? what does vshlq do for count==0?
+    return a;
+  }
+  return vshlq_s64(a, vdupq_n_s64(std::min(count, uint8_t(64))));
+}
+#endif
+
 // 26. Sep 22 (Jonas Keller):
 // added Byte and SignedByte versions of hadd, hadds, hsub and hsubs
 // added Word version of hadds and hsubs
@@ -1619,7 +1829,15 @@ SIMDVEC_NEON_HADD(Word, u16)
 SIMDVEC_NEON_HADD(Short, s16)
 SIMDVEC_NEON_HADD(Int, s32)
 SIMDVEC_NEON_HADD(Float, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+// vpadd_s64 does not exist, because int64x1_t is just a long, so we use the
+// regular plus operator for long
+static SIMD_INLINE Vec<Long, 16> hadd(const Vec<Long, 16> &a,
+                                      const Vec<Long, 16> &b)
+{
+  return vcombine_s64(vget_low_s64(a) + vget_high_s64(a),
+                      vget_low_s64(b) + vget_high_s64(b));
+}
 // vpadd_f64 does not exist, because float64x1_t is just a double, so we use
 // the regular plus operator for double
 static SIMD_INLINE Vec<Double, 16> hadd(const Vec<Double, 16> &a,
@@ -1636,27 +1854,11 @@ static SIMD_INLINE Vec<Double, 16> hadd(const Vec<Double, 16> &a,
 // hadds
 // -------------------------------------------------------------------------
 
-static SIMD_INLINE Vec<Byte, 16> hadds(const Vec<Byte, 16> &a,
-                                       const Vec<Byte, 16> &b)
+template <typename T>
+static SIMD_INLINE Vec<T, 16> hadds(const Vec<T, 16> &a, const Vec<T, 16> &b)
 {
-  Vec<Byte, 16> x, y;
-  unzip(a, b, x, y, Bytes<1>());
-  return adds(x, y);
-}
-
-static SIMD_INLINE Vec<SignedByte, 16> hadds(const Vec<SignedByte, 16> &a,
-                                             const Vec<SignedByte, 16> &b)
-{
-  Vec<SignedByte, 16> x, y;
-  unzip(a, b, x, y, Bytes<1>());
-  return adds(x, y);
-}
-
-static SIMD_INLINE Vec<Word, 16> hadds(const Vec<Word, 16> &a,
-                                       const Vec<Word, 16> &b)
-{
-  Vec<Word, 16> x, y;
-  unzip(a, b, x, y, Bytes<2>());
+  Vec<T, 16> x, y;
+  unzip(a, b, x, y, Bytes<sizeof(T)>());
   return adds(x, y);
 }
 
@@ -1679,7 +1881,7 @@ static SIMD_INLINE Vec<Float, 16> hadds(const Vec<Float, 16> &a,
   return hadd(a, b);
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 // Double not saturated
 static SIMD_INLINE Vec<Double, 16> hadds(const Vec<Double, 16> &a,
                                          const Vec<Double, 16> &b)
@@ -1700,7 +1902,7 @@ static SIMD_INLINE Vec<T, 16> hsub(const Vec<T, 16> &a, const Vec<T, 16> &b)
   return sub(x, y);
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 static SIMD_INLINE Vec<Double, 16> hsub(const Vec<Double, 16> &a,
                                         const Vec<Double, 16> &b)
 {
@@ -1721,7 +1923,7 @@ static SIMD_INLINE Vec<T, 16> hsubs(const Vec<T, 16> &a, const Vec<T, 16> &b)
   return subs(x, y);
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 // Double not saturated
 static SIMD_INLINE Vec<Double, 16> hsubs(const Vec<Double, 16> &a,
                                          const Vec<Double, 16> &b)
@@ -1779,7 +1981,8 @@ SIMDVEC_NEON_ALIGNRE(Word, u16)
 SIMDVEC_NEON_ALIGNRE(Short, s16)
 SIMDVEC_NEON_ALIGNRE(Int, s32)
 SIMDVEC_NEON_ALIGNRE(Float, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_ALIGNRE(Long, s64)
 SIMDVEC_NEON_ALIGNRE(Double, f64)
 #endif
 
@@ -2031,13 +2234,14 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>)
       vc##CMP##q##_##NEON_SUF(a, b));                                          \
   }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 #define SIMDVEC_NEON_CMP_ALL(CMP)                                              \
   SIMDVEC_NEON_CMP(CMP, Byte, u8, u8)                                          \
   SIMDVEC_NEON_CMP(CMP, SignedByte, s8, u8)                                    \
   SIMDVEC_NEON_CMP(CMP, Word, u16, u16)                                        \
   SIMDVEC_NEON_CMP(CMP, Short, s16, u16)                                       \
   SIMDVEC_NEON_CMP(CMP, Int, s32, u32)                                         \
+  SIMDVEC_NEON_CMP(CMP, Long, s64, u64)                                        \
   SIMDVEC_NEON_CMP(CMP, Float, f32, u32)                                       \
   SIMDVEC_NEON_CMP(CMP, Double, f64, u64)
 #else
@@ -2067,8 +2271,8 @@ SIMDVEC_NEON_CMP_ALL(ge)
   static SIMD_INLINE Vec<TYPE, 16> cmpneq(const Vec<TYPE, 16> &a,              \
                                           const Vec<TYPE, 16> &b)              \
   {                                                                            \
-    return vreinterpretq_##NEON_SUF##_##NEON_USUF(                             \
-      vmvnq_##NEON_USUF(vceqq_##NEON_SUF(a, b)));                              \
+    return vreinterpretq_##NEON_SUF##_u32(                                     \
+      vmvnq_u32(vreinterpretq_u32_##NEON_USUF(vceqq_##NEON_SUF(a, b))));       \
   }
 
 SIMDVEC_NEON_CMPNEQ(Byte, u8, u8)
@@ -2077,13 +2281,9 @@ SIMDVEC_NEON_CMPNEQ(Word, u16, u16)
 SIMDVEC_NEON_CMPNEQ(Short, s16, u16)
 SIMDVEC_NEON_CMPNEQ(Int, s32, u32)
 SIMDVEC_NEON_CMPNEQ(Float, f32, u32)
-#ifdef SIMD_DOUBLE
-static SIMD_INLINE Vec<Double, 16> cmpneq(const Vec<Double, 16> &a,
-                                          const Vec<Double, 16> &b)
-{
-  return vreinterpretq_f64_u32(
-    vmvnq_u32(vreinterpretq_u32_u64(vceqq_f64(a, b))));
-}
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_CMPNEQ(Long, s64, u64)
+SIMDVEC_NEON_CMPNEQ(Double, f64, u64)
 #endif
 
 #undef SIMDVEC_NEON_CMPNEQ
@@ -2108,7 +2308,8 @@ SIMDVEC_NEON_IFELSE(Word, u16, u16)
 SIMDVEC_NEON_IFELSE(Short, s16, u16)
 SIMDVEC_NEON_IFELSE(Int, s32, u32)
 SIMDVEC_NEON_IFELSE(Float, f32, u32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_IFELSE(Long, s64, u64)
 SIMDVEC_NEON_IFELSE(Double, f64, u64)
 #endif
 
@@ -2127,7 +2328,7 @@ static SIMD_INLINE Vec<Float, 16> bit_and(const Vec<Float, 16> &a,
     vandq_s32(vreinterpretq_s32_f32(a), vreinterpretq_s32_f32(b)));
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 static SIMD_INLINE Vec<Double, 16> bit_and(const Vec<Double, 16> &a,
                                            const Vec<Double, 16> &b)
 {
@@ -2149,7 +2350,7 @@ static SIMD_INLINE Vec<Float, 16> bit_or(const Vec<Float, 16> &a,
     vorrq_s32(vreinterpretq_s32_f32(a), vreinterpretq_s32_f32(b)));
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 static SIMD_INLINE Vec<Double, 16> bit_or(const Vec<Double, 16> &a,
                                           const Vec<Double, 16> &b)
 {
@@ -2182,7 +2383,7 @@ static SIMD_INLINE Vec<Float, 16> bit_xor(const Vec<Float, 16> &a,
     veorq_s32(vreinterpretq_s32_f32(a), vreinterpretq_s32_f32(b)));
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
 static SIMD_INLINE Vec<Double, 16> bit_xor(const Vec<Double, 16> &a,
                                            const Vec<Double, 16> &b)
 {
@@ -2206,7 +2407,11 @@ static SIMD_INLINE Vec<Float, 16> bit_not(const Vec<Float, 16> &a)
   return vreinterpretq_f32_s32(vmvnq_s32(vreinterpretq_s32_f32(a)));
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> bit_not(const Vec<Long, 16> &a)
+{
+  return vreinterpretq_s64_u32(vmvnq_u32(vreinterpretq_u32_s64(a)));
+}
 static SIMD_INLINE Vec<Double, 16> bit_not(const Vec<Double, 16> &a)
 {
   return vreinterpretq_f64_s32(vmvnq_s32(vreinterpretq_s32_f64(a)));
@@ -2217,7 +2422,11 @@ static SIMD_INLINE Vec<Double, 16> bit_not(const Vec<Double, 16> &a)
 // avg: average with rounding up
 // -------------------------------------------------------------------------
 
-SIMDVEC_NEON_BINARY_ALLINT(avg, vrhaddq)
+SIMDVEC_NEON_BINARY(avg, Byte, vrhaddq, u8)
+SIMDVEC_NEON_BINARY(avg, SignedByte, vrhaddq, s8)
+SIMDVEC_NEON_BINARY(avg, Word, vrhaddq, u16)
+SIMDVEC_NEON_BINARY(avg, Short, vrhaddq, s16)
+SIMDVEC_NEON_BINARY(avg, Int, vrhaddq, s32)
 
 static SIMD_INLINE Vec<Float, 16> avg(const Vec<Float, 16> &a,
                                       const Vec<Float, 16> &b)
@@ -2225,7 +2434,15 @@ static SIMD_INLINE Vec<Float, 16> avg(const Vec<Float, 16> &a,
   return vmulq_n_f32(vaddq_f32(a, b), 0.5f);
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> avg(const Vec<Long, 16> &a,
+                                     const Vec<Long, 16> &b)
+{
+  // vrhaddq_s64 does not exist
+  // workaround from Hacker's Delight, 2-5 Average of Two Integers:
+  // (a | b) - ((a ^ b) >> 1)
+  return vsubq_s64(vorrq_s64(a, b), vshrq_n_s64(veorq_s64(a, b), 1));
+}
 static SIMD_INLINE Vec<Double, 16> avg(const Vec<Double, 16> &a,
                                        const Vec<Double, 16> &b)
 {
@@ -2264,7 +2481,8 @@ SIMDVEC_NEON_TESTALLZEROS(Word, u16)
 SIMDVEC_NEON_TESTALLZEROS(Short, s16)
 SIMDVEC_NEON_TESTALLZEROS(Int, s32)
 SIMDVEC_NEON_TESTALLZEROS(Float, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+SIMDVEC_NEON_TESTALLZEROS(Long, s64)
 SIMDVEC_NEON_TESTALLZEROS(Double, f64)
 #endif
 
@@ -2300,7 +2518,11 @@ SIMDVEC_NEON_REVERSE(Word, u16)
 SIMDVEC_NEON_REVERSE(Short, s16)
 SIMDVEC_NEON_REVERSE(Int, s32)
 SIMDVEC_NEON_REVERSE(Float, f32)
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> reverse(const Vec<Long, 16> &a)
+{
+  return vcombine_s64(vget_high_s64(a), vget_low_s64(a));
+}
 static SIMD_INLINE Vec<Double, 16> reverse(const Vec<Double, 16> &a)
 {
   return vcombine_f64(vget_high_f64(a), vget_low_f64(a));
@@ -2397,14 +2619,19 @@ static SIMD_INLINE uint64_t msb2int(const Vec<Float, 16> &a)
   return msb2int(reinterpret(a, OutputType<Int>()));
 }
 
-#ifdef SIMD_DOUBLE
-static SIMD_INLINE uint64_t msb2int(const Vec<Double, 16> &a)
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE uint64_t msb2int(const Vec<Long, 16> &a)
 {
   // shift out everything but the sign bits
-  uint64x2_t high_bits = vshrq_n_u64(vreinterpretq_u64_f64(a), 63);
+  uint64x2_t high_bits = vshrq_n_u64(vreinterpretq_u64_s64(a), 63);
   // extract the low bit from each lane and join
   return vgetq_lane_u8(vreinterpretq_u8_u64(high_bits), 0) |
          (vgetq_lane_u8(vreinterpretq_u8_u64(high_bits), 8) << 1);
+}
+static SIMD_INLINE uint64_t msb2int(const Vec<Double, 16> &a)
+{
+  // the same as msb2int(Vec<Long,16>)
+  return msb2int(reinterpret(a, OutputType<Long>()));
 }
 #endif
 
@@ -2468,16 +2695,22 @@ static SIMD_INLINE Vec<Float, 16> int2msb(const uint64_t a, OutputType<Float>,
                      OutputType<Float>());
 }
 
-#ifdef SIMD_DOUBLE
-static SIMD_INLINE Vec<Double, 16> int2msb(const uint64_t a, OutputType<Double>,
-                                           Integer<16>)
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> int2msb(const uint64_t a, OutputType<Long>,
+                                         Integer<16>)
 {
   int64x2_t aVec = vdupq_n_s64(a & 0x3);
   // shift the bits to the msb
   int64x2_t shiftAmounts = {63, 62};
   int64x2_t shifted      = vshlq_s64(aVec, shiftAmounts);
   int64x2_t result       = vandq_s64(shifted, vdupq_n_s64(0x8000000000000000));
-  return vreinterpretq_f64_s64(result);
+  return result;
+}
+static SIMD_INLINE Vec<Double, 16> int2msb(const uint64_t a, OutputType<Double>,
+                                           Integer<16>)
+{
+  return reinterpret(int2msb(a, OutputType<Long>(), Integer<16>()),
+                     OutputType<Double>());
 }
 #endif
 
@@ -2536,13 +2769,19 @@ static SIMD_INLINE Vec<Float, 16> int2bits(const uint64_t a, OutputType<Float>,
                      OutputType<Float>());
 }
 
-#ifdef SIMD_DOUBLE
-static SIMD_INLINE Vec<Double, 16> int2bits(const uint64_t a,
-                                            OutputType<Double>, Integer<16>)
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> int2bits(const uint64_t a, OutputType<Long>,
+                                          Integer<16>)
 {
   int64x2_t aVec = vdupq_n_s64(a & 0xf);
   int64x2_t sel  = {0x01, 0x02};
-  return vreinterpretq_f64_u64(vtstq_s64(aVec, sel));
+  return vreinterpretq_s64_u64(vtstq_s64(aVec, sel));
+}
+static SIMD_INLINE Vec<Double, 16> int2bits(const uint64_t a,
+                                            OutputType<Double>, Integer<16>)
+{
+  return reinterpret(int2bits(a, OutputType<Long>(), Integer<16>()),
+                     OutputType<Double>());
 }
 #endif
 
@@ -2588,7 +2827,12 @@ static SIMD_INLINE Vec<Float, 16> iota(OutputType<Float>, Integer<16>)
   return res;
 }
 
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+static SIMD_INLINE Vec<Long, 16> iota(OutputType<Long>, Integer<16>)
+{
+  int64x2_t res = {0, 1};
+  return res;
+}
 static SIMD_INLINE Vec<Double, 16> iota(OutputType<Double>, Integer<16>)
 {
   float64x2_t res = {0.0, 1.0};

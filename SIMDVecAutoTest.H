@@ -337,6 +337,9 @@ struct TestSignedInt
     Tester<SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_64BIT_TYPES
+    Tester<Long, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
   }
 };
 
@@ -362,7 +365,7 @@ struct TestFloat
   static void test(size_t repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
     Tester<Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
 #endif
   }
@@ -423,6 +426,9 @@ struct TestSignedIntTI
     Tester<SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_64BIT_TYPES
+    Tester<Long, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
   }
 };
 
@@ -450,7 +456,7 @@ struct TestFloatTI
   static void test(size_t repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
     Tester<Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
 #endif
   }
@@ -515,6 +521,9 @@ struct TestSignedIntTII
     Tester<SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_64BIT_TYPES
+    Tester<Long, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
   }
 };
 
@@ -544,7 +553,7 @@ struct TestFloatTII
   static void test(size_t repeats, const std::string &pattern)
   {
     Tester<Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
     Tester<Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
 #endif
   }
@@ -616,7 +625,8 @@ struct TestAllTT
     testAllSeconds<Short>(repeats, pattern);
     testAllSeconds<Int>(repeats, pattern);
     testAllSeconds<Float>(repeats, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+    testAllSeconds<Long>(repeats, pattern);
     testAllSeconds<Double>(repeats, pattern);
 #endif
   }
@@ -631,7 +641,8 @@ private:
     Tester<T1, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<T1, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<T1, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+    Tester<T1, Long, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<T1, Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
 #endif
   }
@@ -665,7 +676,10 @@ struct TestAllTTSameSize
     Tester<Int, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Float, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Float, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
+    Tester<Long, Long, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Long, Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, Long, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
     Tester<Double, Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
 #endif
   }

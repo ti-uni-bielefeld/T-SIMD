@@ -581,22 +581,19 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[8],
   return packs<Tout>(packs<Short>(a), packs<Short>(a + 4));
 }
 
-// special case: int <-> float
+// special cases: int <-> float, long <-> double
 
-template <size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<Float, SIMD_WIDTH> packs(const Vec<Int, SIMD_WIDTH> a[1],
-                                                OutputType<Float>,
-                                                Compression<1>)
+template <typename Tout, typename Tin, size_t SIMD_WIDTH>
+static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[1],
+                                               OutputType<Tout>, Compression<1>)
 {
-  return cvts<Float>(a[0]);
+  static_assert(sizeof(Tin) == sizeof(Tout), "");
+  static_assert(std::is_floating_point<Tin>::value !=
+                  std::is_floating_point<Tout>::value,
+                "");
+  return cvts<Tout>(a[0]);
 }
 
-template <size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<Int, SIMD_WIDTH> packs(const Vec<Float, SIMD_WIDTH> a[1],
-                                              OutputType<Int>, Compression<1>)
-{
-  return cvts<Int>(a[0]);
-}
 } // namespace ext
 } // namespace internal
 
@@ -1673,6 +1670,13 @@ static SIMD_INLINE Vec<Int, SIMD_WIDTH> div2r0(const Vec<Int, SIMD_WIDTH> &a)
   return srai<1>(add(a, srli<31>(a)));
 }
 
+template <size_t SIMD_WIDTH>
+static SIMD_INLINE Vec<Long, SIMD_WIDTH> div2r0(const Vec<Long, SIMD_WIDTH> &a)
+{
+  // add 1 if number is negative
+  return srai<1>(add(a, srli<63>(a)));
+}
+
 // NOTE: no rounding for float
 template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Float, SIMD_WIDTH> div2r0(
@@ -1743,6 +1747,12 @@ static SIMD_INLINE Vec<Short, SIMD_WIDTH> div2rd(
 
 template <size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Int, SIMD_WIDTH> div2rd(const Vec<Int, SIMD_WIDTH> &a)
+{
+  return srai<1>(a);
+}
+
+template <size_t SIMD_WIDTH>
+static SIMD_INLINE Vec<Long, SIMD_WIDTH> div2rd(const Vec<Long, SIMD_WIDTH> &a)
 {
   return srai<1>(a);
 }

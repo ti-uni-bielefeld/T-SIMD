@@ -1437,24 +1437,27 @@ static SIMD_INLINE void extend(
 }
 
 /**
- * @brief Converts the elements of a Vec between @ref Int
- * and @ref Float types
+ * @brief Converts the elements of a Vec between integer and floating point
+ * types of the same size.
  *
- * The conversion @ref Float -> @ref Int is saturated.
+ * The conversion from floating point type to integer is saturated.
  *
- * @tparam Tout type of the resulting Vec Must be one of Int or @ref Float, but
- * not the same as @p Tin
- * @tparam Tin type of the input Vec Must be one of
- * @ref Int or @ref Float, but not the same as @p Tout.
+ * @tparam Tout type of the resulting Vec, must be the same size as @p Tin
+ * and must be a floating point type if @p Tin is an integer type, and vice
+ * versa
+ * @tparam Tin type of the input Vec, must be the same size as @p Tout
+ * and must be a floating point type if @p Tout is an integer type, and vice
+ * versa
  * @param a input Vec
  */
 template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> cvts(const Vec<Tin, SIMD_WIDTH> &a)
 {
-  static_assert(
-    ((std::is_same<Tout, Int>::value && std::is_same<Tin, Float>::value) ||
-     (std::is_same<Tout, Float>::value && std::is_same<Tin, Int>::value)),
-    "Tout and Tin must be one of Int or Float, but not the same");
+  static_assert(sizeof(Tout) == sizeof(Tin),
+                "Tout and Tin must be the same size");
+  static_assert(std::is_floating_point<Tout>::value !=
+                  std::is_floating_point<Tin>::value,
+                "exactly one of Tout and Tin must be a floating point type");
   return internal::base::cvts(a, internal::OutputType<Tout>());
 }
 

@@ -239,12 +239,18 @@ static constexpr SIMD_INLINE size_t numSIMDVecsElements()
 
 namespace internal {
 namespace vec {
-// std::max is not constexpr in C++11, so we need to provide our own, since
-// we need it in a constexpr context
+// std::max and std::min are not constexpr in C++11, so we need to provide our
+// own, since we need them in a constexpr context
 template <typename T>
 constexpr const T &max(const T &a, const T &b)
 {
   return (a < b) ? b : a;
+}
+
+template <typename T>
+constexpr const T &min(const T &a, const T &b)
+{
+  return (a < b) ? a : b;
 }
 } // namespace vec
 } // namespace internal
@@ -259,7 +265,7 @@ constexpr const T &max(const T &a, const T &b)
  */
 template <typename Tout, typename Tin>
 using BigEnoughFloat =
-#ifdef SIMD_DOUBLE
+#ifdef SIMD_64BIT_TYPES
   typename std::conditional<internal::vec::max(sizeof(Tout), sizeof(Tin)) <=
                               sizeof(Float),
                             Float, Double>::type;

@@ -240,8 +240,8 @@ all_build_files = $(all_objects) $(all_binaries) $(depend_files) \
 .PHONY: clean
 clean:
 ifneq ($(wildcard $(build_dir)),)
-	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, backup files, single header file and doc_html/ documentation directory
-	@$(RM) $(addprefix $(build_dir)/,$(all_build_files)) $(build_dir)/*~ >$(NULL) 2>&1
+	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, all backup files, all temporary files, single header file and doc_html/ documentation directory
+	@$(RM) $(addprefix $(build_dir)/,$(all_build_files)) $(build_dir)/*~ $(build_dir)/*.tmp >$(NULL) 2>&1
 	@$(RMDIR_R) $(build_dir)/doc_html >$(NULL) 2>&1
 ifneq ($(build_dir),.)
 	@$(RMDIR) $(build_dir) >$(NULL) 2>&1

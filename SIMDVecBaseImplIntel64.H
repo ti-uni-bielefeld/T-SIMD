@@ -2355,6 +2355,17 @@ static SIMD_INLINE Vec<Int, 64> packs(const Vec<Double, 64> &a,
   return _mm512_inserti64x4(_mm512_castsi256_si512(low), high, 1);
 }
 
+// ========== unsigned -> unsigned ==========
+
+// non-avx512bw workaround
+static SIMD_INLINE Vec<Byte, 64> packs(const Vec<Word, 64> &a,
+                                       const Vec<Word, 64> &b, OutputType<Byte>)
+{
+  return x_mm512_evenodd8x64_epi64(
+    x_mm512_packus_epi16(max(a, Vec<Word, 64>(_mm512_setzero_si512())),
+                         max(b, Vec<Word, 64>(_mm512_setzero_si512()))));
+}
+
 // ========== signed -> unsigned ==========
 
 // non-avx512bw workaround
@@ -2380,6 +2391,18 @@ static SIMD_INLINE Vec<Word, 64> packs(const Vec<Float, 64> &a,
                OutputType<Word>());
 }
 
+// ========== unsigned -> signed ==========
+
+// non-avx512bw workaround
+static SIMD_INLINE Vec<SignedByte, 64> packs(const Vec<Word, 64> &a,
+                                             const Vec<Word, 64> &b,
+                                             OutputType<SignedByte>)
+{
+  return x_mm512_evenodd8x64_epi64(
+    x_mm512_packs_epi16(min(a, Vec<Word, 64>(_mm512_set1_epi16(0x7f))),
+                        min(b, Vec<Word, 64>(_mm512_set1_epi16(0x7f)))));
+}
+
 // ---------------------------------------------------------------------------
 // generalized extend: no stage v
 // ---------------------------------------------------------------------------
@@ -2397,13 +2420,37 @@ static SIMD_INLINE Vec<Word, 64> packs(const Vec<Float, 64> &a,
 // - signed   -> extended signed (sign extension)
 // - unsigned -> extended unsigned (zero extension)
 // - unsigned -> extended signed (zero extension)
-// (signed -> extended unsigned is not possible)
+// - signed   -> extended unsigned (saturation and zero extension)
 
-// all types
+// same types
 template <typename T>
 static SIMD_INLINE void extend(const Vec<T, 64> &vIn, Vec<T, 64> vOut[1])
 {
   vOut[0] = vIn;
+}
+
+// same size, different types
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 64> &vIn,
+                               Vec<Byte, 64> vOut[1])
+{
+  vOut[0] = max(vIn, Vec<SignedByte, 64>(_mm512_setzero_si512()));
+}
+
+static SIMD_INLINE void extend(const Vec<Byte, 64> &vIn,
+                               Vec<SignedByte, 64> vOut[1])
+{
+  vOut[0] = min(vIn, Vec<Byte, 64>(_mm512_set1_epi8(0x7f)));
+}
+
+static SIMD_INLINE void extend(const Vec<Short, 64> &vIn, Vec<Word, 64> vOut[1])
+{
+  vOut[0] = max(vIn, Vec<Short, 64>(_mm512_setzero_si512()));
+}
+
+static SIMD_INLINE void extend(const Vec<Word, 64> &vIn, Vec<Short, 64> vOut[1])
+{
+  vOut[0] = min(vIn, Vec<Word, 64>(_mm512_set1_epi16(0x7fff)));
 }
 
 // ---------------------------------------------------------------------------
@@ -2524,6 +2571,29 @@ static SIMD_INLINE void extend(const Vec<Word, 64> &vIn, Vec<Float, 64> vOut[2])
 {
   vOut[0] = _mm512_cvtepi32_ps(_mm512_cvtepu16_epi32(vIn.lo()));
   vOut[1] = _mm512_cvtepi32_ps(_mm512_cvtepu16_epi32(vIn.hi()));
+}
+
+// signed -> unsigned
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 64> &vIn,
+                               Vec<Word, 64> vOut[2])
+{
+#ifdef __AVX512BW__
+  const auto saturated = _mm512_max_epi8(vIn, _mm512_setzero_si512());
+  vOut[0] = _mm512_unpacklo_epi8(saturated, _mm512_setzero_si512());
+  vOut[1] = _mm512_unpackhi_epi8(saturated, _mm512_setzero_si512());
+#else
+  {
+    const __m256i lo = _mm256_unpacklo_epi8(vIn.lo(), _mm256_setzero_si256());
+    const __m256i hi = _mm256_unpackhi_epi8(vIn.lo(), _mm256_setzero_si256());
+    vOut[0]          = _mm512_inserti64x4(_mm512_castsi256_si512(lo), hi, 1);
+  }
+  {
+    const __m256i lo = _mm256_unpacklo_epi8(vIn.hi(), _mm256_setzero_si256());
+    const __m256i hi = _mm256_unpackhi_epi8(vIn.hi(), _mm256_setzero_si256());
+    vOut[1]          = _mm512_inserti64x4(_mm512_castsi256_si512(lo), hi, 1);
+  }
+#endif
 }
 
 // ---------------------------------------------------------------------------

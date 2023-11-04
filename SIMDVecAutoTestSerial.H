@@ -654,10 +654,23 @@ static SIMD_INLINE Tout _packs(Tin in)
 
 // for most cases
 template <typename Tout, typename Tin,
-          SIMD_ENABLE_IF(sizeof(Tout) >= sizeof(Tin))>
+          SIMD_ENABLE_IF(sizeof(Tout) >= sizeof(Tin) &&
+                         !(std::is_signed<Tin>::value &&
+                           !std::is_signed<Tout>::value))>
 static SIMD_INLINE Tout _extend(Tin in)
 {
   return Tout(in);
+}
+
+// for signed -> unsigned
+template <typename Tout, typename Tin,
+          SIMD_ENABLE_IF(sizeof(Tout) >= sizeof(Tin) &&
+                         std::is_signed<Tin>::value &&
+                         !std::is_signed<Tout>::value),
+          typename = void>
+static SIMD_INLINE Tout _extend(Tin in)
+{
+  return Tout(std::max(Tin(0), in));
 }
 
 // Float -> Int

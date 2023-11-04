@@ -685,6 +685,95 @@ struct TestAllTTSameSize
   }
 };
 
+template <template <typename, typename, size_t,
+                    template <typename, typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
+          class CMP = CmpEqual>
+struct TestAllTTOneSmaller
+{
+  static void test(size_t repeats, const std::string &pattern)
+  {
+    Tester<Byte, Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<SignedByte, Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Byte, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<SignedByte, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Word, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Short, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Word, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Short, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_64BIT_TYPES
+    Tester<Int, Long, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, Long, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Int, Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, Double, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
+  }
+};
+
+template <template <typename, typename, size_t,
+                    template <typename, typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
+          class CMP = CmpEqual>
+struct TestAllTTLarger
+{
+  static void test(size_t repeats, const std::string &pattern)
+  {
+    Tester<Word, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Short, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Int, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_64BIT_TYPES
+    Tester<Long, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, Byte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
+    Tester<Word, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Short, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Int, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_64BIT_TYPES
+    Tester<Long, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, SignedByte, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
+    Tester<Int, Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_64BIT_TYPES
+    Tester<Long, Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, Word, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
+    Tester<Int, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Float, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_64BIT_TYPES
+    Tester<Long, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, Short, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
+    Tester<Float, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#ifdef SIMD_64BIT_TYPES
+    Tester<Long, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, Int, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
+#ifdef SIMD_64BIT_TYPES
+    Tester<Long, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    Tester<Double, Float, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+#endif
+  }
+};
+
+template <template <typename, typename, size_t,
+                    template <typename, typename, size_t> class, class>
+          class Tester,
+          size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
+          class CMP = CmpEqual>
+struct TestAllTTSameSizeOrLarger
+{
+  static void test(size_t repeats, const std::string &pattern)
+  {
+    TestAllTTSameSize<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+    TestAllTTLarger<Tester, SIMD_WIDTH, FCT, CMP>::test(repeats, pattern);
+  }
+};
+
 // ===========================================================================
 // test of nullary commands
 // ===========================================================================

@@ -1156,6 +1156,14 @@ static SIMD_INLINE Vec<Float, 16> packs(const Vec<Double, 16> &a,
 }
 #endif
 
+// unsigned -> unsigned
+
+static SIMD_INLINE Vec<Byte, 16> packs(const Vec<Word, 16> &a,
+                                       const Vec<Word, 16> &b, OutputType<Byte>)
+{
+  return vcombine_u8(vqmovn_u16(a), vqmovn_u16(b));
+}
+
 // signed -> unsigned
 
 static SIMD_INLINE Vec<Byte, 16> packs(const Vec<Short, 16> &a,
@@ -1179,6 +1187,17 @@ static SIMD_INLINE Vec<Word, 16> packs(const Vec<Float, 16> &a,
                OutputType<Word>());
 }
 
+// unsigned -> signed
+
+static SIMD_INLINE Vec<SignedByte, 16> packs(const Vec<Word, 16> &a,
+                                             const Vec<Word, 16> &b,
+                                             OutputType<SignedByte>)
+{
+  return vcombine_s8(
+    vreinterpret_s8_u8(vmin_u8(vqmovn_u16(a), vdup_n_u8(0x7f))),
+    vreinterpret_s8_u8(vmin_u8(vqmovn_u16(b), vdup_n_u8(0x7f))));
+}
+
 // -------------------------------------------------------------------------
 // generalized extend: no stage
 // -------------------------------------------------------------------------
@@ -1196,13 +1215,37 @@ static SIMD_INLINE Vec<Word, 16> packs(const Vec<Float, 16> &a,
 // - signed   -> extended signed (sign extension)
 // - unsigned -> extended unsigned (zero extension)
 // - unsigned -> extended signed (zero extension)
-// (signed -> extended unsigned is not possible)
+// - signed   -> extended unsigned (saturation and zero extension)
 
-// all types
+// some types
 template <typename T>
 static SIMD_INLINE void extend(const Vec<T, 16> &vIn, Vec<T, 16> vOut[1])
 {
   vOut[0] = vIn;
+}
+
+// same size, different type
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
+                               Vec<Byte, 16> vOut[1])
+{
+  vOut[0] = vreinterpretq_u8_s8(vmaxq_s8(vIn, vdupq_n_s8(0)));
+}
+
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
+                               Vec<SignedByte, 16> vOut[1])
+{
+  vOut[0] = vreinterpretq_s8_u8(vminq_u8(vIn, vdupq_n_u8(0x7f)));
+}
+
+static SIMD_INLINE void extend(const Vec<Short, 16> &vIn, Vec<Word, 16> vOut[1])
+{
+  vOut[0] = vreinterpretq_u16_s16(vmaxq_s16(vIn, vdupq_n_s16(0)));
+}
+
+static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Short, 16> vOut[1])
+{
+  vOut[0] = vreinterpretq_s16_u16(vminq_u16(vIn, vdupq_n_u16(0x7fff)));
 }
 
 // -------------------------------------------------------------------------
@@ -1284,6 +1327,16 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Float, 16> vOut[2])
 {
   vOut[0] = vcvtq_f32_u32(vmovl_u16(vget_low_u16(vIn)));
   vOut[1] = vcvtq_f32_u32(vmovl_u16(vget_high_u16(vIn)));
+}
+
+// signed -> unsigned
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
+                               Vec<Word, 16> vOut[2])
+{
+  const auto saturated = vmaxq_s8(vIn, vdupq_n_s8(0));
+  vOut[0]              = vmovl_u8(vget_low_u8(vreinterpretq_u8_s8(saturated)));
+  vOut[1]              = vmovl_u8(vget_high_u8(vreinterpretq_u8_s8(saturated)));
 }
 
 // -------------------------------------------------------------------------

@@ -1378,13 +1378,12 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> alignre(const Vec<T, SIMD_WIDTH> &h,
  * @brief Packs two Vec's into one by converting the elements
  * into the next smaller type with saturation.
  *
- * Only supported for signed->signed and signed->unsigned
- * conversions. Float is converted to an integer type, as there
+ * Float is converted to an integer type, as there
  * is no 16-bit floating point type.
  *
  * @sa extend()
  *
- * @tparam Tout type of the resulting Vec Must be the next smaller type of the
+ * @tparam Tout type of the resulting Vec, must be the next smaller type of the
  * elements of the input Vec's
  * @tparam Tin type of the input Vec's
  * @param a, b The input Vec's.
@@ -1394,9 +1393,6 @@ template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> &a,
                                                const Vec<Tin, SIMD_WIDTH> &b)
 {
-  static_assert((TypeInfo<Tin>::isSigned && TypeInfo<Tout>::isSigned) ||
-                  (TypeInfo<Tin>::isSigned && !TypeInfo<Tout>::isSigned),
-                "packs() only supports signed->signed and signed->unsigned");
   return internal::base::packs(a, b, internal::OutputType<Tout>());
 }
 
@@ -1404,11 +1400,10 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> &a,
  * @brief Extends the elements of a Vec to a larger or equally
  * sized type.
  *
- * Supported are signed->signed, unsigned->unsigned and unsigned->signed
- * conversions, but unsigned->signed conversions are only supported
- * if the destination type is larger than the source type.
- *
  * The values are zero-extended or sign-extended, depending on the type.
+ *
+ * When converting from a signed to an unsigned type, negative values are
+ * saturated to zero.
  *
  * Multiple output Vec's are produced, where the amount of output
  * Vec's is <tt>sizeof(Tout) / sizeof(Tin)</tt>.
@@ -1425,14 +1420,6 @@ static SIMD_INLINE void extend(
   const Vec<Tin, SIMD_WIDTH> &vIn,
   Vec<Tout, SIMD_WIDTH> vOut[sizeof(Tout) / sizeof(Tin)])
 {
-  static_assert(
-    (TypeInfo<Tin>::isSigned && TypeInfo<Tout>::isSigned) ||
-      (!TypeInfo<Tin>::isSigned && !TypeInfo<Tout>::isSigned) ||
-      (!TypeInfo<Tin>::isSigned && TypeInfo<Tout>::isSigned &&
-       sizeof(Tout) > sizeof(Tin)),
-    "extend() only supports signed->signed, unsigned->unsigned and "
-    "unsigned->signed (with destination type larger than source type) "
-    "conversions");
   return internal::base::extend(vIn, vOut);
 }
 

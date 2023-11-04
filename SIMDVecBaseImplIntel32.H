@@ -2744,6 +2744,22 @@ static SIMD_INLINE Vec<Int, 32> packs(const Vec<Double, 32> &a,
                           _mm256_cvtpd_epi32(_mm256_min_pd(clip, a)));
 }
 
+// ========== unsigned -> unsigned ==========
+
+static SIMD_INLINE Vec<Byte, 32> packs(const Vec<Word, 32> &a,
+                                       const Vec<Word, 32> &b, OutputType<Byte>)
+{
+#ifdef __AVX2__
+  // _mm256_packus_epu16 does not exist, so saturate inputs to byte range and
+  // then use _mm256_packus_epi16
+  return _mm256_packus_epi16(_mm256_max_epi16(a, _mm256_set1_epi16(0xff)),
+                             _mm256_max_epi16(b, _mm256_set1_epi16(0xff)));
+#else
+  return Vec<Byte, 32>(packs(a.lo(), b.lo(), OutputType<Byte>()),
+                       packs(a.hi(), b.hi(), OutputType<Byte>()));
+#endif
+}
+
 // ========== signed -> unsigned ==========
 
 // non-avx2 workaround
@@ -2769,6 +2785,22 @@ static SIMD_INLINE Vec<Word, 32> packs(const Vec<Float, 32> &a,
                OutputType<Word>());
 }
 
+// ========== unsigned -> signed ==========
+static SIMD_INLINE Vec<SignedByte, 32> packs(const Vec<Word, 32> &a,
+                                             const Vec<Word, 32> &b,
+                                             OutputType<SignedByte>)
+{
+#ifdef __AVX2__
+  // _mm256_packs_epu16 does not exist, so saturate inputs to signed byte range
+  // and then use _mm256_packs_epi16
+  return _mm256_packs_epi16(_mm256_min_epi16(a, _mm256_set1_epi16(0x7f)),
+                            _mm256_min_epi16(b, _mm256_set1_epi16(0x7f)));
+#else
+  return Vec<SignedByte, 32>(packs(a.lo(), b.lo(), OutputType<SignedByte>()),
+                             packs(a.hi(), b.hi(), OutputType<SignedByte>()));
+#endif
+}
+
 // ---------------------------------------------------------------------------
 // generalized extend: no stage
 // ---------------------------------------------------------------------------
@@ -2786,17 +2818,41 @@ static SIMD_INLINE Vec<Word, 32> packs(const Vec<Float, 32> &a,
 // - signed   -> extended signed (sign extension)
 // - unsigned -> extended unsigned (zero extension)
 // - unsigned -> extended signed (zero extension)
-// (signed -> extended unsigned is not possible)
+// - signed   -> extended unsigned (saturation and zero extension)
 
 // 7. Aug 16 (rm):
 // tried to remove this to SIMDVecExt.H, but then we get ambiguities with
 // non-avx2 workaround
 
-// all types
+// same types
 template <typename T>
 static SIMD_INLINE void extend(const Vec<T, 32> &vIn, Vec<T, 32> vOut[1])
 {
   vOut[0] = vIn;
+}
+
+// same size, different types
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
+                               Vec<Byte, 32> vOut[1])
+{
+  vOut[0] = max(vIn, Vec<SignedByte, 32>(_mm256_setzero_si256()));
+}
+
+static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn,
+                               Vec<SignedByte, 32> vOut[1])
+{
+  vOut[0] = max(vIn, Vec<Byte, 32>(_mm256_set1_epi8(0x7f)));
+}
+
+static SIMD_INLINE void extend(const Vec<Short, 32> &vIn, Vec<Word, 32> vOut[1])
+{
+  vOut[0] = max(vIn, Vec<Short, 32>(_mm256_setzero_si256()));
+}
+
+static SIMD_INLINE void extend(const Vec<Word, 32> &vIn, Vec<Short, 32> vOut[1])
+{
+  vOut[0] = max(vIn, Vec<Word, 32>(_mm256_set1_epi16(0x7fff)));
 }
 
 // ---------------------------------------------------------------------------
@@ -2889,6 +2945,16 @@ static SIMD_INLINE void extend(const Vec<Word, 32> &vIn, Vec<Float, 32> vOut[2])
     _mm256_cvtepi32_ps(_mm256_cvtepu16_epi32(_mm256_castsi256_si128(vIn)));
   vOut[1] =
     _mm256_cvtepi32_ps(_mm256_cvtepu16_epi32(_mm256_extractf128_si256(vIn, 1)));
+}
+
+// signed -> unsigned
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
+                               Vec<Word, 32> vOut[2])
+{
+  const auto saturated = _mm256_max_epi8(vIn, _mm256_setzero_si256());
+  vOut[0] = _mm256_unpacklo_epi8(saturated, _mm256_setzero_si256());
+  vOut[1] = _mm256_unpackhi_epi8(saturated, _mm256_setzero_si256());
 }
 
 // ---------------------------------------------------------------------------

@@ -550,12 +550,22 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[2],
 
 // two stages
 
-template <typename Tout, typename Tin, size_t SIMD_WIDTH>
+// via Short if Tout is Byte or SignedByte
+template <typename Tout, typename Tin, size_t SIMD_WIDTH,
+          SIMD_ENABLE_IF(sizeof(Tout) == 1)>
 static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[4],
                                                OutputType<Tout>, Compression<4>)
 {
-  // always via Short
   return packs<Tout>(packs<Short>(a[0], a[1]), packs<Short>(a[2], a[3]));
+}
+
+// via Int if Tout is Word or Short
+template <typename Tout, typename Tin, size_t SIMD_WIDTH,
+          SIMD_ENABLE_IF(sizeof(Tout) == 2), typename = void>
+static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[4],
+                                               OutputType<Tout>, Compression<4>)
+{
+  return packs<Tout>(packs<Int>(a[0], a[1]), packs<Int>(a[2], a[3]));
 }
 
 // two stages from Double
@@ -575,9 +585,6 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(const Vec<Tin, SIMD_WIDTH> a[8],
                                                OutputType<Tout>, Compression<8>)
 {
   // always via Short
-  // assuming Tin is Double:
-  static_assert(std::is_same<Tin, Double>::value,
-                "currently only supported for Tin == Double");
   return packs<Tout>(packs<Short>(a), packs<Short>(a + 4));
 }
 

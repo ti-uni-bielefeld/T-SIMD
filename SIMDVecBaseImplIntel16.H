@@ -1907,6 +1907,17 @@ static SIMD_INLINE Vec<Int, 16> packs(const Vec<Double, 16> &a,
   return _mm_castps_si128(_mm_shuffle_ps(aI, bI, _MM_SHUFFLE(1, 0, 1, 0)));
 }
 
+// unsigned -> unsigned
+
+static SIMD_INLINE Vec<Byte, 16> packs(const Vec<Word, 16> &a,
+                                       const Vec<Word, 16> &b, OutputType<Byte>)
+{
+  // _mm_packus_epu16 does not exist, so saturate inputs to byte range and then
+  // use _mm_packus_epi16
+  return _mm_packus_epi16(max(a, Vec<Word, 16>(_mm_set1_epi16(0xff))),
+                          max(b, Vec<Word, 16>(_mm_set1_epi16(0xff))));
+}
+
 // signed -> unsigned
 
 static SIMD_INLINE Vec<Byte, 16> packs(const Vec<Short, 16> &a,
@@ -1982,6 +1993,18 @@ static SIMD_INLINE Vec<Word, 16> packs(const Vec<Float, 16> &a,
                OutputType<Word>());
 }
 
+// unsigned -> signed
+
+static SIMD_INLINE Vec<SignedByte, 16> packs(const Vec<Word, 16> &a,
+                                             const Vec<Word, 16> &b,
+                                             OutputType<SignedByte>)
+{
+  // _mm_packs_epu16 does not exist, so saturate inputs to signed byte range and
+  // then use _mm_packs_epi16
+  return _mm_packs_epi16(_mm_min_epi16(a, _mm_set1_epi16(0x7f)),
+                         _mm_min_epi16(b, _mm_set1_epi16(0x7f)));
+}
+
 // ---------------------------------------------------------------------------
 // generalized extend: no stage
 // ---------------------------------------------------------------------------
@@ -1999,13 +2022,37 @@ static SIMD_INLINE Vec<Word, 16> packs(const Vec<Float, 16> &a,
 // - signed   -> extended signed (sign extension)
 // - unsigned -> extended unsigned (zero extension)
 // - unsigned -> extended signed (zero extension)
-// (signed -> extended unsigned is not possible)
+// - signed   -> extended unsigned (saturation and zero extension)
 
-// all types
+// same types
 template <typename T>
 static SIMD_INLINE void extend(const Vec<T, 16> &vIn, Vec<T, 16> vOut[1])
 {
   vOut[0] = vIn;
+}
+
+// same size, different types
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
+                               Vec<Byte, 16> vOut[1])
+{
+  vOut[0] = max(vIn, _mm_setzero_si128());
+}
+
+static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
+                               Vec<SignedByte, 16> vOut[1])
+{
+  vOut[0] = min(vIn, _mm_set1_epi8(0x7f));
+}
+
+static SIMD_INLINE void extend(const Vec<Short, 16> &vIn, Vec<Word, 16> vOut[1])
+{
+  vOut[0] = _mm_max_epi16(vIn, _mm_setzero_si128());
+}
+
+static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Short, 16> vOut[1])
+{
+  vOut[0] = min(vIn, _mm_set1_epi16(0x7fff));
 }
 
 // ---------------------------------------------------------------------------
@@ -2099,9 +2146,9 @@ static SIMD_INLINE void extend(const Vec<Int, 16> &vIn, Vec<Long, 16> vOut[2])
   vOut[0] = _mm_cvtepi32_epi64(vIn);
   vOut[1] = _mm_cvtepi32_epi64(_mm_srli_si128(vIn, 8));
 #else
-  const __m128i sign     = _mm_srai_epi32(vIn, 31);
-  vOut[0]                = _mm_unpacklo_epi32(vIn, sign);
-  vOut[1]                = _mm_unpackhi_epi32(vIn, sign);
+  const __m128i sign = _mm_srai_epi32(vIn, 31);
+  vOut[0]            = _mm_unpacklo_epi32(vIn, sign);
+  vOut[1]            = _mm_unpackhi_epi32(vIn, sign);
 #endif
 }
 
@@ -2124,6 +2171,25 @@ static SIMD_INLINE void extend(const Vec<Float, 16> &vIn,
   vOut[0] = _mm_cvtps_pd(vIn);
   vOut[1] =
     _mm_cvtps_pd(_mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(vIn), 8)));
+}
+
+// signed -> unsigned
+
+static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
+                               Vec<Word, 16> vOut[2])
+{
+  // bring input in positive range
+#ifdef __SSE4_1__
+  const __m128i vInPos = _mm_max_epi8(vIn, _mm_setzero_si128());
+#else
+  // from Agner Fog's VCL vectori128.h
+  const __m128i signbit  = _mm_set1_epi32(0x80808080);
+  const __m128i a1       = _mm_xor_si128(vIn, signbit); // add 0x80
+  const __m128i m1       = _mm_max_epu8(a1, signbit);   // unsigned max
+  const __m128i vInPos   = _mm_xor_si128(m1, signbit);  // sub 0x80
+#endif
+  vOut[0] = _mm_unpacklo_epi8(vInPos, _mm_setzero_si128());
+  vOut[1] = _mm_unpackhi_epi8(vInPos, _mm_setzero_si128());
 }
 
 // ---------------------------------------------------------------------------

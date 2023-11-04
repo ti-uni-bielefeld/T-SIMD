@@ -414,7 +414,7 @@ using namespace simd;
       for (size_t j = 0; j < nElems; j++)                                      \
         buf[j] = (2 * nElems - (i + j)) * 100;                                 \
       v[i] = loadu<SW>(buf);                                                   \
-      printf("v[%2d] = ", i);                                                  \
+      printf("v[%2zu] = ", i);                                                 \
       print(FORMAT, v[i]);                                                     \
       puts("");                                                                \
     }                                                                          \

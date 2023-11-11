@@ -4674,16 +4674,6 @@ template <typename T,
           typename = void>
 static SIMD_INLINE uint64_t msb2int(const Vec<T, 32> &a)
 {
-#ifdef __AVX2__
-  return uint64_t(_mm256_movemask_epi8(a));
-#else
-  return uint64_t(_mm_movemask_epi8(a.lo()) |
-                  (_mm_movemask_epi8(a.hi()) << 16));
-#endif
-}
-
-static SIMD_INLINE uint64_t msb2int(const Vec<Short, 32> &a)
-{
   // there is no _mm256_movemask_epi16, so use _mm256_movemask_epi8
   // and discard the even bits
   // discarding the even bytes in a with a shuffle does not work,

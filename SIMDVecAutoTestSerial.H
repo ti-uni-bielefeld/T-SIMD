@@ -1683,10 +1683,8 @@ static SIMD_INLINE void swizzle(SerialVec<T, SIMD_WIDTH> v[N])
   }
 }
 
-// 15. Oct 22 (Jonas Keller): renamed _swizzle2 to swizzle2
-// 02. Aug 23 (Jonas Keller): renamed swizzle2 to swizzle2_a
 template <size_t N, typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE void swizzle2_a(SerialVec<T, SIMD_WIDTH> v[2 * N])
+static SIMD_INLINE void swizzle2(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
   const size_t n = SerialVec<T, SIMD_WIDTH>::elements, n2 = 2 * n;
   SerialVec<T, SIMD_WIDTH> u[2 * N];
@@ -1699,10 +1697,35 @@ static SIMD_INLINE void swizzle2_a(SerialVec<T, SIMD_WIDTH> v[2 * N])
   }
 }
 
-// 15. Oct 22 (Jonas Keller): renamed _unswizzle2 to unswizzle2
-// 02. Aug 23 (Jonas Keller): renamed unswizzle2 to unswizzle_a
+// 15. Oct 22 (Jonas Keller): renamed _swizzle2 to swizzle2
+// 02. Aug 23 (Jonas Keller): renamed swizzle2 to swizzle2_a
 template <size_t N, typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE void unswizzle_a(SerialVec<T, SIMD_WIDTH> v[2 * N])
+static SIMD_INLINE void swizzle2_a(SerialVec<T, SIMD_WIDTH> v[2 * N])
+{
+  // does the same thing as swizzle2
+  swizzle2<N>(v);
+}
+
+// 07. Feb 23 (Jonas Keller): added swizzle3
+// 02. Aug 23 (Jonas Keller): renamed swizzle3 to swizzle2_b
+template <size_t N, typename T, size_t SIMD_WIDTH>
+static SIMD_INLINE void swizzle2_b(SerialVec<T, SIMD_WIDTH> v[2 * N])
+{
+  // does the same thing as swizzle2
+  swizzle2<N>(v);
+}
+
+// 15. Oct 22 (Jonas Keller): added swizzle4
+// 02. Aug 23 (Jonas Keller): renamed swizzle4 to swizzle2_c
+template <size_t N, typename T, size_t SIMD_WIDTH>
+static SIMD_INLINE void swizzle2_c(SerialVec<T, SIMD_WIDTH> v[2 * N])
+{
+  // does the same thing as swizzle2
+  swizzle2<N>(v);
+}
+
+template <size_t N, typename T, size_t SIMD_WIDTH>
+static SIMD_INLINE void unswizzle(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
   const size_t n = SerialVec<T, SIMD_WIDTH>::elements, n2 = 2 * n;
   SerialVec<T, SIMD_WIDTH> u[2 * N];
@@ -1715,22 +1738,13 @@ static SIMD_INLINE void unswizzle_a(SerialVec<T, SIMD_WIDTH> v[2 * N])
   }
 }
 
-// 07. Feb 23 (Jonas Keller): added swizzle3
-// 02. Aug 23 (Jonas Keller): renamed swizzle3 to swizzle2_b
+// 15. Oct 22 (Jonas Keller): renamed _unswizzle2 to unswizzle2
+// 02. Aug 23 (Jonas Keller): renamed unswizzle2 to unswizzle_a
 template <size_t N, typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE void swizzle2_b(SerialVec<T, SIMD_WIDTH> v[2 * N])
+static SIMD_INLINE void unswizzle_a(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
-  // does the same thing as swizzle2_a
-  swizzle2_a<N>(v);
-}
-
-// 15. Oct 22 (Jonas Keller): added swizzle4
-// 02. Aug 23 (Jonas Keller): renamed swizzle4 to swizzle2_c
-template <size_t N, typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE void swizzle2_c(SerialVec<T, SIMD_WIDTH> v[2 * N])
-{
-  // does the same thing as swizzle2_a
-  swizzle2_a<N>(v);
+  // does the same thing as unswizzle
+  unswizzle<N>(v);
 }
 
 // 15. Oct 22 (Jonas Keller): added unswizzle4
@@ -1738,8 +1752,8 @@ static SIMD_INLINE void swizzle2_c(SerialVec<T, SIMD_WIDTH> v[2 * N])
 template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void unswizzle_b(SerialVec<T, SIMD_WIDTH> v[2 * N])
 {
-  // does the same thing as unswizzle_a
-  unswizzle_a<N>(v);
+  // does the same thing as unswizzle
+  unswizzle<N>(v);
 }
 
 template <typename Tcond, typename T, size_t SIMD_WIDTH>
@@ -2258,15 +2272,25 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> hadds(
   return c;
 }
 
+template <typename T, size_t SIMD_WIDTH>
+static SIMD_INLINE void transpose(
+  const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
+  SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
+{
+  const size_t n = SerialVec<T, SIMD_WIDTH>::elements;
+  for (size_t i = 0; i < n; i++) {
+    for (size_t j = 0; j < n; j++) outRows[i][j] = inRows[j][i];
+  }
+}
+
 // 02. Aug 23 (Jonas Keller): renamed transpose to transpose_a
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_a(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  const size_t n = SerialVec<T, SIMD_WIDTH>::elements;
-  for (size_t i = 0; i < n; i++)
-    for (size_t j = 0; j < n; j++) outRows[i][j] = inRows[j][i];
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose2 to transpose_e
@@ -2275,8 +2299,8 @@ static SIMD_INLINE void transpose_e(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose0 to transpose_b
@@ -2285,8 +2309,8 @@ static SIMD_INLINE void transpose_b(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose16 to transpose_c
@@ -2295,8 +2319,8 @@ static SIMD_INLINE void transpose_d(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose3 to transpose_f
@@ -2305,8 +2329,8 @@ static SIMD_INLINE void transpose_f(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose4 to transpose_g
@@ -2315,8 +2339,8 @@ static SIMD_INLINE void transpose_g(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose5 to transpose_h
@@ -2325,8 +2349,8 @@ static SIMD_INLINE void transpose_h(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose1_16_t to transpose_c
@@ -2335,8 +2359,8 @@ static SIMD_INLINE void transpose_c(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 // 02. Aug 23 (Jonas Keller): renamed transpose6_t to transpose_i
@@ -2345,8 +2369,8 @@ static SIMD_INLINE void transpose_i(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 // 06. Sep 23 (Jonas Keller): added transpose1inplc, transpose2inplc,
@@ -2357,8 +2381,8 @@ static SIMD_INLINE void transpose1inplc(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 template <typename T, size_t SIMD_WIDTH>
@@ -2366,8 +2390,8 @@ static SIMD_INLINE void transpose2inplc(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 template <typename T, size_t SIMD_WIDTH>
@@ -2375,8 +2399,8 @@ static SIMD_INLINE void transpose1inplcLane(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 template <typename T, size_t SIMD_WIDTH>
@@ -2384,8 +2408,8 @@ static SIMD_INLINE void transpose2inplcLane(
   const SerialVec<T, SIMD_WIDTH> inRows[SerialVec<T, SIMD_WIDTH>::elems],
   SerialVec<T, SIMD_WIDTH> outRows[SerialVec<T, SIMD_WIDTH>::elems])
 {
-  // same as transpose_a
-  transpose_a(inRows, outRows);
+  // same as transpose
+  transpose(inRows, outRows);
 }
 
 template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH>

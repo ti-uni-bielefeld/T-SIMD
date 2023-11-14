@@ -1055,6 +1055,32 @@ struct Swizzle
   }
 };
 
+template <size_t I, typename T, size_t SIMD_WIDTH>
+struct Swizzle2
+{
+  static SIMD_INLINE std::string name()
+  {
+    return ti2s<I, T, SIMD_WIDTH>("swizzle2");
+  }
+
+  static constexpr size_t minI = 1;
+  // TODO: is there an upper limit for maxI in swizzle2_a?
+  static constexpr size_t maxI    = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr size_t nextI   = I + 1;
+  static constexpr size_t numVecs = 2 * I;
+
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  {
+    vec.randomize();
+  }
+
+  template <template <typename, size_t> class VEC>
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[I])
+  {
+    swizzle2<I>(v);
+  }
+};
+
 // 02. Aug 23 (Jonas Keller): renamed Swizzle2 to Swizzle2_a
 template <size_t I, typename T, size_t SIMD_WIDTH>
 struct Swizzle2_a
@@ -1080,6 +1106,32 @@ struct Swizzle2_a
   {
     using ::simd::internal::ext::swizzle2_a;
     swizzle2_a<I>(v);
+  }
+};
+
+template <size_t I, typename T, size_t SIMD_WIDTH>
+struct Unswizzle
+{
+  static SIMD_INLINE std::string name()
+  {
+    return ti2s<I, T, SIMD_WIDTH>("unswizzle");
+  }
+
+  static constexpr size_t minI = 1;
+  // TODO: is there an upper limit for maxI in unswizzle?
+  static constexpr size_t maxI    = Vec<T, SIMD_WIDTH>::elems;
+  static constexpr size_t nextI   = I + 1;
+  static constexpr size_t numVecs = 2 * I;
+
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  {
+    vec.randomize();
+  }
+
+  template <template <typename, size_t> class VEC>
+  static SIMD_INLINE void apply(VEC<T, SIMD_WIDTH> v[2 * I])
+  {
+    unswizzle<I>(v);
   }
 };
 
@@ -1806,6 +1858,29 @@ struct HmaxSingle
   static SIMD_INLINE T apply(const VEC<T, SIMD_WIDTH> &a)
   {
     return hmax(a);
+  }
+};
+
+// 02. Aug 23 (Jonas Keller): renamed Transpose to Transpose_a
+template <typename T, size_t SIMD_WIDTH>
+struct Transpose
+{
+  static SIMD_INLINE std::string name()
+  {
+    return t2s<T, SIMD_WIDTH>("transpose");
+  }
+
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  {
+    vec.randomize();
+  }
+
+  template <template <typename, size_t> class VEC>
+  static SIMD_INLINE void apply(
+    const VEC<T, SIMD_WIDTH> inRows[VEC<T, SIMD_WIDTH>::elements],
+    VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
+  {
+    transpose(inRows, outRows);
   }
 };
 

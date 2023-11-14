@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
   TestAll<UnaryScalarT, SW, HaddsSingle>::test(repeats1, pattern);
   TestAll<UnaryScalarT, SW, HminSingle>::test(repeats1, pattern);
   TestAll<UnaryScalarT, SW, HmaxSingle>::test(repeats1, pattern);
+  TestAll<ArrayArrayVoid, SW, Transpose>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid, SW, Transpose_a>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid, SW, Transpose_e>::test(repeats1, pattern);
   // contributed by Adam Marschall
@@ -165,8 +166,8 @@ int main(int argc, char *argv[])
   TestAll<ArrayArrayVoid, SW, Transpose2inplc>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid, SW, Transpose1inplcLane>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid, SW, Transpose2inplcLane>::test(repeats1, pattern);
-  // 15. Oct 22 (Jonas Keller): added test for _Swizzle
-  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle>::test(repeats1, pattern);
+  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle2>::test(repeats1,
+                                                              pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle2_a>::test(repeats1,
                                                                 pattern);
   // 07. Feb 23 (Jonas Keller): added test for swizzle2_b
@@ -175,6 +176,8 @@ int main(int argc, char *argv[])
   // 15. Oct 22 (Jonas Keller): added test for swizzle2_c
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle2_c>::test(repeats1,
                                                                 pattern);
+  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Unswizzle>::test(repeats1,
+                                                               pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Unswizzle_a>::test(repeats1,
                                                                  pattern);
   // 15. Oct 22 (Jonas Keller): added test for unswizzle_b

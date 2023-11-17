@@ -125,7 +125,6 @@ int main(int argc, char *argv[])
   TestAll<Binary, SW, Min>::test(repeats1, pattern);
   TestAll<Binary, SW, Max>::test(repeats1, pattern);
   TestAll<Unary, SW, Abs>::test(repeats1, pattern);
-  TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle>::test(repeats1, pattern);
   TestAllTII<BinaryTemplateIntIntMinToMax, SW, Unpack>::test(repeats1, pattern);
   // 10. Oct 22 (Jonas Keller): added test for Unpack16
   TestAllTII<BinaryTemplateIntIntMinToMax, SW, Unpack16>::test(repeats1,

@@ -2361,9 +2361,10 @@ static SIMD_INLINE Vec<Int, 64> packs(const Vec<Double, 64> &a,
 static SIMD_INLINE Vec<Byte, 64> packs(const Vec<Word, 64> &a,
                                        const Vec<Word, 64> &b, OutputType<Byte>)
 {
+  const auto aSaturated = min(a, Vec<Word, 64>(_mm512_set1_epi16(0xff)));
+  const auto bSaturated = min(b, Vec<Word, 64>(_mm512_set1_epi16(0xff)));
   return x_mm512_evenodd8x64_epi64(
-    x_mm512_packus_epi16(max(a, Vec<Word, 64>(_mm512_setzero_si512())),
-                         max(b, Vec<Word, 64>(_mm512_setzero_si512()))));
+    x_mm512_packus_epi16(aSaturated, bSaturated));
 }
 
 // ========== signed -> unsigned ==========
@@ -2407,15 +2408,6 @@ static SIMD_INLINE Vec<SignedByte, 64> packs(const Vec<Word, 64> &a,
 // generalized extend: no stage v
 // ---------------------------------------------------------------------------
 
-// from\to
-//    SB B S W I F
-// SB  x   x   x x
-//  B    x x x x x
-//  S      x   x x
-//  W        x x x
-//  I          x x
-//  F          x x
-//
 // combinations:
 // - signed   -> extended signed (sign extension)
 // - unsigned -> extended unsigned (zero extension)
@@ -2514,9 +2506,10 @@ static SIMD_INLINE void extend(const Vec<Float, 64> &vIn,
   vecOut[0] = _mm512_cvtps_epi64(vIn.lo());
   vecOut[1] = _mm512_cvtps_epi64(vIn.hi());
 #else
-  const __m512d dIn[2] = {_mm512_cvtps_pd(vIn.lo()), _mm512_cvtps_pd(vIn.hi())};
-  vecOut[0]            = cvts(dIn[0], OutputType<Long>());
-  vecOut[1]            = cvts(dIn[1], OutputType<Long>());
+  const Vec<Float, 64> clipped =
+    _mm512_min_ps(_mm512_set1_ps(MAX_POS_FLOAT_CONVERTIBLE_TO_INT64), vIn);
+  vecOut[0] = cvts(_mm512_cvtps_pd(clipped.lo()), OutputType<Long>());
+  vecOut[1] = cvts(_mm512_cvtps_pd(clipped.hi()), OutputType<Long>());
 #endif
 }
 
@@ -2578,23 +2571,13 @@ static SIMD_INLINE void extend(const Vec<Word, 64> &vIn, Vec<Float, 64> vOut[2])
 static SIMD_INLINE void extend(const Vec<SignedByte, 64> &vIn,
                                Vec<Word, 64> vOut[2])
 {
-#ifdef __AVX512BW__
-  const auto saturated = _mm512_max_epi8(vIn, _mm512_setzero_si512());
-  vOut[0] = _mm512_unpacklo_epi8(saturated, _mm512_setzero_si512());
-  vOut[1] = _mm512_unpackhi_epi8(saturated, _mm512_setzero_si512());
-#else
-  {
-    const __m256i lo = _mm256_unpacklo_epi8(vIn.lo(), _mm256_setzero_si256());
-    const __m256i hi = _mm256_unpackhi_epi8(vIn.lo(), _mm256_setzero_si256());
-    vOut[0]          = _mm512_inserti64x4(_mm512_castsi256_si512(lo), hi, 1);
-  }
-  {
-    const __m256i lo = _mm256_unpacklo_epi8(vIn.hi(), _mm256_setzero_si256());
-    const __m256i hi = _mm256_unpackhi_epi8(vIn.hi(), _mm256_setzero_si256());
-    vOut[1]          = _mm512_inserti64x4(_mm512_castsi256_si512(lo), hi, 1);
-  }
-#endif
-}
+  const Vec<SignedByte, 64> saturated =
+    max(vIn, Vec<SignedByte, 64>(_mm512_setzero_si512()));
+  vOut[0] = unpack(saturated, setzero(OutputType<SignedByte>(), Integer<64>()),
+                   Part<0>(), Bytes<1>());
+  vOut[1] = unpack(saturated, setzero(OutputType<SignedByte>(), Integer<64>()),
+                   Part<1>(), Bytes<1>());
+} // namespace base
 
 // ---------------------------------------------------------------------------
 // generalized extend: two stages v

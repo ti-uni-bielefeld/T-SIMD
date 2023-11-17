@@ -590,60 +590,60 @@ static SIMD_INLINE Double _abs(Double a)
 
 // also accepts same-size input and output types
 
-// for most cases
-template <typename Tout, typename Tin,
-          SIMD_ENABLE_IF(sizeof(Tout) < sizeof(Tin) &&
-                         std::is_integral<Tin>::value)>
+template <typename Tout, typename Tin>
 static SIMD_INLINE Tout _packs(Tin in)
 {
-  Tin minv = Tin(TypeInfo<Tout>::min());
-  Tin maxv = Tin(TypeInfo<Tout>::max());
-  if (in > maxv) { return Tout(maxv); }
-  if (in < minv) { return Tout(minv); }
-  return Tout(in);
-}
-
-template <typename Tout, typename Tin,
-          SIMD_ENABLE_IF(sizeof(Tout) == sizeof(Tin) &&
-                         std::is_integral<Tin>::value),
-          typename = void>
-static SIMD_INLINE Tout _packs(Tin in)
-{
-  return Tout(in);
+  static_assert(sizeof(Tout) <= sizeof(Tin), "");
+  SIMD_IF_CONSTEXPR (std::is_integral<Tout>::value &&
+                     std::is_integral<Tin>::value) {
+    SIMD_IF_CONSTEXPR (sizeof(Tout) < sizeof(Tin)) {
+      const Tin minv =
+        std::is_signed<Tin>::value ? Tin(TypeInfo<Tout>::min()) : Tin(0);
+      const Tin maxv = Tin(TypeInfo<Tout>::max());
+      return Tout(std::max(std::min(in, maxv), minv));
+    } else SIMD_IF_CONSTEXPR (sizeof(Tout) == sizeof(Tin)) {
+      SIMD_IF_CONSTEXPR (std::is_signed<Tout>::value &&
+                         !std::is_signed<Tin>::value) {
+        return Tout(std::min(in, Tin(std::numeric_limits<Tout>::max())));
+      } else SIMD_IF_CONSTEXPR (!std::is_signed<Tout>::value &&
+                                std::is_signed<Tin>::value) {
+        return Tout(std::max(in, Tin(0)));
+      } else {
+        return Tout(in);
+      }
+    }
+  } else {
+    return Tout(in);
+  }
 }
 
 // from floating point to integer types Int or smaller
-template <typename Tout, typename Tin,
-          SIMD_ENABLE_IF(
-            sizeof(Tout) <= sizeof(Tin) && std::is_integral<Tout>::value &&
-            std::is_floating_point<Tin>::value && sizeof(Tout) <= sizeof(Int)),
-          typename = void, typename = void>
-static SIMD_INLINE Tout _packs(Tin in)
+
+template <typename Tout, SIMD_ENABLE_IF(std::is_integral<Tout>::value)>
+static SIMD_INLINE Tout _packs(Float in)
 {
+  static_assert(sizeof(Tout) <= sizeof(Float), "");
   // via Int
   return _packs<Tout>(_cvts_f2i(in));
 }
 
-// from double to Long
-template <typename Tout, typename Tin,
-          SIMD_ENABLE_IF((std::is_same<Tout, Long>::value &&
-                          std::is_same<Tin, Double>::value)),
-          typename = void, typename = void, typename = void>
-static SIMD_INLINE Tout _packs(Tin in)
+template <typename Tout,
+          SIMD_ENABLE_IF(std::is_integral<Tout>::value && sizeof(Tout) <= 4)>
+static SIMD_INLINE Tout _packs(Double in)
 {
+  static_assert(sizeof(Tout) <= sizeof(Double), "");
   // via Int
-  return _packs<Tout>(_cvts_f2l(in));
+  return _packs<Tout>(_cvts_f2i(in));
 }
 
-// from floating point to floating point types
-template <typename Tout, typename Tin,
-          SIMD_ENABLE_IF(sizeof(Tout) <= sizeof(Tin) &&
-                         std::is_floating_point<Tout>::value &&
-                         std::is_floating_point<Tin>::value),
-          typename = void, typename = void, typename = void, typename = void>
-static SIMD_INLINE Tout _packs(Tin in)
+template <typename Tout,
+          SIMD_ENABLE_IF(std::is_integral<Tout>::value && sizeof(Tout) > 4),
+          typename = void>
+static SIMD_INLINE Tout _packs(Double in)
 {
-  return Tout(in);
+  static_assert(sizeof(Tout) <= sizeof(Double), "");
+  // via Int
+  return _packs<Tout>(_cvts_f2l(in));
 }
 
 // -------------------------------------------------------------------------
@@ -652,35 +652,37 @@ static SIMD_INLINE Tout _packs(Tin in)
 
 // also accepts same-size input and output types
 
-// for most cases
 template <typename Tout, typename Tin,
-          SIMD_ENABLE_IF(sizeof(Tout) >= sizeof(Tin) &&
-                         !(std::is_signed<Tin>::value &&
-                           !std::is_signed<Tout>::value))>
+          SIMD_ENABLE_IF(sizeof(Tout) >= sizeof(Tin))>
 static SIMD_INLINE Tout _extend(Tin in)
 {
-  return Tout(in);
+  SIMD_IF_CONSTEXPR (std::is_signed<Tin>::value ==
+                     std::is_signed<Tout>::value) {
+    return Tout(in);
+  } else SIMD_IF_CONSTEXPR (std::is_signed<Tin>::value &&
+                            !std::is_signed<Tout>::value) {
+    return Tout(std::max(in, Tin(0)));
+  } else SIMD_IF_CONSTEXPR (!std::is_signed<Tin>::value &&
+                            std::is_signed<Tout>::value &&
+                            !std::is_floating_point<Tout>::value) {
+    return Tout(std::min(in, Tin(std::numeric_limits<Tout>::max())));
+  } else {
+    return Tout(in);
+  }
 }
 
-// for signed -> unsigned
-template <typename Tout, typename Tin,
-          SIMD_ENABLE_IF(sizeof(Tout) >= sizeof(Tin) &&
-                         std::is_signed<Tin>::value &&
-                         !std::is_signed<Tout>::value),
-          typename = void>
-static SIMD_INLINE Tout _extend(Tin in)
-{
-  return Tout(std::max(Tin(0), in));
-}
-
-// Float -> Int
 template <>
 SIMD_INLINE Int _extend(Float in)
 {
   return _cvts_f2i(in);
 }
 
-// Double -> Long
+template <>
+SIMD_INLINE Long _extend(Float in)
+{
+  return _cvts_f2l(in);
+}
+
 template <>
 SIMD_INLINE Long _extend(Double in)
 {
@@ -702,7 +704,7 @@ template <typename Tout, typename Tin,
           SIMD_ENABLE_IF(sizeof(Tout) > sizeof(Tin)), typename = void>
 static SIMD_INLINE Tout _convert(Tin in)
 {
-  return Tout(in);
+  return _extend<Tout>(in);
 }
 
 // =========================================================================

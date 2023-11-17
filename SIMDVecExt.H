@@ -515,15 +515,6 @@ static SIMD_INLINE void loadu_storeu(const T *const src, T *const dst)
 // generalized packs
 // ===========================================================================
 
-// from\to
-//    SB B S W I F
-// SB  x
-//  B
-//  S  x x x
-//  W
-//  I  x x x x x x
-//  F  x x x x x x
-//
 // input is only signed
 // same-size input and output is allowed
 
@@ -637,25 +628,6 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(
 // ===========================================================================
 // generalized convert (using extend and packs)
 // ===========================================================================
-
-// here we distinguish between the three cases (type size comparison)
-// using the CompareTypes mechanisms (from SIMDTypes.H);
-// the alternative would be to have branches for the 3 different cases,
-// however, all branches are compiled, even if the compiler can select
-// between the three different branches at compile time,
-// this may lead to problems, since packs and extend are not defined for
-// all combinations of input and output types, and are not defined for
-// the same combinations, thus compilation may fail since extend or packs
-// cannot be instatiated, even though they wouldn't actually be used
-
-// from\to (combines generalized packs, extend)
-//    SB B S W I F
-// SB  x   x   x x
-//  B    x x x x x
-//  S  x x x   x x
-//  W        x x x
-//  I  x x x x x x
-//  F  x x x x x x
 
 namespace internal {
 namespace ext {

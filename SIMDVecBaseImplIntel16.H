@@ -1891,9 +1891,20 @@ static SIMD_INLINE Vec<Int, 16> packs(const Vec<Long, 16> &a,
                                       const Vec<Long, 16> &b, OutputType<Int>)
 {
   // _mm_packs_epi64 does not exist
-  // TODO: saturation
-  return _mm_castps_si128(_mm_shuffle_ps(
-    _mm_castsi128_ps(a), _mm_castsi128_ps(b), _MM_SHUFFLE(2, 0, 2, 0)));
+  // vectorized workaround seems to be complicated, so just using serial
+  // workaround
+  // TODO: is there a better, vectorized workaround?
+
+  Long input[4] SIMD_ATTR_ALIGNED(16);
+  _mm_store_si128((__m128i *) input, a);
+  _mm_store_si128((__m128i *) (input + 2), b);
+  Int output[4] SIMD_ATTR_ALIGNED(16);
+  for (int i = 0; i < 4; ++i) {
+    output[i] =
+      (Int) std::min(std::max(input[i], (Long) std::numeric_limits<Int>::min()),
+                     (Long) std::numeric_limits<Int>::max());
+  }
+  return _mm_load_si128((__m128i *) output);
 }
 
 // Double to Int
@@ -1914,8 +1925,8 @@ static SIMD_INLINE Vec<Byte, 16> packs(const Vec<Word, 16> &a,
 {
   // _mm_packus_epu16 does not exist, so saturate inputs to byte range and then
   // use _mm_packus_epi16
-  return _mm_packus_epi16(max(a, Vec<Word, 16>(_mm_set1_epi16(0xff))),
-                          max(b, Vec<Word, 16>(_mm_set1_epi16(0xff))));
+  return _mm_packus_epi16(min(a, Vec<Word, 16>(_mm_set1_epi16(0xff))),
+                          min(b, Vec<Word, 16>(_mm_set1_epi16(0xff))));
 }
 
 // signed -> unsigned
@@ -2001,23 +2012,14 @@ static SIMD_INLINE Vec<SignedByte, 16> packs(const Vec<Word, 16> &a,
 {
   // _mm_packs_epu16 does not exist, so saturate inputs to signed byte range and
   // then use _mm_packs_epi16
-  return _mm_packs_epi16(_mm_min_epi16(a, _mm_set1_epi16(0x7f)),
-                         _mm_min_epi16(b, _mm_set1_epi16(0x7f)));
+  return _mm_packs_epi16(min(a, Vec<Word, 16>(_mm_set1_epi16(0x7f))),
+                         min(b, Vec<Word, 16>(_mm_set1_epi16(0x7f))));
 }
 
 // ---------------------------------------------------------------------------
 // generalized extend: no stage
 // ---------------------------------------------------------------------------
 
-// from\to
-//    SB B S W I F
-// SB  x   x   x x
-//  B    x x x x x
-//  S      x   x x
-//  W        x x x
-//  I          x x
-//  F          x x
-//
 // combinations:
 // - signed   -> extended signed (sign extension)
 // - unsigned -> extended unsigned (zero extension)
@@ -2160,9 +2162,12 @@ static SIMD_INLINE void extend(const Vec<Int, 16> &vIn, Vec<Double, 16> vOut[2])
 
 static SIMD_INLINE void extend(const Vec<Float, 16> &vIn, Vec<Long, 16> vOut[2])
 {
-  (void) vIn;
-  (void) vOut;
-  // TODO
+  const auto clipped =
+    _mm_min_ps(vIn, _mm_set1_ps(MAX_POS_FLOAT_CONVERTIBLE_TO_INT64));
+  vOut[0] = cvts(_mm_cvtps_pd(clipped), OutputType<Long>());
+  vOut[1] = cvts(_mm_cvtps_pd(_mm_castsi128_ps(
+                   _mm_srli_si128(_mm_castps_si128(clipped), 8))),
+                 OutputType<Long>());
 }
 
 static SIMD_INLINE void extend(const Vec<Float, 16> &vIn,
@@ -2246,9 +2251,9 @@ static SIMD_INLINE void extend(const Vec<Short, 16> &vIn, Vec<Long, 16> vOut[4])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepi16_epi64(vIn);
-  vOut[1] = _mm_cvtepi16_epi64(_mm_srli_si128(vIn, 8));
-  vOut[2] = _mm_cvtepi16_epi64(_mm_srli_si128(vIn, 12));
-  vOut[3] = _mm_cvtepi16_epi64(_mm_srli_si128(vIn, 14));
+  vOut[1] = _mm_cvtepi16_epi64(_mm_srli_si128(vIn, 4));
+  vOut[2] = _mm_cvtepi16_epi64(_mm_srli_si128(vIn, 8));
+  vOut[3] = _mm_cvtepi16_epi64(_mm_srli_si128(vIn, 12));
 #else
   const __m128i lo16     = _mm_unpacklo_epi16(_mm_undefined_si128(), vIn);
   const __m128i hi16     = _mm_unpackhi_epi16(_mm_undefined_si128(), vIn);
@@ -2323,9 +2328,9 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Long, 16> vOut[4])
 {
 #ifdef __SSE4_1__
   vOut[0] = _mm_cvtepu16_epi64(vIn);
-  vOut[1] = _mm_cvtepu16_epi64(_mm_srli_si128(vIn, 8));
-  vOut[2] = _mm_cvtepu16_epi64(_mm_srli_si128(vIn, 12));
-  vOut[3] = _mm_cvtepu16_epi64(_mm_srli_si128(vIn, 14));
+  vOut[1] = _mm_cvtepu16_epi64(_mm_srli_si128(vIn, 4));
+  vOut[2] = _mm_cvtepu16_epi64(_mm_srli_si128(vIn, 8));
+  vOut[3] = _mm_cvtepu16_epi64(_mm_srli_si128(vIn, 12));
 #else
   const __m128i lo16       = _mm_unpacklo_epi16(vIn, _mm_setzero_si128());
   const __m128i hi16       = _mm_unpackhi_epi16(vIn, _mm_setzero_si128());

@@ -1145,7 +1145,8 @@ static SIMD_INLINE Vec<Float, 16> packs(const Vec<Long, 16> &a,
                                         const Vec<Long, 16> &b,
                                         OutputType<Float>)
 {
-  return vcombine_f32(vcvt_f32_s32(vqmovn_s64(a)), vcvt_f32_s32(vqmovn_s64(b)));
+  return vcombine_f32(vcvt_f32_f64(vcvtq_f64_s64(a)),
+                      vcvt_f32_f64(vcvtq_f64_s64(b)));
 }
 
 static SIMD_INLINE Vec<Float, 16> packs(const Vec<Double, 16> &a,
@@ -1202,15 +1203,6 @@ static SIMD_INLINE Vec<SignedByte, 16> packs(const Vec<Word, 16> &a,
 // generalized extend: no stage
 // -------------------------------------------------------------------------
 
-// from\to
-//    SB B S W I F
-// SB  x   x   x x
-//  B    x x x x x
-//  S      x   x x
-//  W        x x x
-//  I          x x
-//  F          x x
-//
 // combinations:
 // - signed   -> extended signed (sign extension)
 // - unsigned -> extended unsigned (zero extension)
@@ -2079,6 +2071,113 @@ static SIMD_INLINE Vec<T, 16> slle(const Vec<T, 16> &a)
 // swizzle
 // -------------------------------------------------------------------------
 
+// swizzle tables
+
+static SIMD_INLINE uint8x8_t swizzleTable(const size_t index, Integer<2>,
+                                          Integer<1>)
+{
+  const uint8x8_t table[2] SIMD_ATTR_ALIGNED(16) = {
+    {0, 2, 4, 6, 8, 10, 12, 14},
+    {1, 3, 5, 7, 9, 11, 13, 15},
+  };
+  return table[index];
+}
+
+static SIMD_INLINE uint8x8_t swizzleTable(const size_t index, Integer<3>,
+                                          Integer<1>)
+{
+  const uint8x8_t table[3] SIMD_ATTR_ALIGNED(16) = {
+    {0, 3, 6, 9, 12, 15, 18, 21},
+    {1, 4, 7, 10, 13, 16, 19, 22},
+    {2, 5, 8, 11, 14, 17, 20, 23},
+  };
+  return table[index];
+}
+
+static SIMD_INLINE uint8x8_t swizzleTable(const size_t index, Integer<4>,
+                                          Integer<1>)
+{
+  const uint8x8_t table[4] SIMD_ATTR_ALIGNED(16) = {
+    {0, 4, 8, 12, 16, 20, 24, 28},
+    {1, 5, 9, 13, 17, 21, 25, 29},
+    {2, 6, 10, 14, 18, 22, 26, 30},
+    {3, 7, 11, 15, 19, 23, 27, 31},
+  };
+  return table[index];
+}
+
+static SIMD_INLINE uint8x8_t swizzleTable(const size_t index, Integer<2>,
+                                          Integer<2>)
+{
+  const uint8x8_t table[2] SIMD_ATTR_ALIGNED(16) = {
+    {0, 1, 4, 5, 8, 9, 12, 13},
+    {2, 3, 6, 7, 10, 11, 14, 15},
+  };
+  return table[index];
+}
+
+static SIMD_INLINE uint8x8_t swizzleTable(const size_t index, Integer<3>,
+                                          Integer<2>)
+{
+  const uint8x8_t table[3] SIMD_ATTR_ALIGNED(16) = {
+    {0, 1, 6, 7, 12, 13, 18, 19},
+    {2, 3, 8, 9, 14, 15, 20, 21},
+    {4, 5, 10, 11, 16, 17, 22, 23},
+  };
+  return table[index];
+}
+
+static SIMD_INLINE uint8x8_t swizzleTable(const size_t index, Integer<4>,
+                                          Integer<2>)
+{
+  const uint8x8_t table[4] SIMD_ATTR_ALIGNED(16) = {
+    {0, 1, 8, 9, 16, 17, 24, 25},
+    {2, 3, 10, 11, 18, 19, 26, 27},
+    {4, 5, 12, 13, 20, 21, 28, 29},
+    {6, 7, 14, 15, 22, 23, 30, 31},
+  };
+  return table[index];
+}
+
+static SIMD_INLINE uint8x8_t swizzleTable(const size_t index, Integer<2>,
+                                          Integer<4>)
+{
+  const uint8x8_t table[2] SIMD_ATTR_ALIGNED(16) = {
+    {0, 1, 2, 3, 8, 9, 10, 11},
+    {4, 5, 6, 7, 12, 13, 14, 15},
+  };
+  return table[index];
+}
+
+static SIMD_INLINE uint8x8_t swizzleTable(const size_t index, Integer<3>,
+                                          Integer<4>)
+{
+  const uint8x8_t table[3] SIMD_ATTR_ALIGNED(16) = {
+    {0, 1, 2, 3, 12, 13, 14, 15},
+    {4, 5, 6, 7, 16, 17, 18, 19},
+    {8, 9, 10, 11, 20, 21, 22, 23},
+  };
+  return table[index];
+}
+
+static SIMD_INLINE uint8x8_t swizzleTable(const size_t index, Integer<4>,
+                                          Integer<4>)
+{
+  const uint8x8_t table[4] SIMD_ATTR_ALIGNED(16) = {
+    {0, 1, 2, 3, 16, 17, 18, 19},
+    {4, 5, 6, 7, 20, 21, 22, 23},
+    {8, 9, 10, 11, 24, 25, 26, 27},
+    {12, 13, 14, 15, 28, 29, 30, 31},
+  };
+  return table[index];
+}
+
+template <size_t N, typename T>
+static SIMD_INLINE uint8x8_t swizzleTable(const size_t index)
+{
+  return swizzleTable(index, Integer<N>(), Integer<sizeof(T)>());
+}
+
 template <typename T>
 static SIMD_INLINE void swizzle(Vec<T, 16>[1], Integer<1>)
 {
@@ -2088,64 +2187,110 @@ static SIMD_INLINE void swizzle(Vec<T, 16>[1], Integer<1>)
 template <typename T>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>)
 {
-  uint8x8x2_t vu[2];
-  for (size_t j = 0; j < 2; j++) {
-    const auto vByte = reinterpret(v[j], OutputType<Byte>());
-    vu[0].val[j]     = vget_low_u8(vByte);
-    vu[1].val[j]     = vget_high_u8(vByte);
-  }
-  const uint8x8_t table[2] = {
-    {0, 2, 4, 6, 8, 10, 12, 14},
-    {1, 3, 5, 7, 9, 11, 13, 15},
+  const Vec<Byte, 16> vByte[2] = {
+    reinterpret(v[0], OutputType<Byte>()),
+    reinterpret(v[1], OutputType<Byte>()),
   };
   for (size_t i = 0; i < 2; i++) {
-    v[i] = reinterpret(Vec<Byte, 16>(vcombine_u8(vtbl2_u8(vu[0], table[i]),
-                                                 vtbl2_u8(vu[1], table[i]))),
-                       OutputType<T>());
+    v[i] =
+      reinterpret(Vec<Byte, 16>(vcombine_u8(
+                    vtbl2_u8({vget_low_u8(vByte[0]), vget_high_u8(vByte[0])},
+                             swizzleTable<2, T>(i)),
+                    vtbl2_u8({vget_low_u8(vByte[1]), vget_high_u8(vByte[1])},
+                             swizzleTable<2, T>(i)))),
+                  OutputType<T>());
   }
+}
+
+static SIMD_INLINE void swizzle(Vec<Long, 16> v[2], Integer<2>)
+{
+  const Vec<Long, 16> tmp[2] = {v[0], v[1]};
+  v[0] = vcombine_s64(vget_low_s64(tmp[0]), vget_low_s64(tmp[1]));
+  v[1] = vcombine_s64(vget_high_s64(tmp[0]), vget_high_s64(tmp[1]));
+}
+
+static SIMD_INLINE void swizzle(Vec<Double, 16> v[2], Integer<2>)
+{
+  const Vec<Double, 16> tmp[2] = {v[0], v[1]};
+  v[0] = vcombine_f64(vget_low_f64(tmp[0]), vget_low_f64(tmp[1]));
+  v[1] = vcombine_f64(vget_high_f64(tmp[0]), vget_high_f64(tmp[1]));
 }
 
 template <typename T>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>)
 {
-  uint8x8x3_t vu[2];
-  for (size_t j = 0; j < 3; j++) {
-    const auto vByte = reinterpret(v[j], OutputType<Byte>());
-    vu[0].val[j]     = vget_low_u8(vByte);
-    vu[1].val[j]     = vget_high_u8(vByte);
-  }
-  const uint8x8_t table[3] = {
-    {0, 3, 6, 9, 12, 15, 18, 21},
-    {1, 4, 7, 10, 13, 16, 19, 22},
-    {2, 5, 8, 11, 14, 17, 20, 23},
+  const Vec<Byte, 16> vByte[3] = {
+    reinterpret(v[0], OutputType<Byte>()),
+    reinterpret(v[1], OutputType<Byte>()),
+    reinterpret(v[2], OutputType<Byte>()),
+  };
+  const uint8x8x3_t vu[2] = {
+    {vget_low_u8(vByte[0]), vget_high_u8(vByte[0]), vget_low_u8(vByte[1])},
+    {vget_high_u8(vByte[1]), vget_low_u8(vByte[2]), vget_high_u8(vByte[2])},
   };
   for (size_t i = 0; i < 3; i++) {
-    v[i] = reinterpret(Vec<Byte, 16>(vcombine_u8(vtbl3_u8(vu[0], table[i]),
-                                                 vtbl3_u8(vu[1], table[i]))),
-                       OutputType<T>());
+    v[i] = reinterpret(
+      Vec<Byte, 16>(vcombine_u8(vtbl3_u8(vu[0], swizzleTable<3, T>(i)),
+                                vtbl3_u8(vu[1], swizzleTable<3, T>(i)))),
+      OutputType<T>());
   }
+}
+
+static SIMD_INLINE void swizzle(Vec<Long, 16> v[3], Integer<3>)
+{
+  const Vec<Long, 16> tmp[3] = {v[0], v[1], v[2]};
+  v[0] = vcombine_s64(vget_low_s64(tmp[0]), vget_high_s64(tmp[1]));
+  v[1] = vcombine_s64(vget_high_s64(tmp[0]), vget_low_s64(tmp[2]));
+  v[2] = vcombine_s64(vget_low_s64(tmp[1]), vget_high_s64(tmp[2]));
+}
+
+static SIMD_INLINE void swizzle(Vec<Double, 16> v[3], Integer<3>)
+{
+  const Vec<Double, 16> tmp[3] = {v[0], v[1], v[2]};
+  v[0] = vcombine_f64(vget_low_f64(tmp[0]), vget_high_f64(tmp[1]));
+  v[1] = vcombine_f64(vget_high_f64(tmp[0]), vget_low_f64(tmp[2]));
+  v[2] = vcombine_f64(vget_low_f64(tmp[1]), vget_high_f64(tmp[2]));
 }
 
 template <typename T>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
 {
-  uint8x8x4_t vu[2];
-  for (size_t j = 0; j < 4; j++) {
-    const auto vByte = reinterpret(v[j], OutputType<Byte>());
-    vu[0].val[j]     = vget_low_u8(vByte);
-    vu[1].val[j]     = vget_high_u8(vByte);
-  }
-  const uint8x8_t table[4] = {
-    {0, 4, 8, 12, 16, 20, 24, 28},
-    {1, 5, 9, 13, 17, 21, 25, 29},
-    {2, 6, 10, 14, 18, 22, 26, 30},
-    {3, 7, 11, 15, 19, 23, 27, 31},
+  const Vec<Byte, 16> vByte[4] = {
+    reinterpret(v[0], OutputType<Byte>()),
+    reinterpret(v[1], OutputType<Byte>()),
+    reinterpret(v[2], OutputType<Byte>()),
+    reinterpret(v[3], OutputType<Byte>()),
+  };
+  const uint8x8x4_t vu[2] = {
+    {vget_low_u8(vByte[0]), vget_high_u8(vByte[0]), vget_low_u8(vByte[1]),
+     vget_high_u8(vByte[1])},
+    {vget_low_u8(vByte[2]), vget_high_u8(vByte[2]), vget_low_u8(vByte[3]),
+     vget_high_u8(vByte[3])},
   };
   for (size_t i = 0; i < 4; i++) {
-    v[i] = reinterpret(Vec<Byte, 16>(vcombine_u8(vtbl4_u8(vu[0], table[i]),
-                                                 vtbl4_u8(vu[1], table[i]))),
-                       OutputType<T>());
+    v[i] = reinterpret(
+      Vec<Byte, 16>(vcombine_u8(vtbl4_u8(vu[0], swizzleTable<4, T>(i)),
+                                vtbl4_u8(vu[1], swizzleTable<4, T>(i)))),
+      OutputType<T>());
   }
+}
+
+static SIMD_INLINE void swizzle(Vec<Long, 16> v[4], Integer<4>)
+{
+  const Vec<Long, 16> tmp[4] = {v[0], v[1], v[2], v[3]};
+  v[0] = vcombine_s64(vget_low_s64(tmp[0]), vget_low_s64(tmp[2]));
+  v[1] = vcombine_s64(vget_high_s64(tmp[0]), vget_high_s64(tmp[2]));
+  v[2] = vcombine_s64(vget_low_s64(tmp[1]), vget_low_s64(tmp[3]));
+  v[3] = vcombine_s64(vget_high_s64(tmp[1]), vget_high_s64(tmp[3]));
+}
+
+static SIMD_INLINE void swizzle(Vec<Double, 16> v[4], Integer<4>)
+{
+  const Vec<Double, 16> tmp[4] = {v[0], v[1], v[2], v[3]};
+  v[0] = vcombine_f64(vget_low_f64(tmp[0]), vget_low_f64(tmp[2]));
+  v[1] = vcombine_f64(vget_high_f64(tmp[0]), vget_high_f64(tmp[2]));
+  v[2] = vcombine_f64(vget_low_f64(tmp[1]), vget_low_f64(tmp[3]));
+  v[3] = vcombine_f64(vget_high_f64(tmp[1]), vget_high_f64(tmp[3]));
 }
 
 // ---------- n = 5 ----------
@@ -2153,7 +2298,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
 // swizzle table
 
 // arrays are padded from 24 to 32 elements to keep alignment
-static const uint8_t swizzleMask5Lo[9][32] SIMD_ATTR_ALIGNED(16) = {
+static const uint8_t swizzleMask5Lo[5][32] SIMD_ATTR_ALIGNED(16) = {
   {},
   {0, 5, 10, 15, 1, 6, 11, 16, 2,  7,  12, 17,
    3, 8, 13, 18, 4, 9, 14, 19, 99, 99, 99, 99},
@@ -2162,14 +2307,10 @@ static const uint8_t swizzleMask5Lo[9][32] SIMD_ATTR_ALIGNED(16) = {
   {},
   {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
    12, 13, 14, 15, 16, 17, 18, 19, 99, 99, 99, 99},
-  {},
-  {},
-  {},
-  {}, // TODO
 };
 
 // arrays are padded from 24 to 32 elements to keep alignment
-static const uint8_t swizzleMask5Hi[9][32] SIMD_ATTR_ALIGNED(16) = {
+static const uint8_t swizzleMask5Hi[5][32] SIMD_ATTR_ALIGNED(16) = {
   {},
   {4, 9,  14, 19, 5, 10, 15, 20, 6,  11, 16, 21,
    7, 12, 17, 22, 8, 13, 18, 23, 99, 99, 99, 99},
@@ -2178,10 +2319,6 @@ static const uint8_t swizzleMask5Hi[9][32] SIMD_ATTR_ALIGNED(16) = {
   {},
   {4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
    16, 17, 18, 19, 20, 21, 22, 23, 99, 99, 99, 99},
-  {},
-  {},
-  {},
-  {}, // TODO
 };
 
 // n = 5
@@ -2273,6 +2410,26 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>)
       if (k >= 5) break;
     }
   }
+}
+
+static SIMD_INLINE void swizzle(Vec<Long, 16> v[5], Integer<5>)
+{
+  const Vec<Long, 16> tmp[5] = {v[0], v[1], v[2], v[3], v[4]};
+  v[0] = vcombine_s64(vget_low_s64(tmp[0]), vget_high_s64(tmp[2]));
+  v[1] = vcombine_s64(vget_high_s64(tmp[0]), vget_low_s64(tmp[3]));
+  v[2] = vcombine_s64(vget_low_s64(tmp[1]), vget_high_s64(tmp[3]));
+  v[3] = vcombine_s64(vget_high_s64(tmp[1]), vget_low_s64(tmp[4]));
+  v[4] = vcombine_s64(vget_low_s64(tmp[2]), vget_high_s64(tmp[4]));
+}
+
+static SIMD_INLINE void swizzle(Vec<Double, 16> v[5], Integer<5>)
+{
+  const Vec<Double, 16> tmp[5] = {v[0], v[1], v[2], v[3], v[4]};
+  v[0] = vcombine_f64(vget_low_f64(tmp[0]), vget_high_f64(tmp[2]));
+  v[1] = vcombine_f64(vget_high_f64(tmp[0]), vget_low_f64(tmp[3]));
+  v[2] = vcombine_f64(vget_low_f64(tmp[1]), vget_high_f64(tmp[3]));
+  v[3] = vcombine_f64(vget_high_f64(tmp[1]), vget_low_f64(tmp[4]));
+  v[4] = vcombine_f64(vget_low_f64(tmp[2]), vget_high_f64(tmp[4]));
 }
 
 // -------------------------------------------------------------------------

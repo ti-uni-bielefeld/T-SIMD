@@ -972,7 +972,7 @@ static SIMD_INLINE Vec<Double, 32> cvts(const Vec<Long, 32> &a,
 #ifdef __AVX2__
   // workaround from https://stackoverflow.com/a/41148578 (modified)
   __m256i xH = _mm256_srai_epi32(a, 16);
-  xH         = _mm256_and_si256(xH, _mm256_set1_epi32(0xffff0000));
+  xH         = _mm256_and_si256(xH, _mm256_set1_epi64x(0xffffffff00000000));
   xH         = _mm256_add_epi64(
     xH, _mm256_castpd_si256(_mm256_set1_pd(442721857769029238784.))); // 3*2^67
   __m256i xL = _mm256_blend_epi16(
@@ -2716,17 +2716,46 @@ static SIMD_INLINE Vec<Float, 32> packs(const Vec<Long, 32> &a,
                                         OutputType<Float>)
 {
   // _mm256_cvtepi64_ps is not available in avx
-  return _mm256_set_m128(_mm256_cvtpd_ps(cvts(a, OutputType<Double>())),
-                         _mm256_cvtpd_ps(cvts(b, OutputType<Double>())));
+  return _mm256_set_m128(_mm256_cvtpd_ps(cvts(b, OutputType<Double>())),
+                         _mm256_cvtpd_ps(cvts(a, OutputType<Double>())));
 }
 
 static SIMD_INLINE Vec<Int, 32> packs(const Vec<Long, 32> &a,
                                       const Vec<Long, 32> &b, OutputType<Int>)
 {
   // _mm256_packs_epi64 is not available in avx
-  // TODO: saturation
-  return _mm256_castps_si256(_mm256_shuffle_ps(
-    _mm256_castsi256_ps(a), _mm256_castsi256_ps(b), _MM_SHUFFLE(2, 0, 2, 0)));
+
+#ifdef __AVX2__
+  const auto maxClip = _mm256_set1_epi64x(0x000000007fffffff);
+  const auto minClip = _mm256_set1_epi64x(0xffffffff80000000);
+  const auto aSaturatedMin =
+    _mm256_blendv_epi8(a, minClip, _mm256_cmpgt_epi64(minClip, a));
+  const auto aSaturated =
+    _mm256_blendv_epi8(aSaturatedMin, maxClip, _mm256_cmpgt_epi64(a, maxClip));
+  const auto bSaturatedMin =
+    _mm256_blendv_epi8(b, minClip, _mm256_cmpgt_epi64(minClip, b));
+  const auto bSaturated =
+    _mm256_blendv_epi8(bSaturatedMin, maxClip, _mm256_cmpgt_epi64(b, maxClip));
+  return x_mm256_transpose4x64_epi64(_mm256_castps_si256(_mm256_shuffle_ps(
+    _mm256_castsi256_ps(aSaturated), _mm256_castsi256_ps(bSaturated),
+    _MM_SHUFFLE(2, 0, 2, 0))));
+#else
+
+  // vectorized workaround for when AVX2 is not available seems to be
+  // complicated, so just using serial workaround
+  // TODO: is there a better, vectorized workaround?
+
+  Long input[8] SIMD_ATTR_ALIGNED(32);
+  _mm256_store_si256((__m256i *) input, a);
+  _mm256_store_si256((__m256i *) (input + 4), b);
+  Int output[8] SIMD_ATTR_ALIGNED(32);
+  for (int i = 0; i < 8; ++i) {
+    output[i] =
+      (Int) std::min(std::max(input[i], (Long) std::numeric_limits<Int>::min()),
+                     (Long) std::numeric_limits<Int>::max());
+  }
+  return _mm256_load_si256((__m256i *) output);
+#endif
 }
 
 static SIMD_INLINE Vec<Float, 32> packs(const Vec<Double, 32> &a,
@@ -2752,11 +2781,13 @@ static SIMD_INLINE Vec<Byte, 32> packs(const Vec<Word, 32> &a,
 #ifdef __AVX2__
   // _mm256_packus_epu16 does not exist, so saturate inputs to byte range and
   // then use _mm256_packus_epi16
-  return _mm256_packus_epi16(_mm256_max_epi16(a, _mm256_set1_epi16(0xff)),
-                             _mm256_max_epi16(b, _mm256_set1_epi16(0xff)));
+  return x_mm256_transpose4x64_epi64(
+    _mm256_packus_epi16(_mm256_min_epu16(a, _mm256_set1_epi16(0xff)),
+                        _mm256_min_epu16(b, _mm256_set1_epi16(0xff))));
 #else
-  return Vec<Byte, 32>(packs(a.lo(), b.lo(), OutputType<Byte>()),
-                       packs(a.hi(), b.hi(), OutputType<Byte>()));
+  return x_mm256_transpose4x64_epi64(
+    Vec<Byte, 32>(packs(a.lo(), b.lo(), OutputType<Byte>()),
+                  packs(a.hi(), b.hi(), OutputType<Byte>())));
 #endif
 }
 
@@ -2793,11 +2824,13 @@ static SIMD_INLINE Vec<SignedByte, 32> packs(const Vec<Word, 32> &a,
 #ifdef __AVX2__
   // _mm256_packs_epu16 does not exist, so saturate inputs to signed byte range
   // and then use _mm256_packs_epi16
-  return _mm256_packs_epi16(_mm256_min_epi16(a, _mm256_set1_epi16(0x7f)),
-                            _mm256_min_epi16(b, _mm256_set1_epi16(0x7f)));
+  return x_mm256_transpose4x64_epi64(
+    _mm256_packs_epi16(_mm256_min_epu16(a, _mm256_set1_epi16(0x7f)),
+                       _mm256_min_epu16(b, _mm256_set1_epi16(0x7f))));
 #else
-  return Vec<SignedByte, 32>(packs(a.lo(), b.lo(), OutputType<SignedByte>()),
-                             packs(a.hi(), b.hi(), OutputType<SignedByte>()));
+  return x_mm256_transpose4x64_epi64(
+    Vec<SignedByte, 32>(packs(a.lo(), b.lo(), OutputType<SignedByte>()),
+                        packs(a.hi(), b.hi(), OutputType<SignedByte>())));
 #endif
 }
 
@@ -2805,15 +2838,6 @@ static SIMD_INLINE Vec<SignedByte, 32> packs(const Vec<Word, 32> &a,
 // generalized extend: no stage
 // ---------------------------------------------------------------------------
 
-// from\to
-//    SB B S W I F
-// SB  x   x   x x
-//  B    x x x x x
-//  S      x   x x
-//  W        x x x
-//  I          x x
-//  F          x x
-//
 // combinations:
 // - signed   -> extended signed (sign extension)
 // - unsigned -> extended unsigned (zero extension)
@@ -2842,7 +2866,7 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
 static SIMD_INLINE void extend(const Vec<Byte, 32> &vIn,
                                Vec<SignedByte, 32> vOut[1])
 {
-  vOut[0] = max(vIn, Vec<Byte, 32>(_mm256_set1_epi8(0x7f)));
+  vOut[0] = min(vIn, Vec<Byte, 32>(_mm256_set1_epi8(0x7f)));
 }
 
 static SIMD_INLINE void extend(const Vec<Short, 32> &vIn, Vec<Word, 32> vOut[1])
@@ -2852,7 +2876,7 @@ static SIMD_INLINE void extend(const Vec<Short, 32> &vIn, Vec<Word, 32> vOut[1])
 
 static SIMD_INLINE void extend(const Vec<Word, 32> &vIn, Vec<Short, 32> vOut[1])
 {
-  vOut[0] = max(vIn, Vec<Word, 32>(_mm256_set1_epi16(0x7fff)));
+  vOut[0] = min(vIn, Vec<Word, 32>(_mm256_set1_epi16(0x7fff)));
 }
 
 // ---------------------------------------------------------------------------
@@ -2900,10 +2924,12 @@ static SIMD_INLINE void extend(const Vec<Int, 32> &vIn, Vec<Double, 32> vOut[2])
 static SIMD_INLINE void extend(const Vec<Float, 32> &vIn, Vec<Long, 32> vOut[2])
 {
   // _mm256_cvtps_epi64 is not available in avx
+  const auto clipped =
+    _mm256_min_ps(vIn, _mm256_set1_ps(MAX_POS_FLOAT_CONVERTIBLE_TO_INT64));
   vOut[0] =
-    cvts(_mm256_cvtps_pd(_mm256_castps256_ps128(vIn)), OutputType<Long>());
-  vOut[1] =
-    cvts(_mm256_cvtps_pd(_mm256_extractf128_ps(vIn, 1)), OutputType<Long>());
+    cvts(_mm256_cvtps_pd(_mm256_castps256_ps128(clipped)), OutputType<Long>());
+  vOut[1] = cvts(_mm256_cvtps_pd(_mm256_extractf128_ps(clipped, 1)),
+                 OutputType<Long>());
 }
 
 static SIMD_INLINE void extend(const Vec<Float, 32> &vIn,
@@ -2952,9 +2978,12 @@ static SIMD_INLINE void extend(const Vec<Word, 32> &vIn, Vec<Float, 32> vOut[2])
 static SIMD_INLINE void extend(const Vec<SignedByte, 32> &vIn,
                                Vec<Word, 32> vOut[2])
 {
-  const auto saturated = _mm256_max_epi8(vIn, _mm256_setzero_si256());
-  vOut[0] = _mm256_unpacklo_epi8(saturated, _mm256_setzero_si256());
-  vOut[1] = _mm256_unpackhi_epi8(saturated, _mm256_setzero_si256());
+  // there's no _mm256_cvtepi8_epu16()
+  const Vec<SignedByte, 32> saturated =
+    _mm256_max_epi8(vIn, _mm256_setzero_si256());
+  const Vec<SignedByte, 32> zero = _mm256_setzero_si256();
+  vOut[0] = unpack(saturated, zero, Part<0>(), Bytes<1>());
+  vOut[1] = unpack(saturated, zero, Part<1>(), Bytes<1>());
 }
 
 // ---------------------------------------------------------------------------

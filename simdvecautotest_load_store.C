@@ -340,8 +340,8 @@ struct TestStore
         static_cast<char *>(testPagesSIMD.getPage1()) + pageOffset;
 
       // write input to page1 at pageOffset
-      for (size_t i = 0; i < input.elems; ++i) {
-        static_cast<T *>(storeLocSerial)[i] = input[i];
+      for (size_t j = 0; j < input.elems; ++j) {
+        static_cast<T *>(storeLocSerial)[j] = input[j];
       }
       FCT<T, SIMD_WIDTH>::store(static_cast<T *>(storeLocSIMD), input.getVec());
 
@@ -384,8 +384,8 @@ struct TestMaskStore
         static_cast<char *>(testPagesSIMD.getPage1()) + pageOffset;
 
       // write input to page1 at pageOffset
-      for (size_t i = 0; i < input.elems; ++i) {
-        if (mask[i]) { static_cast<T *>(storeLocSerial)[i] = input[i]; }
+      for (size_t j = 0; j < input.elems; ++j) {
+        if (mask[j]) { static_cast<T *>(storeLocSerial)[j] = input[j]; }
       }
       FCT<T, SIMD_WIDTH>::mask_store(static_cast<T *>(storeLocSIMD),
                                      mask.getMask(), input.getVec());
@@ -429,11 +429,11 @@ struct TestLoad
 
       // load from page1 at pageOffset
       SerialVec<T, SIMD_WIDTH> vecSerial;
-      for (size_t i = 0; i < vecSerial.elems; ++i) {
+      for (size_t j = 0; j < vecSerial.elems; ++j) {
         // volatile to prevent compiler from optimizing, since some versions of
         // gcc erroneously optimize this with an aligned load despite
         // loadLocSerial not necessarily being aligned
-        vecSerial[i] = static_cast<volatile const T *>(loadLocSerial)[i];
+        vecSerial[j] = static_cast<volatile const T *>(loadLocSerial)[j];
       }
       const auto vecSIMD = SerialVec<T, SIMD_WIDTH>::fromVec(
         FCT<T, SIMD_WIDTH>::load(static_cast<const T *>(loadLocSIMD)));
@@ -478,12 +478,12 @@ struct TestMaskLoad
 
       // load from page1 at pageOffset
       SerialVec<T, SIMD_WIDTH> vecSerial;
-      for (size_t i = 0; i < vecSerial.elems; ++i) {
+      for (size_t j = 0; j < vecSerial.elems; ++j) {
         // volatile to prevent compiler from optimizing, since some versions of
         // gcc erroneously optimize this with an aligned load despite
         // loadLocSerial not necessarily being aligned
-        vecSerial[i] =
-          mask[i] ? static_cast<volatile const T *>(loadLocSerial)[i] : src[i];
+        vecSerial[j] =
+          mask[j] ? static_cast<volatile const T *>(loadLocSerial)[j] : src[j];
       }
       const auto vecSIMD =
         SerialVec<T, SIMD_WIDTH>::fromVec(FCT<T, SIMD_WIDTH>::mask_load(
@@ -532,12 +532,12 @@ struct TestMaskZLoad
 
       // load from page1 at pageOffset
       SerialVec<T, SIMD_WIDTH> vecSerial;
-      for (size_t i = 0; i < vecSerial.elems; ++i) {
+      for (size_t j = 0; j < vecSerial.elems; ++j) {
         // volatile to prevent compiler from optimizing, since some versions of
         // gcc erroneously optimize this with an aligned load despite
         // loadLocSerial not necessarily being aligned
-        vecSerial[i] =
-          mask[i] ? static_cast<volatile const T *>(loadLocSerial)[i] : 0;
+        vecSerial[j] =
+          mask[j] ? static_cast<volatile const T *>(loadLocSerial)[j] : 0;
       }
       const auto vecSIMD =
         SerialVec<T, SIMD_WIDTH>::fromVec(FCT<T, SIMD_WIDTH>::maskz_load(

@@ -1410,7 +1410,7 @@ public:
    * @param ptr pointer to the memory to store the result of the horizontal
    * accumulation
    */
-  HAccStore(T *const ptr) : ptr(ptr) {}
+  HAccStore(T *const ptr_) : ptr(ptr_) {}
 
   ~HAccStore() { finish(); }
 

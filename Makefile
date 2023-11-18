@@ -112,11 +112,20 @@ syntax_only ?= 0
 #   libraries are not available
 # - may require -lpthread in libraries above
 
-userdefs_arch   = -march=native -mfpmath=sse
-userdefs_avx512 = -mavx512f -mavx512bw -mavx512dq -mavx512vl -mpopcnt
-userdefs_c      = -Wall -Wextra -Wpedantic -ggdb -fno-var-tracking
-userdefs_cppstd = -std=c++17
-userdefs_cpp    =
+userdefs_arch     = -march=native -mfpmath=sse
+userdefs_avx512   = -mavx512f -mavx512bw -mavx512dq -mavx512vl -mpopcnt
+userdefs_c        = -ggdb -fno-var-tracking -ferror-limit=1
+userdefs_cppstd   = -std=c++17
+userdefs_cpp      =
+# 18. Nov 23 (Jonas Keller): added more warnings
+# recommended by:
+# https://github.com/cpp-best-practices/cppbestpractices/blob/master/02-Use_the_Tools_Available.md#gcc--clang
+# (also has explanations for the flags)
+userdefs_warnings = -Wall -Wextra -pedantic -Wpedantic -Werror \
+	-Wshadow -Wnon-virtual-dtor -Wcast-align -Wunused -Woverloaded-virtual \
+	-Wsign-compare -Wmisleading-indentation -Wnull-dereference -Wformat=2 \
+	-Wimplicit-fallthrough \
+	-Wno-format-nonliteral -Wno-cast-align
 
 # 20. Sep 22 (Jonas Keller): use secure template overloads on Windows and disable
 # warnings about unsafe functions
@@ -131,7 +140,7 @@ syntax_defines = -fsyntax-only
 endif
 
 # all flags (split into c and cpp (c++)) to avoid preprocessor warnings
-flags_c        = $(userdefs_c) $(optflags) $(sandbox_defines) $(EXTRA_DEFINES) $(syntax_defines)
+flags_c        = $(userdefs_c) $(userdefs_warnings) $(optflags) $(sandbox_defines) $(EXTRA_DEFINES) $(syntax_defines)
 flags_cppstd  ?= $(userdefs_cppstd)
 flags_cpp      = $(flags_c) $(userdefs_cpp) $(flags_cppstd) $(crt_sec_features_flags)
 flags_arch    ?= $(userdefs_arch)

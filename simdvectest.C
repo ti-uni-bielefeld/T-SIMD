@@ -729,12 +729,14 @@ int main()
 
   puts("\n*********** test of SIMD_ALIGN_CHK **********\n");
 
-  Vec<Byte, SW> v = setzero<Byte, SW>();
-  Byte ba[2 * SW];
-  store(ba, v);
-  // this triggers the assertion if SIMD_ALIGN_CHK is defined, but
-  // does not always lead to a seg fault:
-  // store(ba+1, v);
+  {
+    Vec<Byte, SW> v = setzero<Byte, SW>();
+    Byte ba[2 * SW];
+    store(ba, v);
+    // this triggers the assertion if SIMD_ALIGN_CHK is defined, but
+    // does not always lead to a seg fault:
+    // store(ba+1, v);
+  }
 
   puts("\n*********** test of hadd/hsub  ***********\n");
 
@@ -1037,29 +1039,31 @@ int main()
 
   puts("\n*********** test of reinterpret functions  ***********\n");
 
-  const size_t nFloats = SW / sizeof(Float);
-  Float buf[nFloats] __attribute__((aligned(SW)));
-  for (size_t i = 0; i < nFloats; i++) buf[i] = (Float) i;
-  Vec<Float, SW> fv;
-  fv = load<SW>(buf);
-  print("%3g ", fv);
-  puts("");
-  Vec<Int, SW> iv;
-  iv = reinterpret<Int>(fv);
-  print("%08x ", iv);
-  puts("");
-  Vec<Short, SW> sv;
-  sv = reinterpret<Short>(iv);
-  print("%04x ", sv);
-  puts("");
-  Vec<Word, SW> wv;
-  wv = reinterpret<Word>(sv);
-  print("%04x ", sv);
-  puts("");
-  Vec<Float, SW> fv1;
-  fv1 = reinterpret<Float>(sv);
-  print("%3g ", fv1);
-  puts("");
+  {
+    const size_t nFloats = SW / sizeof(Float);
+    Float buf[nFloats] __attribute__((aligned(SW)));
+    for (size_t i = 0; i < nFloats; i++) buf[i] = (Float) i;
+    Vec<Float, SW> fv;
+    fv = load<SW>(buf);
+    print("%3g ", fv);
+    puts("");
+    Vec<Int, SW> iv;
+    iv = reinterpret<Int>(fv);
+    print("%08x ", iv);
+    puts("");
+    Vec<Short, SW> sv;
+    sv = reinterpret<Short>(iv);
+    print("%04x ", sv);
+    puts("");
+    Vec<Word, SW> wv;
+    wv = reinterpret<Word>(sv);
+    print("%04x ", sv);
+    puts("");
+    Vec<Float, SW> fv1;
+    fv1 = reinterpret<Float>(sv);
+    print("%3g ", fv1);
+    puts("");
+  }
 
   puts("\n*********** test of generic packs functions ***********\n");
 
@@ -1267,19 +1271,21 @@ int main()
 
 #define INTYPE  Word
 #define OUTTYPE Float
-  Vecs<NumVecs<OUTTYPE, INTYPE>::in, INTYPE, SW> inVecs;
-  Vecs<NumVecs<OUTTYPE, INTYPE>::out, OUTTYPE, SW> outVecs;
-  printf("inVecs:  vectors = %zu, elements = %zu\n", inVecs.vectors,
-         inVecs.elements);
-  printf("outVecs: vectors = %zu, elements = %zu\n", outVecs.vectors,
-         outVecs.elements);
+  {
+    Vecs<NumVecs<OUTTYPE, INTYPE>::in, INTYPE, SW> inVecs;
+    Vecs<NumVecs<OUTTYPE, INTYPE>::out, OUTTYPE, SW> outVecs;
+    printf("inVecs:  vectors = %zu, elements = %zu\n", inVecs.vectors,
+           inVecs.elements);
+    printf("outVecs: vectors = %zu, elements = %zu\n", outVecs.vectors,
+           outVecs.elements);
 
+    fdivmul(inVecs, inVecs, 1.23, outVecs);
+    fmul(inVecs, 1.23, outVecs);
+    faddmul(inVecs, 10, 1.23, outVecs);
+    fmuladd(inVecs, 1.23, 10, outVecs);
+    fwaddmul(inVecs, inVecs, 0.5, 43.21, outVecs);
+  }
   CONVERTVECS(Short, Int, "%d ", "%d ");
-  fdivmul(inVecs, inVecs, 1.23, outVecs);
-  fmul(inVecs, 1.23, outVecs);
-  faddmul(inVecs, 10, 1.23, outVecs);
-  fmuladd(inVecs, 1.23, 10, outVecs);
-  fwaddmul(inVecs, inVecs, 0.5, 43.21, outVecs);
 
   Vecs<4, Float, SW> vecs;
   Float buffer[Vecs<4, Float, SW>::elements] SIMD_ATTR_ALIGNED(SW) = {0};

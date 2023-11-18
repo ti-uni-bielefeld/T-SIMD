@@ -152,7 +152,10 @@ public:
   template <typename U, typename... Args>
   void construct(U *p, Args &&...args)
   {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnull-dereference"
     ::new (static_cast<void *>(p)) U(std::forward<Args>(args)...);
+#pragma GCC diagnostic pop
   }
   void destroy(pointer p) { p->~T(); }
 

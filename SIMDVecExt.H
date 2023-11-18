@@ -2122,6 +2122,8 @@ struct TransposePostprocess<Unpack16, T, SIMD_WIDTH>
 // transpose_b: Transpose<Unpack16> + post-process
 // ===========================================================================
 
+// contributed by Adam Marschall
+
 // function template: full transpose
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_b(
@@ -2137,6 +2139,8 @@ static SIMD_INLINE void transpose_b(
 // ===========================================================================
 // transpose_c: Transpose<Unpack16> - needs store16
 // ===========================================================================
+
+// contributed by Adam Marschall
 
 // function template: full transpose (includes store16)
 template <typename T, size_t SIMD_WIDTH>
@@ -2228,6 +2232,8 @@ struct Transpose16<Unpack, T, SIMD_WIDTH, NUMROWS, ROW_STOP, ROW_STOP, 16,
   {}
 };
 
+// contributed by Adam Marschall
+
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_d(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -2243,6 +2249,8 @@ static SIMD_INLINE void transpose_d(
 // ===========================================================================
 // swizzle2_a (deinterleave)
 // ===========================================================================
+
+// contributed by Adam Marschall
 
 // generalized from Marat Dukhan's solution referred to at
 // https://stackoverflow.com/a/15377386/3852630
@@ -2277,6 +2285,8 @@ static SIMD_INLINE void swizzle2_a(Vec<T, SIMD_WIDTH> v[2 * N])
 // ===========================================================================
 // transpose_e
 // ===========================================================================
+
+// contributed by Adam Marschall
 
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_e(
@@ -2733,6 +2743,8 @@ struct Swizzle2Postprocess<Zip16, T, SIMD_WIDTH, N>
 
 // ------------------------ transpose_h function call -------------------------
 
+// contributed by Adam Marschall
+
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_h(
   const Vec<T, SIMD_WIDTH> inRows[Vec<T, SIMD_WIDTH>::elems],
@@ -3050,6 +3062,8 @@ struct TransposeRc
 };
 
 // ---------------------------------------------------------------------------
+
+// contributed by Adam Marschall
 
 // function template: full transpose
 template <typename T, size_t SIMD_WIDTH>

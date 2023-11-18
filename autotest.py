@@ -118,7 +118,7 @@ def generate_test_configs():
 def run_test(test_config):
     print(f"Running test: {test_config}")
     name = f"{test_config['compiler']}_{test_config['opt_flags']}_{test_config['arch_flags']}_{test_config['sandbox_defines']}"
-    name = name.replace(" ", "")
+    name = name.replace(" ", "").replace("/", "_")
 
     build_dir = f"{TMP_BUILD_DIR}/{name}"
 

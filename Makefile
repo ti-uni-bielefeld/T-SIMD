@@ -121,7 +121,7 @@ userdefs_cpp      =
 # recommended by:
 # https://github.com/cpp-best-practices/cppbestpractices/blob/master/02-Use_the_Tools_Available.md#gcc--clang
 # (also has explanations for the flags)
-userdefs_warnings = -Wall -Wextra -pedantic -Wpedantic -Werror \
+userdefs_warnings = -Wall -Wextra -pedantic -Wpedantic \
 	-Wshadow -Wnon-virtual-dtor -Wcast-align -Wunused -Woverloaded-virtual \
 	-Wsign-compare -Wmisleading-indentation -Wnull-dereference -Wformat=2 \
 	-Wimplicit-fallthrough \

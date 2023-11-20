@@ -2502,12 +2502,12 @@ static SIMD_INLINE void extend(const Vec<Int, 64> &vIn,
 static SIMD_INLINE void extend(const Vec<Float, 64> &vIn,
                                Vec<Long, 64> vecOut[2])
 {
-#ifdef __AVX512DQ__
-  vecOut[0] = _mm512_cvtps_epi64(vIn.lo());
-  vecOut[1] = _mm512_cvtps_epi64(vIn.hi());
-#else
   const Vec<Float, 64> clipped =
     _mm512_min_ps(_mm512_set1_ps(MAX_POS_FLOAT_CONVERTIBLE_TO_INT64), vIn);
+#ifdef __AVX512DQ__
+  vecOut[0] = _mm512_cvtps_epi64(clipped.lo());
+  vecOut[1] = _mm512_cvtps_epi64(clipped.hi());
+#else
   vecOut[0] = cvts(_mm512_cvtps_pd(clipped.lo()), OutputType<Long>());
   vecOut[1] = cvts(_mm512_cvtps_pd(clipped.hi()), OutputType<Long>());
 #endif

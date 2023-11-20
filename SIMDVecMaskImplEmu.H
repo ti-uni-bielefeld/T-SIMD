@@ -112,7 +112,9 @@ namespace simd {
 // 05. Feb 23 (Jonas Keller): introduced generic emulated Mask class using the
 // Vec class
 
+// exclude from doxygen (until endcond)
 /// @cond
+
 template <typename T, size_t SIMD_WIDTH>
 class Mask
 {

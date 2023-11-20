@@ -111,6 +111,8 @@ inline void simd_aligned_free(void *ptr)
 template <typename T, size_t ALIGN>
 class simd_aligned_allocator
 {
+  // exclude from doxygen (until endcond)
+  /// @cond
 public:
   using value_type      = T;
   using pointer         = T *;
@@ -161,6 +163,7 @@ public:
 
   bool operator==(const simd_aligned_allocator &) const { return true; }
   bool operator!=(const simd_aligned_allocator &) const { return false; }
+  /// @endcond
 };
 
 #endif // SIMDALLOC_H_

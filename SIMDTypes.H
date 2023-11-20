@@ -58,7 +58,9 @@ using Float      = float;  ///< Single-precision floating point number (32-bit)
 using Double     = double; ///< Double-precision floating point number (64-bit)
 /** @} */
 
+// exclude from doxygen (until endcond)
 /// @cond
+
 // 30. Mar 23 (Jonas Keller): replaced the magic numbers in these macros with
 // std::numeric_limits<T>::max() and std::numeric_limits<T>::lowest()
 // and also added SIMDFLOAT_TRUE using an immediately invoked lambda and

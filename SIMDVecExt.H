@@ -71,7 +71,10 @@ static constexpr SIMD_INLINE T floorlog2(T x)
 
 // determine NATIVE_SIMD_REG_COUNT
 // https://stackoverflow.com/questions/62419256/how-can-i-determine-how-many-avx-registers-my-processor-has
+
+// exclude from doxygen (until endcond)
 /// @cond
+
 #ifdef __x86_64__
 #ifdef __AVX512VL__
 #define NATIVE_SIMD_REG_COUNT 32
@@ -1407,10 +1410,10 @@ public:
   /**
    * @brief Constructs a new HAccStore object.
    *
-   * @param ptr pointer to the memory to store the result of the horizontal
+   * @param p pointer to the memory to store the result of the horizontal
    * accumulation
    */
-  HAccStore(T *const ptr_) : ptr(ptr_) {}
+  HAccStore(T *const p) : ptr(p) {}
 
   ~HAccStore() { finish(); }
 
@@ -1455,6 +1458,8 @@ public:
  */
 struct HAdd
 {
+  // exclude from doxygen (until endcond)
+  /// @cond
   template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
                                               const Vec<T, SIMD_WIDTH> &b)
@@ -1467,6 +1472,7 @@ struct HAdd
   {
     return T(0);
   }
+  /// @endcond
 };
 
 /**
@@ -1476,6 +1482,8 @@ struct HAdd
  */
 struct HAdds
 {
+  // exclude from doxygen (until endcond)
+  /// @cond
   template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
                                               const Vec<T, SIMD_WIDTH> &b)
@@ -1488,6 +1496,7 @@ struct HAdds
   {
     return T(0);
   }
+  /// @endcond
 };
 
 /**
@@ -1496,6 +1505,8 @@ struct HAdds
  */
 struct HMin
 {
+  // exclude from doxygen (until endcond)
+  /// @cond
   template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
                                               const Vec<T, SIMD_WIDTH> &b)
@@ -1508,6 +1519,7 @@ struct HMin
   {
     return std::numeric_limits<T>::max();
   }
+  /// @endcond
 };
 
 /**
@@ -1516,6 +1528,8 @@ struct HMin
  */
 struct HMax
 {
+  // exclude from doxygen (until endcond)
+  /// @cond
   template <typename T, size_t SIMD_WIDTH>
   static SIMD_INLINE Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &a,
                                               const Vec<T, SIMD_WIDTH> &b)
@@ -1528,6 +1542,7 @@ struct HMax
   {
     return std::numeric_limits<T>::lowest();
   }
+  /// @endcond
 };
 
 /** @} */

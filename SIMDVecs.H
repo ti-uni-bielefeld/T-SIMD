@@ -34,6 +34,8 @@
 
 // exclude from doxygen
 // TODO: include in doxygen documentation?
+
+// exclude from doxygen (until endcond)
 /// @cond
 
 namespace simd {

@@ -310,9 +310,16 @@ format: check-clang-format-version
 	@clang-format -i *.C *.H
 
 # 02. Mar 23 (Jonas Keller): added documenation rule
+# 20. Nov 23 (Jonas Keller): added check for doxygen version
+min_doxygen_version = 1.9.8
+actual_doxygen_version = $(shell doxygen --version | grep -io "[0-9][0-9a-z.-]*" | head -n1)
 # this has unnecessary many aliases, but why not
 .PHONY: doc docs docu documentation doxygen dox doxy
 doc docs docu documentation doxygen dox doxy:
+	@printf '%s\n%s\n' "$(min_doxygen_version)" "$(actual_doxygen_version)" \
+		| sort -V -C \
+		|| (echo "Error: Doxygen version $(min_doxygen_version) or higher is required (found: $(actual_doxygen_version))" \
+			; exit 1)
 	@echo "generating documentation"
 	@$(MKDIR) $(build_dir)
 	@( cat Doxyfile ; echo "HTML_OUTPUT=$(build_dir)/doc_html" ) | doxygen -

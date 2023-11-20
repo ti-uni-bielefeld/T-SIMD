@@ -123,7 +123,7 @@ userdefs_cpp      =
 # (also has explanations for the flags)
 userdefs_warnings = -Wall -Wextra -pedantic -Wpedantic \
 	-Wshadow -Wnon-virtual-dtor -Wcast-align -Wunused -Woverloaded-virtual \
-	-Wsign-compare -Wmisleading-indentation -Wnull-dereference -Wformat=2 \
+	-Wsign-compare -Wmisleading-indentation -Wformat=2 \
 	-Wimplicit-fallthrough \
 	-Wno-format-nonliteral -Wno-cast-align
 

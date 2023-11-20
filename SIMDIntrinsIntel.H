@@ -39,7 +39,6 @@
 #if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma GCC diagnostic ignored "-Wnull-dereference"
 #endif
 #include <x86intrin.h>
 #pragma GCC diagnostic pop

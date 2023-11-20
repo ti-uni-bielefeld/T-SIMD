@@ -4,7 +4,7 @@ CompileFlags:
     -march=native, -std=c++11,
     -Wall, -Wextra, -pedantic, -Wpedantic, -Werror,
     -Wshadow, -Wnon-virtual-dtor, -Wcast-align, -Wunused, -Woverloaded-virtual,
-    -Wsign-compare, -Wmisleading-indentation, -Wnull-dereference, -Wformat=2,
+    -Wsign-compare, -Wmisleading-indentation, -Wformat=2,
     -Wimplicit-fallthrough,
     -Wno-format-nonliteral, -Wno-cast-align,
     -pthread,

@@ -94,6 +94,9 @@ sandbox_defines ?= # -DSIMDVEC_SANDBOX
 # set this to something != 0 to only check syntax and not compile
 syntax_only ?= 0
 
+# set this to something != 0 to compile statically
+static_bins ?= 0
+
 # user defines
 # - needed if we use constants in stdint.h: -D__STDC_LIMIT_MACROS
 # - save assembly code: -masm=intel -save-temps -fverbose-asm
@@ -103,13 +106,14 @@ syntax_only ?= 0
 # - activate SIMDVec load/store alignment check: -DSIMD_ALIGN_CHK
 # - use at least -std=c++11
 # - for tilt-search programs, -std=c++17 is required, now used
+
 # for compilation on/for ARM:
 # - keep -march=native or use a specific architecture, e.g. -march=armv7-a
 #   or use specific CPU, e.g. -mcpu=cortex-a15
 # - replace -mfpmath=sse with -mfpu=neon or remove it, some compilers/architectures
 #   require it, some don't
-# - crosscompilation and emulation may require -static in userdefs_c, if dynamic
-#   libraries are not available
+# - crosscompilation and emulation may require static_bins to be set to
+#   something other than 0 (see above) if dynamic libraries are not available
 # - may require -lpthread in libraries above
 
 userdefs_arch     = -march=native -mfpmath=sse
@@ -139,8 +143,14 @@ else
 syntax_defines = -fsyntax-only
 endif
 
+ifeq ($(static_bins),0)
+static_bins_flags =
+else
+static_bins_flags = -static
+endif
+
 # all flags (split into c and cpp (c++)) to avoid preprocessor warnings
-flags_c        = $(userdefs_c) $(userdefs_warnings) $(optflags) $(sandbox_defines) $(EXTRA_DEFINES) $(syntax_defines)
+flags_c        = $(userdefs_c) $(userdefs_warnings) $(optflags) $(sandbox_defines) $(EXTRA_DEFINES) $(syntax_defines) $(static_bins_flags)
 flags_cppstd  ?= $(userdefs_cppstd)
 flags_cpp      = $(flags_c) $(userdefs_cpp) $(flags_cppstd) $(crt_sec_features_flags)
 flags_arch    ?= $(userdefs_arch)

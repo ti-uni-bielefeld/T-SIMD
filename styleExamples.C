@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <vector>
 
 // #define MAX_SIMD_WIDTH 16
 
@@ -41,31 +42,11 @@
 // use fixed SIMD_WIDTH (16, 32, 64)
 static constexpr size_t SW = 16;
 
+// for simplicity, we use a fixed alignment here
+static constexpr size_t ALIGN = 64;
+
 // alternative: use widest SIMD_WIDTH available
 // #define SW NATIVE_SIMD_WIDTH
-
-// ===========================================================================
-// Vector class
-// ===========================================================================
-
-template <typename T>
-struct Vector
-{
-  T *data;
-  size_t size;
-
-  Vector() : data(0), size(0) {}
-  Vector(size_t size, size_t alignment) : size(size)
-  {
-    data = (T *) simd_aligned_malloc(alignment, size * sizeof(T));
-    assert(data != nullptr);
-    // 20. Sep 22 (Jonas Keller): use memset instead of bzero, since bzero
-    // is not available on Windows
-    // bzero(data, size * sizeof(T));
-    memset(data, 0, size * sizeof(T));
-  }
-  ~Vector() { simd_aligned_free(data); }
-};
 
 // ===========================================================================
 // native style, automatic selection of widest possible simd vectors
@@ -74,21 +55,21 @@ struct Vector
 // vector element types could be specified e.g. with simd::Float
 
 template <typename T>
-T vectorSumNative(const Vector<T> &input)
+T vectorSumNative(const std::vector<T, simd_aligned_allocator<T, ALIGN>> &input)
 {
   simd::Vec<T> vecSum = simd::setzero<T>();
   // you can use vecSum.elements or simd::Vec<T>::elements
   printf("native style:  elements %zu, bytes %zu\n", vecSum.elements,
          vecSum.bytes);
   // parallel part
-  const size_t numVecAdds = input.size / vecSum.elements;
+  const size_t numVecAdds = input.size() / vecSum.elements;
   for (size_t i = 0; i < numVecAdds; i++) {
-    vecSum = simd::add(vecSum, simd::load(&input.data[i * vecSum.elements]));
+    vecSum = simd::add(vecSum, simd::load(&input.data()[i * vecSum.elements]));
   }
   // postamble
   T seqSum = 0;
-  for (size_t i = numVecAdds * vecSum.elements; i < input.size; i++) {
-    seqSum += input.data[i];
+  for (size_t i = numVecAdds * vecSum.elements; i < input.size(); i++) {
+    seqSum += input.data()[i];
   }
   return simd::hadd(vecSum) + seqSum;
 }
@@ -100,22 +81,22 @@ T vectorSumNative(const Vector<T> &input)
 // vector element types could be specified e.g. with simd::Float
 
 template <size_t SIMD_WIDTH, typename T>
-T vectorSumModern(const Vector<T> &input)
+T vectorSumModern(const std::vector<T, simd_aligned_allocator<T, ALIGN>> &input)
 {
   simd::Vec<T, SIMD_WIDTH> vecSum = simd::setzero<T, SIMD_WIDTH>();
   // you can use vecSum.elements or simd::Vec<T>::elements
   printf("native style:  elements %zu, bytes %zu\n", vecSum.elements,
          vecSum.bytes);
   // parallel part
-  const size_t numVecAdds = input.size / vecSum.elements;
+  const size_t numVecAdds = input.size() / vecSum.elements;
   for (size_t i = 0; i < numVecAdds; i++) {
     vecSum = simd::add(
-      vecSum, simd::load<SIMD_WIDTH>(&input.data[i * vecSum.elements]));
+      vecSum, simd::load<SIMD_WIDTH>(&input.data()[i * vecSum.elements]));
   }
   // postamble
   T seqSum = 0;
-  for (size_t i = numVecAdds * vecSum.elements; i < input.size; i++) {
-    seqSum += input.data[i];
+  for (size_t i = numVecAdds * vecSum.elements; i < input.size(); i++) {
+    seqSum += input.data()[i];
   }
   return simd::hadd(vecSum) + seqSum;
 }
@@ -132,21 +113,22 @@ using namespace simd;
 // vector element types could be specified e.g. with SIMDFloat
 
 template <size_t SIMD_WIDTH, typename T>
-T vectorSumClassic(const Vector<T> &input)
+T vectorSumClassic(
+  const std::vector<T, simd_aligned_allocator<T, ALIGN>> &input)
 {
   SIMDVec<T, SIMD_WIDTH> vecSum = setzero<T, SIMD_WIDTH>();
   // you can use vecSum.elements or SIMDVec<T>::elements
   printf("native style:  elements %zu, bytes %zu\n", vecSum.elements,
          vecSum.bytes);
   // parallel part
-  const size_t numVecAdds = input.size / vecSum.elements;
+  const size_t numVecAdds = input.size() / vecSum.elements;
   for (size_t i = 0; i < numVecAdds; i++) {
-    vecSum = add(vecSum, load<SIMD_WIDTH>(&input.data[i * vecSum.elements]));
+    vecSum = add(vecSum, load<SIMD_WIDTH>(&input.data()[i * vecSum.elements]));
   }
   // postamble
   T seqSum = 0;
-  for (size_t i = numVecAdds * vecSum.elements; i < input.size; i++) {
-    seqSum += input.data[i];
+  for (size_t i = numVecAdds * vecSum.elements; i < input.size(); i++) {
+    seqSum += input.data()[i];
   }
   return hadd(vecSum) + seqSum;
 }
@@ -154,9 +136,6 @@ T vectorSumClassic(const Vector<T> &input)
 // ===========================================================================
 // main
 // ===========================================================================
-
-// for simplicity, we use a fixed alignment here
-enum { ALIGN = 64 };
 
 int main(int argc, char *argv[])
 {
@@ -173,14 +152,14 @@ int main(int argc, char *argv[])
   // drand48, since srand48 and drand48 are not available on Windows
   // srand48(time(NULL));
   srand(time(nullptr));
-  Vector<float> input(size, ALIGN);
+  std::vector<float, simd_aligned_allocator<float, ALIGN>> input(size);
   float sum = 0;
-  for (size_t i = 0; i < input.size; i++) {
+  for (size_t i = 0; i < input.size(); i++) {
     // float x = drand48();
     // + 1.0f since drand48 returns values in [0,1)
     const float x = (float) rand() / ((float) RAND_MAX + 1.0f);
     sum += x;
-    input.data[i] = x;
+    input.data()[i] = x;
   }
   printf("results may differ slightly due to different order of summation\n");
 

@@ -283,9 +283,9 @@ static SIMD_INLINE Vec<Long, 16> cvts(const Vec<Double, 16> &a,
   // values in range [-2^52, 2^52]
   // using serial workaround instead
   // TODO: serial workaround is slow, find parallel workaround
+  const auto clip = _mm_set1_pd(MAX_POS_DOUBLE_CONVERTIBLE_TO_INT64);
   Double tmpD[2] SIMD_ATTR_ALIGNED(16);
-  _mm_store_pd(tmpD,
-               _mm_min_pd(a, _mm_set1_pd(MAX_POS_DOUBLE_CONVERTIBLE_TO_INT64)));
+  _mm_store_pd(tmpD, _mm_min_pd(clip, a));
   Long tmpL[2] SIMD_ATTR_ALIGNED(16);
   tmpL[0] = Long(std::rint(tmpD[0]));
   tmpL[1] = Long(std::rint(tmpD[1]));

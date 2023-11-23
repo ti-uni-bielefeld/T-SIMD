@@ -34,6 +34,12 @@ def generate_test_configs():
         # "-O3",
         "-O3 -funroll-loops",
     ]
+
+    cppstd_flags_list = [
+        "-std=c++11",
+        "-std=c++17",
+    ]
+
     # configs for Intel architectures
     for compiler in [
         "clang++",
@@ -59,14 +65,16 @@ def generate_test_configs():
             # TODO: maybe add more combinations?
         ]:
             for opt_flags in opt_flags_list:
-                test_configs.append(
-                    {
-                        "compiler": compiler,
-                        "opt_flags": opt_flags,
-                        "arch_flags": arch_flags,
-                        "emulator": get_required_emulator_intel(arch_flags),
-                    }
-                )
+                for cppstd_flags in cppstd_flags_list:
+                    test_configs.append(
+                        {
+                            "compiler": compiler,
+                            "opt_flags": opt_flags,
+                            "arch_flags": arch_flags,
+                            "cppstd_flags": cppstd_flags,
+                            "emulator": get_required_emulator_intel(arch_flags),
+                        }
+                    )
 
     # configs for ARMv7 architectures
     for compiler in ["arm-linux-gnueabihf-g++"]:
@@ -76,15 +84,17 @@ def generate_test_configs():
             "-march=armv7",
         ]:
             for opt_flags in opt_flags_list:
-                test_configs.append(
-                    {
-                        "compiler": compiler,
-                        "opt_flags": opt_flags,
-                        "arch_flags": arch_flags + " -mfpu=neon",
-                        "emulator": "qemu-arm",
-                        "static_bins": True,
-                    }
-                )
+                for cppstd_flags in cppstd_flags_list:
+                    test_configs.append(
+                        {
+                            "compiler": compiler,
+                            "opt_flags": opt_flags,
+                            "arch_flags": arch_flags + " -mfpu=neon",
+                            "cppstd_flags": cppstd_flags,
+                            "emulator": "qemu-arm",
+                            "static_bins": True,
+                        }
+                    )
 
     # configs for ARMv8 architectures
     for compiler in ["aarch64-linux-gnu-g++"]:
@@ -94,15 +104,17 @@ def generate_test_configs():
             "-march=armv8-a",
         ]:
             for opt_flags in opt_flags_list:
-                test_configs.append(
-                    {
-                        "compiler": compiler,
-                        "opt_flags": opt_flags,
-                        "arch_flags": arch_flags,
-                        "emulator": "qemu-aarch64",
-                        "static_bins": True,
-                    }
-                )
+                for cppstd_flags in cppstd_flags_list:
+                    test_configs.append(
+                        {
+                            "compiler": compiler,
+                            "opt_flags": opt_flags,
+                            "arch_flags": arch_flags,
+                            "cppstd_flags": cppstd_flags,
+                            "emulator": "qemu-aarch64",
+                            "static_bins": True,
+                        }
+                    )
 
     return test_configs
 
@@ -212,7 +224,7 @@ def run_test(test_config):
         os.makedirs(build_dir)
 
     static_bins_flag = "static_bins=1" if test_config.get("static_bins") else ""
-    build_command = f"make build_dir=\"{build_dir}\" compiler=\"{test_config['compiler']}\" optflags=\"{test_config['opt_flags']}\" flags_arch=\"{test_config['arch_flags']}\" sandbox_defines=\"{test_config['sandbox_defines']}\" {static_bins_flag} all_tsimd autotest"
+    build_command = f"make build_dir=\"{build_dir}\" compiler=\"{test_config['compiler']}\" optflags=\"{test_config['opt_flags']}\" flags_arch=\"{test_config['arch_flags']}\" flags_cppstd=\"{test_config['cppstd_flags']}\" sandbox_defines=\"{test_config['sandbox_defines']}\" {static_bins_flag} all_tsimd autotest"
 
     log_file_compile = f"{LOG_DIR}/{name}_compile.log"
     os.system(f'make build_dir="{build_dir}" clean > {log_file_compile} 2>&1')

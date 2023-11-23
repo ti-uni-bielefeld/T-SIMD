@@ -314,7 +314,6 @@ if __name__ == "__main__":
     num_procs_ram = ram_size_kb // (15 * 1024 * 1024)
 
     num_procs = min(num_procs_cores, num_procs_ram)
-    num_procs = 8  # TODO: remove this line
 
     print(
         f"Using {num_procs} processes ({num_procs_cores} based on number of cores, {num_procs_ram} based on RAM size)"

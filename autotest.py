@@ -168,14 +168,23 @@ def get_required_emulator_intel(arch_flags):
 def filter_test_configs_for_existing_compilers(test_configs):
     def check_that_compiler_exists(compiler):
         if os.system(f"which {compiler} > /dev/null 2>&1") != 0:
+            print(f'ERROR: Compiler "{compiler}" not found!')
             print(
-                f'WARNING: compiler "{compiler}" not found, continue without running tests that use this compiler? (y/n) ',
+                "       Please configure the compiler in the compiler list in the function generate_test_configs() in this script."
+            )
+            print(
+                "       Or you can ignore the tests that use this compiler and continue."
+            )
+            print(
+                "       Do you want to ignore these tests and continue? [y/N] ",
                 end="",
             )
             if input().lower() != "y":
                 print("Aborting.")
                 sys.exit(1)
-            return False
+            else:
+                print(f'Ignoring tests that use compiler "{compiler}".')
+                return False
         return True
 
     # collect all compilers

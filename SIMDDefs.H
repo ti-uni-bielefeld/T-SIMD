@@ -183,23 +183,6 @@ SIMD_INLINE Tout bit_cast(Tin in)
   std::memcpy(&out, &in, std::min(sizeof(in), sizeof(out)));
   return out;
 }
-
-// functions for handling multiples of a power of 2
-
-constexpr bool isMultipleOfPowerOf2(size_t x, size_t powerOf2)
-{
-  return ((x) & ((powerOf2) -1)) == 0;
-}
-
-constexpr size_t prevMultipleOfPowerOf2(size_t x, size_t powerOf2)
-{
-  return (x) & (~(powerOf2) -1);
-}
-
-constexpr size_t nextMultipleOfPowerOf2(size_t x, size_t powerOf2)
-{
-  return prevMultipleOfPowerOf2((x), (powerOf2)) + (powerOf2);
-}
 } // namespace internal
 } // namespace simd
 

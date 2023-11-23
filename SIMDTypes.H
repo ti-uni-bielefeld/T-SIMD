@@ -492,9 +492,9 @@ struct Range
 // negative template parameters
 template <size_t IMM, size_t SIZE>
 struct SizeRange
-  : public Range<SIMD_IS_MULTIPLE_OF(IMM, SIZE),
-                 SIMD_PREV_MULTIPLE_OF(IMM, SIZE),
-                 SIMD_NEXT_MULTIPLE_OF(IMM, SIZE)>
+  : public Range<isMultipleOfPowerOf2(IMM, SIZE),
+                 prevMultipleOfPowerOf2(IMM, SIZE),
+                 nextMultipleOfPowerOf2(IMM, SIZE)>
 {};
 
 template <size_t N>

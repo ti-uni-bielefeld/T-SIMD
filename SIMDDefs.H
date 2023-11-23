@@ -183,30 +183,25 @@ SIMD_INLINE Tout bit_cast(Tin in)
   std::memcpy(&out, &in, std::min(sizeof(in), sizeof(out)));
   return out;
 }
+
+// functions for handling multiples of a power of 2
+
+constexpr bool isMultipleOfPowerOf2(size_t x, size_t powerOf2)
+{
+  return ((x) & ((powerOf2) -1)) == 0;
+}
+
+constexpr size_t prevMultipleOfPowerOf2(size_t x, size_t powerOf2)
+{
+  return (x) & (~(powerOf2) -1);
+}
+
+constexpr size_t nextMultipleOfPowerOf2(size_t x, size_t powerOf2)
+{
+  return prevMultipleOfPowerOf2((x), (powerOf2)) + (powerOf2);
+}
 } // namespace internal
 } // namespace simd
-
-// macros for handling multiples of a power of 2
-#define SIMD_IS_MULTIPLE_OF(X, POWER_OF_2)   (((X) & ((POWER_OF_2) -1)) == 0)
-#define SIMD_PREV_MULTIPLE_OF(X, POWER_OF_2) ((X) & (~((POWER_OF_2) -1)))
-#define SIMD_NEXT_MULTIPLE_OF(X, POWER_OF_2)                                   \
-  (SIMD_PREV_MULTIPLE_OF((X), (POWER_OF_2)) + (POWER_OF_2))
-
-// macros to compute how many of NDATA elements of a data vector
-// can be held in SIMD vectors of NSIMD (a power of two!) elements
-// FLOOR: all SIMD vectors are full, but there may be excess elements
-// CEIL:  SIMD vectors hold all elements, but some at the end are unused
-#define SIMD_ELEMENTS_FLOOR(NSIMD, NDATA) ((NDATA) & ~((NSIMD) -1))
-#define SIMD_ELEMENTS_CEIL(NSIMD, NDATA)                                       \
-  (((NDATA) + ((NSIMD) -1)) & ~((NSIMD) -1))
-
-// macros to compute how many SIMD vectors with NSIMD elements each
-// are required to hold NDATA elements
-// FLOOR: number of completely filled SIMD vectors (excess elements may exist)
-// CEIL: number of SIMD vectors required to hold all elements (some unused)
-#define SIMD_VECTORS_FLOOR(NSIMD, NDATA) (size_t(NDATA) / size_t(NSIMD))
-#define SIMD_VECTORS_CEIL(NSIMD, NDATA)                                        \
-  ((size_t(NDATA) + (size_t(NSIMD) - 1ul)) / size_t(NSIMD))
 
 // 29. Mar 23 (Jonas Keller): added SIMD_ENABLE_IF macro
 

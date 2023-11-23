@@ -2202,6 +2202,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[2], Integer<2>)
   }
 }
 
+#ifdef SIMD_64BIT_TYPES
 static SIMD_INLINE void swizzle(Vec<Long, 16> v[2], Integer<2>)
 {
   const Vec<Long, 16> tmp[2] = {v[0], v[1]};
@@ -2215,6 +2216,7 @@ static SIMD_INLINE void swizzle(Vec<Double, 16> v[2], Integer<2>)
   v[0] = vcombine_f64(vget_low_f64(tmp[0]), vget_low_f64(tmp[1]));
   v[1] = vcombine_f64(vget_high_f64(tmp[0]), vget_high_f64(tmp[1]));
 }
+#endif
 
 template <typename T>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>)
@@ -2236,6 +2238,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[3], Integer<3>)
   }
 }
 
+#ifdef SIMD_64BIT_TYPES
 static SIMD_INLINE void swizzle(Vec<Long, 16> v[3], Integer<3>)
 {
   const Vec<Long, 16> tmp[3] = {v[0], v[1], v[2]};
@@ -2251,6 +2254,7 @@ static SIMD_INLINE void swizzle(Vec<Double, 16> v[3], Integer<3>)
   v[1] = vcombine_f64(vget_high_f64(tmp[0]), vget_low_f64(tmp[2]));
   v[2] = vcombine_f64(vget_low_f64(tmp[1]), vget_high_f64(tmp[2]));
 }
+#endif
 
 template <typename T>
 static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
@@ -2275,6 +2279,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[4], Integer<4>)
   }
 }
 
+#ifdef SIMD_64BIT_TYPES
 static SIMD_INLINE void swizzle(Vec<Long, 16> v[4], Integer<4>)
 {
   const Vec<Long, 16> tmp[4] = {v[0], v[1], v[2], v[3]};
@@ -2292,6 +2297,7 @@ static SIMD_INLINE void swizzle(Vec<Double, 16> v[4], Integer<4>)
   v[2] = vcombine_f64(vget_low_f64(tmp[1]), vget_low_f64(tmp[3]));
   v[3] = vcombine_f64(vget_high_f64(tmp[1]), vget_high_f64(tmp[3]));
 }
+#endif
 
 // ---------- n = 5 ----------
 
@@ -2412,6 +2418,7 @@ static SIMD_INLINE void swizzle(Vec<T, 16> v[5], Integer<5>)
   }
 }
 
+#ifdef SIMD_64BIT_TYPES
 static SIMD_INLINE void swizzle(Vec<Long, 16> v[5], Integer<5>)
 {
   const Vec<Long, 16> tmp[5] = {v[0], v[1], v[2], v[3], v[4]};
@@ -2431,6 +2438,7 @@ static SIMD_INLINE void swizzle(Vec<Double, 16> v[5], Integer<5>)
   v[3] = vcombine_f64(vget_high_f64(tmp[1]), vget_low_f64(tmp[4]));
   v[4] = vcombine_f64(vget_low_f64(tmp[2]), vget_high_f64(tmp[4]));
 }
+#endif
 
 // -------------------------------------------------------------------------
 // compare functions

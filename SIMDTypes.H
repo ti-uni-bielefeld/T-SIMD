@@ -66,31 +66,18 @@ using Double     = double; ///< Double-precision floating point number (64-bit)
 // and also added SIMDFLOAT_TRUE using an immediately invoked lambda and
 // std::memcpy
 
+// 23. Nov 23 (Jonas Keller): use simd::internal::bit_cast instead of using
+// memcpy directly in SIMDFLOAT_TRUE and SIMDDOUBLE_TRUE
+
 #define SIMDBYTE_TRUE       (::simd::Byte(~0))
 #define SIMDSIGNEDBYTE_TRUE (::simd::SignedByte(~0))
 #define SIMDWORD_TRUE       (::simd::Word(~0))
 #define SIMDSHORT_TRUE      (::simd::Short(~0))
 #define SIMDINT_TRUE        (::simd::Int(~0))
 #define SIMDLONG_TRUE       (::simd::Long(~0))
-// use an immediately invoked lambda to be able to use memcpy
-#define SIMDFLOAT_TRUE                                                         \
-  ([]() -> ::simd::Float {                                                     \
-    static_assert(sizeof(::simd::Float) == sizeof(::simd::Int),                \
-                  "Float and Int must have the same size");                    \
-    ::simd::Int i = SIMDINT_TRUE;                                              \
-    ::simd::Float f;                                                           \
-    ::std::memcpy(&f, &i, sizeof(::simd::Float));                              \
-    return f;                                                                  \
-  }())
+#define SIMDFLOAT_TRUE      (::simd::internal::bit_cast<::simd::Float>(SIMDINT_TRUE))
 #define SIMDDOUBLE_TRUE                                                        \
-  ([]() -> ::simd::Double {                                                    \
-    static_assert(sizeof(::simd::Double) == sizeof(::simd::Int) * 2,           \
-                  "Double must be twice the size of Int");                     \
-    ::simd::Int i[2] = {SIMDINT_TRUE, SIMDINT_TRUE};                           \
-    ::simd::Double d;                                                          \
-    ::std::memcpy(&d, i, sizeof(::simd::Double));                              \
-    return d;                                                                  \
-  }())
+  (::simd::internal::bit_cast<::simd::Double>(SIMDLONG_TRUE))
 
 #define SIMDBYTE_MIN       (::std::numeric_limits<Byte>::lowest())
 #define SIMDSIGNEDBYTE_MIN (::std::numeric_limits<SignedByte>::lowest())

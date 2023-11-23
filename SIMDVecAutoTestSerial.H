@@ -291,13 +291,7 @@ static SIMD_INLINE Float daz(Float x)
   if (std::isnormal(x) || std::isnan(x) || !std::isfinite(x)) return x;
   // x is now either +0.0f, -0.0f or denormal
   // return 0.0f with the same sign as x
-  uint32_t asInt;
-  memcpy(&asInt, &x, sizeof(float));
-  uint32_t sign = asInt & 0x80000000;
-  if (sign)
-    return -0.0f;
-  else
-    return 0.0f;
+  return std::signbit(x) ? -0.0f : 0.0f;
 }
 
 // no daz for integer on all architectures

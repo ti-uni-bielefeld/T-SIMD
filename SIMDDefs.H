@@ -168,34 +168,6 @@
 #define SIMD_WIDTH_DEFAULT_NATIVE SIMD_WIDTH
 #endif
 
-// for reinterpretation of memory
-// code like this leads to complaints about type-punning with -O3:
-// return *(Float*) &i;
-#if 0
-// ========== solution with union ==========
-// may not be supported by all compilers
-// writing to an element of a union and reading a different element is
-// undefined in C++ but seems to be supported by many compilers
-// http://cellperformance.beyond3d.com/articles/2006/06/
-//   understanding-strict-aliasing.html
-// http://dbp-consulting.com/tutorials/StrictAliasing.html
-#define SIMD_RETURN_REINTERPRET_INT(NEWTYPE, SOURCE, RETELEM)                  \
-  union {                                                                      \
-    Int i;                                                                     \
-    NEWTYPE v[sizeof(Int) / sizeof(NEWTYPE)];                                  \
-  } u;                                                                         \
-  u.i = SOURCE;                                                                \
-  return u.v[RETELEM];
-#elif 0
-// ========== solution with memcpy in a macro ==========
-// recommended, hopefully optimized away
-#define SIMD_RETURN_REINTERPRET_INT(NEWTYPE, SOURCE, RETELEM)                  \
-  NEWTYPE v[sizeof(Int) / sizeof(NEWTYPE)];                                    \
-  Int i = SOURCE;                                                              \
-  memcpy(v, &i, sizeof(v));                                                    \
-  return v[RETELEM];
-#else
-// ========== solution with memcpy in a function ==========
 namespace simd {
 namespace internal {
 template <typename Tout, typename Tin>
@@ -213,10 +185,6 @@ SIMD_INLINE Tout bit_cast(Tin in)
 }
 } // namespace internal
 } // namespace simd
-#define SIMD_RETURN_REINTERPRET_INT(NEWTYPE, SOURCE, RETELEM)                  \
-  static_assert(RETELEM == 0, "");                                             \
-  return ::simd::internal::bit_cast<NEWTYPE>(SOURCE);
-#endif
 
 // macros for handling multiples of a power of 2
 #define SIMD_IS_MULTIPLE_OF(X, POWER_OF_2)   (((X) & ((POWER_OF_2) -1)) == 0)

@@ -1,4 +1,6 @@
 #pragma once
+#include <array>
+#include <type_traits>
 #ifndef SIMD_VEC_AUTO_TEST_RANDOM_H_
 #define SIMD_VEC_AUTO_TEST_RANDOM_H_
 
@@ -25,62 +27,11 @@ namespace simd {
 namespace auto_test {
 
 template <typename T>
-static SIMD_INLINE T getRandom();
-
-template <>
-SIMD_INLINE Byte getRandom<Byte>()
+static SIMD_INLINE T getRandom()
 {
-  return std::rand() & 0xff;
-}
-
-template <>
-SIMD_INLINE SignedByte getRandom<SignedByte>()
-{
-  return static_cast<SignedByte>(std::rand() & 0xff);
-}
-
-template <>
-SIMD_INLINE Word getRandom<Word>()
-{
-  Byte b[2];
-  b[0] = getRandom<Byte>();
-  b[1] = getRandom<Byte>();
-  Word w;
-  memcpy(&w, b, 2);
-  return w;
-}
-
-template <>
-SIMD_INLINE Short getRandom<Short>()
-{
-  Byte b[2];
-  b[0] = getRandom<Byte>();
-  b[1] = getRandom<Byte>();
-  Short s;
-  memcpy(&s, b, 2);
-  return s;
-}
-
-template <>
-SIMD_INLINE Int getRandom<Int>()
-{
-  Word w[2];
-  w[0] = getRandom<Word>();
-  w[1] = getRandom<Word>();
-  Int i;
-  memcpy(&i, w, 4);
-  return i;
-}
-
-template <>
-SIMD_INLINE Long getRandom<Long>()
-{
-  Int i[2];
-  i[0] = getRandom<Int>();
-  i[1] = getRandom<Int>();
-  Long l;
-  memcpy(&l, i, 8);
-  return l;
+  std::array<Byte, sizeof(T)> bytes;
+  for (size_t i = 0; i < sizeof(T); ++i) { bytes[i] = std::rand() & 0xff; }
+  return internal::bit_cast<T>(bytes);
 }
 
 // we only generate finite floats, since the behavior e.g. in SIMD
@@ -94,10 +45,7 @@ SIMD_INLINE Float getRandom<Float>()
   int exponent;
   Float f;
   do {
-    // get random Int
-    Int i = getRandom<Int>();
-    // map to float
-    memcpy(&f, &i, 4);
+    f = internal::bit_cast<Float>(getRandom<Int>());
     // determine exponent
     frexpf(f, &exponent);
     // 26. Nov 17 (rm): isfinite -> isnormal
@@ -116,35 +64,13 @@ SIMD_INLINE Double getRandom<Double>()
   int exponent;
   Double d;
   do {
-    // get 2 random Ints
-    Int i[2] = {getRandom<Int>(), getRandom<Int>()};
-    // map to double
-    memcpy(&d, &i, 8);
+    d = internal::bit_cast<Double>(getRandom<Long>());
     // determine exponent
     frexp(d, &exponent);
   } while (!(std::isfinite(d) &&
              // base2-exponent < 52 means: number has fractional digits
              (!restricted || (exponent < 52))));
   return d;
-}
-
-// 09. Oct 22 (Jonas Keller): added getRandom for uint64_t
-template <>
-SIMD_INLINE uint64_t getRandom<uint64_t>()
-{
-  uint64_t i;
-  Int s[2];
-  s[0] = getRandom<Int>();
-  s[1] = getRandom<Int>();
-  memcpy(&i, s, 8);
-  return i;
-}
-
-// 07. Oct 23 (Jonas Keller): added getRandom for uint32_t
-template <>
-SIMD_INLINE uint32_t getRandom<uint32_t>()
-{
-  return internal::bit_cast<uint32_t>(getRandom<Int>());
 }
 
 // =========================================================================
@@ -384,11 +310,11 @@ template <>
 SIMD_INLINE Double getRandomOrSpecialValueRanges<Double>()
 {
   // generate 52 bit mantissa and sign bit (with zero exponent, c = 1023)
-  const auto i = (getRandomOrSpecialValue<uint64_t>() & 0x800fffffffffffffLL) |
-                 0x3ff0000000000000LL;
+  const uint64_t i =
+    (getRandomOrSpecialValue<uint64_t>() & 0x800fffffffffffffLL) |
+    0x3ff0000000000000LL;
   // f12 is a double from [1,2)
-  Double f12;
-  memcpy(&f12, &i, 8);
+  const Double f12 = ::simd::internal::bit_cast<Double>(i);
   // generate random exponent from [0,1023]
   if (rand() & 0x01) return ldexp(f12, rand() & 0x3ff);
   // or just return completely random double

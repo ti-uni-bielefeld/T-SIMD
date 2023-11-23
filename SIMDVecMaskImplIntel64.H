@@ -269,19 +269,16 @@ static SIMD_INLINE Vec<Float, 64> mask_set1(const Vec<Float, 64> &src,
                                             const Mask<Float, 64> &k,
                                             const Float a)
 {
-  Int a_int;
-  memcpy(&a_int, &a, sizeof(Int));
-  return _mm512_castsi512_ps(_mm512_mask_set1_epi32(_mm512_castps_si512(src), k,
-                                                    a_int)); // Reinterpetation
+  return _mm512_castsi512_ps(
+    _mm512_mask_set1_epi32(_mm512_castps_si512(src), k,
+                           bit_cast<Int>(a))); // Reinterpetation
   // return mask_ifelse(k, set1<Float, 64>(a), src);
 }
 static SIMD_INLINE Vec<Float, 64> maskz_set1(const Mask<Float, 64> &k,
                                              const Float a)
 {
-  Int a_int;
-  memcpy(&a_int, &a, sizeof(Int));
   return _mm512_castsi512_ps(
-    _mm512_maskz_set1_epi32(k, a_int)); // Reinterpetation
+    _mm512_maskz_set1_epi32(k, bit_cast<Int>(a))); // Reinterpetation
   // return mask_ifelse(k, set1<Float, 64>(a), setzero<Float, 64>());
 }
 

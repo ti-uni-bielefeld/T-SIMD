@@ -36,8 +36,8 @@ def generate_test_configs():
     ]
     # configs for Intel architectures
     for compiler in [
-        # "clang++",
-        # "g++",
+        "clang++",
+        "g++",
     ]:
         test_configs.append(get_sandbox_config(compiler))
 
@@ -81,7 +81,8 @@ def generate_test_configs():
                         "compiler": compiler,
                         "opt_flags": opt_flags,
                         "arch_flags": arch_flags + " -mfpu=neon",
-                        "emulator": "qemu-arm -L /usr/arm-linux-gnueabihf/",
+                        "emulator": "qemu-arm",
+                        "static_bins": True,
                     }
                 )
 

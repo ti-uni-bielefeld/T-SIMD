@@ -1758,7 +1758,7 @@ static SIMD_INLINE SerialVec<T, SIMD_WIDTH> ifelse(
   const SerialVec<T, SIMD_WIDTH> &trueVal,
   const SerialVec<T, SIMD_WIDTH> &falseVal)
 {
-  SIMD_STATIC_ASSERT(sizeof(Tcond) == sizeof(T));
+  static_assert(sizeof(Tcond) == sizeof(T), "");
   SerialVec<T, SIMD_WIDTH> res;
   // avoids comparison with TypeInfo::trueval, which fails for
   // Float (NaN)

@@ -212,7 +212,7 @@ template <typename Tout, typename Tin, size_t SIMD_WIDTH>
 static SIMD_INLINE Mask<Tout, SIMD_WIDTH> reinterpret_mask(
   const Mask<Tin, SIMD_WIDTH> &k)
 {
-  SIMD_STATIC_ASSERT(sizeof(Tout) == sizeof(Tin));
+  static_assert(sizeof(Tout) == sizeof(Tin), "");
   return Mask<Tout, SIMD_WIDTH>(reinterpret<Tout>((Vec<Tin, SIMD_WIDTH>) k));
 }
 

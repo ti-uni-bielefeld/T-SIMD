@@ -196,7 +196,7 @@ MASK_IFELSEZERO(Float)
 template <typename Tout, typename Tin>
 static SIMD_INLINE Mask<Tout, 64> reinterpret_mask(const Mask<Tin, 64> &k)
 {
-  SIMD_STATIC_ASSERT(sizeof(Tout) == sizeof(Tin));
+  static_assert(sizeof(Tout) == sizeof(Tin), "");
   return Mask<Tout, 64>(k.k);
 }
 

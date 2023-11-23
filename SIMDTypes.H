@@ -115,26 +115,6 @@ using Double     = double; ///< Double-precision floating point number (64-bit)
  */
 enum class SortSlope { ASCENDING = 0, DESCENDING = 1 };
 
-#if DOXYGEN
-/**
- * @brief Compile-time assertion.
- *
- * This macro can be used to check a condition at compile time.
- *
- * @param EXPR condition to check
- */
-#define SIMD_STATIC_ASSERT(EXPR)
-
-#else // DOXYGEN
-
-#if __cplusplus >= 201703L // at least C++17
-#define SIMD_STATIC_ASSERT(EXPR) static_assert(EXPR)
-#else // older C++
-#define SIMD_STATIC_ASSERT(EXPR) static_assert(EXPR, "")
-#endif
-
-#endif // DOXYGEN
-
 // ===========================================================================
 // TypeInfo
 // ===========================================================================

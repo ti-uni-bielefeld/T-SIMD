@@ -214,8 +214,26 @@ def filter_test_configs_for_existing_compilers(test_configs):
 
 def run_test(test_config):
     print(f"Running test: {test_config}")
-    name = f"{test_config['compiler']}_{test_config['opt_flags']}_{test_config['arch_flags']}_{test_config['sandbox_defines']}"
-    name = name.replace(" ", "").replace("/", "_")
+    name = str(test_config)
+    # replace characters that are not allowed in filenames
+    name = (
+        name.replace(" ", "_")
+        .replace("(", "")
+        .replace(")", "")
+        .replace("/", "")
+        .replace("\\", "")
+        .replace(":", "")
+        .replace("*", "")
+        .replace("?", "")
+        .replace('"', "")
+        .replace("<", "")
+        .replace(">", "")
+        .replace("|", "")
+        .replace("'", "")
+        .replace(",", "")
+        .replace("{", "")
+        .replace("}", "")
+    )
 
     build_dir = f"{TMP_BUILD_DIR}/{name}"
 
@@ -274,6 +292,9 @@ if __name__ == "__main__":
     for test_config in test_configs:
         if "sandbox_defines" not in test_config:
             test_config["sandbox_defines"] = ""
+
+    # filter out duplicate test configs
+    test_configs = list({str(conf): conf for conf in test_configs}.values())
 
     is_sde_required = any(
         [test_config["emulator"].startswith(SDE_PATH) for test_config in test_configs]

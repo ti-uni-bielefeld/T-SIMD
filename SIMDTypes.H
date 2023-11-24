@@ -428,24 +428,7 @@ namespace internal {
 // Andrei Alexandrescu: Modern C++ Design (Addison Wesley)
 
 // 08. Apr 23 (Jonas Keller): removed IsIntSize; it is no longer used
-
-template <bool isFloatingPoint>
-struct IsFloatingPoint
-{};
-
-template <typename T>
-struct TypeIsFloatingPoint
-  : public IsFloatingPoint<TypeInfo<T>::isFloatingPoint>
-{};
-
-template <bool IS_INT, bool IS_SIGNED>
-struct IsIntIsSigned
-{};
-
-template <typename T>
-struct TypeIsIntIsSigned
-  : public IsIntIsSigned<TypeInfo<T>::isInteger, TypeInfo<T>::isSigned>
-{};
+// 24. Nov 23 (Jonas Keller): removed some more unused tag dispatching classes
 
 template <size_t N>
 struct Integer
@@ -468,8 +451,6 @@ template <bool AT_LOWER_LIMIT, size_t LOWER_LIMIT_INCLUSIVE,
 struct Range
 {};
 
-// 24. Nov 17 (rm): now includes check for IMM >= 0 to reveal
-// negative template parameters
 template <size_t IMM, size_t SIZE>
 struct SizeRange
   : public Range<(IMM & (SIZE - 1)) == 0,    // is IMM a multiple of SIZE?
@@ -484,58 +465,6 @@ struct Compression
 template <typename T>
 struct OutputType
 {};
-
-// is non-zero and in a range
-template <bool nonZero, bool inRange>
-struct IsPosNonZeroInRange
-{};
-
-// is non-zero and in a given range
-template <size_t RANGE, size_t INDEX>
-struct IsPosNonZeroInGivenRange
-  : public IsPosNonZeroInRange<(INDEX != 0), (INDEX < RANGE)>
-{};
-
-// 12. Jan 23 (Jonas Keller): move CompareTypes to here from Compare2Type.H
-
-// int2type trick from
-// Andrei Alexandrescu: Modern C++ Design (Addison Wesley),
-// adapted for type comparisons
-
-// empty struct
-// each unique combination of less, equal, greater declares a unique type
-template <bool less, bool equal, bool greater>
-struct Compare
-{};
-
-// structs derived from Compare for the special case of sizeof comparisons
-
-// use with CompareLess, CompareEqual, CompareGreater
-template <typename Tout, typename Tin>
-struct CompareTypes
-  : Compare<(sizeof(Tout) < sizeof(Tin)), (sizeof(Tout) == sizeof(Tin)),
-            (sizeof(Tout) > sizeof(Tin))>
-{};
-
-// use with CompareLessOrEqual, CompareGreater
-template <typename Tout, typename Tin>
-struct CompareTypesLessOrEqual
-  : Compare<(sizeof(Tout) <= sizeof(Tin)), (sizeof(Tout) <= sizeof(Tin)),
-            (sizeof(Tout) > sizeof(Tin))>
-{};
-
-// use with CompareLess, CompareGreaterOrEqual
-template <typename Tout, typename Tin>
-struct CompareTypesGreaterOrEqual
-  : Compare<(sizeof(Tout) < sizeof(Tin)), (sizeof(Tout) >= sizeof(Tin)),
-            (sizeof(Tout) >= sizeof(Tin))>
-{};
-
-using CompareLess           = Compare<true, false, false>;
-using CompareLessOrEqual    = Compare<true, true, false>;
-using CompareEqual          = Compare<false, true, false>;
-using CompareGreaterOrEqual = Compare<false, true, true>;
-using CompareGreater        = Compare<false, false, true>;
 } // namespace internal
 
 } // namespace simd

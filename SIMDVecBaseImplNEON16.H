@@ -1502,87 +1502,97 @@ static SIMD_INLINE void extend(const Vec<Double, 16> &vIn,
 // is not allowed for the shift intrinsics (just returns the
 // argument); since the ARM docs aren't clear in this point, we also
 // treat the case COUNT == no-of-bits as special case (in two
-// versions: one using FCT on RANGE-1, the other setting result to
+// versions: one using FCT on sizeof(TYPE)*8 - 1, the other setting result to
 // zero)
 
-#define SIMDVEC_NEON_SHIFT(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)               \
+// is non-zero and in a range
+template <bool nonZero, bool inRange>
+struct IsNonZeroInRange
+{};
+
+// is non-zero and in a given range
+template <size_t RANGE, size_t INDEX>
+struct IsNonZeroInGivenRange
+  : public IsNonZeroInRange<(INDEX != 0), (INDEX < RANGE)>
+{};
+
+#define SIMDVEC_NEON_SHIFT(FCT, TYPE, NEON_FCT, NEON_SUF)                      \
   template <size_t COUNT>                                                      \
   static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<true, true>)        \
+                                       IsNonZeroInRange<true, true>)           \
   {                                                                            \
     return NEON_FCT##_##NEON_SUF(a, COUNT);                                    \
   }                                                                            \
   template <size_t COUNT>                                                      \
   static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<false, true>)       \
+                                       IsNonZeroInRange<false, true>)          \
   {                                                                            \
     return a;                                                                  \
   }                                                                            \
   template <size_t COUNT>                                                      \
   static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a)                 \
   {                                                                            \
-    return FCT<COUNT>(a, IsPosNonZeroInGivenRange<RANGE, COUNT>());            \
+    return FCT<COUNT>(a, IsNonZeroInGivenRange<sizeof(TYPE) * 8, COUNT>());    \
   }
 
-// out-of-range implemented with FCT of RANGE-1
-#define SIMDVEC_NEON_SHIFT_ARITH(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)         \
+// out-of-range implemented with FCT of sizeof(TYPE)*8 - 1
+#define SIMDVEC_NEON_SHIFT_ARITH(FCT, TYPE, NEON_FCT, NEON_SUF)                \
   template <size_t COUNT>                                                      \
   static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<true, false>)       \
+                                       IsNonZeroInRange<true, false>)          \
   {                                                                            \
-    return NEON_FCT##_##NEON_SUF(a, (RANGE - 1));                              \
+    return NEON_FCT##_##NEON_SUF(a, sizeof(TYPE) * 8 - 1);                     \
   }                                                                            \
-  SIMDVEC_NEON_SHIFT(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)
+  SIMDVEC_NEON_SHIFT(FCT, TYPE, NEON_FCT, NEON_SUF)
 
 // out-of-range implemented with set-to-zero
-#define SIMDVEC_NEON_SHIFT_LOGICAL(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)       \
+#define SIMDVEC_NEON_SHIFT_LOGICAL(FCT, TYPE, NEON_FCT, NEON_SUF)              \
   template <size_t COUNT>                                                      \
   static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &,                  \
-                                       IsPosNonZeroInRange<true, false>)       \
+                                       IsNonZeroInRange<true, false>)          \
   {                                                                            \
     return vmovq_n_##NEON_SUF(TYPE(0));                                        \
   }                                                                            \
-  SIMDVEC_NEON_SHIFT(FCT, TYPE, NEON_FCT, NEON_SUF, RANGE)
+  SIMDVEC_NEON_SHIFT(FCT, TYPE, NEON_FCT, NEON_SUF)
 
-#define SIMDVEC_NEON_SHIFT_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)        \
+#define SIMDVEC_NEON_SHIFT_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2)               \
   template <size_t COUNT>                                                      \
   static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<true, true>)        \
+                                       IsNonZeroInRange<true, true>)           \
   {                                                                            \
     return vreinterpretq_##NSUF##_##NSUF2(                                     \
       NFCT##_##NSUF2(vreinterpretq_##NSUF2##_##NSUF(a), COUNT));               \
   }                                                                            \
   template <size_t COUNT>                                                      \
   static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<false, true>)       \
+                                       IsNonZeroInRange<false, true>)          \
   {                                                                            \
     return a;                                                                  \
   }                                                                            \
   template <size_t COUNT>                                                      \
   static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a)                 \
   {                                                                            \
-    return FCT<COUNT>(a, IsPosNonZeroInGivenRange<RANGE, COUNT>());            \
+    return FCT<COUNT>(a, IsNonZeroInGivenRange<sizeof(TYPE) * 8, COUNT>());    \
   }
 
-#define SIMDVEC_NEON_SHIFT_REINTER_ARITH(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)  \
+#define SIMDVEC_NEON_SHIFT_REINTER_ARITH(FCT, TYPE, NFCT, NSUF, NSUF2)         \
   template <size_t COUNT>                                                      \
   static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &a,                 \
-                                       IsPosNonZeroInRange<true, false>)       \
+                                       IsNonZeroInRange<true, false>)          \
   {                                                                            \
-    return vreinterpretq_##NSUF##_##NSUF2(                                     \
-      NFCT##_##NSUF2(vreinterpretq_##NSUF2##_##NSUF(a), (RANGE - 1)));         \
+    return vreinterpretq_##NSUF##_##NSUF2(NFCT##_##NSUF2(                      \
+      vreinterpretq_##NSUF2##_##NSUF(a), sizeof(TYPE) * 8 - 1));               \
   }                                                                            \
-  SIMDVEC_NEON_SHIFT_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)
+  SIMDVEC_NEON_SHIFT_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2)
 
-#define SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(FCT, TYPE, NFCT, NSUF, NSUF2,       \
-                                           RANGE)                              \
+#define SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(FCT, TYPE, NFCT, NSUF, NSUF2)       \
   template <size_t COUNT>                                                      \
   static SIMD_INLINE Vec<TYPE, 16> FCT(const Vec<TYPE, 16> &,                  \
-                                       IsPosNonZeroInRange<true, false>)       \
+                                       IsNonZeroInRange<true, false>)          \
   {                                                                            \
     return vmovq_n_##NSUF(TYPE(0));                                            \
   }                                                                            \
-  SIMDVEC_NEON_SHIFT_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2, RANGE)
+  SIMDVEC_NEON_SHIFT_REINTER(FCT, TYPE, NFCT, NSUF, NSUF2)
 
 // srai
 
@@ -1593,13 +1603,13 @@ static SIMD_INLINE void extend(const Vec<Double, 16> &vIn,
 // 13. Nov 22 (Jonas Keller):
 // added missing Byte and SignedByte versions of srai
 
-SIMDVEC_NEON_SHIFT_REINTER_ARITH(srai, Byte, vshrq_n, u8, s8, 8)
-SIMDVEC_NEON_SHIFT_ARITH(srai, SignedByte, vshrq_n, s8, 8)
-SIMDVEC_NEON_SHIFT_REINTER_ARITH(srai, Word, vshrq_n, u16, s16, 16)
-SIMDVEC_NEON_SHIFT_ARITH(srai, Short, vshrq_n, s16, 16)
-SIMDVEC_NEON_SHIFT_ARITH(srai, Int, vshrq_n, s32, 32)
+SIMDVEC_NEON_SHIFT_REINTER_ARITH(srai, Byte, vshrq_n, u8, s8)
+SIMDVEC_NEON_SHIFT_ARITH(srai, SignedByte, vshrq_n, s8)
+SIMDVEC_NEON_SHIFT_REINTER_ARITH(srai, Word, vshrq_n, u16, s16)
+SIMDVEC_NEON_SHIFT_ARITH(srai, Short, vshrq_n, s16)
+SIMDVEC_NEON_SHIFT_ARITH(srai, Int, vshrq_n, s32)
 #ifdef SIMD_64BIT_TYPES
-SIMDVEC_NEON_SHIFT_ARITH(srai, Long, vshrq_n, s64, 64)
+SIMDVEC_NEON_SHIFT_ARITH(srai, Long, vshrq_n, s64)
 #endif
 
 // srli
@@ -1608,25 +1618,25 @@ SIMDVEC_NEON_SHIFT_ARITH(srai, Long, vshrq_n, s64, 64)
 // http://stackoverflow.com/questions/18784988/neon-intrinsic-for-arithmetic-shift
 // out-of-range case handled with set-to-zero
 
-SIMDVEC_NEON_SHIFT_LOGICAL(srli, Byte, vshrq_n, u8, 8)
-SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, SignedByte, vshrq_n, s8, u8, 8)
-SIMDVEC_NEON_SHIFT_LOGICAL(srli, Word, vshrq_n, u16, 16)
-SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Short, vshrq_n, s16, u16, 16)
-SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Int, vshrq_n, s32, u32, 32)
+SIMDVEC_NEON_SHIFT_LOGICAL(srli, Byte, vshrq_n, u8)
+SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, SignedByte, vshrq_n, s8, u8)
+SIMDVEC_NEON_SHIFT_LOGICAL(srli, Word, vshrq_n, u16)
+SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Short, vshrq_n, s16, u16)
+SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Int, vshrq_n, s32, u32)
 #ifdef SIMD_64BIT_TYPES
-SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Long, vshrq_n, s64, u64, 64)
+SIMDVEC_NEON_SHIFT_REINTER_LOGICAL(srli, Long, vshrq_n, s64, u64)
 #endif
 
 // slli
 
 // out-of-range case handled with set-to-zero
-SIMDVEC_NEON_SHIFT_LOGICAL(slli, Byte, vshlq_n, u8, 8)
-SIMDVEC_NEON_SHIFT_LOGICAL(slli, SignedByte, vshlq_n, s8, 8)
-SIMDVEC_NEON_SHIFT_LOGICAL(slli, Word, vshlq_n, u16, 16)
-SIMDVEC_NEON_SHIFT_LOGICAL(slli, Short, vshlq_n, s16, 16)
-SIMDVEC_NEON_SHIFT_LOGICAL(slli, Int, vshlq_n, s32, 32)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, Byte, vshlq_n, u8)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, SignedByte, vshlq_n, s8)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, Word, vshlq_n, u16)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, Short, vshlq_n, s16)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, Int, vshlq_n, s32)
 #ifdef SIMD_64BIT_TYPES
-SIMDVEC_NEON_SHIFT_LOGICAL(slli, Long, vshlq_n, s64, 64)
+SIMDVEC_NEON_SHIFT_LOGICAL(slli, Long, vshlq_n, s64)
 #endif
 
 #undef SIMDVEC_NEON_SHIFT

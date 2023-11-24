@@ -634,26 +634,19 @@ static SIMD_INLINE Vec<Tout, SIMD_WIDTH> packs(
 
 namespace internal {
 namespace ext {
-template <typename Tout, typename Tin, size_t SIMD_WIDTH>
+template <typename Tout, typename Tin, size_t SIMD_WIDTH,
+          SIMD_ENABLE_IF(sizeof(Tout) < sizeof(Tin))>
 static SIMD_INLINE void convert(
-  CompareLess, const Vec<Tin, SIMD_WIDTH> inVecs[sizeof(Tin) / sizeof(Tout)],
+  const Vec<Tin, SIMD_WIDTH> inVecs[sizeof(Tin) / sizeof(Tout)],
   Vec<Tout, SIMD_WIDTH> outVecs[1])
 {
   outVecs[0] = packs<Tout>(inVecs);
 }
 
-template <typename Tout, typename Tin, size_t SIMD_WIDTH>
-static SIMD_INLINE void convert(CompareEqual,
-                                const Vec<Tin, SIMD_WIDTH> inVecs[1],
+template <typename Tout, typename Tin, size_t SIMD_WIDTH,
+          SIMD_ENABLE_IF(sizeof(Tout) >= sizeof(Tin)), typename = void>
+static SIMD_INLINE void convert(const Vec<Tin, SIMD_WIDTH> inVecs[1],
                                 Vec<Tout, SIMD_WIDTH> outVecs[1])
-{
-  extend(inVecs[0], outVecs);
-}
-
-template <typename Tout, typename Tin, size_t SIMD_WIDTH>
-static SIMD_INLINE void convert(
-  CompareGreater, const Vec<Tin, SIMD_WIDTH> inVecs[1],
-  Vec<Tout, SIMD_WIDTH> outVecs[sizeof(Tout) / sizeof(Tin)])
 {
   extend(inVecs[0], outVecs);
 }
@@ -686,7 +679,7 @@ static SIMD_INLINE void convert(
   const Vec<Tin, SIMD_WIDTH> inVecs[numInVecs<Tout, Tin>()],
   Vec<Tout, SIMD_WIDTH> outVecs[numOutVecs<Tout, Tin>()])
 {
-  internal::ext::convert(internal::CompareTypes<Tout, Tin>(), inVecs, outVecs);
+  internal::ext::convert(inVecs, outVecs);
 }
 
 // ===========================================================================
@@ -785,9 +778,9 @@ static SIMD_INLINE void fdivmul(
 namespace internal {
 namespace ext {
 template <size_t DIM, size_t NVEC, typename Tout, typename Tin,
-          size_t SIMD_WIDTH>
+          size_t SIMD_WIDTH, SIMD_ENABLE_IF(sizeof(Tout) < sizeof(Tin))>
 static SIMD_INLINE void fdivMsigmoidmul(
-  CompareLess, const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
+  const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
   const Vec<Tin, SIMD_WIDTH> vecsDenom[DIM][NVEC], const double w[DIM],
   const double w0[DIM], double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
 {
@@ -824,9 +817,10 @@ static SIMD_INLINE void fdivMsigmoidmul(
 }
 
 template <size_t DIM, size_t NVEC, typename Tout, typename Tin,
-          size_t SIMD_WIDTH>
+          size_t SIMD_WIDTH, SIMD_ENABLE_IF(sizeof(Tout) > sizeof(Tin)),
+          typename = void>
 static SIMD_INLINE void fdivMsigmoidmul(
-  CompareGreater, const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
+  const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
   const Vec<Tin, SIMD_WIDTH> vecsDenom[DIM][NVEC], const double w[DIM],
   const double w0[DIM], double fac,
   Vec<Tout, SIMD_WIDTH> vecsOut[sizeof(Tout) / sizeof(Tin)])
@@ -861,9 +855,10 @@ static SIMD_INLINE void fdivMsigmoidmul(
 }
 
 template <size_t DIM, size_t NVEC, typename Tout, typename Tin,
-          size_t SIMD_WIDTH>
+          size_t SIMD_WIDTH, SIMD_ENABLE_IF(sizeof(Tout) == sizeof(Tin)),
+          typename = void, typename = void>
 static SIMD_INLINE void fdivMsigmoidmul(
-  CompareEqual, const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
+  const Vec<Tin, SIMD_WIDTH> vecsNum[DIM][NVEC],
   const Vec<Tin, SIMD_WIDTH> vecsDenom[DIM][NVEC], const double w[DIM],
   const double w0[DIM], double fac, Vec<Tout, SIMD_WIDTH> vecsOut[1])
 {
@@ -913,8 +908,7 @@ static SIMD_INLINE void fdivMsigmoidmul(
 {
   static_assert(sizeof(Tin) <= sizeof(Float), "");
   static_assert(sizeof(Tout) <= sizeof(Float), "");
-  internal::ext::fdivMsigmoidmul<DIM, NVEC>(internal::CompareTypes<Tout, Tin>(),
-                                            vecsNum, vecsDenom, w, w0, fac,
+  internal::ext::fdivMsigmoidmul<DIM, NVEC>(vecsNum, vecsDenom, w, w0, fac,
                                             vecsOut);
 }
 
@@ -3276,83 +3270,6 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setones()
 // setnegunity: set all elements to -1
 // ===========================================================================
 
-namespace internal {
-namespace ext {
-// ---------- signed int ----------
-
-template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin(IsIntIsSigned<true, true>)
-{
-  return slli<8 * sizeof(T) - 1>(setones<T, SIMD_WIDTH>());
-}
-
-template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax(IsIntIsSigned<true, true>)
-{
-  return srli<1>(setones<T, SIMD_WIDTH>());
-}
-
-// only for signed int
-template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity(IsIntIsSigned<true, true>)
-{
-  return setones<T, SIMD_WIDTH>();
-}
-
-// ---------- unsigned int ----------
-
-template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin(IsIntIsSigned<true, false>)
-{
-  return setzero<T, SIMD_WIDTH>();
-}
-
-template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax(IsIntIsSigned<true, false>)
-{
-  return setones<T, SIMD_WIDTH>();
-}
-
-// ----------- int ------------
-
-template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity(IsFloatingPoint<false>)
-{
-  return srli<8 * sizeof(T) - 1>(setones<T, SIMD_WIDTH>());
-}
-
-// ----------- float ----------
-
-// here we need set1()
-
-template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin(IsIntIsSigned<false, true>)
-{
-  return set1<T, SIMD_WIDTH>(TypeInfo<T>::min());
-}
-
-template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax(IsIntIsSigned<false, true>)
-{
-  return set1<T, SIMD_WIDTH>(TypeInfo<T>::max());
-}
-
-template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity(IsFloatingPoint<true>)
-{
-  return set1<T, SIMD_WIDTH>(T(1.0));
-}
-
-template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity(IsIntIsSigned<false, true>)
-{
-  return set1<T, SIMD_WIDTH>(T(-1.0));
-}
-} // namespace ext
-} // namespace internal
-
-// ---------- hubs ----------
-
 /**
  * @ingroup group_init
  * @brief Sets all elements of a Vec to the minimum value of the element
@@ -3363,7 +3280,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity(IsIntIsSigned<false, true>)
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin()
 {
-  return internal::ext::setmin<T, SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
+  return set1<T, SIMD_WIDTH>(std::numeric_limits<T>::lowest());
 }
 
 /**
@@ -3376,7 +3293,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin()
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax()
 {
-  return internal::ext::setmax<T, SIMD_WIDTH>(internal::TypeIsIntIsSigned<T>());
+  return set1<T, SIMD_WIDTH>(std::numeric_limits<T>::max());
 }
 
 /**
@@ -3388,8 +3305,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax()
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity()
 {
-  return internal::ext::setunity<T, SIMD_WIDTH>(
-    internal::TypeIsFloatingPoint<T>());
+  return set1<T, SIMD_WIDTH>(T(1));
 }
 
 /**
@@ -3403,8 +3319,10 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity()
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity()
 {
-  return internal::ext::setnegunity<T, SIMD_WIDTH>(
-    internal::TypeIsIntIsSigned<T>());
+  static_assert(std::is_signed<T>::value || std::is_floating_point<T>::value,
+                "setnegunity() only available for signed integer and floating "
+                "point types");
+  return set1<T, SIMD_WIDTH>(T(-1));
 }
 
 // ===========================================================================

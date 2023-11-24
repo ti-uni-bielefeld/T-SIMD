@@ -79,6 +79,58 @@ extern __inline __m512i
 #endif
 
 // ---------------------------------------------------------------------------
+// masked abs for float and double missing in gcc below version 7
+// ---------------------------------------------------------------------------
+
+// 24. Nov 23 (Jonas Keller):
+// added this fix for missing masked abs for float and double in gcc < 7
+
+// _mm512_abs_ps, _mm512_mask_abs_ps, _mm512_abs_pd and _mm512_mask_abs_pd are
+// missing in gcc below version 7
+// see https://gcc.gnu.org/pipermail/gcc-patches/2017-April/472183.html
+
+// implementation from
+// https://github.com/gcc-mirror/gcc/blob/master/gcc/config/i386/avx512fintrin.h
+
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER) &&  \
+  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) < 70000 &&   \
+  defined(__AVX512F__)
+
+extern __inline __m512
+  __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+  _mm512_abs_ps(__m512 __A)
+{
+  return (__m512) _mm512_and_epi32((__m512i) __A,
+                                   _mm512_set1_epi32(0x7fffffff));
+}
+
+extern __inline __m512
+  __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+  _mm512_mask_abs_ps(__m512 __W, __mmask16 __U, __m512 __A)
+{
+  return (__m512) _mm512_mask_and_epi32((__m512i) __W, __U, (__m512i) __A,
+                                        _mm512_set1_epi32(0x7fffffff));
+}
+
+extern __inline __m512d
+  __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+  _mm512_abs_pd(__m512d __A)
+{
+  return (__m512d) _mm512_and_epi64((__m512i) __A,
+                                    _mm512_set1_epi64(0x7fffffffffffffffLL));
+}
+
+extern __inline __m512d
+  __attribute__((__gnu_inline__, __always_inline__, __artificial__))
+  _mm512_mask_abs_pd(__m512d __W, __mmask8 __U, __m512d __A)
+{
+  return (__m512d) _mm512_mask_and_epi64(
+    (__m512i) __W, __U, (__m512i) __A, _mm512_set1_epi64(0x7fffffffffffffffLL));
+}
+
+#endif
+
+// ---------------------------------------------------------------------------
 // _mm256_set_m128 and friends are missing in gcc below version 8
 // ---------------------------------------------------------------------------
 

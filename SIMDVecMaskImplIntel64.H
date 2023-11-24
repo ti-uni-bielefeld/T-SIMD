@@ -43,6 +43,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <type_traits>
 
 #if defined(SIMDVEC_INTEL_ENABLE) && defined(_SIMD_VEC_64_AVAIL_) &&           \
   !defined(SIMDVEC_SANDBOX)
@@ -98,6 +99,8 @@ CLASS_MASK(Short, 32)
 #endif
 CLASS_MASK(Int, 16)
 CLASS_MASK(Float, 16)
+CLASS_MASK(Long, 8)
+CLASS_MASK(Double, 8)
 
 namespace internal {
 namespace mask {
@@ -165,6 +168,8 @@ MASK_IFELSE(Short, epi16, __m512i)
 #endif
 MASK_IFELSE(Int, epi32, __m512i)
 MASK_IFELSE(Float, ps, __m512)
+MASK_IFELSE(Long, epi64, __m512i)
+MASK_IFELSE(Double, pd, __m512d)
 
 // ---------------------------------------------------------------------------
 // mask_ifelsezero (mask_ifelsezero(cond, a) is the same as mask_ifelse(cond, a,
@@ -186,6 +191,8 @@ MASK_IFELSEZERO(Short)
 #endif
 MASK_IFELSEZERO(Int)
 MASK_IFELSEZERO(Float)
+MASK_IFELSEZERO(Long)
+MASK_IFELSEZERO(Double)
 
 // ---------------------------------------------------------------------------
 // reinterpret_mask v
@@ -264,22 +271,32 @@ GENERATE_SET1(Word, epi16)
 GENERATE_SET1(Short, epi16)
 #endif
 GENERATE_SET1(Int, epi32)
+GENERATE_SET1(Long, epi64)
 // Workaround for Float, because there is no mask_set1_ps
 static SIMD_INLINE Vec<Float, 64> mask_set1(const Vec<Float, 64> &src,
                                             const Mask<Float, 64> &k,
                                             const Float a)
 {
   return _mm512_castsi512_ps(
-    _mm512_mask_set1_epi32(_mm512_castps_si512(src), k,
-                           bit_cast<Int>(a))); // Reinterpetation
-  // return mask_ifelse(k, set1<Float, 64>(a), src);
+    _mm512_mask_set1_epi32(_mm512_castps_si512(src), k, bit_cast<Int>(a)));
 }
 static SIMD_INLINE Vec<Float, 64> maskz_set1(const Mask<Float, 64> &k,
                                              const Float a)
 {
-  return _mm512_castsi512_ps(
-    _mm512_maskz_set1_epi32(k, bit_cast<Int>(a))); // Reinterpetation
-  // return mask_ifelse(k, set1<Float, 64>(a), setzero<Float, 64>());
+  return _mm512_castsi512_ps(_mm512_maskz_set1_epi32(k, bit_cast<Int>(a)));
+}
+// Workaround for Double, because there is no mask_set1_pd
+static SIMD_INLINE Vec<Double, 64> mask_set1(const Vec<Double, 64> &src,
+                                             const Mask<Double, 64> &k,
+                                             const Double a)
+{
+  return _mm512_castsi512_pd(
+    _mm512_mask_set1_epi64(_mm512_castpd_si512(src), k, bit_cast<Long>(a)));
+}
+static SIMD_INLINE Vec<Double, 64> maskz_set1(const Mask<Double, 64> &k,
+                                              const Double a)
+{
+  return _mm512_castsi512_pd(_mm512_maskz_set1_epi64(k, bit_cast<Long>(a)));
 }
 
 // ---------------------------------------------------------------------------
@@ -314,6 +331,8 @@ GENERATE_LOAD(loadu, Short, epi16)
 
 GENERATE_LOAD(load, Int, epi32)
 GENERATE_LOAD(load, Float, ps)
+GENERATE_LOAD(load, Long, epi64)
+GENERATE_LOAD(load, Double, pd)
 
 // ---------------------------------------------------------------------------
 // mask_loadu v
@@ -340,6 +359,8 @@ GENERATE_LOADU(Short, epi16)
 
 GENERATE_LOADU(Int, epi32)
 GENERATE_LOADU(Float, ps)
+GENERATE_LOADU(Long, epi64)
+GENERATE_LOADU(Double, pd)
 
 // ---------------------------------------------------------------------------
 // mask_store v
@@ -367,6 +388,8 @@ MASK_STORE(storeu, Short, epi16)
 
 MASK_STORE(store, Int, epi32)
 MASK_STORE(store, Float, ps)
+MASK_STORE(store, Long, epi64)
+MASK_STORE(store, Double, pd)
 
 // ---------------------------------------------------------------------------
 // mask_storeu v
@@ -388,6 +411,8 @@ MASK_STOREU(Short, epi16)
 #endif
 MASK_STOREU(Int, epi32)
 MASK_STOREU(Float, ps)
+MASK_STOREU(Long, epi64)
+MASK_STOREU(Double, pd)
 
 // ---------------------------------------------------------------------------
 // mask_add v
@@ -401,6 +426,8 @@ GENERATE_DOP(add, Short, epi16)
 #endif
 GENERATE_DOP(add, Int, epi32)
 GENERATE_DOP(add, Float, ps)
+GENERATE_DOP(add, Long, epi64)
+GENERATE_DOP(add, Double, pd)
 
 // ---------------------------------------------------------------------------
 // mask_adds v
@@ -414,7 +441,7 @@ GENERATE_DOP(adds, Short, epi16)
 #endif
 
 // 09. Mar 23 (Jonas Keller): removed non saturating version of adds for Int and
-// Float
+// Float, use the emulated versions in SIMDVecMaskImplEmu.H instead
 
 // ---------------------------------------------------------------------------
 // mask_sub v
@@ -428,6 +455,8 @@ GENERATE_DOP(sub, Short, epi16)
 #endif
 GENERATE_DOP(sub, Int, epi32)
 GENERATE_DOP(sub, Float, ps)
+GENERATE_DOP(sub, Long, epi64)
+GENERATE_DOP(sub, Double, pd)
 
 // ---------------------------------------------------------------------------
 // mask_subs v
@@ -441,19 +470,21 @@ GENERATE_DOP(subs, Short, epi16)
 #endif
 
 // 09. Mar 23 (Jonas Keller): removed non saturating version of subs for Int and
-// Float
+// Float, use the emulated versions in SIMDVecMaskImplEmu.H instead
 
 // ---------------------------------------------------------------------------
 // mask_mul v
 // ---------------------------------------------------------------------------
 
 GENERATE_DOP(mul, Float, ps)
+GENERATE_DOP(mul, Double, pd)
 
 // ---------------------------------------------------------------------------
 // mask_div v
 // ---------------------------------------------------------------------------
 
 GENERATE_DOP(div, Float, ps)
+GENERATE_DOP(div, Double, pd)
 
 // ---------------------------------------------------------------------------
 // masked ceil, floor, round, truncate v
@@ -523,6 +554,8 @@ static SIMD_INLINE Vec<T, 64> maskz_truncate(const Mask<T, 64> &k,
   return mask_ifelsezero(k, a);
 }
 
+// Float versions:
+
 static SIMD_INLINE Vec<Float, 64> mask_ceil(const Vec<Float, 64> &src,
                                             const Mask<Float, 64> &k,
                                             const Vec<Float, 64> &a)
@@ -583,6 +616,68 @@ static SIMD_INLINE Vec<Float, 64> maskz_truncate(const Mask<Float, 64> &k,
                                     _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
 }
 
+// Double versions:
+
+static SIMD_INLINE Vec<Double, 64> mask_ceil(const Vec<Double, 64> &src,
+                                             const Mask<Double, 64> &k,
+                                             const Vec<Double, 64> &a)
+{
+  return _mm512_mask_roundscale_pd(src, k, a,
+                                   _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_ceil(const Mask<Double, 64> &k,
+                                              const Vec<Double, 64> &a)
+{
+  return _mm512_maskz_roundscale_pd(k, a,
+                                    _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+}
+
+static SIMD_INLINE Vec<Double, 64> mask_floor(const Vec<Double, 64> &src,
+                                              const Mask<Double, 64> &k,
+                                              const Vec<Double, 64> &a)
+{
+  return _mm512_mask_roundscale_pd(src, k, a,
+                                   _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_floor(const Mask<Double, 64> &k,
+                                               const Vec<Double, 64> &a)
+{
+  return _mm512_maskz_roundscale_pd(k, a,
+                                    _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+}
+
+static SIMD_INLINE Vec<Double, 64> mask_round(const Vec<Double, 64> &src,
+                                              const Mask<Double, 64> &k,
+                                              const Vec<Double, 64> &a)
+{
+  return _mm512_mask_roundscale_pd(
+    src, k, a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_round(const Mask<Double, 64> &k,
+                                               const Vec<Double, 64> &a)
+{
+  return _mm512_maskz_roundscale_pd(
+    k, a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+}
+
+static SIMD_INLINE Vec<Double, 64> mask_truncate(const Vec<Double, 64> &src,
+                                                 const Mask<Double, 64> &k,
+                                                 const Vec<Double, 64> &a)
+{
+  return _mm512_mask_roundscale_pd(src, k, a,
+                                   _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_truncate(const Mask<Double, 64> &k,
+                                                  const Vec<Double, 64> &a)
+{
+  return _mm512_maskz_roundscale_pd(k, a,
+                                    _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+}
+
 // ---------------------------------------------------------------------------
 // masked elementary mathematical functions v
 // ---------------------------------------------------------------------------
@@ -602,6 +697,19 @@ static SIMD_INLINE Vec<Float, 64> maskz_rcp(const Mask<Float, 64> &k,
   return _mm512_maskz_rcp14_ps(k, a);
 }
 
+static SIMD_INLINE Vec<Double, 64> mask_rcp(const Vec<Double, 64> &src,
+                                            const Mask<Double, 64> &k,
+                                            const Vec<Double, 64> &a)
+{
+  return _mm512_mask_rcp14_pd(src, k, a);
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_rcp(const Mask<Double, 64> &k,
+                                             const Vec<Double, 64> &a)
+{
+  return _mm512_maskz_rcp14_pd(k, a);
+}
+
 // masked estimate of reverse square root
 // NOTE: this has better precision than SSE and AVX versions!
 static SIMD_INLINE Vec<Float, 64> mask_rsqrt(const Vec<Float, 64> &src,
@@ -617,8 +725,22 @@ static SIMD_INLINE Vec<Float, 64> maskz_rsqrt(const Mask<Float, 64> &k,
   return _mm512_maskz_rsqrt14_ps(k, a);
 }
 
+static SIMD_INLINE Vec<Double, 64> mask_rsqrt(const Vec<Double, 64> &src,
+                                              const Mask<Double, 64> &k,
+                                              const Vec<Double, 64> &a)
+{
+  return _mm512_mask_rsqrt14_pd(src, k, a);
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_rsqrt(const Mask<Double, 64> &k,
+                                               const Vec<Double, 64> &a)
+{
+  return _mm512_maskz_rsqrt14_pd(k, a);
+}
+
 // masked square root
 GENERATE_SOP(sqrt, Float, ps)
+GENERATE_SOP(sqrt, Double, pd)
 
 // ---------------------------------------------------------------------------
 // masked_abs v
@@ -649,26 +771,8 @@ GENERATE_SOP(abs, SignedByte, epi8)
 GENERATE_SOP(abs, Short, epi16)
 #endif
 GENERATE_SOP(abs, Int, epi32)
+GENERATE_SOP(abs, Long, epi64)
 
-#if defined(GCC_VERSION) && GCC_VERSION < 70000
-//_mm512_mask_abs_ps is not defined
-static SIMD_INLINE Vec<Float, 64> mask_abs(const Vec<Float, 64> &src,
-                                           const Mask<Float, 64> &k,
-                                           const Vec<Float, 64> &a)
-{
-  return _mm512_castsi512_ps(_mm512_mask_andnot_epi32(
-    _mm512_castps_si512(src), k, _mm512_castps_si512(_mm512_set1_ps(-0.0F)),
-    _mm512_castps_si512(a)));
-}
-
-static SIMD_INLINE Vec<Float, 64> maskz_abs(const Mask<Float, 64> &k,
-                                            const Vec<Float, 64> &a)
-{
-  return _mm512_castsi512_ps(_mm512_maskz_andnot_epi32(
-    k, _mm512_castps_si512(_mm512_set1_ps(-0.0F)), _mm512_castps_si512(a)));
-}
-#else
-//_mm512_mask_abs_ps is defined
 MASK_SOP(abs, Float, ps)
 
 // There is no _mm512_maskz_abs_ps
@@ -677,7 +781,15 @@ static SIMD_INLINE Vec<Float, 64> maskz_abs(const Mask<Float, 64> &k,
 {
   return _mm512_mask_abs_ps(::simd::setzero<Float, 64>(), k, a);
 }
-#endif
+
+MASK_SOP(abs, Double, pd)
+
+// There is no _mm512_maskz_abs_pd
+static SIMD_INLINE Vec<Double, 64> maskz_abs(const Mask<Double, 64> &k,
+                                             const Vec<Double, 64> &a)
+{
+  return _mm512_mask_abs_pd(::simd::setzero<Double, 64>(), k, a);
+}
 
 // ---------------------------------------------------------------------------
 // mask_and v
@@ -685,10 +797,12 @@ static SIMD_INLINE Vec<Float, 64> maskz_abs(const Mask<Float, 64> &k,
 
 // there is no _mm512_mask_and_epi8 or _mm512_mask_and_epi16
 GENERATE_DOP(and, Int, epi32)
+GENERATE_DOP(and, Long, epi64)
 #ifdef __AVX512DQ__
 GENERATE_DOP(and, Float, ps)
+GENERATE_DOP(and, Double, pd)
 #else
-// Workaround with the epi32-version and casts
+// Workaround with the epi32/64-versions and casts
 static SIMD_INLINE Vec<Float, 64> mask_and(const Vec<Float, 64> &src,
                                            const Mask<Float, 64> &k,
                                            const Vec<Float, 64> &a,
@@ -706,6 +820,24 @@ static SIMD_INLINE Vec<Float, 64> maskz_and(const Mask<Float, 64> &k,
   return _mm512_castsi512_ps(
     _mm512_maskz_and_epi32(k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
 }
+
+static SIMD_INLINE Vec<Double, 64> mask_and(const Vec<Double, 64> &src,
+                                            const Mask<Double, 64> &k,
+                                            const Vec<Double, 64> &a,
+                                            const Vec<Double, 64> &b)
+{
+  return _mm512_castsi512_pd(_mm512_mask_and_epi64(_mm512_castpd_si512(src), k,
+                                                   _mm512_castpd_si512(a),
+                                                   _mm512_castpd_si512(b)));
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_and(const Mask<Double, 64> &k,
+                                             const Vec<Double, 64> &a,
+                                             const Vec<Double, 64> &b)
+{
+  return _mm512_castsi512_pd(
+    _mm512_maskz_and_epi64(k, _mm512_castpd_si512(a), _mm512_castpd_si512(b)));
+}
 #endif
 
 // ---------------------------------------------------------------------------
@@ -714,10 +846,12 @@ static SIMD_INLINE Vec<Float, 64> maskz_and(const Mask<Float, 64> &k,
 
 // there is no _mm512_mask_or_epi8 or _mm512_mask_or_epi16
 GENERATE_DOP(or, Int, epi32)
+GENERATE_DOP(or, Long, epi64)
 #ifdef __AVX512DQ__
 GENERATE_DOP(or, Float, ps)
+GENERATE_DOP(or, Double, pd)
 #else
-// Workaround with the epi32-version and casts
+// Workaround with the epi32/64-versions and casts
 static SIMD_INLINE Vec<Float, 64> mask_or(const Vec<Float, 64> &src,
                                           const Mask<Float, 64> &k,
                                           const Vec<Float, 64> &a,
@@ -735,6 +869,24 @@ static SIMD_INLINE Vec<Float, 64> maskz_or(const Mask<Float, 64> &k,
   return _mm512_castsi512_ps(
     _mm512_maskz_or_epi32(k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
 }
+
+static SIMD_INLINE Vec<Double, 64> mask_or(const Vec<Double, 64> &src,
+                                           const Mask<Double, 64> &k,
+                                           const Vec<Double, 64> &a,
+                                           const Vec<Double, 64> &b)
+{
+  return _mm512_castsi512_pd(_mm512_mask_or_epi64(_mm512_castpd_si512(src), k,
+                                                  _mm512_castpd_si512(a),
+                                                  _mm512_castpd_si512(b)));
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_or(const Mask<Double, 64> &k,
+                                            const Vec<Double, 64> &a,
+                                            const Vec<Double, 64> &b)
+{
+  return _mm512_castsi512_pd(
+    _mm512_maskz_or_epi64(k, _mm512_castpd_si512(a), _mm512_castpd_si512(b)));
+}
 #endif
 
 // ---------------------------------------------------------------------------
@@ -743,10 +895,12 @@ static SIMD_INLINE Vec<Float, 64> maskz_or(const Mask<Float, 64> &k,
 
 // there is no _mm512_mask_andnot_epi8 or _mm512_mask_andnot_epi16
 GENERATE_DOP(andnot, Int, epi32)
+GENERATE_DOP(andnot, Long, epi64)
 #ifdef __AVX512DQ__
 GENERATE_DOP(andnot, Float, ps)
+GENERATE_DOP(andnot, Double, pd)
 #else
-// Workaround with the epi32-version and casts
+// Workaround with the epi32/64-versions and casts
 static SIMD_INLINE Vec<Float, 64> mask_andnot(const Vec<Float, 64> &src,
                                               const Mask<Float, 64> &k,
                                               const Vec<Float, 64> &a,
@@ -764,6 +918,24 @@ static SIMD_INLINE Vec<Float, 64> maskz_andnot(const Mask<Float, 64> &k,
   return _mm512_castsi512_ps(_mm512_maskz_andnot_epi32(
     k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
 }
+
+static SIMD_INLINE Vec<Double, 64> mask_andnot(const Vec<Double, 64> &src,
+                                               const Mask<Double, 64> &k,
+                                               const Vec<Double, 64> &a,
+                                               const Vec<Double, 64> &b)
+{
+  return _mm512_castsi512_pd(_mm512_mask_andnot_epi64(_mm512_castpd_si512(src),
+                                                      k, _mm512_castpd_si512(a),
+                                                      _mm512_castpd_si512(b)));
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_andnot(const Mask<Double, 64> &k,
+                                                const Vec<Double, 64> &a,
+                                                const Vec<Double, 64> &b)
+{
+  return _mm512_castsi512_pd(_mm512_maskz_andnot_epi64(
+    k, _mm512_castpd_si512(a), _mm512_castpd_si512(b)));
+}
 #endif
 
 // ---------------------------------------------------------------------------
@@ -772,10 +944,12 @@ static SIMD_INLINE Vec<Float, 64> maskz_andnot(const Mask<Float, 64> &k,
 
 // there is no _mm512_mask_xor_epi8 or _mm512_mask_xor_epi16
 GENERATE_DOP(xor, Int, epi32)
+GENERATE_DOP(xor, Long, epi64)
 #ifdef __AVX512DQ__
 GENERATE_DOP(xor, Float, ps)
+GENERATE_DOP(xor, Double, pd)
 #else
-// Workaround with the epi32-version and casts
+// Workaround with the epi32/64-versions and casts
 static SIMD_INLINE Vec<Float, 64> mask_xor(const Vec<Float, 64> &src,
                                            const Mask<Float, 64> &k,
                                            const Vec<Float, 64> &a,
@@ -792,6 +966,24 @@ static SIMD_INLINE Vec<Float, 64> maskz_xor(const Mask<Float, 64> &k,
 {
   return _mm512_castsi512_ps(
     _mm512_maskz_xor_epi32(k, _mm512_castps_si512(a), _mm512_castps_si512(b)));
+}
+
+static SIMD_INLINE Vec<Double, 64> mask_xor(const Vec<Double, 64> &src,
+                                            const Mask<Double, 64> &k,
+                                            const Vec<Double, 64> &a,
+                                            const Vec<Double, 64> &b)
+{
+  return _mm512_castsi512_pd(_mm512_mask_xor_epi64(_mm512_castpd_si512(src), k,
+                                                   _mm512_castpd_si512(a),
+                                                   _mm512_castpd_si512(b)));
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_xor(const Mask<Double, 64> &k,
+                                             const Vec<Double, 64> &a,
+                                             const Vec<Double, 64> &b)
+{
+  return _mm512_castsi512_pd(
+    _mm512_maskz_xor_epi64(k, _mm512_castpd_si512(a), _mm512_castpd_si512(b)));
 }
 #endif
 
@@ -817,6 +1009,19 @@ static SIMD_INLINE Vec<Int, 64> maskz_not(const Mask<Int, 64> &k,
 {
   return _mm512_maskz_xor_epi32(k, a, _mm512_set1_epi32(-1));
 }
+
+// Long
+static SIMD_INLINE Vec<Long, 64> mask_not(const Vec<Long, 64> &src,
+                                          const Mask<Long, 64> &k,
+                                          const Vec<Long, 64> &a)
+{
+  return _mm512_mask_xor_epi64(src, k, a, _mm512_set1_epi64(-1));
+}
+static SIMD_INLINE Vec<Long, 64> maskz_not(const Mask<Long, 64> &k,
+                                           const Vec<Long, 64> &a)
+{
+  return _mm512_maskz_xor_epi64(k, a, _mm512_set1_epi64(-1));
+}
 #ifdef __AVX512DQ__
 // Float
 static SIMD_INLINE Vec<Float, 64> mask_not(const Vec<Float, 64> &src,
@@ -831,8 +1036,22 @@ static SIMD_INLINE Vec<Float, 64> maskz_not(const Mask<Float, 64> &k,
 {
   return _mm512_maskz_xor_ps(k, a, _mm512_castsi512_ps(_mm512_set1_epi32(-1)));
 }
+
+// Double
+static SIMD_INLINE Vec<Double, 64> mask_not(const Vec<Double, 64> &src,
+                                            const Mask<Double, 64> &k,
+                                            const Vec<Double, 64> &a)
+{
+  return _mm512_mask_xor_pd(src, k, a,
+                            _mm512_castsi512_pd(_mm512_set1_epi64(-1)));
+}
+static SIMD_INLINE Vec<Double, 64> maskz_not(const Mask<Double, 64> &k,
+                                             const Vec<Double, 64> &a)
+{
+  return _mm512_maskz_xor_pd(k, a, _mm512_castsi512_pd(_mm512_set1_epi64(-1)));
+}
 #else
-// Workaround with the epi32-version and casts
+// Workaround with the epi32/64-versions and casts
 static SIMD_INLINE Vec<Float, 64> mask_not(const Vec<Float, 64> &src,
                                            const Mask<Float, 64> &k,
                                            const Vec<Float, 64> &a)
@@ -847,6 +1066,22 @@ static SIMD_INLINE Vec<Float, 64> maskz_not(const Mask<Float, 64> &k,
 {
   return _mm512_castsi512_ps(
     _mm512_maskz_xor_epi32(k, _mm512_castps_si512(a), _mm512_set1_epi32(-1)));
+}
+
+static SIMD_INLINE Vec<Double, 64> mask_not(const Vec<Double, 64> &src,
+                                            const Mask<Double, 64> &k,
+                                            const Vec<Double, 64> &a)
+{
+  return _mm512_castsi512_pd(_mm512_mask_xor_epi64(_mm512_castpd_si512(src), k,
+                                                   _mm512_castpd_si512(a),
+                                                   _mm512_set1_epi64(-1)));
+}
+
+static SIMD_INLINE Vec<Double, 64> maskz_not(const Mask<Double, 64> &k,
+                                             const Vec<Double, 64> &a)
+{
+  return _mm512_castsi512_pd(
+    _mm512_maskz_xor_epi64(k, _mm512_castpd_si512(a), _mm512_set1_epi64(-1)));
 }
 #endif
 
@@ -872,6 +1107,8 @@ GENERATE_NEG(Short, epi16)
 #endif
 GENERATE_NEG(Int, epi32)
 GENERATE_NEG(Float, ps)
+GENERATE_NEG(Long, epi64)
+GENERATE_NEG(Double, pd)
 
 // ---------------------------------------------------------------------------
 // mask_min v
@@ -885,6 +1122,8 @@ GENERATE_DOP(min, Short, epi16)
 #endif
 GENERATE_DOP(min, Int, epi32)
 GENERATE_DOP(min, Float, ps)
+GENERATE_DOP(min, Long, epi64)
+GENERATE_DOP(min, Double, pd)
 
 // ---------------------------------------------------------------------------
 // mask_max v
@@ -898,9 +1137,11 @@ GENERATE_DOP(max, Short, epi16)
 #endif
 GENERATE_DOP(max, Int, epi32)
 GENERATE_DOP(max, Float, ps)
+GENERATE_DOP(max, Long, epi64)
+GENERATE_DOP(max, Double, pd)
 
 // ---------------------------------------------------------------------------
-// masked srai (16/32 only) v
+// masked srai (16,32,64 only) v
 // ---------------------------------------------------------------------------
 
 #ifdef __AVX512BW__
@@ -911,12 +1152,14 @@ static SIMD_INLINE Vec<Word, 64> mask_srai(const Vec<Word, 64> &src,
 {
   return _mm512_mask_srai_epi16(src, k, a, vec::min(COUNT, 15ul));
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 64> maskz_srai(const Mask<Word, 64> &k,
                                             const Vec<Word, 64> &a)
 {
   return _mm512_maskz_srai_epi16(k, a, vec::min(COUNT, 15ul));
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> mask_srai(const Vec<Short, 64> &src,
                                             const Mask<Short, 64> &k,
@@ -924,13 +1167,16 @@ static SIMD_INLINE Vec<Short, 64> mask_srai(const Vec<Short, 64> &src,
 {
   return _mm512_mask_srai_epi16(src, k, a, vec::min(COUNT, 15ul));
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> maskz_srai(const Mask<Short, 64> &k,
                                              const Vec<Short, 64> &a)
 {
   return _mm512_maskz_srai_epi16(k, a, vec::min(COUNT, 15ul));
 }
+
 #endif
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> mask_srai(const Vec<Int, 64> &src,
                                           const Mask<Int, 64> &k,
@@ -938,11 +1184,27 @@ static SIMD_INLINE Vec<Int, 64> mask_srai(const Vec<Int, 64> &src,
 {
   return _mm512_mask_srai_epi32(src, k, a, vec::min(COUNT, 31ul));
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> maskz_srai(const Mask<Int, 64> &k,
                                            const Vec<Int, 64> &a)
 {
   return _mm512_maskz_srai_epi32(k, a, vec::min(COUNT, 31ul));
+}
+
+template <size_t COUNT>
+static SIMD_INLINE Vec<Long, 64> mask_srai(const Vec<Long, 64> &src,
+                                           const Mask<Long, 64> &k,
+                                           const Vec<Long, 64> &a)
+{
+  return _mm512_mask_srai_epi64(src, k, a, vec::min(COUNT, 63ul));
+}
+
+template <size_t COUNT>
+static SIMD_INLINE Vec<Long, 64> maskz_srai(const Mask<Long, 64> &k,
+                                            const Vec<Long, 64> &a)
+{
+  return _mm512_maskz_srai_epi64(k, a, vec::min(COUNT, 63ul));
 }
 
 // ---------------------------------------------------------------------------
@@ -961,6 +1223,7 @@ static SIMD_INLINE Vec<Word, 64> mask_srli(const Vec<Word, 64> &src,
     return _mm512_mask_blend_epi16(k, src, _mm512_setzero_si512());
   }
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 64> maskz_srli(const Mask<Word, 64> &k,
                                             const Vec<Word, 64> &a)
@@ -971,6 +1234,7 @@ static SIMD_INLINE Vec<Word, 64> maskz_srli(const Mask<Word, 64> &k,
     return _mm512_setzero_si512();
   }
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> mask_srli(const Vec<Short, 64> &src,
                                             const Mask<Short, 64> &k,
@@ -982,6 +1246,7 @@ static SIMD_INLINE Vec<Short, 64> mask_srli(const Vec<Short, 64> &src,
     return _mm512_mask_blend_epi16(k, src, _mm512_setzero_si512());
   }
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> maskz_srli(const Mask<Short, 64> &k,
                                              const Vec<Short, 64> &a)
@@ -992,7 +1257,9 @@ static SIMD_INLINE Vec<Short, 64> maskz_srli(const Mask<Short, 64> &k,
     return _mm512_setzero_si512();
   }
 }
+
 #endif
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> mask_srli(const Vec<Int, 64> &src,
                                           const Mask<Int, 64> &k,
@@ -1004,12 +1271,36 @@ static SIMD_INLINE Vec<Int, 64> mask_srli(const Vec<Int, 64> &src,
     return _mm512_mask_blend_epi32(k, src, _mm512_setzero_si512());
   }
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> maskz_srli(const Mask<Int, 64> &k,
                                            const Vec<Int, 64> &a)
 {
   SIMD_IF_CONSTEXPR (COUNT < 32) {
     return _mm512_maskz_srli_epi32(k, a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
+}
+
+template <size_t COUNT>
+static SIMD_INLINE Vec<Long, 64> mask_srli(const Vec<Long, 64> &src,
+                                           const Mask<Long, 64> &k,
+                                           const Vec<Long, 64> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 64) {
+    return _mm512_mask_srli_epi64(src, k, a, COUNT);
+  } else {
+    return _mm512_mask_blend_epi64(k, src, _mm512_setzero_si512());
+  }
+}
+
+template <size_t COUNT>
+static SIMD_INLINE Vec<Long, 64> maskz_srli(const Mask<Long, 64> &k,
+                                            const Vec<Long, 64> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 64) {
+    return _mm512_maskz_srli_epi64(k, a, COUNT);
   } else {
     return _mm512_setzero_si512();
   }
@@ -1031,6 +1322,7 @@ static SIMD_INLINE Vec<Word, 64> mask_slli(const Vec<Word, 64> &src,
     return _mm512_mask_blend_epi16(k, src, _mm512_setzero_si512());
   }
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Word, 64> maskz_slli(const Mask<Word, 64> &k,
                                             const Vec<Word, 64> &a)
@@ -1041,6 +1333,7 @@ static SIMD_INLINE Vec<Word, 64> maskz_slli(const Mask<Word, 64> &k,
     return _mm512_setzero_si512();
   }
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> mask_slli(const Vec<Short, 64> &src,
                                             const Mask<Short, 64> &k,
@@ -1052,6 +1345,7 @@ static SIMD_INLINE Vec<Short, 64> mask_slli(const Vec<Short, 64> &src,
     return _mm512_mask_blend_epi16(k, src, _mm512_setzero_si512());
   }
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Short, 64> maskz_slli(const Mask<Short, 64> &k,
                                              const Vec<Short, 64> &a)
@@ -1062,7 +1356,9 @@ static SIMD_INLINE Vec<Short, 64> maskz_slli(const Mask<Short, 64> &k,
     return _mm512_setzero_si512();
   }
 }
+
 #endif
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> mask_slli(const Vec<Int, 64> &src,
                                           const Mask<Int, 64> &k,
@@ -1074,12 +1370,36 @@ static SIMD_INLINE Vec<Int, 64> mask_slli(const Vec<Int, 64> &src,
     return _mm512_mask_blend_epi32(k, src, _mm512_setzero_si512());
   }
 }
+
 template <size_t COUNT>
 static SIMD_INLINE Vec<Int, 64> maskz_slli(const Mask<Int, 64> &k,
                                            const Vec<Int, 64> &a)
 {
   SIMD_IF_CONSTEXPR (COUNT < 32) {
     return _mm512_maskz_slli_epi32(k, a, COUNT);
+  } else {
+    return _mm512_setzero_si512();
+  }
+}
+
+template <size_t COUNT>
+static SIMD_INLINE Vec<Long, 64> mask_slli(const Vec<Long, 64> &src,
+                                           const Mask<Long, 64> &k,
+                                           const Vec<Long, 64> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 64) {
+    return _mm512_mask_slli_epi64(src, k, a, COUNT);
+  } else {
+    return _mm512_mask_blend_epi64(k, src, _mm512_setzero_si512());
+  }
+}
+
+template <size_t COUNT>
+static SIMD_INLINE Vec<Long, 64> maskz_slli(const Mask<Long, 64> &k,
+                                            const Vec<Long, 64> &a)
+{
+  SIMD_IF_CONSTEXPR (COUNT < 64) {
+    return _mm512_maskz_slli_epi64(k, a, COUNT);
   } else {
     return _mm512_setzero_si512();
   }
@@ -1206,17 +1526,16 @@ static SIMD_INLINE Vec<T, 64> maskz_hsubs(const Mask<T, 64> &k,
     return _mm512_##OP##_##SUF##_mask(a, b);                                   \
   }
 
-#define GENERATE_CMP_WITH_GENERALIZED_FCT(OP, IMM8)                            \
-  static SIMD_INLINE Mask<Float, 64> mask_##OP(const Mask<Float, 64> &k,       \
-                                               const Vec<Float, 64> &a,        \
-                                               const Vec<Float, 64> &b)        \
+#define GENERATE_CMP_WITH_GENERALIZED_FCT(OP, TYPE, SUF, IMM8)                 \
+  static SIMD_INLINE Mask<TYPE, 64> mask_##OP(                                 \
+    const Mask<TYPE, 64> &k, const Vec<TYPE, 64> &a, const Vec<TYPE, 64> &b)   \
   {                                                                            \
-    return _mm512_mask_cmp_ps_mask(k, a, b, IMM8);                             \
+    return _mm512_mask_cmp_##SUF##_mask(k, a, b, IMM8);                        \
   }                                                                            \
-  static SIMD_INLINE Mask<Float, 64> mask_##OP(const Vec<Float, 64> &a,        \
-                                               const Vec<Float, 64> &b)        \
+  static SIMD_INLINE Mask<TYPE, 64> mask_##OP(const Vec<TYPE, 64> &a,          \
+                                              const Vec<TYPE, 64> &b)          \
   {                                                                            \
-    return _mm512_cmp_ps_mask(a, b, IMM8);                                     \
+    return _mm512_cmp_##SUF##_mask(a, b, IMM8);                                \
   }
 
 // ---------------------------------------------------------------------------
@@ -1230,12 +1549,10 @@ GENERATE_CMP(cmplt, Word, epu16)
 GENERATE_CMP(cmplt, Short, epi16)
 #endif
 GENERATE_CMP(cmplt, Int, epi32)
+GENERATE_CMP(cmplt, Long, epi64)
 
-// #if defined(GCC_VERSION) && GCC_VERSION < 80000
-GENERATE_CMP_WITH_GENERALIZED_FCT(cmplt, _CMP_LT_OS)
-// #else
-//   GENERATE_CMP(cmplt, Float, ps)
-// #endif
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmplt, Float, ps, _CMP_LT_OS)
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmplt, Double, pd, _CMP_LT_OS)
 
 // ---------------------------------------------------------------------------
 // masked compare <= v
@@ -1248,12 +1565,10 @@ GENERATE_CMP(cmple, Word, epu16)
 GENERATE_CMP(cmple, Short, epi16)
 #endif
 GENERATE_CMP(cmple, Int, epi32)
+GENERATE_CMP(cmple, Long, epi64)
 
-// #if defined(GCC_VERSION) && GCC_VERSION < 80000
-GENERATE_CMP_WITH_GENERALIZED_FCT(cmple, _CMP_LE_OS)
-// #else
-//   GENERATE_CMP(cmple, Float, ps)
-// #endif
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmple, Float, ps, _CMP_LE_OS)
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmple, Double, pd, _CMP_LE_OS)
 
 // ---------------------------------------------------------------------------
 // masked compare == v
@@ -1266,12 +1581,10 @@ GENERATE_CMP(cmpeq, Word, epu16)
 GENERATE_CMP(cmpeq, Short, epi16)
 #endif
 GENERATE_CMP(cmpeq, Int, epi32)
+GENERATE_CMP(cmpeq, Long, epi64)
 
-// #if defined(GCC_VERSION) && GCC_VERSION < 80000
-GENERATE_CMP_WITH_GENERALIZED_FCT(cmpeq, _CMP_EQ_OQ)
-// #else
-//   GENERATE_CMP(cmpeq, Float, ps)
-// #endif
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmpeq, Float, ps, _CMP_EQ_OQ)
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmpeq, Double, pd, _CMP_EQ_OQ)
 
 // ---------------------------------------------------------------------------
 // masked compare > v
@@ -1284,9 +1597,10 @@ GENERATE_CMP(cmpgt, Word, epu16)
 GENERATE_CMP(cmpgt, Short, epi16)
 #endif
 GENERATE_CMP(cmpgt, Int, epi32)
+GENERATE_CMP(cmpgt, Long, epi64)
 
-// There is no _mm512_mask_cmpgt_ps_mask
-GENERATE_CMP_WITH_GENERALIZED_FCT(cmpgt, _CMP_GT_OS)
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmpgt, Float, ps, _CMP_GT_OS)
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmpgt, Double, pd, _CMP_GT_OS)
 
 // ---------------------------------------------------------------------------
 // masked compare >= v
@@ -1299,9 +1613,10 @@ GENERATE_CMP(cmpge, Word, epu16)
 GENERATE_CMP(cmpge, Short, epi16)
 #endif
 GENERATE_CMP(cmpge, Int, epi32)
+GENERATE_CMP(cmpge, Long, epi64)
 
-// There is no _mm512_mask_cmpge_ps_mask
-GENERATE_CMP_WITH_GENERALIZED_FCT(cmpge, _CMP_GE_OS)
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmpge, Float, ps, _CMP_GE_OS)
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmpge, Double, pd, _CMP_GE_OS)
 
 // ---------------------------------------------------------------------------
 // masked compare != v
@@ -1314,12 +1629,10 @@ GENERATE_CMP(cmpneq, Word, epu16)
 GENERATE_CMP(cmpneq, Short, epi16)
 #endif
 GENERATE_CMP(cmpneq, Int, epi32)
+GENERATE_CMP(cmpneq, Long, epi64)
 
-// #if defined(GCC_VERSION) && GCC_VERSION < 80000
-GENERATE_CMP_WITH_GENERALIZED_FCT(cmpneq, _CMP_NEQ_OQ)
-// #else
-//   GENERATE_CMP(cmpneq, Float, ps)
-// #endif
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmpneq, Float, ps, _CMP_NEQ_OQ)
+GENERATE_CMP_WITH_GENERALIZED_FCT(cmpneq, Double, pd, _CMP_NEQ_OQ)
 
 // ---------------------------------------------------------------------------
 // masked avg: average with rounding down v
@@ -1359,26 +1672,30 @@ static SIMD_INLINE Vec<Word, 64> maskz_avg(const Mask<Word, 64> &k,
 
 // Paul R at
 // http://stackoverflow.com/questions/12152640/signed-16-bit-sse-average
-static SIMD_INLINE Vec<Int, 64> mask_avg(const Vec<Int, 64> &src,
-                                         const Mask<Int, 64> &k,
-                                         const Vec<Int, 64> &a,
-                                         const Vec<Int, 64> &b)
+
+template <typename T,
+          SIMD_ENABLE_IF(std::is_integral<T>::value &&std::is_signed<T>::value)>
+static SIMD_INLINE Vec<T, 64> mask_avg(const Vec<T, 64> &src,
+                                       const Mask<T, 64> &k,
+                                       const Vec<T, 64> &a, const Vec<T, 64> &b)
 {
-  Vec<Int, 64> one = ::simd::set1<Int, 64>(1), as, bs, lsb;
-  lsb              = bit_and(bit_or(a, b), one);
-  as               = srai<1>(a);
-  bs               = srai<1>(b);
+  const auto one = ::simd::set1<T, 64>(1);
+  const auto lsb = bit_and(bit_or(a, b), one);
+  const auto as  = srai<1>(a);
+  const auto bs  = srai<1>(b);
   return mask_add(src, k, lsb, add(as, bs));
 }
 
-static SIMD_INLINE Vec<Int, 64> maskz_avg(const Mask<Int, 64> &k,
-                                          const Vec<Int, 64> &a,
-                                          const Vec<Int, 64> &b)
+template <typename T,
+          SIMD_ENABLE_IF(std::is_integral<T>::value &&std::is_signed<T>::value)>
+static SIMD_INLINE Vec<T, 64> maskz_avg(const Mask<T, 64> &k,
+                                        const Vec<T, 64> &a,
+                                        const Vec<T, 64> &b)
 {
-  Vec<Int, 64> one = ::simd::set1<Int, 64>(1), as, bs, lsb;
-  lsb              = bit_and(bit_or(a, b), one);
-  as               = srai<1>(a);
-  bs               = srai<1>(b);
+  const auto one = ::simd::set1<T, 64>(1);
+  const auto lsb = bit_and(bit_or(a, b), one);
+  const auto as  = srai<1>(a);
+  const auto bs  = srai<1>(b);
   return maskz_add(k, lsb, add(as, bs));
 }
 
@@ -1401,6 +1718,25 @@ static SIMD_INLINE Vec<Float, 64> maskz_avg(const Mask<Float, 64> &k,
                              _mm512_set1_ps(0.5f));
 }
 
+// NOTE: Double version doesn't round!
+static SIMD_INLINE Vec<Double, 64> mask_avg(const Vec<Double, 64> &src,
+                                            const Mask<Double, 64> &k,
+                                            const Vec<Double, 64> &a,
+                                            const Vec<Double, 64> &b)
+{
+  return _mm512_mask_mul_pd(src, k, _mm512_maskz_add_pd(k, a, b),
+                            _mm512_set1_pd(0.5));
+}
+
+// NOTE: Double version doesn't round!
+static SIMD_INLINE Vec<Double, 64> maskz_avg(const Mask<Double, 64> &k,
+                                             const Vec<Double, 64> &a,
+                                             const Vec<Double, 64> &b)
+{
+  return _mm512_maskz_mul_pd(k, _mm512_maskz_add_pd(k, a, b),
+                             _mm512_set1_pd(0.5));
+}
+
 // ---------------------------------------------------------------------------
 // masked test_all_zeros v
 // ---------------------------------------------------------------------------
@@ -1419,12 +1755,20 @@ TEST_ALL_ZEROS(Word, 16)
 TEST_ALL_ZEROS(Short, 16)
 #endif
 TEST_ALL_ZEROS(Int, 32)
+TEST_ALL_ZEROS(Long, 64)
 
 static SIMD_INLINE bool mask_test_all_zeros(const Mask<Float, 64> &k,
                                             const Vec<Float, 64> &a)
 {
   return (_mm512_mask_test_epi32_mask(k, _mm512_castps_si512(a),
                                       _mm512_castps_si512(a)) == 0);
+}
+
+static SIMD_INLINE bool mask_test_all_zeros(const Mask<Double, 64> &k,
+                                            const Vec<Double, 64> &a)
+{
+  return (_mm512_mask_test_epi64_mask(k, _mm512_castpd_si512(a),
+                                      _mm512_castpd_si512(a)) == 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -1452,6 +1796,8 @@ MASK_ALL_ONES(Short, 0xFFFFFFFF)
 #endif
 MASK_ALL_ONES(Int, 0xFFFF)
 MASK_ALL_ONES(Float, 0xFFFF)
+MASK_ALL_ONES(Long, 0xFF)
+MASK_ALL_ONES(Double, 0xFF)
 
 /*
 Short explanation:
@@ -1536,35 +1882,56 @@ KSHIFT(l, Short, 32)
 
 GENERATE_DMASKOP(and, Int, 16)
 GENERATE_DMASKOP(and, Float, 16)
+GENERATE_DMASKOP(and, Long, 8)
+GENERATE_DMASKOP(and, Double, 8)
 
 GENERATE_DMASKOP(andn, Int, 16)
 GENERATE_DMASKOP(andn, Float, 16)
+GENERATE_DMASKOP(andn, Long, 8)
+GENERATE_DMASKOP(andn, Double, 8)
 
 GENERATE_DMASKOP(or, Int, 16)
 GENERATE_DMASKOP(or, Float, 16)
+GENERATE_DMASKOP(or, Long, 8)
+GENERATE_DMASKOP(or, Double, 8)
 
 GENERATE_DMASKOP(xor, Int, 16)
 GENERATE_DMASKOP(xor, Float, 16)
+GENERATE_DMASKOP(xor, Long, 8)
+GENERATE_DMASKOP(xor, Double, 8)
 
 GENERATE_DMASKOP(xnor, Int, 16)
 GENERATE_DMASKOP(xnor, Float, 16)
+GENERATE_DMASKOP(xnor, Long, 8)
+GENERATE_DMASKOP(xnor, Double, 8)
 
-#ifdef __AVX512DQ__ //_kadd_mask16 is only available unter AVX512DQ
+#ifdef __AVX512DQ__ // _kadd_mask16 and _kadd_mask8 are only available unter
+                    // AVX512DQ
 GENERATE_DMASKOP(add, Int, 16)
 GENERATE_DMASKOP(add, Float, 16)
+GENERATE_DMASKOP(add, Long, 8)
+GENERATE_DMASKOP(add, Double, 8)
 #endif
 
 KNOT(Int, 16)
 KNOT(Float, 16)
+KNOT(Long, 8)
+KNOT(Double, 8)
 
 KSHIFT(r, Int, 16)
 KSHIFT(r, Float, 16)
+KSHIFT(r, Long, 8)
+KSHIFT(r, Double, 8)
+
 KSHIFT(l, Int, 16)
 KSHIFT(l, Float, 16)
+KSHIFT(l, Long, 8)
+KSHIFT(l, Double, 8)
 #else
 //(__GNUC__ >= 7) is false
 #if __GNUC__ >= 6
-// At least the intrinsics for 16-masks (Int and Float) are defined.
+// At least the intrinsics for 16- and 8-masks (Int, Float, Long and Double) are
+// defined.
 #define GENERATE_DMASKOP(NAME, TYPE, NUM)                                      \
   static SIMD_INLINE Mask<TYPE, 64> k##NAME(const Mask<TYPE, 64> &a,           \
                                             const Mask<TYPE, 64> &b)           \
@@ -1579,21 +1946,33 @@ KSHIFT(l, Float, 16)
   }
 GENERATE_DMASKOP(and, Int, 16)
 GENERATE_DMASKOP(and, Float, 16)
+GENERATE_DMASKOP(and, Long, 8)
+GENERATE_DMASKOP(and, Double, 8)
 
 GENERATE_DMASKOP(andn, Int, 16)
 GENERATE_DMASKOP(andn, Float, 16)
+GENERATE_DMASKOP(andn, Long, 8)
+GENERATE_DMASKOP(andn, Double, 8)
 
 GENERATE_DMASKOP(or, Int, 16)
 GENERATE_DMASKOP(or, Float, 16)
+GENERATE_DMASKOP(or, Long, 8)
+GENERATE_DMASKOP(or, Double, 8)
 
 GENERATE_DMASKOP(xor, Int, 16)
 GENERATE_DMASKOP(xor, Float, 16)
+GENERATE_DMASKOP(xor, Long, 8)
+GENERATE_DMASKOP(xor, Double, 8)
 
 GENERATE_DMASKOP(xnor, Int, 16)
 GENERATE_DMASKOP(xnor, Float, 16)
+GENERATE_DMASKOP(xnor, Long, 8)
+GENERATE_DMASKOP(xnor, Double, 8)
 
 KNOT(Int, 16)
 KNOT(Float, 16)
+KNOT(Long, 8)
+KNOT(Double, 8)
 #endif
 
 template <typename T>

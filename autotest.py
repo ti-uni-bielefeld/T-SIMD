@@ -43,7 +43,7 @@ def generate_test_configs():
     # configs for Intel architectures
     for compiler in [
         "clang++",
-        "g++",
+        # "g++",
     ]:
         test_configs.append(get_sandbox_config(compiler))
 

@@ -12,6 +12,8 @@ Templates parameters are the element data type of the vectors and the vector wid
 
 **T-SIMD** has been tested with gcc and clang on Linux.
 
+Using clang is strongly recommended, as it is much faster and uses much less memory than gcc when compiling **T-SIMD** code.
+
 # Quick Start
 
 First, download the latest release from

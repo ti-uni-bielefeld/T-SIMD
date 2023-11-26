@@ -273,20 +273,6 @@ def run_test(test_config):
 
 
 if __name__ == "__main__":
-    is_sde_path_in_env = False
-    if "SDE_PATH" in os.environ:
-        SDE_PATH = os.environ["SDE_PATH"]
-        is_sde_path_in_env = True
-
-    is_sde_path_in_args = False
-    for i in range(len(sys.argv)):
-        if sys.argv[i] == "--sde-path":
-            SDE_PATH = sys.argv[i + 1]
-            is_sde_path_in_args = True
-        elif sys.argv[i].startswith("SDE_PATH="):
-            SDE_PATH = sys.argv[i].split("=")[1]
-            is_sde_path_in_args = True
-
     test_configs = generate_test_configs()
     test_configs = filter_test_configs_for_existing_compilers(test_configs)
     for test_config in test_configs:
@@ -301,25 +287,12 @@ if __name__ == "__main__":
     )
 
     if is_sde_required and not os.path.exists(SDE_PATH):
-        if is_sde_path_in_args:
-            print(
-                f'ERROR: Intel® SDE is required for some tests, but SDE_PATH from command line arguments is invalid: "{SDE_PATH}"'
-            )
-        elif is_sde_path_in_env:
-            print(
-                f'ERROR: Intel® SDE is required for some tests, but SDE_PATH from environment variables is invalid: "{SDE_PATH}"'
-            )
-        else:
-            print(
-                f'ERROR: Intel® SDE is required for some tests, but SDE_PATH from constant is invalid: "{SDE_PATH}"'
-            )
         print(
-            "       Please specify a valid SDE_PATH pointing to the sde or sde64 executable (download from https://www.intel.com/content/www/us/en/developer/articles/tool/software-development-emulator.html) with one of the following options:"
+            f'ERROR: Intel® SDE is required for some tests, but SDE_PATH invalid: "{SDE_PATH}"'
         )
-        print("       - with the --sde-path command line argument")
-        print("       - with the SDE_PATH= command line argument")
-        print("       - with the SDE_PATH environment variable")
-        print("       - by changing the SDE_PATH constant in this script")
+        print(
+            "       Please specify a valid SDE_PATH pointing to the sde or sde64 executable (download from https://www.intel.com/content/www/us/en/developer/articles/tool/software-development-emulator.html) by changing the SDE_PATH constant in this script:"
+        )
         sys.exit(1)
 
     os.nice(19)  # be as nice as possible

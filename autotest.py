@@ -11,7 +11,7 @@ SDE_PATH = "sde64"
 SDE_OPTIONS = "-align_checker_action ignore -future"
 
 LOG_DIR = f"autotest_{os.popen('hostname').read().strip()}_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
-TMP_BUILD_DIR = f"/tmp/T-SIMD_autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
+TMP_BUILD_DIR = f"/dev/shm/T-SIMD_autotest_{time.strftime('%Y-%m-%d_%H-%M-%S')}"
 
 
 # modify this function to configure the tests to run

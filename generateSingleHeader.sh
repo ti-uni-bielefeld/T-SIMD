@@ -49,6 +49,8 @@ cat <<EOF > $sh_name
 // $sh_name --
 // Single header version of the T-SIMD library.
 //
+// Generated on $(date -Iseconds).
+//
 // This file is part of the following software:
 //
 //    - the low-level C++ template SIMD library

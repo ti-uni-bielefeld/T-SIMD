@@ -48,12 +48,18 @@ int main() {
 }
 ```
 
-# Preprocessor Definitions
+# Vector width
+
+Almost all functions and classes in **T-SIMD** are templated on the vector width (`SIMD_WIDTH`). This can be explicitly specified to force a specific vector width, or it can be left unspecified to automatically use the maximum vector width available on the target architecture.
+To limit the maximum vector width that **T-SIMD** will automatically use, see the section [Preprocessor Definitions](@ref preprocessor-definitions).
+
+# Preprocessor Definitions {#preprocessor-definitions}
 
 The following preprocessor definitions can be defined to change the behavior of **T-SIMD** (**WARNING**: These definitions **must** be defined before including `tsimd.H` or any other **T-SIMD** header file):
 
+- `MAX_SIMD_WIDTH` : This macro can be used to limit the maximum vector width that **T-SIMD** will use automatically. Must be an integer of at least 16.<br>
+**Note**: While **T-SIMD** will not use vectors wider than `MAX_SIMD_WIDTH` (except when a width is explicitly specified), other libraries or the compiler may still use wider vectors, e.g. when auto-vectorizing code.
 - `SIMD_ALIGN_CHK` : If this macro is defined, **T-SIMD** will check whether the alignment of the data pointers passed to the functions is correct before executing the functions. If the alignment is incorrect, the location of the error will be printed to the standard error output and the program will be aborted using `std::abort()`. This is useful for debugging purposes.
-- `MAX_SIMD_WIDTH` : This macro can be used to limit the maximum vector width that **T-SIMD** will use. Must be an integer of at least 16.
 - `SIMDVEC_SANDBOX` : If this macro is defined, **T-SIMD** functions will not execute their intended operations, but instead will print what function was called to the standard output. This is useful for debugging purposes.
 
 # Support for 64-Bit Data Types {#support-for-64-bit-data-types}

@@ -110,7 +110,7 @@ Other functions than the base level and masked functions also have a similar int
 
 In order to give the `SIMD_WIDTH` template parameter a default value of `NATIVE_SIMD_WIDTH` if `NATIVE_SIMD_WIDTH` is defined but not cause an error if `NATIVE_SIMD_WIDTH` is not defined, the macro `SIMD_WIDTH_DEFAULT_NATIVE` is used. This macro is defined as `SIMD_WIDTH = NATIVE_SIMD_WIDTH` if `NATIVE_SIMD_WIDTH` is defined and as `SIMD_WIDTH` otherwise. It is used in the following way:
 
-```C++
+```cpp
 template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 struct MySIMDStruct {
   // code using the SIMD_WIDTH template parameter

@@ -166,6 +166,8 @@ int main(int argc, char *argv[])
   TestAll<ArrayArrayVoid, SW, Transpose2inplc>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid, SW, Transpose1inplcLane>::test(repeats1, pattern);
   TestAll<ArrayArrayVoid, SW, Transpose2inplcLane>::test(repeats1, pattern);
+  // 13. Feb 24 (rm): transpose inplace version, only one function so far
+  TestAll<ArrayVoid, SW, TransposeInplace>::test(repeats1, pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle2>::test(repeats1,
                                                               pattern);
   TestAllTI<ArrayVoidTemplateIntMinToMax, SW, Swizzle2_a>::test(repeats1,

@@ -32,7 +32,7 @@
 #===========================================================================
 
 tsimd_binaries = tsimdtest nativetest simdvectest simdmasktest styleExamples \
-	hacctest
+	hacctest transposeTestAutoGen verticalBitonicSortTest
 warping_binaries = warpingSIMDTest warpingSIMDSmallTest \
 	BaselineDemo IdealScale Tilt TiltSearchDemo
 

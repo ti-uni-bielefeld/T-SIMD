@@ -2279,6 +2279,17 @@ static SIMD_INLINE void transpose(
   }
 }
 
+// 13. Feb 24 (rm) inplace version
+template <typename T, size_t SIMD_WIDTH>
+static SIMD_INLINE void transpose(
+  SerialVec<T, SIMD_WIDTH> rows[SerialVec<T, SIMD_WIDTH>::elems])
+{
+  const size_t n = SerialVec<T, SIMD_WIDTH>::elements;
+  for (size_t i = 0; i < n-1; i++)
+    for (size_t j = i+1; j < n; j++)
+      std::swap(rows[i][j], rows[j][i]);
+}
+
 // 02. Aug 23 (Jonas Keller): renamed transpose to transpose_a
 template <typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void transpose_a(

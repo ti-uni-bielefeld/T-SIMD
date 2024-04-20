@@ -62,7 +62,7 @@ set internalExtEnd \
 set header \
 {// ===========================================================================
 //
-// transpose_inplace_autogen.H --
+// SIMDVecExtTransposeAutogen.H --
 // auto-generated transpose functions with in-place processing
 // DO NOT EDIT!!!
 //
@@ -113,6 +113,29 @@ set transposeHubTemplate {
 }
 
 # ---------------------------------------------------------------------------
+# for full transpose, transposeInplace version
+# ---------------------------------------------------------------------------
+
+# wrap in internal::ext
+set transposeInplaceCoreTemplateHead {
+    template <typename T, size_t SIMD_WIDTH>
+    static SIMD_INLINE void %s
+    (Vec<T, SIMD_WIDTH> rows[Vec<T, SIMD_WIDTH>::elems],
+     Elements<%d>)}
+
+# wrap in internal::ext
+# TODO: namespace ok?
+set transposeInplaceHubTemplate {
+    template <typename T, size_t SIMD_WIDTH>
+    static SIMD_INLINE void %s
+    (Vec<T, SIMD_WIDTH> rows[Vec<T, SIMD_WIDTH>::elems])
+    {
+        %s
+        (rows, Elements<Vec<T, SIMD_WIDTH>::elements>());
+    }
+}
+
+# ---------------------------------------------------------------------------
 # for lane-based transpose
 # ---------------------------------------------------------------------------
 
@@ -135,6 +158,32 @@ set transposeLaneHubTemplate {
     {
         %s
         (inRows, outRows,
+         Elements<Vec<T, SIMD_WIDTH>::elements>(),
+         Bytes<SIMD_WIDTH>());
+    }
+}
+
+# ---------------------------------------------------------------------------
+# for lane-based transpose, transposeInplace version
+# ---------------------------------------------------------------------------
+
+# wrap in internal::ext
+set transposeInplaceLaneCoreTemplateHead {
+    template <typename T, size_t SIMD_WIDTH>
+    static SIMD_INLINE void %s
+    (Vec<T, SIMD_WIDTH> rows[Vec<T, SIMD_WIDTH>::elems],
+     Elements<%d>,
+     Bytes<%d>)}
+
+# wrap in internal::ext
+# TODO: namespace ok?
+set transposeInplaceLaneHubTemplate {
+    template <typename T, size_t SIMD_WIDTH>
+    static SIMD_INLINE void %s
+    (Vec<T, SIMD_WIDTH> rows[Vec<T, SIMD_WIDTH>::elems])
+    {
+        %s
+        (rows,
          Elements<Vec<T, SIMD_WIDTH>::elements>(),
          Bytes<SIMD_WIDTH>());
     }
@@ -175,16 +224,14 @@ proc writeCounterInfo {fileName} {
 
 # from swizzle_experiments.tcl: proc transpose1inplace, without lanes argument
 
-proc transpose1fullGenerator {elements} {
+proc transpose1fullGenerator {elements vs vd} {
     set n $elements
     set n2 [expr $n / 2]
     
     for {set v 0} {$v < $n} {incr v} {
         set isAt($v) $v
     }
-    # vs is overwritten after first round
-    set vs "inRows"
-    set vd "outRows"
+    # vs is overwritten after first round with vd
     for {set span 1; set parts $n2} \
         {$span <= $n2} \
         {set span [expr 2 * $span]; set parts [expr $parts / 2]} {
@@ -214,7 +261,7 @@ proc transpose1fullGenerator {elements} {
                             set newIsAt($dst2) $atSrc2
                         }
                 }
-            set vs "outRows"
+            set vs $vd
             array set isAt [array get newIsAt]
         }
     # post-sorting
@@ -251,7 +298,7 @@ proc transpose1fullGenerator {elements} {
 
 # from swizzle_experiments.tcl: proc transpose1inplace
 
-proc transpose1laneGenerator {elements bytes} {
+proc transpose1laneGenerator {elements bytes vs vd} {
     set n $elements
     set n2 [expr $n / 2]
 
@@ -263,9 +310,7 @@ proc transpose1laneGenerator {elements bytes} {
     for {set v 0} {$v < $n} {incr v} {
         set isAt($v) $v
     }
-    # vs is overwritten after first round
-    set vs "inRows"
-    set vd "outRows"
+    # vs is overwritten after first round with vd
     for {set span 1; set parts $n2} \
         {$span <= $n2 / $lanes} \
         {set span [expr 2 * $span]; set parts [expr $parts / 2]} {
@@ -295,7 +340,7 @@ proc transpose1laneGenerator {elements bytes} {
                             set newIsAt($dst2) $atSrc2
                         }
                 }
-            set vs "outRows"
+            set vs $vd
             array set isAt [array get newIsAt]
         }
     # post-sorting
@@ -330,7 +375,7 @@ proc transpose1laneGenerator {elements bytes} {
 # block-wise transposition, in-place with post-processing, uses
 # full-length block zip
 
-proc blockTranspose1Generator {elements bytes} {
+proc blockTranspose1Generator {elements bytes vsd} {
     set n $elements
     set lanes [expr $bytes / 16]
     if {$lanes < 1} {
@@ -344,9 +389,7 @@ proc blockTranspose1Generator {elements bytes} {
     for {set b 0} {$b < $N} {incr b} {
         set isAt($b) $b
     }
-    # we stay in-place the entire time
-    set vs "outRows"
-    set vd "outRows"
+    # we stay in-place the entire time, vsd
     for {set span 1; set parts $N2} \
         {$span <= $N2} \
         {set span [expr 2 * $span]; set parts [expr $parts / 2]} {
@@ -373,10 +416,10 @@ proc blockTranspose1Generator {elements bytes} {
                             set vecSpan [expr $span * $vecsPerLane]
                             for {set v 0} {$v < $vecsPerLane} {incr v} {
                                 puts -nonewline "        "
-                                puts "zip<$vecSpan>($vs\[$vecAtSrc1\],\
-                                                    $vs\[$vecAtSrc2\],\
-                                                    $vd\[$vecAtSrc1\],\
-                                                    $vd\[$vecAtSrc2\]);"
+                                puts "zip<$vecSpan>($vsd\[$vecAtSrc1\],\
+                                                    $vsd\[$vecAtSrc2\],\
+                                                    $vsd\[$vecAtSrc1\],\
+                                                    $vsd\[$vecAtSrc2\]);"
                                 incr ::numZip
                                 # in-place
                                 incr vecAtSrc1
@@ -405,7 +448,7 @@ proc blockTranspose1Generator {elements bytes} {
                 set vVec [expr $vb * $vecsPerLane]
                 for {set i 0} {$i < $vecsPerLane} {incr i} {
                     puts -nonewline "        "
-                    puts "std::swap($vd\[$vVec\], $vd\[$uVec\]);"
+                    puts "std::swap($vsd\[$vVec\], $vsd\[$uVec\]);"
                     incr ::numMove 3
                     incr uVec
                     incr vVec
@@ -427,7 +470,7 @@ proc blockTranspose1Generator {elements bytes} {
 # from swizzle2inplace and transpose2inplace in swizzle_experiments.tcl
 # in-place, full-length zip, no early stop (lanes not used)
 
-proc transpose2fullGenerator {elements} {
+proc transpose2fullGenerator {elements vs vd} {
     set numVecs $elements
     # special case of swizzle2inplace (as called by transpose2inplace)
     set N [expr $numVecs / 2]
@@ -436,9 +479,7 @@ proc transpose2fullGenerator {elements} {
     for {set v 0} {$v < $numVecs} {incr v} {
         set isAt($v) $v
     }
-    # vs is overwritten after first round
-    set vs "inRows"
-    set vd "outRows"
+    # vs is overwritten after first round with vd
     for {set blkSize 1} {$blkSize <= $finalBlkSize} \
         {set blkSize [expr $blkSize * 2]} {
             for {set src 0; set dst 0} {$src < $N} {incr src; incr dst 2} {
@@ -456,7 +497,7 @@ proc transpose2fullGenerator {elements} {
                 set newIsAt($dst1) $atSrc1
                 set newIsAt($dst2) $atSrc2
             }
-            set vs "outRows"
+            set vs $vd
             array set isAt [array get newIsAt]
         }
     # no post-sorting is required (swizzle2inplace for numVec=2^x)
@@ -472,7 +513,7 @@ proc transpose2fullGenerator {elements} {
 # but for post-processing
 # TODO: could be fused with transpose2fullGenerator
 
-proc transpose2laneGeneratorA {elements bytes} {
+proc transpose2laneGeneratorA {elements bytes vs vd} {
     set numVecs $elements
     # special case of swizzle2inplace (as called by transpose2inplace)
     set N [expr $numVecs / 2]
@@ -481,9 +522,7 @@ proc transpose2laneGeneratorA {elements bytes} {
     for {set v 0} {$v < $numVecs} {incr v} {
         set isAt($v) $v
     }
-    # vs is overwritten after first round
-    set vs "inRows"
-    set vd "outRows"
+    # vs is overwritten after first round with vd
     for {set blkSize 1} {$blkSize <= $finalBlkSize} \
         {set blkSize [expr $blkSize * 2]} {
             for {set src 0; set dst 0} {$src < $N} {incr src; incr dst 2} {
@@ -501,7 +540,7 @@ proc transpose2laneGeneratorA {elements bytes} {
                 set newIsAt($dst1) $atSrc1
                 set newIsAt($dst2) $atSrc2
             }
-            set vs "outRows"
+            set vs $vd
             array set isAt [array get newIsAt]
         }
     # no post-sorting is required (swizzle2inplace for numVec=2^x)
@@ -515,7 +554,7 @@ proc transpose2laneGeneratorA {elements bytes} {
 # in-place with post-processing, uses full length block zip
 # (in contrast to transpose2inplace)
 
-proc blockTranspose2GeneratorA {elements bytes} {
+proc blockTranspose2GeneratorA {elements bytes vsd} {
     set n $elements
     set n2 [expr  $n / 2]
     set lanes [expr $bytes / 16]
@@ -527,9 +566,7 @@ proc blockTranspose2GeneratorA {elements bytes} {
     for {set v 0} {$v < $n} {incr v} {
         set isAt($v) $v
     }
-    # we stay in-place the entire time
-    set vs "outRows"
-    set vd "outRows"
+    # we stay in-place the entire time, vsd
     # size of zip blk
     for {set blkSz $vecsPerLane; set dstSpan $n2} \
         {$blkSz < $n} \
@@ -556,10 +593,10 @@ proc blockTranspose2GeneratorA {elements bytes} {
                             set atSrc2 $isAt($src2)
 
                             puts -nonewline "        "
-                            puts "zip<$blkSz>($vs\[$atSrc1\],\
-                                              $vs\[$atSrc2\],\
-                                              $vd\[$atSrc1\],\
-                                              $vd\[$atSrc2\]);"
+                            puts "zip<$blkSz>($vsd\[$atSrc1\],\
+                                              $vsd\[$atSrc2\],\
+                                              $vsd\[$atSrc1\],\
+                                              $vsd\[$atSrc2\]);"
                             incr ::numZip
                             
                             # remember where it should be
@@ -590,7 +627,7 @@ proc blockTranspose2GeneratorA {elements bytes} {
             # remember the first one, this one is overwritten
             puts            "        \{"
             puts -nonewline "          "
-            puts "Vec<T, SIMD_WIDTH> vec_v = outRows\[$v\];"
+            puts "Vec<T, SIMD_WIDTH> vec_v = $vsd\[$v\];"
             incr ::numMove
             # go through cycle
             set w $v
@@ -599,9 +636,9 @@ proc blockTranspose2GeneratorA {elements bytes} {
                 set u $isAt($w)
                 puts -nonewline "          "
                 if {$u == $v} {
-                    puts "outRows\[$w\] = vec_v;"
+                    puts "$vsd\[$w\] = vec_v;"
                 } else {
-                    puts "outRows\[$w\] = outRows\[$u\];"
+                    puts "$vsd\[$w\] = $vsd\[$u\];"
                 }
                 incr ::numMove
                 set w $u
@@ -619,7 +656,7 @@ proc blockTranspose2GeneratorA {elements bytes} {
 # same as transpose2Generator, but with zip16
 # in-place, lane-oriented zip, with early stopping
 
-proc transpose2laneGeneratorB {elements bytes} {
+proc transpose2laneGeneratorB {elements bytes vs vd} {
     set numVecs $elements
     # special case of swizzle2inplace (as called by transpose2inplace)
     set N [expr $numVecs / 2]
@@ -633,9 +670,7 @@ proc transpose2laneGeneratorB {elements bytes} {
     for {set v 0} {$v < $numVecs} {incr v} {
         set isAt($v) $v
     }
-    # vs is overwritten after first round
-    set vs "inRows"
-    set vd "outRows"
+    # vs is overwritten after first round with vd
     # difference to transpose2laneGeneratorA: / $lanes (early stopping)
     for {set blkSize 1} {$blkSize <= $finalBlkSize / $lanes} \
         {set blkSize [expr $blkSize * 2]} {
@@ -654,7 +689,7 @@ proc transpose2laneGeneratorB {elements bytes} {
                 set newIsAt($dst1) $atSrc1
                 set newIsAt($dst2) $atSrc2
             }
-            set vs "outRows"
+            set vs $vd
             array set isAt [array get newIsAt]
         }
     # no post-sorting is required (swizzle2inplace for numVec=2^x)
@@ -668,7 +703,7 @@ proc transpose2laneGeneratorB {elements bytes} {
 # in-place with post-processing, uses full length block zip
 # (in contrast to transpose2inplace)
 
-proc blockTranspose2GeneratorB {elements bytes} {
+proc blockTranspose2GeneratorB {elements bytes vsd} {
     set n $elements
     set n2 [expr  $n / 2]
     set lanes [expr $bytes / 16]
@@ -680,10 +715,7 @@ proc blockTranspose2GeneratorB {elements bytes} {
     for {set v 0} {$v < $n} {incr v} {
         set isAt($v) $v
     }
-    # we stay in-place the entire time
-    set vs "outRows"
-    set vd "outRows"
-    
+    # we stay in-place the entire time, vsd
     for {set numParts $vecsPerLane; set blkSz 1; set dstSpan $n2} \
         {$numParts < $n} \
         {set numParts [expr $numParts * 2]; \
@@ -708,10 +740,10 @@ proc blockTranspose2GeneratorB {elements bytes} {
                                  set atSrc2 $isAt($src2)
 
                                  puts -nonewline "        "
-                                 puts "zip<$blkSz>($vs\[$atSrc1\],\
-                                                   $vs\[$atSrc2\],\
-                                                   $vd\[$atSrc1\],\
-                                                   $vd\[$atSrc2\]);"
+                                 puts "zip<$blkSz>($vsd\[$atSrc1\],\
+                                                   $vsd\[$atSrc2\],\
+                                                   $vsd\[$atSrc1\],\
+                                                   $vsd\[$atSrc2\]);"
                                  incr ::numZip
  
                                  # remember where it should be
@@ -742,7 +774,7 @@ proc blockTranspose2GeneratorB {elements bytes} {
             # remember the first one, this one is overwritten
             puts            "        \{"
             puts -nonewline "          "
-            puts "Vec<T, SIMD_WIDTH> vec_v = outRows\[$v\];"
+            puts "Vec<T, SIMD_WIDTH> vec_v = $vsd\[$v\];"
             incr ::numMove
             # go through cycle
             set w $v
@@ -751,9 +783,9 @@ proc blockTranspose2GeneratorB {elements bytes} {
                 set u $isAt($w)
                 puts -nonewline "          "
                 if {$u == $v} {
-                    puts "outRows\[$w\] = vec_v;"
+                    puts "$vsd\[$w\] = vec_v;"
                 } else {
-                    puts "outRows\[$w\] = outRows\[$u\];"
+                    puts "$vsd\[$w\] = $vsd\[$u\];"
                 }
                 incr ::numMove
                 set w $u
@@ -768,26 +800,29 @@ proc blockTranspose2GeneratorB {elements bytes} {
 # auto-generation of entire function
 # ===========================================================================
 
-proc transposeCoreAutoGen {funcName elements \
-                               transposeGenerator} {
+proc transposeCoreAutoGen {coreTemplateHead funcName elements \
+                               transposeGenerator vs vd} {
     resetCounters
-    puts "    [format $::transposeCoreTemplateHead $funcName $elements]"
+    puts "    [format $coreTemplateHead $funcName $elements]"
     puts "    \{"
-    puts -nonewline [$transposeGenerator $elements]
+    puts -nonewline [$transposeGenerator $elements $vs $vd]
     puts "    \}"
     storeCounters "$funcName elements=$elements"
 }
 
-proc transposeLaneCoreAutoGen {funcName elements bytes \
+proc transposeLaneCoreAutoGen {laneCoreTemplateHead funcName elements bytes \
                                    transposeLaneGenerator \
-                                   blockTransposeGenerator} {
+                                   blockTransposeGenerator \
+                                   vs vd} {
     resetCounters
-    puts "    [format $::transposeLaneCoreTemplateHead $funcName \
+    puts "    [format $laneCoreTemplateHead $funcName \
                       $elements $bytes]"
     puts "    \{"
-    puts -nonewline [$transposeLaneGenerator $elements $bytes]
+    puts -nonewline \
+        [$transposeLaneGenerator $elements $bytes $vs $vd]
     puts "        // correction steps follow below (if required)"
-    puts -nonewline [$blockTransposeGenerator $elements $bytes]
+    puts -nonewline \
+        [$blockTransposeGenerator $elements $bytes $vd]
     puts "    \}"
     storeCounters "$funcName elements=$elements bytes=$bytes"
 }
@@ -804,12 +839,18 @@ puts $includes
 puts "$simdStart"
 puts "$internalExtStart"
 
+# ---------------------------------------------------------------------------
+# 2-argument versions
+# ---------------------------------------------------------------------------
+
 puts "    // =========================================================="
 puts "    // transpose1inplc"
 puts "    // =========================================================="
 foreach elements $elementsList {
-    transposeCoreAutoGen "transpose1inplc" $elements \
-        transpose1fullGenerator
+    transposeCoreAutoGen $transposeCoreTemplateHead \
+        "transpose1inplc" $elements \
+        transpose1fullGenerator \
+        "inRows" "outRows"
 }
 puts [format $transposeHubTemplate \
           "transpose1inplc" "transpose1inplc"]
@@ -820,8 +861,10 @@ puts "    // =========================================================="
 foreach bytes $bytesList {
     foreach bytesPerElement $bytesPerElementList {
         set elements [expr $bytes / $bytesPerElement]
-        transposeLaneCoreAutoGen "transpose1inplcLane" $elements $bytes \
-            transpose1laneGenerator blockTranspose1Generator
+        transposeLaneCoreAutoGen $transposeLaneCoreTemplateHead \
+            "transpose1inplcLane" $elements $bytes \
+            transpose1laneGenerator blockTranspose1Generator \
+            "inRows" "outRows"
     }
 }
 puts [format $transposeLaneHubTemplate \
@@ -831,8 +874,10 @@ puts "    // =========================================================="
 puts "    // transpose2inplc"
 puts "    // =========================================================="
 foreach elements $elementsList {
-    transposeCoreAutoGen "transpose2inplc" $elements \
-        transpose2fullGenerator
+    transposeCoreAutoGen $transposeCoreTemplateHead \
+        "transpose2inplc" $elements \
+        transpose2fullGenerator \
+        "inRows" "outRows"
 }
 puts [format $transposeHubTemplate \
           "transpose2inplc" "transpose2inplc"]
@@ -845,8 +890,10 @@ if {0} {
     foreach bytes $bytesList {
         foreach bytesPerElement $bytesPerElementList {
             set elements [expr $bytes / $bytesPerElement]
-            transposeLaneCoreAutoGen "transpose2inplcLaneA" $elements $bytes \
-                transpose2laneGeneratorA blockTranspose2GeneratorA
+            transposeLaneCoreAutoGen $transposeLaneCoreTemplateHead \
+                "transpose2inplcLaneA" $elements $bytes \
+                transpose2laneGeneratorA blockTranspose2GeneratorA \
+                "inRows" "outRows"
         }
     }
     puts [format $transposeLaneHubTemplate \
@@ -859,11 +906,89 @@ puts "    // =========================================================="
 foreach bytes $bytesList {
     foreach bytesPerElement $bytesPerElementList {
         set elements [expr $bytes / $bytesPerElement]
-        transposeLaneCoreAutoGen "transpose2inplcLane" $elements $bytes \
-            transpose2laneGeneratorB blockTranspose2GeneratorB
+        transposeLaneCoreAutoGen $transposeLaneCoreTemplateHead \
+            "transpose2inplcLane" $elements $bytes \
+            transpose2laneGeneratorB blockTranspose2GeneratorB \
+            "inRows" "outRows"
     }
 }
 puts [format $transposeLaneHubTemplate \
+          "transpose2inplcLane" "transpose2inplcLane"]
+
+# ---------------------------------------------------------------------------
+# 1-argument versions
+# ---------------------------------------------------------------------------
+
+puts "    // =========================================================="
+puts "    // transpose1inplc (1-argument version)"
+puts "    // =========================================================="
+foreach elements $elementsList {
+    transposeCoreAutoGen $transposeInplaceCoreTemplateHead \
+        "transpose1inplc" $elements \
+        transpose1fullGenerator \
+        "rows" "rows"
+}
+puts [format $transposeInplaceHubTemplate \
+          "transpose1inplc" "transpose1inplc"]
+
+puts "    // =========================================================="
+puts "    // transpose1inplcLane (1-argument version)"
+puts "    // =========================================================="
+foreach bytes $bytesList {
+    foreach bytesPerElement $bytesPerElementList {
+        set elements [expr $bytes / $bytesPerElement]
+        transposeLaneCoreAutoGen $transposeInplaceLaneCoreTemplateHead \
+            "transpose1inplcLane" $elements $bytes \
+            transpose1laneGenerator blockTranspose1Generator \
+            "rows" "rows"
+    }
+}
+puts [format $transposeInplaceLaneHubTemplate \
+          "transpose1inplcLane" "transpose1inplcLane"]
+
+puts "    // =========================================================="
+puts "    // transpose2inplc (1-argument version)"
+puts "    // =========================================================="
+foreach elements $elementsList {
+    transposeCoreAutoGen $transposeInplaceCoreTemplateHead \
+        "transpose2inplc" $elements \
+        transpose2fullGenerator \
+        "rows" "rows"
+}
+puts [format $transposeInplaceHubTemplate \
+          "transpose2inplc" "transpose2inplc"]
+
+if {0} {
+    # not as efficient as version below, more ops in first phase
+    puts "    // =========================================================="
+    puts "    // transpose2inplcLaneA (1-argument version)"
+    puts "    // =========================================================="
+    foreach bytes $bytesList {
+        foreach bytesPerElement $bytesPerElementList {
+            set elements [expr $bytes / $bytesPerElement]
+            transposeLaneCoreAutoGen $transposeInplaceLaneCoreTemplateHead \
+                "transpose2inplcLaneA" $elements $bytes \
+                transpose2laneGeneratorA blockTranspose2GeneratorA \
+                "rows" "rows"
+        }
+    }
+    puts [format $transposeInplaceLaneHubTemplate \
+              "transpose2inplcLaneA" "transpose2inplcLaneA"]
+}
+
+puts "    // =========================================================="
+puts "    // transpose2inplcLane (1-argument version)"
+puts "    // =========================================================="
+foreach bytes $bytesList {
+    foreach bytesPerElement $bytesPerElementList {
+        set elements [expr $bytes / $bytesPerElement]
+        transposeLaneCoreAutoGen $transposeInplaceLaneCoreTemplateHead \
+            "transpose2inplcLane" $elements $bytes \
+            transpose2laneGeneratorB blockTranspose2GeneratorB \
+            "rows" "rows"
+    }
+}
+puts [format $transposeInplaceLaneHubTemplate \
           "transpose2inplcLane" "transpose2inplcLane"]
 
 puts "$internalExtEnd"

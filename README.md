@@ -79,7 +79,7 @@ There may be other slight differences that are not listed here.
 
 Jonas Keller substantially improved and extended the **T-SIMD** library and added the documentation.
 
-Other contributors are: Markus Vieth, Adam Marschall, Jan-Lukas Wolf, Lukas Schiermeier and Moritz Breipohl.
+Other contributors are: Markus Vieth, Adam Marschall, Jan-Lukas Wolf, Lukas Schiermeier, Moritz Breipohl, and Ebba Stina Siebold.
 
 Their specific contributions are mentioned in the source files. Thanks a lot to all contributors!
 

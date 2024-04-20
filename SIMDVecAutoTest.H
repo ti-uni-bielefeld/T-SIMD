@@ -1879,6 +1879,80 @@ struct ArrayArrayVoid
 };
 
 // ===========================================================================
+// test of void commands with array in/out
+// ===========================================================================
+
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
+          class CMP = CmpEqual>
+struct ArrayVoid
+{
+  static void test(size_t repeats, const std::string &pattern)
+  {
+    const std::string args = "*v";
+    const size_t n         = SIMD_WIDTH / sizeof(T);
+#if !ONLY_TIME_MEASUREMENT
+    const char *fmt = TypeInfo<T>::defaultFormat();
+#endif
+    std::string name = FCT<T, SIMD_WIDTH>::name();
+    if (name.find(pattern) != std::string::npos) {
+      printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
+      // allocate on the heap to avoid stack overflow
+      std::vector<SerialVec<T, SIMD_WIDTH>> as(n), ap(n), a(n);
+      std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator>
+        _ap(n);
+      size_t errors = 0, trials = 0;
+      for (size_t i = 0; i < repeats; i++, trials++) {
+        for (size_t j = 0; j < n; j++) {
+          FCT<T, SIMD_WIDTH>::randomizeInput(as[j]);
+          _ap[j] = as[j].getVec();
+          // make a copy of the input
+          a[j] = as[j];
+        }
+        // apply function
+        FCT<T, SIMD_WIDTH>::apply(as.data());
+        FCT<T, SIMD_WIDTH>::apply(_ap.data());
+        // compare results
+        bool equal = true;
+        for (size_t j = 0; j < n; j++) {
+          // assign Vec -> SerialVec
+          ap[j].setVec(_ap[j]);
+          if (!CMP::cmpVec(as[j], ap[j])) equal = false;
+        }
+        if (!equal) {
+          errors++;
+          if (errors <= PRINT_ERRORS) {
+            printError(name, args);
+            // input copy
+            for (size_t j = 0; j < n; j++) PRINT(fmt, a[j]);
+            // output
+            for (size_t j = 0; j < n; j++) {
+              PRINT(fmt, as[j]);
+              PRINT(fmt, ap[j]);
+            }
+          }
+          EXIT;
+        }
+      }
+      printErrorStats(errors, trials);
+#endif
+      Vec<T, SIMD_WIDTH> input[n];
+      struct timespec start = getTimeSpecMonotonic();
+      for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+        for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+          doNotOptimize(input);
+          FCT<T, SIMD_WIDTH>::apply(input);
+          doNotOptimize(input);
+        }
+      }
+      struct timespec end = getTimeSpecMonotonic();
+      long int time       = timeSpecDiffNsec(end, start);
+      printTimeStats(time, repeats);
+    }
+  }
+};
+
+// ===========================================================================
 // test of void commands with array in and array out and single templ. type p.
 // ===========================================================================
 

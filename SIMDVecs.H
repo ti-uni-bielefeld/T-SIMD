@@ -204,6 +204,13 @@ static SIMD_INLINE void transpose(
   transpose(inRows.vec, outRows.vec);
 }
 
+template <typename T, size_t SIMD_WIDTH>
+static SIMD_INLINE void transpose(
+  Vecs<(SIMD_WIDTH / sizeof(T)), T, SIMD_WIDTH> &rows)
+{
+  transpose(rows.vec);
+}
+
 template <size_t N, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE void swizzle2(Vecs<2 * N, T, SIMD_WIDTH> &v)
 {

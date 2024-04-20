@@ -1861,7 +1861,6 @@ struct HmaxSingle
   }
 };
 
-// 02. Aug 23 (Jonas Keller): renamed Transpose to Transpose_a
 template <typename T, size_t SIMD_WIDTH>
 struct Transpose
 {
@@ -1881,6 +1880,29 @@ struct Transpose
     VEC<T, SIMD_WIDTH> outRows[VEC<T, SIMD_WIDTH>::elements])
   {
     transpose(inRows, outRows);
+  }
+};
+
+// 13. Feb 24 (rm): currently only for this version, not for the
+// individual auto-generated functions
+template <typename T, size_t SIMD_WIDTH>
+struct TransposeInplace
+{
+  static SIMD_INLINE std::string name()
+  {
+    return t2s<T, SIMD_WIDTH>("transpose");
+  }
+
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  {
+    vec.randomize();
+  }
+
+  template <template <typename, size_t> class VEC>
+  static SIMD_INLINE void apply(
+    VEC<T, SIMD_WIDTH> rows[VEC<T, SIMD_WIDTH>::elements])
+  {
+    transpose(rows);
   }
 };
 

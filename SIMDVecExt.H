@@ -3216,7 +3216,7 @@ static SIMD_INLINE void unswizzle(Vec<T, SIMD_WIDTH> v[2 * N])
  * The matrix must be given as an array of Vec's which are the rows of
  * the matrix. The number of rows must be equal to the number of elements
  * in a Vec (<tt>SIMD_WIDTH/sizeof(T)</tt>), i.e. the matrix must be
- * square.
+ * square. Overlap between input and output rows is not permitted.
  *
  * @param[in] inRows array of Vec's holding the matrix to be transposed
  * @param[out] outRows array of Vec's where the transposed matrix is stored
@@ -3245,6 +3245,29 @@ static SIMD_INLINE void transpose(
   // internal::ext::transpose2inplc(inRows, outRows);
   internal::ext::transpose1inplcLane(inRows, outRows);
   // internal::ext::transpose2inplcLane(inRows, outRows);
+}
+
+/**
+ * @ingroup group_reordering
+ * @brief Transposes a matrix held in an array of Vec's.
+ *
+ * The matrix must be given as an array of Vec's which are the rows of
+ * the matrix. The number of rows must be equal to the number of elements
+ * in a Vec (<tt>SIMD_WIDTH/sizeof(T)</tt>), i.e. the matrix must be
+ * square.
+ *
+ * @param[in,out] rows array of Vec's holding the matrix to be transposed
+ */
+template <typename T, size_t SIMD_WIDTH>
+static SIMD_INLINE void transpose(
+  Vec<T, SIMD_WIDTH> rows[Vec<T, SIMD_WIDTH>::elems])
+{
+  // uncomment fastest version
+  // only auto-generated inplace versions are allowed here
+  // internal::ext::transpose1inplc(rows);
+  // internal::ext::transpose2inplc(rows);
+  internal::ext::transpose1inplcLane(rows);
+  // internal::ext::transpose2inplcLane(rows);
 }
 
 // ===========================================================================
@@ -3441,6 +3464,18 @@ static SIMD_INLINE void bitonicSortReducedTransposed(
     }
   }
 }
+
+// same as bitonicSortReducedTransposed, but including the transpose
+template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
+static SIMD_INLINE void bitonicSortReduced(
+  Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
+{
+  Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
+  transpose(vecs, transVecs);
+  internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
+  transpose(transVecs, vecs);
+}
+
 } // namespace ext
 } // namespace internal
 
@@ -3491,13 +3526,113 @@ template <SortSlope SLOPE, typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void bitonicSortSortedPairs(
   Vec<T, SIMD_WIDTH> vecs[Vec<T, SIMD_WIDTH>::elems])
 {
-  Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
+  // Vec<T, SIMD_WIDTH> transVecs[Vec<T, SIMD_WIDTH>::elements];
   // second vector of each pair is reversed and fused with first vector
   for (size_t i = 0; i < Vec<T, SIMD_WIDTH>::elements; i += 2)
     internal::ext::bitonicFusion<SLOPE>(vecs[i], vecs[i + 1]);
-  transpose(vecs, transVecs);
-  internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
-  transpose(transVecs, vecs);
+  // transpose(vecs, transVecs);
+  // internal::ext::bitonicSortReducedTransposed<SLOPE>(transVecs);
+  // transpose(transVecs, vecs);
+  internal::ext::bitonicSortReduced<SLOPE>(vecs);
+}
+
+/**
+ * @brief Sorts data vector using vertical version of bitonic sort.
+ * Assumes that data size is a power of 2 times the number of elements
+ * in a SIMD vector squared; if not, a static assertion is
+ * raised. Note: This function has not been subjected to auto-tests.
+ *
+ * @tparam LENGTH length of data vector
+ * @tparam SLOPE direction to sort in (SortSlope::ASCENDING or
+ * SortSlope::DESCENDING)
+ * @param data vector of data (may be unaligned)
+ */
+
+// contributed by Ebba Stina Siebold, modified
+
+template<size_t LENGTH, SortSlope SLOPE,
+         typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
+static SIMD_INLINE void verticalBitonicSort(T data[LENGTH])
+{
+  // number of elements in SIMD vector
+  constexpr size_t SIMD_ELEMS = Vec<T, SIMD_WIDTH>::elements;
+  // number of SIMD vectors in data
+  // LENGTH is assumed to be 2^n * SIMD_ELEMS^2 (n=0,1,2...)
+  // -> NUM_VECS is 2^n * SIMD_ELEMS
+  constexpr size_t NUM_VECS = LENGTH / SIMD_ELEMS;
+  // number of vectors handled simultaneously by vertical bitonic sort
+  // -> SORTING_STAGES is 2^n
+  constexpr size_t SORTING_STAGES = NUM_VECS / SIMD_ELEMS;
+  // examples if condition is fulfilled:
+  //   LENGTH=16, SIMD_ELEMS=4, NUM_VECS=4, SORTING_STAGES=1
+  //   LENGTH=32, SIMD_ELEMS=4, NUM_VECS=8, SORTING_STAGES=2
+  //   LENGTH=64, SIMD_ELEMS=4, NUM_VECS=16, SORTING_STAGES=4
+  // example if condition on LENGTH is violated:
+  //   LENGTH=10, SIMD_ELEMS=4, NUM_VECS=2, SORTING_STAGES=0
+  //   -> SORTING_STAGES * SIMD_ELEMS * SIMD_ELEMS = 0 != 10
+  //   LENGTH=100, SIMD_ELEMS=4, NUM_VECS=25, SORTING_STAGES=5
+  //   -> SORTING_STAGES * SIMD_ELEMS * SIMD_ELEMS = 80 != 100
+  static_assert(SORTING_STAGES * SIMD_ELEMS * SIMD_ELEMS == LENGTH,
+                "LENGTH is not 2^n * SIMD_ELEMS^2");
+  
+  // load data into vectors
+  // TODO: is it efficient to handle this via a large array of Vec?
+  Vec<T, SIMD_WIDTH> vecs[NUM_VECS];
+  loadu<T, SIMD_WIDTH>(data, vecs, NUM_VECS);
+  // sort all vectors individually
+  for(size_t i = 0; i < SORTING_STAGES; i++) {
+    // sort next SIMD_ELEMS vectors
+    Vec<T, SIMD_WIDTH> *current_vecs = vecs + i * SIMD_ELEMS;
+    // sort each vector in itself
+    bitonicSort<SLOPE>(current_vecs);
+  }
+  // loop structure taken from bitonicSortTransposed
+  for (size_t bulk_size = 2; bulk_size <= NUM_VECS; bulk_size *= 2) {
+    // flip each lower half of each bulk and compare and swap with
+    // the upper half
+    for (size_t bulk_start = 0; bulk_start < NUM_VECS;
+         bulk_start += bulk_size) {
+      size_t half_bulk     = bulk_size / 2;
+      size_t left_counter  = bulk_start;
+      size_t right_counter = bulk_start + (bulk_size - 1);
+      for (size_t i = 0; i < half_bulk; i++) {
+        internal::ext::bitonicFusion<SLOPE>
+          (vecs[left_counter], vecs[right_counter]);
+        left_counter++;
+        right_counter--;
+      }
+    }
+    // distribute elements to individual vectors
+    for (size_t bulk_start = 0; bulk_start < NUM_VECS;
+         bulk_start += bulk_size) {
+      for (size_t step = bulk_size / 4; step > 0; step /= 2) {
+        for (size_t jump = 0; jump < bulk_size; jump += step * 2) {
+          size_t left_counter  = bulk_start + jump;
+          size_t right_counter = bulk_start + jump + step;
+          for (size_t k = 0; k < step; k++) {
+            internal::ext::Cas<SLOPE, T, SIMD_WIDTH>::compareAndSwap
+              (vecs[left_counter], vecs[right_counter]);
+            left_counter++;
+            right_counter++;
+          }
+        }
+      }
+    }
+    // restore order in individual vectors
+    for(size_t i = 0; i < SORTING_STAGES; i++) {
+      // sort next SIMD_ELEMS vectors
+      Vec<T, SIMD_WIDTH> *current_vecs = vecs + i * SIMD_ELEMS;
+      // sort each vector in itself
+      // TODO: in-place version (1 arg.) of transpose slower?
+      // TODO: put this into a function bitonicSortReduced?
+      // transpose(current_vecs);
+      // internal::ext::bitonicSortReducedTransposed<SLOPE>(current_vecs);
+      // transpose(current_vecs);
+      internal::ext::bitonicSortReduced<SLOPE>(current_vecs);
+    }
+  }
+  // store vectors into original data array
+  storeu<T, SIMD_WIDTH>(data, vecs, NUM_VECS);
 }
 
 /** @} */

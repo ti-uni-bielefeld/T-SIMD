@@ -31,5 +31,7 @@ Tilt
 TiltSearchDemo
 warpingSIMDSmallTest
 warpingSIMDTest
+transposeTestAutoGen
+verticalBitonicSortTest
 tsimd_sh.H
 transpose_inplace_autogen_stat.txt

@@ -3550,8 +3550,8 @@ static SIMD_INLINE void bitonicSortSortedPairs(
 
 // contributed by Ebba Stina Siebold, modified
 
-template<size_t LENGTH, SortSlope SLOPE,
-         typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
+template <size_t LENGTH, SortSlope SLOPE, typename T,
+          size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE void verticalBitonicSort(T data[LENGTH])
 {
   // number of elements in SIMD vector
@@ -3574,13 +3574,13 @@ static SIMD_INLINE void verticalBitonicSort(T data[LENGTH])
   //   -> SORTING_STAGES * SIMD_ELEMS * SIMD_ELEMS = 80 != 100
   static_assert(SORTING_STAGES * SIMD_ELEMS * SIMD_ELEMS == LENGTH,
                 "LENGTH is not 2^n * SIMD_ELEMS^2");
-  
+
   // load data into vectors
   // TODO: is it efficient to handle this via a large array of Vec?
   Vec<T, SIMD_WIDTH> vecs[NUM_VECS];
   loadu<T, SIMD_WIDTH>(data, vecs, NUM_VECS);
   // sort all vectors individually
-  for(size_t i = 0; i < SORTING_STAGES; i++) {
+  for (size_t i = 0; i < SORTING_STAGES; i++) {
     // sort next SIMD_ELEMS vectors
     Vec<T, SIMD_WIDTH> *current_vecs = vecs + i * SIMD_ELEMS;
     // sort each vector in itself
@@ -3596,8 +3596,8 @@ static SIMD_INLINE void verticalBitonicSort(T data[LENGTH])
       size_t left_counter  = bulk_start;
       size_t right_counter = bulk_start + (bulk_size - 1);
       for (size_t i = 0; i < half_bulk; i++) {
-        internal::ext::bitonicFusion<SLOPE>
-          (vecs[left_counter], vecs[right_counter]);
+        internal::ext::bitonicFusion<SLOPE>(vecs[left_counter],
+                                            vecs[right_counter]);
         left_counter++;
         right_counter--;
       }
@@ -3610,8 +3610,8 @@ static SIMD_INLINE void verticalBitonicSort(T data[LENGTH])
           size_t left_counter  = bulk_start + jump;
           size_t right_counter = bulk_start + jump + step;
           for (size_t k = 0; k < step; k++) {
-            internal::ext::Cas<SLOPE, T, SIMD_WIDTH>::compareAndSwap
-              (vecs[left_counter], vecs[right_counter]);
+            internal::ext::Cas<SLOPE, T, SIMD_WIDTH>::compareAndSwap(
+              vecs[left_counter], vecs[right_counter]);
             left_counter++;
             right_counter++;
           }
@@ -3619,7 +3619,7 @@ static SIMD_INLINE void verticalBitonicSort(T data[LENGTH])
       }
     }
     // restore order in individual vectors
-    for(size_t i = 0; i < SORTING_STAGES; i++) {
+    for (size_t i = 0; i < SORTING_STAGES; i++) {
       // sort next SIMD_ELEMS vectors
       Vec<T, SIMD_WIDTH> *current_vecs = vecs + i * SIMD_ELEMS;
       // sort each vector in itself

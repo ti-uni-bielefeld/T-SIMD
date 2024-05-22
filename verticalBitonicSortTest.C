@@ -30,7 +30,7 @@
 
 // =========== DEFINITIONS ============
 // number of bytes in a simd vector
-const int SIMD_WIDTH = 64;
+const int SIMD_WIDTH = NATIVE_SIMD_WIDTH;
 // iterations 10000, 1000000
 const int ITERATIONS_VALIDATION = 1000;
 const int ITERATIONS            = 100000;

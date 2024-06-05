@@ -303,7 +303,7 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_all_ones()
  * @param x number of bits to set to true
  * @return Mask with the lower @p x bits set to true
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_low(const size_t x)
 {
   return internal::mask::mask_set_true_low(x, internal::OutputType<T>(),
@@ -318,7 +318,7 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_low(const size_t x)
  * @param x number of bits to set to true
  * @return Mask with the upper @p x bits set to true
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_high(const size_t x)
 {
   return internal::mask::mask_set_true_high(x, internal::OutputType<T>(),
@@ -333,7 +333,7 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_true_high(const size_t x)
  * @param x number of bits to set to false
  * @return Mask with the lower @p x bits set to false
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_low(const size_t x)
 {
   return internal::mask::mask_set_false_low(x, internal::OutputType<T>(),
@@ -348,7 +348,7 @@ static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_low(const size_t x)
  * @param x number of bits to set to false
  * @return Mask with the upper @p x bits set to false
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Mask<T, SIMD_WIDTH> mask_set_false_high(const size_t x)
 {
   return internal::mask::mask_set_false_high(x, internal::OutputType<T>(),

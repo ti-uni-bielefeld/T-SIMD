@@ -93,7 +93,6 @@ mask_add(const Vec<Float, SIMD_WIDTH> &src,
 // sense anyway.
 
 #pragma once
-#include <cstddef>
 #ifndef SIMD_VEC_MASK_IMPL_EMU_H_
 #define SIMD_VEC_MASK_IMPL_EMU_H_
 
@@ -104,6 +103,7 @@ mask_add(const Vec<Float, SIMD_WIDTH> &src,
 #include "SIMDVecBase.H"
 #include "SIMDVecMaskImplIntel64.H"
 
+#include <cstddef>
 #include <cstdint>
 
 #ifndef SIMDVEC_SANDBOX

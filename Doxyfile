@@ -1003,6 +1003,7 @@ INPUT                  = DoxygenGroupIndex.H \
                          SIMDVecExtTransposeAutogen.H \
                          SIMDVecMask.H \
                          SIMDVecMaskImplEmu.H \
+                         SIMDVecMaskImplIntel32.H \
                          SIMDVecMaskImplIntel64.H \
                          SIMDVecMaskImplSandbox.H \
                          SIMDVecs.H \

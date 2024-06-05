@@ -36,6 +36,7 @@
 #include "SIMDTypes.H"
 #include "SIMDVec.H"
 #include "SIMDVecMaskImplEmu.H"
+#include "SIMDVecMaskImplIntel32.H"
 #include "SIMDVecMaskImplIntel64.H"
 #include "SIMDVecMaskImplSandbox.H"
 

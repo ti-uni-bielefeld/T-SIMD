@@ -63,20 +63,20 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4 || sizeof(T) == 8)>
 static SIMD_INLINE Vec<T, 32> mask_loadu(const Vec<T, 32> &src,
                                          const Mask<T, 32> &k, const T *const p)
 {
-  return mask::mask_ifelse(k, mask::maskz_load<T>(k, p), src);
+  return mask::mask_ifelse(k, mask::maskz_loadu(k, p), src);
 }
 
 template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4 || sizeof(T) == 8)>
 static SIMD_INLINE Vec<T, 32> maskz_load(const Mask<T, 32> &k, const T *const p)
 {
-  return mask::maskz_loadu<T>(k, p);
+  return mask::maskz_loadu(k, p);
 }
 
 template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4 || sizeof(T) == 8)>
 static SIMD_INLINE Vec<T, 32> mask_load(const Vec<T, 32> &src,
                                         const Mask<T, 32> &k, const T *const p)
 {
-  return mask::mask_loadu<T>(src, k, p);
+  return mask::mask_loadu(src, k, p);
 }
 
 template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4)>
@@ -100,7 +100,7 @@ template <typename T, SIMD_ENABLE_IF(sizeof(T) == 4 || sizeof(T) == 8)>
 static SIMD_INLINE void mask_store(T *const p, const Mask<T, 32> &k,
                                    const Vec<T, 32> &a)
 {
-  mask::mask_storeu<T>(p, k, a);
+  mask::mask_storeu(p, k, a);
 }
 
 } // namespace mask

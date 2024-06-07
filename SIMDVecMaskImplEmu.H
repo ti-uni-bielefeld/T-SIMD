@@ -128,12 +128,10 @@ public:
   SIMD_INLINE operator uint64_t() const { return msb2int<T, SIMD_WIDTH>(mask); }
   SIMD_INLINE bool operator[](const size_t i) const
   {
-    if (i >= SIMD_WIDTH) { return false; }
-    uint8_t mask_array[SIMD_WIDTH] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-    store((T *) mask_array, mask);
-    // check first byte of i-th element (the bytes of a single element should
-    // be the same)
-    return mask_array[i * sizeof(T)] != 0;
+    if (i >= Vec<T, SIMD_WIDTH>::elems) { return false; }
+    T mask_array[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH) = {0};
+    store(mask_array, mask);
+    return mask_array[i] != T(0);
   }
   SIMD_INLINE bool operator==(const Mask<T, SIMD_WIDTH> &other) const
   {
@@ -286,13 +284,13 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_load(const Mask<T, SIMD_WIDTH> &k,
   if (is_within_same_page<SIMD_WIDTH>(p)) {
     return mask::mask_ifelsezero(k, load<SIMD_WIDTH>(p));
   }
-  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
-    // if k is all ones, we can load the whole vector
-    return load<SIMD_WIDTH>(p);
-  }
-  T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  // if k is all ones, we can load the whole vector
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) { return load<SIMD_WIDTH>(p); }
+  T k_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  store(k_arr, (Vec<T, SIMD_WIDTH>) k);
+  T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH) = {0};
   for (size_t i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
-    result[i] = k[i] ? p[i] : 0;
+    if (k_arr[i] != T(0)) { result[i] = p[i]; }
   }
   return load<SIMD_WIDTH>(result);
 }
@@ -310,15 +308,14 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_load(const Vec<T, SIMD_WIDTH> &src,
   if (is_within_same_page<SIMD_WIDTH>(p)) {
     return mask::mask_ifelse(k, load<SIMD_WIDTH>(p), src);
   }
-  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
-    // if k is all ones, we can load the whole vector
-    return load<SIMD_WIDTH>(p);
-  }
+  // if k is all ones, we can load the whole vector
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) { return load<SIMD_WIDTH>(p); }
+  T k_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  store(k_arr, (Vec<T, SIMD_WIDTH>) k);
   T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  T src_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  store(src_arr, src);
+  store(result, src);
   for (size_t i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
-    result[i] = k[i] ? p[i] : src_arr[i];
+    if (k_arr[i] != T(0)) { result[i] = p[i]; }
   }
   return load<SIMD_WIDTH>(result);
 }
@@ -337,13 +334,13 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> maskz_loadu(const Mask<T, SIMD_WIDTH> &k,
   if (is_within_same_page<SIMD_WIDTH>(p)) {
     return mask::mask_ifelsezero(k, loadu<SIMD_WIDTH>(p));
   }
-  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
-    // if k is all ones, we can load the whole vector
-    return loadu<SIMD_WIDTH>(p);
-  }
-  T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  // if k is all ones, we can load the whole vector
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) { return loadu<SIMD_WIDTH>(p); }
+  T k_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  store(k_arr, (Vec<T, SIMD_WIDTH>) k);
+  T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH) = {0};
   for (size_t i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
-    result[i] = k[i] ? p[i] : 0;
+    if (k_arr[i] != T(0)) { result[i] = p[i]; }
   }
   return load<SIMD_WIDTH>(result);
 }
@@ -361,15 +358,14 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_loadu(const Vec<T, SIMD_WIDTH> &src,
   if (is_within_same_page<SIMD_WIDTH>(p)) {
     return mask::mask_ifelse(k, loadu<SIMD_WIDTH>(p), src);
   }
-  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
-    // if k is all ones, we can load the whole vector
-    return loadu<SIMD_WIDTH>(p);
-  }
+  // if k is all ones, we can load the whole vector
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) { return loadu<SIMD_WIDTH>(p); }
+  T k_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  store(k_arr, (Vec<T, SIMD_WIDTH>) k);
   T result[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  T src_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
-  store(src_arr, src);
+  store(result, src);
   for (size_t i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
-    result[i] = k[i] ? p[i] : src_arr[i];
+    if (k_arr[i] != T(0)) { result[i] = p[i]; }
   }
   return load<SIMD_WIDTH>(result);
 }
@@ -380,6 +376,11 @@ static SIMD_INLINE void mask_store(T *const p, const Mask<T, SIMD_WIDTH> &k,
 {
   // if k is all zeros nothing should be stored
   if (test_all_zeros((Vec<T, SIMD_WIDTH>) k)) { return; }
+  // if k is all ones, we can store the whole vector
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
+    store(p, a);
+    return;
+  }
   // If p till p+Vec<T, SIMD_WIDTH>::elems-1 is within the same page,
   // there is no risk of a page fault, so we load the whole vector, mask it
   // and store it back. Otherwise, we store the vector element-wise.
@@ -387,15 +388,12 @@ static SIMD_INLINE void mask_store(T *const p, const Mask<T, SIMD_WIDTH> &k,
     store(p, mask::mask_ifelse(k, a, load<SIMD_WIDTH>(p)));
     return;
   }
-  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
-    // if k is all ones, we can store the whole vector
-    store(p, a);
-    return;
-  }
+  T k_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  store(k_arr, (Vec<T, SIMD_WIDTH>) k);
   T a_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   store(a_arr, a);
   for (size_t i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
-    if (k[i]) { p[i] = a_arr[i]; }
+    if (k_arr[i] != T(0)) { p[i] = a_arr[i]; }
   }
 }
 
@@ -405,6 +403,11 @@ static SIMD_INLINE void mask_storeu(T *const p, const Mask<T, SIMD_WIDTH> &k,
 {
   // if k is all zeros nothing should be stored
   if (test_all_zeros((Vec<T, SIMD_WIDTH>) k)) { return; }
+  // if k is all ones, we can store the whole vector
+  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
+    storeu(p, a);
+    return;
+  }
   // If p till p+Vec<T, SIMD_WIDTH>::elems-1 is within the same page,
   // there is no risk of a page fault, so we load the whole vector, mask it
   // and store it back. Otherwise, we store the vector element-wise.
@@ -412,15 +415,12 @@ static SIMD_INLINE void mask_storeu(T *const p, const Mask<T, SIMD_WIDTH> &k,
     storeu(p, mask::mask_ifelse(k, a, loadu<SIMD_WIDTH>(p)));
     return;
   }
-  if (test_all_ones((Vec<T, SIMD_WIDTH>) k)) {
-    // if k is all ones, we can store the whole vector
-    storeu(p, a);
-    return;
-  }
+  T k_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
+  store(k_arr, (Vec<T, SIMD_WIDTH>) k);
   T a_arr[Vec<T, SIMD_WIDTH>::elems] SIMD_ATTR_ALIGNED(SIMD_WIDTH);
   store(a_arr, a);
   for (size_t i = 0; i < Vec<T, SIMD_WIDTH>::elems; i++) {
-    if (k[i]) { p[i] = a_arr[i]; }
+    if (k_arr[i] != T(0)) { p[i] = a_arr[i]; }
   }
 }
 

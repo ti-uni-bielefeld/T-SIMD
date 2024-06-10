@@ -1104,7 +1104,7 @@ static SIMD_INLINE Vec<Long, 16> min(const Vec<Long, 16> &a,
   // from Hacker's Delight, 2-12 Comparison Predicates: (swapped lt)
   const __m128i diff = _mm_sub_epi64(b, a);
 #if 1 // TODO: check which is faster
-  const __m128i res = _mm_xor_si128(
+  const __m128i res  = _mm_xor_si128(
     diff, _mm_and_si128(_mm_xor_si128(b, a), _mm_xor_si128(diff, b)));
 #else
   const __m128i res = _mm_or_si128(_mm_andnot_si128(a, b),
@@ -1209,7 +1209,7 @@ static SIMD_INLINE Vec<Long, 16> max(const Vec<Long, 16> &a,
   // from Hacker's Delight, 2-12 Comparison Predicates: (swapped lt)
   const __m128i diff = _mm_sub_epi64(b, a);
 #if 1 // TODO: check which is faster
-  const __m128i res = _mm_xor_si128(
+  const __m128i res  = _mm_xor_si128(
     diff, _mm_and_si128(_mm_xor_si128(b, a), _mm_xor_si128(diff, b)));
 #else
   const __m128i res = _mm_or_si128(_mm_andnot_si128(a, b),
@@ -2188,10 +2188,10 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
   const __m128i vInPos = _mm_max_epi8(vIn, _mm_setzero_si128());
 #else
   // from Agner Fog's VCL vectori128.h
-  const __m128i signbit = _mm_set1_epi32(0x80808080);
-  const __m128i a1      = _mm_xor_si128(vIn, signbit); // add 0x80
-  const __m128i m1      = _mm_max_epu8(a1, signbit);   // unsigned max
-  const __m128i vInPos  = _mm_xor_si128(m1, signbit);  // sub 0x80
+  const __m128i signbit  = _mm_set1_epi32(0x80808080);
+  const __m128i a1       = _mm_xor_si128(vIn, signbit); // add 0x80
+  const __m128i m1       = _mm_max_epu8(a1, signbit);   // unsigned max
+  const __m128i vInPos   = _mm_xor_si128(m1, signbit);  // sub 0x80
 #endif
   vOut[0] = _mm_unpacklo_epi8(vInPos, _mm_setzero_si128());
   vOut[1] = _mm_unpackhi_epi8(vInPos, _mm_setzero_si128());
@@ -2212,16 +2212,16 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
   vOut[2] = _mm_cvtepi8_epi32(_mm_srli_si128(vIn, 8));
   vOut[3] = _mm_cvtepi8_epi32(_mm_srli_si128(vIn, 12));
 #else
-  const __m128i lo8    = _mm_unpacklo_epi8(_mm_undefined_si128(), vIn);
-  const __m128i hi8    = _mm_unpackhi_epi8(_mm_undefined_si128(), vIn);
-  const __m128i lolo16 = _mm_unpacklo_epi16(_mm_undefined_si128(), lo8);
-  const __m128i lohi16 = _mm_unpackhi_epi16(_mm_undefined_si128(), lo8);
-  const __m128i hilo16 = _mm_unpacklo_epi16(_mm_undefined_si128(), hi8);
-  const __m128i hihi16 = _mm_unpackhi_epi16(_mm_undefined_si128(), hi8);
-  vOut[0]              = _mm_srai_epi32(lolo16, 24);
-  vOut[1]              = _mm_srai_epi32(lohi16, 24);
-  vOut[2]              = _mm_srai_epi32(hilo16, 24);
-  vOut[3]              = _mm_srai_epi32(hihi16, 24);
+  const __m128i lo8      = _mm_unpacklo_epi8(_mm_undefined_si128(), vIn);
+  const __m128i hi8      = _mm_unpackhi_epi8(_mm_undefined_si128(), vIn);
+  const __m128i lolo16   = _mm_unpacklo_epi16(_mm_undefined_si128(), lo8);
+  const __m128i lohi16   = _mm_unpackhi_epi16(_mm_undefined_si128(), lo8);
+  const __m128i hilo16   = _mm_unpacklo_epi16(_mm_undefined_si128(), hi8);
+  const __m128i hihi16   = _mm_unpackhi_epi16(_mm_undefined_si128(), hi8);
+  vOut[0]                = _mm_srai_epi32(lolo16, 24);
+  vOut[1]                = _mm_srai_epi32(lohi16, 24);
+  vOut[2]                = _mm_srai_epi32(hilo16, 24);
+  vOut[3]                = _mm_srai_epi32(hihi16, 24);
 #endif
 }
 
@@ -2234,16 +2234,16 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
   vOut[2] = _mm_cvtepi32_ps(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 8)));
   vOut[3] = _mm_cvtepi32_ps(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 12)));
 #else
-  const __m128i lo8    = _mm_unpacklo_epi8(_mm_undefined_si128(), vIn);
-  const __m128i hi8    = _mm_unpackhi_epi8(_mm_undefined_si128(), vIn);
-  const __m128i lolo16 = _mm_unpacklo_epi16(_mm_undefined_si128(), lo8);
-  const __m128i lohi16 = _mm_unpackhi_epi16(_mm_undefined_si128(), lo8);
-  const __m128i hilo16 = _mm_unpacklo_epi16(_mm_undefined_si128(), hi8);
-  const __m128i hihi16 = _mm_unpackhi_epi16(_mm_undefined_si128(), hi8);
-  vOut[0]              = _mm_cvtepi32_ps(_mm_srai_epi32(lolo16, 24));
-  vOut[1]              = _mm_cvtepi32_ps(_mm_srai_epi32(lohi16, 24));
-  vOut[2]              = _mm_cvtepi32_ps(_mm_srai_epi32(hilo16, 24));
-  vOut[3]              = _mm_cvtepi32_ps(_mm_srai_epi32(hihi16, 24));
+  const __m128i lo8      = _mm_unpacklo_epi8(_mm_undefined_si128(), vIn);
+  const __m128i hi8      = _mm_unpackhi_epi8(_mm_undefined_si128(), vIn);
+  const __m128i lolo16   = _mm_unpacklo_epi16(_mm_undefined_si128(), lo8);
+  const __m128i lohi16   = _mm_unpackhi_epi16(_mm_undefined_si128(), lo8);
+  const __m128i hilo16   = _mm_unpacklo_epi16(_mm_undefined_si128(), hi8);
+  const __m128i hihi16   = _mm_unpackhi_epi16(_mm_undefined_si128(), hi8);
+  vOut[0]                = _mm_cvtepi32_ps(_mm_srai_epi32(lolo16, 24));
+  vOut[1]                = _mm_cvtepi32_ps(_mm_srai_epi32(lohi16, 24));
+  vOut[2]                = _mm_cvtepi32_ps(_mm_srai_epi32(hilo16, 24));
+  vOut[3]                = _mm_cvtepi32_ps(_mm_srai_epi32(hihi16, 24));
 #endif
 }
 
@@ -2281,10 +2281,10 @@ static SIMD_INLINE void extend(const Vec<Short, 16> &vIn,
     _mm_srai_epi32(_mm_unpacklo_epi16(_mm_undefined_si128(), vIn), 16);
   const __m128i hi16 =
     _mm_srai_epi32(_mm_unpackhi_epi16(_mm_undefined_si128(), vIn), 16);
-  vOut[0] = _mm_cvtepi32_pd(lo16);
-  vOut[1] = _mm_cvtepi32_pd(_mm_srli_si128(lo16, 8));
-  vOut[2] = _mm_cvtepi32_pd(hi16);
-  vOut[3] = _mm_cvtepi32_pd(_mm_srli_si128(hi16, 8));
+  vOut[0]           = _mm_cvtepi32_pd(lo16);
+  vOut[1]           = _mm_cvtepi32_pd(_mm_srli_si128(lo16, 8));
+  vOut[2]           = _mm_cvtepi32_pd(hi16);
+  vOut[3]           = _mm_cvtepi32_pd(_mm_srli_si128(hi16, 8));
 #endif
 }
 
@@ -2332,12 +2332,12 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn, Vec<Long, 16> vOut[4])
   vOut[2] = _mm_cvtepu16_epi64(_mm_srli_si128(vIn, 8));
   vOut[3] = _mm_cvtepu16_epi64(_mm_srli_si128(vIn, 12));
 #else
-  const __m128i lo16 = _mm_unpacklo_epi16(vIn, _mm_setzero_si128());
-  const __m128i hi16 = _mm_unpackhi_epi16(vIn, _mm_setzero_si128());
-  vOut[0]            = _mm_unpacklo_epi32(lo16, _mm_setzero_si128());
-  vOut[1]            = _mm_unpackhi_epi32(lo16, _mm_setzero_si128());
-  vOut[2]            = _mm_unpacklo_epi32(hi16, _mm_setzero_si128());
-  vOut[3]            = _mm_unpackhi_epi32(hi16, _mm_setzero_si128());
+  const __m128i lo16       = _mm_unpacklo_epi16(vIn, _mm_setzero_si128());
+  const __m128i hi16       = _mm_unpackhi_epi16(vIn, _mm_setzero_si128());
+  vOut[0]                  = _mm_unpacklo_epi32(lo16, _mm_setzero_si128());
+  vOut[1]                  = _mm_unpackhi_epi32(lo16, _mm_setzero_si128());
+  vOut[2]                  = _mm_unpacklo_epi32(hi16, _mm_setzero_si128());
+  vOut[3]                  = _mm_unpackhi_epi32(hi16, _mm_setzero_si128());
 #endif
 }
 
@@ -2350,12 +2350,12 @@ static SIMD_INLINE void extend(const Vec<Word, 16> &vIn,
   vOut[2] = _mm_cvtepi32_pd(_mm_cvtepu16_epi32(_mm_srli_si128(vIn, 8)));
   vOut[3] = _mm_cvtepi32_pd(_mm_cvtepu16_epi32(_mm_srli_si128(vIn, 12)));
 #else
-  const __m128i lo16 = _mm_unpacklo_epi16(vIn, _mm_setzero_si128());
-  const __m128i hi16 = _mm_unpackhi_epi16(vIn, _mm_setzero_si128());
-  vOut[0]            = _mm_cvtepi32_pd(lo16);
-  vOut[1]            = _mm_cvtepi32_pd(_mm_srli_si128(lo16, 8));
-  vOut[2]            = _mm_cvtepi32_pd(hi16);
-  vOut[3]            = _mm_cvtepi32_pd(_mm_srli_si128(hi16, 8));
+  const __m128i lo16       = _mm_unpacklo_epi16(vIn, _mm_setzero_si128());
+  const __m128i hi16       = _mm_unpackhi_epi16(vIn, _mm_setzero_si128());
+  vOut[0]                  = _mm_cvtepi32_pd(lo16);
+  vOut[1]                  = _mm_cvtepi32_pd(_mm_srli_si128(lo16, 8));
+  vOut[2]                  = _mm_cvtepi32_pd(hi16);
+  vOut[3]                  = _mm_cvtepi32_pd(_mm_srli_si128(hi16, 8));
 #endif
 }
 
@@ -2416,24 +2416,24 @@ static SIMD_INLINE void extend(const Vec<SignedByte, 16> &vIn,
   vOut[6] = _mm_cvtepi32_pd(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 12)));
   vOut[7] = _mm_cvtepi32_pd(_mm_cvtepi8_epi32(_mm_srli_si128(vIn, 14)));
 #else
-  const __m128i lo8       = _mm_unpacklo_epi8(_mm_undefined_si128(), vIn);
-  const __m128i hi8       = _mm_unpackhi_epi8(_mm_undefined_si128(), vIn);
-  const __m128i lolo16    = _mm_unpacklo_epi16(_mm_undefined_si128(), lo8);
-  const __m128i lohi16    = _mm_unpackhi_epi16(_mm_undefined_si128(), lo8);
-  const __m128i hilo16    = _mm_unpacklo_epi16(_mm_undefined_si128(), hi8);
-  const __m128i hihi16    = _mm_unpackhi_epi16(_mm_undefined_si128(), hi8);
-  const __m128i lolo16ext = _mm_srai_epi32(lolo16, 24);
-  const __m128i lohi16ext = _mm_srai_epi32(lohi16, 24);
-  const __m128i hilo16ext = _mm_srai_epi32(hilo16, 24);
-  const __m128i hihi16ext = _mm_srai_epi32(hihi16, 24);
-  vOut[0]                 = _mm_cvtepi32_pd(lolo16ext);
-  vOut[1]                 = _mm_cvtepi32_pd(_mm_srli_si128(lolo16ext, 8));
-  vOut[2]                 = _mm_cvtepi32_pd(lohi16ext);
-  vOut[3]                 = _mm_cvtepi32_pd(_mm_srli_si128(lohi16ext, 8));
-  vOut[4]                 = _mm_cvtepi32_pd(hilo16ext);
-  vOut[5]                 = _mm_cvtepi32_pd(_mm_srli_si128(hilo16ext, 8));
-  vOut[6]                 = _mm_cvtepi32_pd(hihi16ext);
-  vOut[7]                 = _mm_cvtepi32_pd(_mm_srli_si128(hihi16ext, 8));
+  const __m128i lo8        = _mm_unpacklo_epi8(_mm_undefined_si128(), vIn);
+  const __m128i hi8        = _mm_unpackhi_epi8(_mm_undefined_si128(), vIn);
+  const __m128i lolo16     = _mm_unpacklo_epi16(_mm_undefined_si128(), lo8);
+  const __m128i lohi16     = _mm_unpackhi_epi16(_mm_undefined_si128(), lo8);
+  const __m128i hilo16     = _mm_unpacklo_epi16(_mm_undefined_si128(), hi8);
+  const __m128i hihi16     = _mm_unpackhi_epi16(_mm_undefined_si128(), hi8);
+  const __m128i lolo16ext  = _mm_srai_epi32(lolo16, 24);
+  const __m128i lohi16ext  = _mm_srai_epi32(lohi16, 24);
+  const __m128i hilo16ext  = _mm_srai_epi32(hilo16, 24);
+  const __m128i hihi16ext  = _mm_srai_epi32(hihi16, 24);
+  vOut[0]                  = _mm_cvtepi32_pd(lolo16ext);
+  vOut[1]                  = _mm_cvtepi32_pd(_mm_srli_si128(lolo16ext, 8));
+  vOut[2]                  = _mm_cvtepi32_pd(lohi16ext);
+  vOut[3]                  = _mm_cvtepi32_pd(_mm_srli_si128(lohi16ext, 8));
+  vOut[4]                  = _mm_cvtepi32_pd(hilo16ext);
+  vOut[5]                  = _mm_cvtepi32_pd(_mm_srli_si128(hilo16ext, 8));
+  vOut[6]                  = _mm_cvtepi32_pd(hihi16ext);
+  vOut[7]                  = _mm_cvtepi32_pd(_mm_srli_si128(hihi16ext, 8));
 #endif
 }
 
@@ -2451,20 +2451,20 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn, Vec<Long, 16> vOut[8])
   vOut[6] = _mm_cvtepu8_epi64(_mm_srli_si128(vIn, 12));
   vOut[7] = _mm_cvtepu8_epi64(_mm_srli_si128(vIn, 14));
 #else
-  const __m128i lo8    = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
-  const __m128i hi8    = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
-  const __m128i lolo16 = _mm_unpacklo_epi16(lo8, _mm_setzero_si128());
-  const __m128i lohi16 = _mm_unpackhi_epi16(lo8, _mm_setzero_si128());
-  const __m128i hilo16 = _mm_unpacklo_epi16(hi8, _mm_setzero_si128());
-  const __m128i hihi16 = _mm_unpackhi_epi16(hi8, _mm_setzero_si128());
-  vOut[0]              = _mm_unpacklo_epi32(lolo16, _mm_setzero_si128());
-  vOut[1]              = _mm_unpackhi_epi32(lolo16, _mm_setzero_si128());
-  vOut[2]              = _mm_unpacklo_epi32(lohi16, _mm_setzero_si128());
-  vOut[3]              = _mm_unpackhi_epi32(lohi16, _mm_setzero_si128());
-  vOut[4]              = _mm_unpacklo_epi32(hilo16, _mm_setzero_si128());
-  vOut[5]              = _mm_unpackhi_epi32(hilo16, _mm_setzero_si128());
-  vOut[6]              = _mm_unpacklo_epi32(hihi16, _mm_setzero_si128());
-  vOut[7]              = _mm_unpackhi_epi32(hihi16, _mm_setzero_si128());
+  const __m128i lo8        = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
+  const __m128i hi8        = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
+  const __m128i lolo16     = _mm_unpacklo_epi16(lo8, _mm_setzero_si128());
+  const __m128i lohi16     = _mm_unpackhi_epi16(lo8, _mm_setzero_si128());
+  const __m128i hilo16     = _mm_unpacklo_epi16(hi8, _mm_setzero_si128());
+  const __m128i hihi16     = _mm_unpackhi_epi16(hi8, _mm_setzero_si128());
+  vOut[0]                  = _mm_unpacklo_epi32(lolo16, _mm_setzero_si128());
+  vOut[1]                  = _mm_unpackhi_epi32(lolo16, _mm_setzero_si128());
+  vOut[2]                  = _mm_unpacklo_epi32(lohi16, _mm_setzero_si128());
+  vOut[3]                  = _mm_unpackhi_epi32(lohi16, _mm_setzero_si128());
+  vOut[4]                  = _mm_unpacklo_epi32(hilo16, _mm_setzero_si128());
+  vOut[5]                  = _mm_unpackhi_epi32(hilo16, _mm_setzero_si128());
+  vOut[6]                  = _mm_unpacklo_epi32(hihi16, _mm_setzero_si128());
+  vOut[7]                  = _mm_unpackhi_epi32(hihi16, _mm_setzero_si128());
 #endif
 }
 
@@ -2481,20 +2481,20 @@ static SIMD_INLINE void extend(const Vec<Byte, 16> &vIn,
   vOut[6] = _mm_cvtepi32_pd(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 12)));
   vOut[7] = _mm_cvtepi32_pd(_mm_cvtepu8_epi32(_mm_srli_si128(vIn, 14)));
 #else
-  const __m128i lo8    = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
-  const __m128i hi8    = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
-  const __m128i lolo16 = _mm_unpacklo_epi16(lo8, _mm_setzero_si128());
-  const __m128i lohi16 = _mm_unpackhi_epi16(lo8, _mm_setzero_si128());
-  const __m128i hilo16 = _mm_unpacklo_epi16(hi8, _mm_setzero_si128());
-  const __m128i hihi16 = _mm_unpackhi_epi16(hi8, _mm_setzero_si128());
-  vOut[0]              = _mm_cvtepi32_pd(lolo16);
-  vOut[1]              = _mm_cvtepi32_pd(_mm_srli_si128(lolo16, 8));
-  vOut[2]              = _mm_cvtepi32_pd(lohi16);
-  vOut[3]              = _mm_cvtepi32_pd(_mm_srli_si128(lohi16, 8));
-  vOut[4]              = _mm_cvtepi32_pd(hilo16);
-  vOut[5]              = _mm_cvtepi32_pd(_mm_srli_si128(hilo16, 8));
-  vOut[6]              = _mm_cvtepi32_pd(hihi16);
-  vOut[7]              = _mm_cvtepi32_pd(_mm_srli_si128(hihi16, 8));
+  const __m128i lo8        = _mm_unpacklo_epi8(vIn, _mm_setzero_si128());
+  const __m128i hi8        = _mm_unpackhi_epi8(vIn, _mm_setzero_si128());
+  const __m128i lolo16     = _mm_unpacklo_epi16(lo8, _mm_setzero_si128());
+  const __m128i lohi16     = _mm_unpackhi_epi16(lo8, _mm_setzero_si128());
+  const __m128i hilo16     = _mm_unpacklo_epi16(hi8, _mm_setzero_si128());
+  const __m128i hihi16     = _mm_unpackhi_epi16(hi8, _mm_setzero_si128());
+  vOut[0]                  = _mm_cvtepi32_pd(lolo16);
+  vOut[1]                  = _mm_cvtepi32_pd(_mm_srli_si128(lolo16, 8));
+  vOut[2]                  = _mm_cvtepi32_pd(lohi16);
+  vOut[3]                  = _mm_cvtepi32_pd(_mm_srli_si128(lohi16, 8));
+  vOut[4]                  = _mm_cvtepi32_pd(hilo16);
+  vOut[5]                  = _mm_cvtepi32_pd(_mm_srli_si128(hilo16, 8));
+  vOut[6]                  = _mm_cvtepi32_pd(hihi16);
+  vOut[7]                  = _mm_cvtepi32_pd(_mm_srli_si128(hihi16, 8));
 #endif
 }
 
@@ -3572,7 +3572,7 @@ static SIMD_INLINE Vec<Long, 16> cmplt(const Vec<Long, 16> &a,
   // from Hacker's Delight, 2-12 Comparison Predicates:
   const __m128i diff = _mm_sub_epi64(a, b);
 #if 1 // TODO: check which is faster
-  const __m128i res = _mm_xor_si128(
+  const __m128i res  = _mm_xor_si128(
     diff, _mm_and_si128(_mm_xor_si128(a, b), _mm_xor_si128(diff, a)));
 #else
   const __m128i res = _mm_or_si128(_mm_andnot_si128(b, a),
@@ -3777,7 +3777,7 @@ static SIMD_INLINE Vec<Long, 16> cmpgt(const Vec<Long, 16> &a,
   // from Hacker's Delight, 2-12 Comparison Predicates: (swapped lt)
   const __m128i diff = _mm_sub_epi64(b, a);
 #if 1 // TODO: check which is faster
-  const __m128i res = _mm_xor_si128(
+  const __m128i res  = _mm_xor_si128(
     diff, _mm_and_si128(_mm_xor_si128(b, a), _mm_xor_si128(diff, b)));
 #else
   const __m128i res = _mm_or_si128(_mm_andnot_si128(a, b),

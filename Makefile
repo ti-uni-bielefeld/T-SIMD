@@ -314,10 +314,12 @@ check-clang-format-version:
 		`clang-format --version` ")" ; exit 1 )
 
 # 10. Feb 23 (Jonas Keller): added format rule
+# 10. Jun 24 (rm): this creates new files instead of the linked ones:
+# @clang-format -i *.C *.H
 .PHONY: format
 format: check-clang-format-version
 	@echo "formatting all .C and .H files"
-	@clang-format -i *.C *.H
+	@formatAllHC
 
 # 02. Mar 23 (Jonas Keller): added documenation rule
 # 20. Nov 23 (Jonas Keller): added check for doxygen version

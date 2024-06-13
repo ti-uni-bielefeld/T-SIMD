@@ -1579,12 +1579,15 @@ static SIMD_INLINE bool mask_test_all_ones(const Mask<T, SIMD_WIDTH> &k,
  * @param falseVal Vec to select from if the condition is false
  * @return Vec containing the selected elements
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename Tcond, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelse(
-  const Mask<T, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal,
+  const Mask<Tcond, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal,
   const Vec<T, SIMD_WIDTH> &falseVal)
 {
-  return internal::mask::mask_ifelse(cond, trueVal, falseVal);
+  static_assert(sizeof(Tcond) == sizeof(T),
+                "condition and value types must have the same size");
+  return internal::mask::mask_ifelse(reinterpret_mask<T>(cond), trueVal,
+                                     falseVal);
 }
 
 /**
@@ -1595,11 +1598,13 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelse(
  * @param trueVal Vec to select from if the condition is true
  * @return Vec containing the selected elements
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename Tcond, typename T, size_t SIMD_WIDTH>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> mask_ifelsezero(
-  const Mask<T, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal)
+  const Mask<Tcond, SIMD_WIDTH> &cond, const Vec<T, SIMD_WIDTH> &trueVal)
 {
-  return internal::mask::mask_ifelsezero(cond, trueVal);
+  static_assert(sizeof(Tcond) == sizeof(T),
+                "condition and value types must have the same size");
+  return internal::mask::mask_ifelsezero(reinterpret_mask<T>(cond), trueVal);
 }
 
 // 07. Aug 23 (Jonas Keller): added kcmpeq

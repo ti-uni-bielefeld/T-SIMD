@@ -3280,7 +3280,7 @@ static SIMD_INLINE void transpose(
  *
  * @return Vec with all bits set to 1
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setones()
 {
   Vec<T, SIMD_WIDTH> zero = setzero<T, SIMD_WIDTH>();
@@ -3300,7 +3300,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setones()
  *
  * @return Vec with all elements set to the minimum value of the element type
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin()
 {
   return set1<T, SIMD_WIDTH>(std::numeric_limits<T>::lowest());
@@ -3313,7 +3313,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setmin()
  *
  * @return Vec with all elements set to the maximum value of the element type
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax()
 {
   return set1<T, SIMD_WIDTH>(std::numeric_limits<T>::max());
@@ -3325,7 +3325,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setmax()
  *
  * @return Vec with all elements set to the value 1
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity()
 {
   return set1<T, SIMD_WIDTH>(T(1));
@@ -3339,7 +3339,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setunity()
  *
  * @return Vec with all elements set to the value -1
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> setnegunity()
 {
   static_assert(std::is_signed<T>::value || std::is_floating_point<T>::value,

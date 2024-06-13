@@ -98,7 +98,7 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> set1(T a)
  *
  * @return Vec containing sequentially increasing numbers
  */
-template <typename T, size_t SIMD_WIDTH>
+template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
 static SIMD_INLINE Vec<T, SIMD_WIDTH> iota()
 {
   return internal::base::iota(internal::OutputType<T>(),

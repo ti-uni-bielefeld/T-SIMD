@@ -77,11 +77,16 @@ static SIMD_INLINE Vec<T, SIMD_WIDTH> setzero()
 /**
  * @ingroup group_init
  * @brief Returns a Vec with all elements set to the same value.
+ *
+ * @note The template parameter @p T has to be explicitly specified and is *not*
+ * deduced from the argument in order to avoid confusion with creating a Vec
+ * with an unintended type from an immediate value.
+ *
  * @param a value to set all elements to
  * @return Vec with all elements set to the same value
  */
 template <typename T, size_t SIMD_WIDTH_DEFAULT_NATIVE>
-static SIMD_INLINE Vec<T, SIMD_WIDTH> set1(T a)
+static SIMD_INLINE Vec<T, SIMD_WIDTH> set1(const dont_deduce<T> a)
 {
   return internal::base::set1(a, internal::Integer<SIMD_WIDTH>());
 }

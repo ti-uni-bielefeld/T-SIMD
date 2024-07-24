@@ -823,7 +823,7 @@ void benchmark()
 #ifdef BENCH_MASK_RAND2
     result = maskz_load(krand2, buffer);
 #endif
-    sum    = add(sum, result);
+    sum = add(sum, result);
   }
   gettimeofday(&end, nullptr);
   print("%i ", sum); // TODO change format according to type T

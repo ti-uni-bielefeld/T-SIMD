@@ -319,7 +319,7 @@ check-clang-format-version:
 .PHONY: format
 format: check-clang-format-version
 	@echo "formatting all .C and .H files"
-	@formatAllHC
+	@./formatAllHC
 
 # 02. Mar 23 (Jonas Keller): added documenation rule
 # 20. Nov 23 (Jonas Keller): added check for doxygen version

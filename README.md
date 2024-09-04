@@ -8,7 +8,7 @@ Templates parameters are the element data type of the vectors and the vector wid
 
 # License
 
-This software is distributed based on a specific **license agreement**, please see the file `LICENSE` or `LICENSE.doc`.
+This software is distributed based on a specific **license agreement**, please see the file `LICENSE` or `LICENSE.doc` or `LICENSE.md`.
 
 # Compiler and C++ Standard Support/Requirements
 

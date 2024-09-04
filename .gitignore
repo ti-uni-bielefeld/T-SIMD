@@ -35,3 +35,4 @@ transposeTestAutoGen
 verticalBitonicSortTest
 tsimd_sh.H
 transpose_inplace_autogen_stat.txt
+tsimd_tarfile.list

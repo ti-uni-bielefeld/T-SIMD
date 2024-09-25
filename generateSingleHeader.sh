@@ -10,11 +10,11 @@
 #    - the SIMD implementation of the MinWarping and the 2D-Warping methods 
 #      for local visual homing.
 # 
-# The software is provided based on the accompanying license agreement
-# in the file LICENSE or LICENSE.doc. The software is provided "as is"
-# without any warranty by the licensor and without any liability of the
-# licensor, and the software may not be distributed by the licensee; see
-# the license agreement for details.
+# The software is provided based on the accompanying license agreement in the
+# file LICENSE.md.
+# The software is provided "as is" without any warranty by the licensor and
+# without any liability of the licensor, and the software may not be
+# distributed by the licensee; see the license agreement for details.
 # 
 # (C) Jonas Keller, Ralf Möller
 #     Computer Engineering
@@ -57,11 +57,11 @@ cat <<EOF > $sh_name
 //    - the SIMD implementation of the MinWarping and the 2D-Warping methods
 //      for local visual homing.
 //
-// The software is provided based on the accompanying license agreement
-// in the file LICENSE or LICENSE.doc. The software is provided "as is"
-// without any warranty by the licensor and without any liability of the
-// licensor, and the software may not be distributed by the licensee; see
-// the license agreement for details.
+// The software is provided based on the accompanying license agreement in the
+// file LICENSE.md.
+// The software is provided "as is" without any warranty by the licensor and
+// without any liability of the licensor, and the software may not be
+// distributed by the licensee; see the license agreement for details.
 //
 // (C) Ralf Möller
 //     Computer Engineering
@@ -72,19 +72,19 @@ cat <<EOF > $sh_name
 // ===========================================================================
 EOF
 
-# write LICENSE to single header file with comment
+# write LICENSE.md to single header file with comment
 cat <<EOF >> $sh_name
 
 // ===========================================================================
-// LICENSE
+// LICENSE.md
 // ===========================================================================
 /*
 EOF
-cat LICENSE >> $sh_name
+cat LICENSE.md >> $sh_name
 cat <<EOF >> $sh_name
 */
 // ===========================================================================
-// end of LICENSE
+// end of LICENSE.md
 // ===========================================================================
 
 EOF

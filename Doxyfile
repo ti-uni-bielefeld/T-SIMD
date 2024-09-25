@@ -9,11 +9,11 @@
 #    - the SIMD implementation of the MinWarping and the 2D-Warping methods 
 #      for local visual homing.
 # 
-# The software is provided based on the accompanying license agreement
-# in the file LICENSE or LICENSE.doc. The software is provided "as is"
-# without any warranty by the licensor and without any liability of the
-# licensor, and the software may not be distributed by the licensee; see
-# the license agreement for details.
+# The software is provided based on the accompanying license agreement in the
+# file LICENSE.md.
+# The software is provided "as is" without any warranty by the licensor and
+# without any liability of the licensor, and the software may not be
+# distributed by the licensee; see the license agreement for details.
 # 
 # (C) Jonas Keller, Ralf Möller
 #     Computer Engineering
@@ -971,9 +971,7 @@ WARN_LOGFILE           =
 # DoxygenGroupIndex.H has to come first, so that the groups are defined in the
 # correct order.
 INPUT                  = DoxygenGroupIndex.H \
-                         LICENSE \
                          LICENSE.md \
-                         LICENSE.doc \
                          README.md \
                          README_DEVELOPERS.md \
                          SIMDAlloc.H \

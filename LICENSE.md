@@ -93,9 +93,9 @@ in the following referred to as "the databases".
     provision which corresponds to the meaning and purpose of the
     invalid provision.
 
-12. This license agreement (files LICENSE, LICENSE.md and LICENSE.doc) has to
-    accompany the files of the software and the files of the
-    databases. The header text of the source files referring to the
-    license agreement has to remain unchanged.
+12. This license agreement (file LICENSE.md) has to accompany the
+    files of the software and the files of the databases. The header
+    text of the source files referring to the license agreement has
+    to remain unchanged.
 
 13. German law applies and the place of jurisdiction is Bielefeld.

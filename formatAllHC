@@ -1,4 +1,4 @@
-#!/usr/bin/env tcsh
+#!/bin/sh
 #===========================================================================
 #
 # formatAllHC --
@@ -24,13 +24,23 @@
 #
 #===========================================================================
 
-foreach src (`ls -1 *.H *.C`)
-        # echo "formatting $src"
-        set tmpSrc = tmp_${src}
-        clang-format $src > $tmpSrc
-        if (`cmp $src $tmpSrc` != "") then
+if [ $# -ne 1 ]; then
+        echo "Usage: $0 <directory>"
+        exit 1
+fi
+if [ ! -d "$1" ]; then
+        echo "Error: $1 is not a directory"
+        exit 1
+fi
+
+find $1 -type f \( -name "*.H" -o -name "*.C" \) | while read -r src; do
+        # "clang-format -i" can break links, so we format into a temporary file
+        # and then write the new content back
+        tmpSrc="${src}.tmp"
+        clang-format "$src" > "$tmpSrc"
+        if ! cmp -s "$src" "$tmpSrc"; then
+                cp -f "$tmpSrc" "$src"
                 echo "$src was re-formatted"
-        endif
-        /bin/cp -f $tmpSrc $src
-        /bin/rm -f $tmpSrc
-end
+        fi
+        rm -f "$tmpSrc"
+done

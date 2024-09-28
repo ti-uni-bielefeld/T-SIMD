@@ -46,7 +46,6 @@ fi
 cat <<EOF > $sh_name
 // ===========================================================================
 //
-// $sh_name --
 // Single header version of the T-SIMD library.
 //
 // Generated on $(date -Iseconds).

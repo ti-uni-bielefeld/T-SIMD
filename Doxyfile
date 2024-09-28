@@ -974,39 +974,7 @@ INPUT                  = DoxygenGroupIndex.H \
                          LICENSE.md \
                          README.md \
                          README_DEVELOPERS.md \
-                         SIMDAlloc.H \
-                         SIMDBackwardCompat.H \
-                         SIMDDefs.H \
-                         SIMDExperimental.H \
-                         SIMDIntrinsIntel.H \
-                         SIMDIntrinsNEON.H \
-                         SIMDSSSE3Compat.H \
-                         SIMDTypes.H \
-                         SIMDVec.H \
-                         SIMDVecAll.H \
-                         SIMDVecAutoTest.H \
-                         SIMDVecAutoTestMask.H \
-                         SIMDVecAutoTestRandom.H \
-                         SIMDVecAutoTestSerial.H \
-                         SIMDVecAutoTestSerialMask.H \
-                         SIMDVecAutoTestWrapper.H \
-                         SIMDVecAutoTestWrapperMask.H \
-                         SIMDVecBase.H \
-                         SIMDVecBaseImplIntel16.H \
-                         SIMDVecBaseImplIntel32.H \
-                         SIMDVecBaseImplIntel64.H \
-                         SIMDVecBaseImplNEON16.H \
-                         SIMDVecBaseImplSandbox.H \
-                         SIMDVecExt.H \
-                         SIMDVecExtTransposeAutogen.H \
-                         SIMDVecMask.H \
-                         SIMDVecMaskImplEmu.H \
-                         SIMDVecMaskImplIntel32.H \
-                         SIMDVecMaskImplIntel64.H \
-                         SIMDVecMaskImplSandbox.H \
-                         SIMDVecs.H \
-                         TimeMeasurement.H \
-                         tsimd.H
+                         src/lib/
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

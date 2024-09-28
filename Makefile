@@ -31,10 +31,8 @@
 # binaries
 #===========================================================================
 
-tsimd_binaries = tsimdtest nativetest simdvectest simdmasktest styleExamples \
-	hacctest transposeTestAutoGen verticalBitonicSortTest
-warping_binaries = warpingSIMDTest warpingSIMDSmallTest \
-	BaselineDemo IdealScale Tilt TiltSearchDemo
+tsimd_binaries = src/test/tsimdtest src/test/nativetest src/test/simdvectest src/test/simdmasktest src/styleExamples \
+	src/test/hacctest src/test/transposeTestAutoGen src/test/verticalBitonicSortTest
 
 # binaries (target all)
 # contains only binaries with existing source files in the distribution
@@ -45,7 +43,7 @@ binaries = $(patsubst %.C,%,$(existing_sources))
 
 # binaries autotest (target autotest)
 # these are assumed to always exists in the distribution
-autotest_binaries = simdvecautotest0 simdvecautotest1 simdvecautotestM simdvecautotest_load_store
+autotest_binaries = src/test/autotest/test0 src/test/autotest/test1 src/test/autotest/testM src/test/autotest/test_load_store
 
 # architecture-specific binaries (target archspec)
 # these are assumed to always exists in the distribution
@@ -158,6 +156,7 @@ flags_depends  = -MMD -MP
 # use flags_avx512 on a non-avx512 machine (just to compile, won't run
 # on this machine), and flags_arch on a avx512 machine
 flags_archspec = $(userdefs_avx512) -pthread
+flags_includes = -I./src/lib
 
 # os dependent definitions
 ifeq ($(OS),Windows_NT) 
@@ -212,13 +211,13 @@ endif
 $(addprefix $(build_dir)/,$(default_objects)): $(build_dir)/%.o: %.C
 	@echo compiling default $@ from $<
 	@$(MKDIR) $(build_dir)
-	@$(compiler) $(flags_depends) $(flags_arch) $(flags_cpp) -c $< -o $@
+	@$(compiler) $(flags_depends) $(flags_arch) $(flags_cpp) $(flags_includes) -c $< -o $@
 
 $(addprefix $(build_dir)/,$(archspec_objects)): $(build_dir)/%.o: %.C
 	@echo compiling archspec $@ from $<
 	@echo please select flags_archspec for your machine
 	@$(MKDIR) $(build_dir)
-	@$(compiler) $(flags_depends) $(flags_archspec) $(flags_cpp) -c $< -o $@
+	@$(compiler) $(flags_depends) $(flags_archspec) $(flags_cpp) $(flags_includes) -c $< -o $@
 
 #===========================================================================
 # linker
@@ -345,7 +344,7 @@ single-header: gen-transpose-autogen
 	@echo "single header written to $(tsimd_single_header_file)"
 
 # 06. Sep 23 (Jonas Keller): added rule for autogenerating transpose functions
-transpose_autogen_file = SIMDVecExtTransposeAutogen.H
+transpose_autogen_file = src/lib/tsimd/autogen/ext_transpose.H
 .PHONY: gen-transpose-autogen
 gen-transpose-autogen: check-clang-format-version
 	@echo "generating $(transpose_autogen_file)"

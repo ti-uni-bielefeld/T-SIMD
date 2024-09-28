@@ -1,6 +1,5 @@
 // ===========================================================================
 //
-// DoxygenGroupIndex.H --
 // File to define group structure and order for doxygen documentation of the
 // T-SIMD library.
 // This has to be the first file in the "INPUT" field in the file "Doxyfile",

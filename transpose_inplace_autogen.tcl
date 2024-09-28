@@ -47,7 +47,7 @@ set includeGuardEnd \
     "\n#endif // SIMD_VEC_EXT_TRANSPOSE_AUTOGEN_H_"
 
 set includes \
-    "\#include \"SIMDVecBase.H\"\n\n\#include <utility>\n"
+    "\#include \"../base.H\"\n\n\#include <utility>\n"
 
 set simdStart \
     "namespace simd \{"
@@ -62,7 +62,6 @@ set internalExtEnd \
 set header \
 {// ===========================================================================
 //
-// SIMDVecExtTransposeAutogen.H --
 // auto-generated transpose functions with in-place processing
 // DO NOT EDIT!!!
 //

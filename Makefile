@@ -31,44 +31,16 @@
 # binaries
 #===========================================================================
 
-tsimd_binaries = src/test/tsimdtest src/test/nativetest src/test/simdvectest src/test/simdmasktest src/styleExamples \
-	src/test/hacctest src/test/transposeTestAutoGen src/test/verticalBitonicSortTest
+default_binaries = $(patsubst %.C,%,$(wildcard src/*.C)) $(patsubst %.C,%,$(wildcard src/test/*.C))
+autotest_binaries = $(patsubst %.C,%,$(wildcard src/test/autotest/*.C))
 
-# binaries (target all)
-# contains only binaries with existing source files in the distribution
-both_binaries = $(tsimd_binaries) $(warping_binaries)
-both_sources =  $(addsuffix .C,$(both_binaries))
-existing_sources = $(wildcard $(both_sources))
-binaries = $(patsubst %.C,%,$(existing_sources))
+binaries = $(default_binaries) $(autotest_binaries)
 
-# binaries autotest (target autotest)
-# these are assumed to always exists in the distribution
-autotest_binaries = src/test/autotest/test0 src/test/autotest/test1 src/test/autotest/testM src/test/autotest/test_load_store
+depend_files = $(addsuffix .d,$(binaries))
 
-# architecture-specific binaries (target archspec)
-# these are assumed to always exists in the distribution
-archspec_binaries = simdRadixSortGeneric
-
-# all non archspec binaries
-default_binaries = $(binaries) $(autotest_binaries)
-
-# all binaries
-# (ARM: remove $(archspec_binaries))
-all_binaries = $(default_binaries) $(archspec_binaries)
-
-# dependency files
-depend_files = $(addsuffix .d,$(all_binaries))
-
-# single header tsimd library file
 tsimd_single_header_file = tsimd_sh.H
 
-#===========================================================================
-# object files
-#===========================================================================
-
-all_objects      = $(addsuffix .o,$(all_binaries))
-default_objects  = $(addsuffix .o,$(default_binaries))
-archspec_objects = $(addsuffix .o,$(archspec_binaries))
+objects      = $(addsuffix .o,$(binaries))
 
 #===========================================================================
 # definitions and flags
@@ -153,9 +125,6 @@ flags_cppstd  ?= $(userdefs_cppstd)
 flags_cpp      = $(flags_c) $(userdefs_cpp) $(flags_cppstd) $(crt_sec_features_flags)
 flags_arch    ?= $(userdefs_arch)
 flags_depends  = -MMD -MP
-# use flags_avx512 on a non-avx512 machine (just to compile, won't run
-# on this machine), and flags_arch on a avx512 machine
-flags_archspec = $(userdefs_avx512) -pthread
 flags_includes = -I./src/lib
 
 # os dependent definitions
@@ -175,30 +144,21 @@ endif
 
 build_dir ?= .
 
-.PHONY: all
-all: $(addprefix $(build_dir)/,$(binaries))
+.PHONY: all_default
+all_default: $(addprefix $(build_dir)/,$(default_binaries))
 	@echo "use 'make autotest' to compile $(autotest_binaries)"
 	@echo "  requires long compilation time and may run out of memory,"
 	@echo "  compilation may take much longer on g++ than on clang++"
-	@echo "use 'make archspec' to compile $(archspec_binaries)"
-	@echo "  please select flags_archspec for your machine"
-
-.PHONY: all_tsimd
-all_tsimd: $(addprefix $(build_dir)/,$(tsimd_binaries))
 
 .PHONY: autotest
 autotest: $(addprefix $(build_dir)/,$(autotest_binaries))
 
-.PHONY: archspec
-archspec: $(addprefix $(build_dir)/,$(archspec_binaries))
+.PHONY: all
+all: all_default autotest
 
 ifneq ($(build_dir),.)
 .PHONY: $(binaries)
 $(binaries): %: $(build_dir)/%
-.PHONY: $(autotest_binaries)
-$(autotest_binaries): %: $(build_dir)/%
-.PHONY: $(archspec_binaries)
-$(archspec_binaries): %: $(build_dir)/%
 endif
 
 
@@ -208,16 +168,10 @@ endif
 
 # https://www.gnu.org/software/make/manual/make.html#Static-Pattern
 
-$(addprefix $(build_dir)/,$(default_objects)): $(build_dir)/%.o: %.C
+$(addprefix $(build_dir)/,$(objects)): $(build_dir)/%.o: %.C
 	@echo compiling default $@ from $<
 	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_depends) $(flags_arch) $(flags_cpp) $(flags_includes) -c $< -o $@
-
-$(addprefix $(build_dir)/,$(archspec_objects)): $(build_dir)/%.o: %.C
-	@echo compiling archspec $@ from $<
-	@echo please select flags_archspec for your machine
-	@$(MKDIR) $(build_dir)
-	@$(compiler) $(flags_depends) $(flags_archspec) $(flags_cpp) $(flags_includes) -c $< -o $@
 
 #===========================================================================
 # linker
@@ -230,29 +184,17 @@ $(addprefix $(build_dir)/,$(binaries)): $(build_dir)/%: $(build_dir)/%.o
 	@echo linking $@ from $< $(libraries)
 	@$(MKDIR) $(build_dir)
 	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
-
-$(addprefix $(build_dir)/,$(autotest_binaries)): $(build_dir)/%: $(build_dir)/%.o
-	@echo linking $@ from $< $(libraries)
-	@$(MKDIR) $(build_dir)
-	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
-
-$(addprefix $(build_dir)/,$(archspec_binaries)): $(build_dir)/%: $(build_dir)/%.o
-	@echo linking $@ from $< $(libraries)
-	@$(MKDIR) $(build_dir)
-	@$(compiler) $(flags_archspec) $(flags_cpp) -o $@ $< $(libraries)
 else
 $(addprefix $(build_dir)/,$(binaries)): $(build_dir)/%: $(build_dir)/%.o ;
-$(addprefix $(build_dir)/,$(autotest_binaries)): $(build_dir)/%: $(build_dir)/%.o ;
-$(addprefix $(build_dir)/,$(archspec_binaries)): $(build_dir)/%: $(build_dir)/%.o ;
 endif
 
 #===========================================================================
 # other rules
 #===========================================================================
 
-all_build_files = $(all_objects) $(all_binaries) $(depend_files) \
-		$(addsuffix .exe,$(all_binaries)) \
-		$(addsuffix .ilk,$(all_binaries)) $(addsuffix .pdb,$(all_binaries)) \
+all_build_files = $(objects) $(binaries) $(depend_files) \
+		$(addsuffix .exe,$(binaries)) \
+		$(addsuffix .ilk,$(binaries)) $(addsuffix .pdb,$(binaries)) \
 		$(tsimd_single_header_file)
 
 .PHONY: clean
@@ -270,25 +212,17 @@ endif
 
 .PHONY: info
 info:
-	@echo "vector extensions default"
-	@echo | $(compiler) -dM -E - $(flags_arch) $(flags_c) \
-		| grep -e SSE -e AVX -e POPCNT | sort
-	@echo "vector extensions archspec"
-	@echo | $(compiler) -dM -E - $(flags_archspec) $(flags_c) \
+	@echo "vector extensions"
+	@echo | $(compiler) -xc++ -dM -E - $(flags_arch) $(flags_c) \
 		| grep -e SSE -e AVX -e POPCNT | sort
 	@echo "compiler:          " $(compiler)
 	@echo "flags_c:           " $(flags_c)
 	@echo "flags_cpp:         " $(flags_cpp)
 	@echo "flags_arch:        " $(flags_arch)
-	@echo "flags_archspec:    " $(flags_archspec)
-	@echo "binaries:          " $(binaries)
-	@echo "autotest_binaries: " $(autotest_binaries)
-	@echo "archspec_binaries: " $(archspec_binaries)
 	@echo "default_binaries:  " $(default_binaries)
-	@echo "all_binaries:      " $(all_binaries)
-	@echo "archspec_objects:  " $(archspec_objects)
-	@echo "default_objects    " $(default_objects)
-	@echo "all_objects:       " $(all_objects)
+	@echo "autotest_binaries: " $(autotest_binaries)
+	@echo "binaries:          " $(binaries)
+	@echo "objects:           " $(objects)
 
 # for compileAndTest
 .PHONY: flags-info

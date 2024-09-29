@@ -239,18 +239,11 @@ platform_dirs:
 dep:
 	@echo -n
 
-# 12. Sep 23 (Jonas Keller): added check for clang-format version
-.PHONY: check-clang-format-version
-check-clang-format-version:
-	@clang-format --version | grep -q "version 1[6-9]\|version [2-9][0-9]" \
-		|| ( echo "error: clang-format version 16 or higher required (found:" \
-		`clang-format --version` ")" ; exit 1 )
-
 # 10. Feb 23 (Jonas Keller): added format rule
 # 10. Jun 24 (rm): this creates new files instead of the linked ones:
 # @clang-format -i *.C *.H
 .PHONY: format
-format: check-clang-format-version
+format:
 	@echo "formatting all .C and .H files"
 	@./formatAllHC .
 

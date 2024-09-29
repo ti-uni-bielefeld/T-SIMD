@@ -33,6 +33,17 @@ if [ ! -d "$1" ]; then
         exit 1
 fi
 
+if ! which clang-format > /dev/null; then
+        echo "Error: clang-format not found"
+        exit 1
+fi
+
+REQUIRED_CLANG_FORMAT_VERSION=16
+if [[ $(clang-format --version | grep -oP '(?<=version )\d+') -lt $REQUIRED_CLANG_FORMAT_VERSION ]]; then
+        echo "Error: clang-format version $REQUIRED_CLANG_FORMAT_VERSION or higher required (found $(clang-format --version))"
+        exit 1
+fi
+
 find $1 -type f \( -name "*.H" -o -name "*.C" \) | while read -r src; do
         # "clang-format -i" can break links, so we format into a temporary file
         # and then write the new content back

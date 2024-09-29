@@ -796,9 +796,9 @@ void benchmark()
   Mask<T, SIMD_WIDTH> kones = mask_all_ones<T, SIMD_WIDTH>();
   Mask<T, SIMD_WIDTH> krand;
   Mask<T, SIMD_WIDTH> krand2;
-  T *buffer = (T *) simd_aligned_malloc(SIMD_WIDTH, SIMD_WIDTH);
+  T *buffer = (T *) simd::aligned_malloc(SIMD_WIDTH, SIMD_WIDTH);
   if (buffer == NULL) {
-    puts("Error simd_aligned_malloc");
+    puts("Error simd::aligned_malloc");
     return;
   }
   struct timeval start, end;

@@ -95,7 +95,7 @@ mask_add(const Vec<Float, SIMD_WIDTH> &src,
 #ifndef SIMD_VEC_MASK_IMPL_EMU_H_
 #define SIMD_VEC_MASK_IMPL_EMU_H_
 
-#include <SIMDAlloc.H>
+#include "alloc.H"
 #include "defs.H"
 #include "types.H"
 #include "vec.H"
@@ -141,14 +141,14 @@ public:
   // the default new and delete are not guaranteed to do so before C++17
   void *operator new(size_t size)
   {
-    return simd_aligned_malloc(SIMD_WIDTH, size);
+    return aligned_malloc(SIMD_WIDTH, size);
   }
-  void operator delete(void *p) { simd_aligned_free(p); }
+  void operator delete(void *p) { aligned_free(p); }
   void *operator new[](size_t size)
   {
-    return simd_aligned_malloc(SIMD_WIDTH, size);
+    return aligned_malloc(SIMD_WIDTH, size);
   }
-  void operator delete[](void *p) { simd_aligned_free(p); }
+  void operator delete[](void *p) { aligned_free(p); }
 };
 /// @endcond
 

@@ -26,17 +26,6 @@
 
 // 02. Mar 23 (Jonas Keller): added doxygen documentation
 
-/**
- * @file SIMDAlloc.H
- * @brief Aligned memory allocation and deallocation.
- *
- * This file contains functions for aligned memory allocation and deallocation.
- *
- * This file is standalone, i.e. it can also be used independently of T-SIMD.
- *
- * @author Ralf Möller
- * @author Jonas Keller
- */
 
 #pragma once
 #ifndef SIMDALLOC_H_
@@ -51,6 +40,8 @@
 #include <cstdlib>
 #endif
 
+namespace simd {
+
 /**
  * @ingroup group_aligned_alloc
  * @brief Aligned memory allocation.
@@ -58,13 +49,13 @@
  * This function allocates a block of memory of size bytes, aligned to the
  * specified alignment.
  *
- * The allocated memory must be freed with simd_aligned_free().
+ * The allocated memory must be freed with aligned_free().
  *
  * @param alignment alignment of the memory block in bytes
  * @param size size of the memory block in bytes
  * @return pointer to the allocated memory block
  */
-inline void *simd_aligned_malloc(size_t alignment, size_t size)
+inline void *aligned_malloc(size_t alignment, size_t size)
 {
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
@@ -80,11 +71,11 @@ inline void *simd_aligned_malloc(size_t alignment, size_t size)
  * @brief Aligned memory deallocation.
  *
  * This function frees a block of memory that was allocated with
- * simd_aligned_malloc().
+ * aligned_malloc().
  *
  * @param ptr pointer to the memory block to be freed
  */
-inline void simd_aligned_free(void *ptr)
+inline void aligned_free(void *ptr)
 {
 #ifdef _WIN32
   _aligned_free(ptr);
@@ -108,7 +99,7 @@ inline void simd_aligned_free(void *ptr)
  * @tparam ALIGN alignment of the memory block in bytes
  */
 template <typename T, size_t ALIGN>
-class simd_aligned_allocator
+class aligned_allocator
 {
   // exclude from doxygen (until endcond)
   /// @cond
@@ -124,15 +115,15 @@ public:
   template <typename U>
   struct rebind
   {
-    using other = simd_aligned_allocator<U, ALIGN>;
+    using other = aligned_allocator<U, ALIGN>;
   };
 
-  simd_aligned_allocator() noexcept {}
-  simd_aligned_allocator(const simd_aligned_allocator &) noexcept {}
+  aligned_allocator() noexcept {}
+  aligned_allocator(const aligned_allocator &) noexcept {}
   template <typename U>
-  simd_aligned_allocator(const simd_aligned_allocator<U, ALIGN> &) noexcept
+  aligned_allocator(const aligned_allocator<U, ALIGN> &) noexcept
   {}
-  ~simd_aligned_allocator() noexcept {}
+  ~aligned_allocator() noexcept {}
 
   pointer address(reference x) const noexcept { return std::addressof(x); }
   const_pointer address(const_reference x) const noexcept
@@ -142,9 +133,9 @@ public:
 
   pointer allocate(size_type n, const void * = 0)
   {
-    return static_cast<pointer>(simd_aligned_malloc(ALIGN, n * sizeof(T)));
+    return static_cast<pointer>(aligned_malloc(ALIGN, n * sizeof(T)));
   }
-  void deallocate(pointer p, size_type) { simd_aligned_free(p); }
+  void deallocate(pointer p, size_type) { aligned_free(p); }
 
   size_type max_size() const noexcept
   {
@@ -157,9 +148,11 @@ public:
   }
   void destroy(pointer p) { p->~T(); }
 
-  bool operator==(const simd_aligned_allocator &) const { return true; }
-  bool operator!=(const simd_aligned_allocator &) const { return false; }
+  bool operator==(const aligned_allocator &) const { return true; }
+  bool operator!=(const aligned_allocator &) const { return false; }
   /// @endcond
 };
+
+} // namespace simd
 
 #endif // SIMDALLOC_H_

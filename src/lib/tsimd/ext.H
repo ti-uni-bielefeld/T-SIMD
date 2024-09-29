@@ -41,7 +41,6 @@
 #ifndef SIMD_VEC_EXT_H_
 #define SIMD_VEC_EXT_H_
 
-#include <SIMDAlloc.H>
 #include "defs.H"
 #include "types.H"
 #include "vec.H"

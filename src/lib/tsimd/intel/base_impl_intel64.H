@@ -37,7 +37,7 @@
 #ifndef SIMD_VEC_BASE_IMPL_INTEL_64_H_
 #define SIMD_VEC_BASE_IMPL_INTEL_64_H_
 
-#include <SIMDAlloc.H>
+#include "../alloc.H"
 #include "../defs.H"
 #include "../types.H"
 #include "../vec.H"
@@ -104,12 +104,12 @@ public:
   // 29. Nov 22 (Jonas Keller):
   // defined operators new and delete to ensure proper alignment, since
   // the default new and delete are not guaranteed to do so before C++17
-  void *operator new(size_t size) { return simd_aligned_malloc(bytes, size); }
-  void operator delete(void *p) { simd_aligned_free(p); }
-  void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
-  void operator delete[](void *p) { simd_aligned_free(p); }
+  void *operator new(size_t size) { return aligned_malloc(bytes, size); }
+  void operator delete(void *p) { aligned_free(p); }
+  void *operator new[](size_t size) { return aligned_malloc(bytes, size); }
+  void operator delete[](void *p) { aligned_free(p); }
   // 05. Sep 23 (Jonas Keller): added allocator
-  using allocator = simd_aligned_allocator<Vec<T, bytes>, bytes>;
+  using allocator = aligned_allocator<Vec<T, bytes>, bytes>;
 };
 
 // ===========================================================================
@@ -150,12 +150,12 @@ public:
   // 29. Nov 22 (Jonas Keller):
   // defined operators new and delete to ensure proper alignment, since
   // the default new and delete are not guaranteed to do so before C++17
-  void *operator new(size_t size) { return simd_aligned_malloc(bytes, size); }
-  void operator delete(void *p) { simd_aligned_free(p); }
-  void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
-  void operator delete[](void *p) { simd_aligned_free(p); }
+  void *operator new(size_t size) { return aligned_malloc(bytes, size); }
+  void operator delete(void *p) { aligned_free(p); }
+  void *operator new[](size_t size) { return aligned_malloc(bytes, size); }
+  void operator delete[](void *p) { aligned_free(p); }
   // 05. Sep 23 (Jonas Keller): added allocator
-  using allocator = simd_aligned_allocator<Vec<Float, bytes>, bytes>;
+  using allocator = aligned_allocator<Vec<Float, bytes>, bytes>;
 };
 
 // ===========================================================================
@@ -191,11 +191,11 @@ public:
   {
     return _mm512_extractf64x4_pd(zmm, 1);
   }
-  void *operator new(size_t size) { return simd_aligned_malloc(bytes, size); }
-  void operator delete(void *p) { simd_aligned_free(p); }
-  void *operator new[](size_t size) { return simd_aligned_malloc(bytes, size); }
-  void operator delete[](void *p) { simd_aligned_free(p); }
-  using allocator = simd_aligned_allocator<Vec<Double, bytes>, bytes>;
+  void *operator new(size_t size) { return aligned_malloc(bytes, size); }
+  void operator delete(void *p) { aligned_free(p); }
+  void *operator new[](size_t size) { return aligned_malloc(bytes, size); }
+  void operator delete[](void *p) { aligned_free(p); }
+  using allocator = aligned_allocator<Vec<Double, bytes>, bytes>;
 };
 
 namespace internal {

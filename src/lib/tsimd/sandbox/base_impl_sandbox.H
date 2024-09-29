@@ -33,7 +33,7 @@
 
 // TODO: should this only contain level 0 functions?
 
-#include <SIMDAlloc.H>
+#include "../alloc.H"
 #include "../defs.H"
 #include "../types.H"
 #include "../vec.H"
@@ -59,7 +59,7 @@ public:
   static constexpr size_t bytes    = SIMD_WIDTH;
   Vec() {}
   // 05. Sep 23 (Jonas Keller): added allocator
-  using allocator = simd_aligned_allocator<Vec<T, bytes>, bytes>;
+  using allocator = aligned_allocator<Vec<T, bytes>, bytes>;
 };
 
 namespace internal {

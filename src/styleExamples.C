@@ -54,7 +54,7 @@ static constexpr size_t ALIGN = 64;
 // vector element types could be specified e.g. with simd::Float
 
 template <typename T>
-T vectorSumNative(const std::vector<T, simd_aligned_allocator<T, ALIGN>> &input)
+T vectorSumNative(const std::vector<T, simd::aligned_allocator<T, ALIGN>> &input)
 {
   simd::Vec<T> vecSum = simd::setzero<T>();
   // you can use vecSum.elements or simd::Vec<T>::elements
@@ -80,7 +80,7 @@ T vectorSumNative(const std::vector<T, simd_aligned_allocator<T, ALIGN>> &input)
 // vector element types could be specified e.g. with simd::Float
 
 template <size_t SIMD_WIDTH, typename T>
-T vectorSumModern(const std::vector<T, simd_aligned_allocator<T, ALIGN>> &input)
+T vectorSumModern(const std::vector<T, simd::aligned_allocator<T, ALIGN>> &input)
 {
   simd::Vec<T, SIMD_WIDTH> vecSum = simd::setzero<T, SIMD_WIDTH>();
   // you can use vecSum.elements or simd::Vec<T>::elements
@@ -113,7 +113,7 @@ using namespace simd;
 
 template <size_t SIMD_WIDTH, typename T>
 T vectorSumClassic(
-  const std::vector<T, simd_aligned_allocator<T, ALIGN>> &input)
+  const std::vector<T, simd::aligned_allocator<T, ALIGN>> &input)
 {
   SIMDVec<T, SIMD_WIDTH> vecSum = setzero<T, SIMD_WIDTH>();
   // you can use vecSum.elements or SIMDVec<T>::elements
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
   // drand48, since srand48 and drand48 are not available on Windows
   // srand48(time(NULL));
   srand(time(nullptr));
-  std::vector<float, simd_aligned_allocator<float, ALIGN>> input(size);
+  std::vector<float, simd::aligned_allocator<float, ALIGN>> input(size);
   float sum = 0;
   for (size_t i = 0; i < input.size(); i++) {
     // float x = drand48();

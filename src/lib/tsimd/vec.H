@@ -100,7 +100,7 @@ public:
    * std::vector<Vec<T, SIMD_WIDTH>, typename Vec<T, SIMD_WIDTH>::allocator> v;
    * @endcode
    */
-  using allocator = simd_aligned_allocator<Vec<T, SIMD_WIDTH>, SIMD_WIDTH>;
+  using allocator = aligned_allocator<Vec<T, SIMD_WIDTH>, SIMD_WIDTH>;
 }
 #endif
 ;

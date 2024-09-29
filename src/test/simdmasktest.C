@@ -47,7 +47,7 @@
 // It is not clear why these errors only occur for the functions avg, div2r0
 // and div2rd and not for the other functions.
 
-#include <SIMDVecAll.H>
+#include <tsimd.H>
 
 #include <cinttypes>
 #include <cmath>

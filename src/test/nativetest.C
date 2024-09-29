@@ -28,7 +28,7 @@
 // To fully exploit this feature, at least C++11 is required
 // (otherwise the function templates cannot have default parameters).
 
-#include <SIMDVecAll.H>
+#include <tsimd.H>
 
 #include <cstdio>
 

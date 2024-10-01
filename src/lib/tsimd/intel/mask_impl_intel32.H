@@ -30,11 +30,11 @@
 #ifndef SIMD_VEC_MASK_IMPL_INTEL_32_H_
 #define SIMD_VEC_MASK_IMPL_INTEL_32_H_
 
+#include "../base.H"
 #include "../defs.H"
+#include "../mask_impl_emu.H"
 #include "../types.H"
 #include "../vec.H"
-#include "../base.H"
-#include "../mask_impl_emu.H"
 #include "intrins_intel.H"
 
 #if defined(SIMDVEC_INTEL_ENABLE) && defined(_SIMD_VEC_32_AVAIL_) &&           \

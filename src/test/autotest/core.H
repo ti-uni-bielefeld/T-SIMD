@@ -53,9 +53,10 @@
 #ifndef SIMD_VEC_AUTO_TEST_H_
 #define SIMD_VEC_AUTO_TEST_H_
 
-#include <tsimd.H>
-#include "serial.H"
 #include "../time_measurement.H"
+#include "serial.H"
+
+#include <tsimd.H>
 
 #include <cinttypes>
 #include <cmath>

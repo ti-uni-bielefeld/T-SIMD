@@ -29,11 +29,12 @@
 #ifndef SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_
 #define SIMD_VEC_AUTO_TEST_WRAPPER_MASK_H_
 
-#include <tsimd.H>
 #include "random.H"
 #include "serial.H"
 #include "serial_mask.H"
 #include "wrappers.H"
+
+#include <tsimd.H>
 
 #include <string>
 

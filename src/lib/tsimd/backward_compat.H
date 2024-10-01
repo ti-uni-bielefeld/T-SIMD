@@ -151,19 +151,22 @@ static constexpr SIMD_INLINE size_t numOutputSIMDVecs()
 
 } // namespace simd
 
-/// Alias for simd::aligned_malloc(). @deprecated Use simd::aligned_malloc() instead.
+/// Alias for simd::aligned_malloc(). @deprecated Use simd::aligned_malloc()
+/// instead.
 inline void *simd_aligned_malloc(size_t alignment, size_t size)
 {
   return simd::aligned_malloc(alignment, size);
 }
 
-/// Alias for simd::aligned_free(). @deprecated Use simd::aligned_free() instead.
+/// Alias for simd::aligned_free(). @deprecated Use simd::aligned_free()
+/// instead.
 inline void simd_aligned_free(void *ptr)
 {
   simd::aligned_free(ptr);
 }
 
-/// Alias for simd::simd_aligned_allocator. @deprecated Use simd::simd_aligned_allocator instead.
+/// Alias for simd::simd_aligned_allocator. @deprecated Use
+/// simd::simd_aligned_allocator instead.
 template <typename T, size_t ALIGN>
 using simd_aligned_allocator = simd::aligned_allocator<T, ALIGN>;
 

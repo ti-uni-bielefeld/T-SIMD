@@ -38,8 +38,8 @@
 #include "../defs.H"
 #include "../types.H"
 #include "../vec.H"
-#include "intrins_intel.H"
 #include "base_impl_intel16.H"
+#include "intrins_intel.H"
 
 #include <cstddef>
 #include <cstdint>

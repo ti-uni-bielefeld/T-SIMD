@@ -26,7 +26,6 @@
 
 // 02. Mar 23 (Jonas Keller): added doxygen documentation
 
-
 #pragma once
 #ifndef SIMDALLOC_H_
 #define SIMDALLOC_H_

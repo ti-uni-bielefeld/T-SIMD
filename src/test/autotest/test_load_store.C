@@ -22,9 +22,10 @@
 //
 // ===========================================================================
 
-#include <tsimd.H>
 #include "serial.H"
 #include "serial_mask.H"
+
+#include <tsimd.H>
 
 #include <algorithm>
 #include <csignal>

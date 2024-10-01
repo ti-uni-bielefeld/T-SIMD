@@ -30,9 +30,10 @@
 #ifndef SIMD_VEC_AUTO_TEST_WRAPPER_H_
 #define SIMD_VEC_AUTO_TEST_WRAPPER_H_
 
-#include <tsimd.H>
 #include "random.H"
 #include "serial.H"
+
+#include <tsimd.H>
 
 #include <cstdint>
 #include <cstdio>

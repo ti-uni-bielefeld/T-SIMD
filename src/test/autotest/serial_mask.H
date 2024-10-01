@@ -31,8 +31,9 @@
 #ifndef SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_
 #define SIMD_VEC_AUTO_TEST_SERIAL_MASK_H_
 
-#include <tsimd.H>
 #include "serial.H"
+
+#include <tsimd.H>
 
 #include <cstddef>
 #include <cstdint>

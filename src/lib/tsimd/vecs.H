@@ -26,10 +26,10 @@
 #ifndef SIMD_VECS_H_
 #define SIMD_VECS_H_
 
-#include "defs.H"
-#include "vec.H"
 #include "base.H"
+#include "defs.H"
 #include "ext.H"
+#include "vec.H"
 
 // exclude from doxygen
 // TODO: include in doxygen documentation?

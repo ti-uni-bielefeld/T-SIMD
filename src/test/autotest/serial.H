@@ -31,8 +31,9 @@
 #ifndef SIMD_VEC_AUTO_TEST_SERIAL_H_
 #define SIMD_VEC_AUTO_TEST_SERIAL_H_
 
-#include <tsimd.H>
 #include "random.H"
+
+#include <tsimd.H>
 
 #include <algorithm>
 #include <bits/std_abs.h>
@@ -164,13 +165,11 @@ struct SerialVec
     // individually
     if ((rand() & 0x0f) == 0) {
       T value;
-      while ((value = getRandomOrSpecialValue<T>()) < T(0))
-        ;
+      while ((value = getRandomOrSpecialValue<T>()) < T(0));
       for (size_t i = 0; i < elements; i++) vec[i] = value;
     } else {
       for (size_t i = 0; i < elements; i++)
-        while ((vec[i] = getRandomOrSpecialValue<T>()) < T(0))
-          ;
+        while ((vec[i] = getRandomOrSpecialValue<T>()) < T(0));
     }
   }
   void randomizeRanges()
@@ -215,13 +214,11 @@ struct SerialVec
     // individually
     if ((rand() & 0x0f) == 0) {
       T value;
-      while ((value = getRandomOrSpecialValueRanges<T>()) == T(0))
-        ;
+      while ((value = getRandomOrSpecialValueRanges<T>()) == T(0));
       for (size_t i = 0; i < elements; i++) vec[i] = value;
     } else {
       for (size_t i = 0; i < elements; i++)
-        while ((vec[i] = getRandomOrSpecialValueRanges<T>()) == T(0))
-          ;
+        while ((vec[i] = getRandomOrSpecialValueRanges<T>()) == T(0));
     }
   }
   void randomizeCond()

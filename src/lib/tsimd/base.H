@@ -32,13 +32,13 @@
 #define SIMD_VEC_BASE_H_
 
 #include "defs.H"
-#include "types.H"
-#include "vec.H"
 #include "intel/base_impl_intel16.H"
 #include "intel/base_impl_intel32.H"
 #include "intel/base_impl_intel64.H"
 #include "neon/base_impl_neon16.H"
 #include "sandbox/base_impl_sandbox.H"
+#include "types.H"
+#include "vec.H"
 
 #include <cstdint>
 #include <type_traits>

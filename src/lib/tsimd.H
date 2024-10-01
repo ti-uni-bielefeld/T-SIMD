@@ -40,7 +40,7 @@
 // templates/functions for masked operations
 #include "tsimd/mask.H"
 // aligned memory allocation
-#include <tsimd/alloc.H>
+#include "tsimd/alloc.H"
 // backward compatibility
 #include "tsimd/backward_compat.H"
 

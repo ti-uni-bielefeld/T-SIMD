@@ -41,11 +41,11 @@
 #ifndef SIMD_VEC_EXT_H_
 #define SIMD_VEC_EXT_H_
 
+#include "autogen/ext_transpose.H"
+#include "base.H"
 #include "defs.H"
 #include "types.H"
 #include "vec.H"
-#include "base.H"
-#include "autogen/ext_transpose.H"
 
 #include <cassert>
 #include <cmath>

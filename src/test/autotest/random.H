@@ -1,11 +1,10 @@
 #pragma once
-#include <array>
-#include <type_traits>
 #ifndef SIMD_VEC_AUTO_TEST_RANDOM_H_
 #define SIMD_VEC_AUTO_TEST_RANDOM_H_
 
 #include <tsimd.H>
 
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>

@@ -32,12 +32,12 @@
 #define SIMD_VEC_MASK_H_
 
 #include "defs.H"
-#include "types.H"
-#include "vec.H"
-#include "mask_impl_emu.H"
 #include "intel/mask_impl_intel32.H"
 #include "intel/mask_impl_intel64.H"
+#include "mask_impl_emu.H"
 #include "sandbox/mask_impl_sandbox.H"
+#include "types.H"
+#include "vec.H"
 
 #include <cstddef>
 #include <cstdint>

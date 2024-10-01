@@ -32,12 +32,12 @@
 #ifndef SIMD_VEC_MASK_IMPL_INTEL_64_H_
 #define SIMD_VEC_MASK_IMPL_INTEL_64_H_
 
+#include "../base.H"
 #include "../defs.H"
-#include "intrins_intel.H"
 #include "../types.H"
 #include "../vec.H"
-#include "../base.H"
 #include "base_impl_intel64.H"
+#include "intrins_intel.H"
 
 #include <algorithm>
 #include <cstdint>

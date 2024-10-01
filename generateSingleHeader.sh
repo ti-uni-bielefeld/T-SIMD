@@ -89,7 +89,7 @@ cat <<EOF >> $sh_name
 EOF
 
 # generate single header file
-quom tsimd.H $sh_name.tmp
+quom src/lib/tsimd.H $sh_name.tmp
 # write to single header file
 cat $sh_name.tmp >> $sh_name
 # remove temporary file

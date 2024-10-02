@@ -196,20 +196,6 @@
  * @defgroup group_print Print
  * @brief Functions to print the elements of a Vec.
  *
- * @defgroup group_time_measurements Time Measurement
- * @brief Functions for measuring time.
- *
- * These may be useful to measure the time spent for a section of code.
- *
- * Example:
- * @code
- * struct timespec start = getTimeSpecMonotonic();
- * // do something
- * struct timespec end = getTimeSpecMonotonic();
- * long int diff_ns = diffTimeSpecNsec(end, start);
- * std::cout << "Time spent: " << diff_ns << "ns" << std::endl;
- * @endcode
- *
  * @defgroup group_aliases Back. Comp. Aliases
  * @brief Aliases for SIMD types for backward compatibility
  */

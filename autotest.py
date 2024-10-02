@@ -242,7 +242,7 @@ def run_test(test_config):
         os.makedirs(build_dir)
 
     static_bins_flag = "static_bins=1" if test_config.get("static_bins") else ""
-    build_command = f"make build_dir=\"{build_dir}\" compiler=\"{test_config['compiler']}\" optflags=\"{test_config['opt_flags']}\" flags_arch=\"{test_config['arch_flags']}\" flags_cppstd=\"{test_config['cppstd_flags']}\" sandbox_defines=\"{test_config['sandbox_defines']}\" {static_bins_flag} all_tsimd autotest"
+    build_command = f"make build_dir=\"{build_dir}\" compiler=\"{test_config['compiler']}\" optflags=\"{test_config['opt_flags']}\" flags_arch=\"{test_config['arch_flags']}\" flags_cppstd=\"{test_config['cppstd_flags']}\" sandbox_defines=\"{test_config['sandbox_defines']}\" {static_bins_flag} all"
 
     log_file_compile = f"{LOG_DIR}/{name}_compile.log"
     os.system(f'make build_dir="{build_dir}" clean > {log_file_compile} 2>&1')
@@ -252,19 +252,19 @@ def run_test(test_config):
     if test_config["sandbox_defines"] == "":
         log_file_test0 = f"{LOG_DIR}/{name}_test0.log"
         os.system(
-            f"{test_config['emulator']} {build_dir}/simdvecautotest0 \"\" 10000 > {log_file_test0} 2>&1 || echo \"ERROR: simdvecautotest0 failed\" >> {log_file_test0}"
+            f"{test_config['emulator']} {build_dir}/src/test/autotest/test0 \"\" 10000 > {log_file_test0} 2>&1 || echo \"ERROR: simdvecautotest0 failed\" >> {log_file_test0}"
         )
         log_file_test1 = f"{LOG_DIR}/{name}_test1.log"
         os.system(
-            f"{test_config['emulator']} {build_dir}/simdvecautotest1 \"\" 10000 > {log_file_test1} 2>&1 || echo \"ERROR: simdvecautotest1 failed\" >> {log_file_test1}"
+            f"{test_config['emulator']} {build_dir}/src/test/autotest/test1 \"\" 10000 > {log_file_test1} 2>&1 || echo \"ERROR: simdvecautotest1 failed\" >> {log_file_test1}"
         )
         log_file_testM = f"{LOG_DIR}/{name}_testM.log"
         os.system(
-            f"{test_config['emulator']} {build_dir}/simdvecautotestM \"\" 10000 > {log_file_testM} 2>&1 || echo \"ERROR: simdvecautotestM failed\" >> {log_file_testM}"
+            f"{test_config['emulator']} {build_dir}/src/test/autotest/testM \"\" 10000 > {log_file_testM} 2>&1 || echo \"ERROR: simdvecautotestM failed\" >> {log_file_testM}"
         )
         log_file_test_load_store = f"{LOG_DIR}/{name}_test_load_store.log"
         os.system(
-            f"{test_config['emulator']} {build_dir}/simdvecautotest_load_store 10000 > {log_file_test_load_store} 2>&1 || echo \"ERROR: simdvecautotest_load_store failed\" >> {log_file_test_load_store}"
+            f"{test_config['emulator']} {build_dir}/src/test/autotest/test_load_store 10000 > {log_file_test_load_store} 2>&1 || echo \"ERROR: simdvecautotest_load_store failed\" >> {log_file_test_load_store}"
         )
 
     os.system(f"rm -r {build_dir}")

@@ -202,7 +202,7 @@ clean:
 ifneq ($(wildcard $(build_dir)),)
 	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, all backup files, all temporary files, single header file and doc_html/ documentation directory
 	@$(RM) $(addprefix $(build_dir)/,$(all_build_files)) $(build_dir)/*~ $(build_dir)/*.tmp >$(NULL) 2>&1
-	@$(RMDIR_R) $(build_dir)/doc_html >$(NULL) 2>&1
+	@$(RMDIR_R) doc_html >$(NULL) 2>&1
 ifneq ($(build_dir),.)
 	@$(RMDIR) $(build_dir) >$(NULL) 2>&1
 endif
@@ -259,8 +259,7 @@ doc docs docu documentation doxygen dox doxy:
 		|| (echo "Error: Doxygen version $(min_doxygen_version) or higher is required (found: $(actual_doxygen_version))" \
 			; exit 1)
 	@echo "generating documentation"
-	@$(MKDIR) $(build_dir)
-	@( cat doc/Doxyfile ; echo "HTML_OUTPUT=$(build_dir)/doc_html" ) | doxygen -
+	@doxygen doc/Doxyfile
 
 # 04. Mar 23 (Jonas Keller): added rule for generating single header file
 # uses quom (https://github.com/Viatorus/quom)

@@ -260,7 +260,7 @@ doc docs docu documentation doxygen dox doxy:
 			; exit 1)
 	@echo "generating documentation"
 	@$(MKDIR) $(build_dir)
-	@( cat Doxyfile ; echo "HTML_OUTPUT=$(build_dir)/doc_html" ) | doxygen -
+	@( cat doc/Doxyfile ; echo "HTML_OUTPUT=$(build_dir)/doc_html" ) | doxygen -
 
 # 04. Mar 23 (Jonas Keller): added rule for generating single header file
 # uses quom (https://github.com/Viatorus/quom)

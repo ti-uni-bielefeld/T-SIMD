@@ -142,7 +142,11 @@ MKDIR = mkdir -p
 NULL = /dev/null
 endif
 
-build_dir ?= .
+build_dir ?= build
+# make sure build_dir is not the root directory
+ifeq ($(realpath $(build_dir)),$(realpath .))
+$(error build directory cannot be the project root directory)
+endif
 
 .PHONY: all_default
 all_default: $(addprefix $(build_dir)/,$(default_binaries))
@@ -156,59 +160,40 @@ autotest: $(addprefix $(build_dir)/,$(autotest_binaries))
 .PHONY: all
 all: all_default autotest
 
-ifneq ($(build_dir),.)
 .PHONY: $(binaries)
 $(binaries): %: $(build_dir)/%
-endif
-
 
 #===========================================================================
 # compiler
 #===========================================================================
 
-# https://www.gnu.org/software/make/manual/make.html#Static-Pattern
-
 $(addprefix $(build_dir)/,$(objects)): $(build_dir)/%.o: %.C
 	@echo compiling default $@ from $<
-	@$(MKDIR) $(build_dir)
+	@$(MKDIR) $(dir $@)
 	@$(compiler) $(flags_depends) $(flags_arch) $(flags_cpp) $(flags_includes) -c $< -o $@
 
 #===========================================================================
 # linker
 #===========================================================================
 
-# https://www.gnu.org/software/make/manual/make.html#Static-Pattern
-
 ifeq ($(syntax_only),0)
-$(addprefix $(build_dir)/,$(binaries)): $(build_dir)/%: $(build_dir)/%.o
+$(addprefix $(build_dir)/,$(binaries)): %: %.o
 	@echo linking $@ from $< $(libraries)
-	@$(MKDIR) $(build_dir)
+	@$(MKDIR) $(dir $@)
 	@$(compiler) $(flags_arch) $(flags_cpp) -o $@ $< $(libraries)
 else
-$(addprefix $(build_dir)/,$(binaries)): $(build_dir)/%: $(build_dir)/%.o ;
+$(addprefix $(build_dir)/,$(binaries)): %: %.o ;
 endif
 
 #===========================================================================
 # other rules
 #===========================================================================
 
-all_build_files = $(objects) $(binaries) $(depend_files) \
-		$(addsuffix .exe,$(binaries)) \
-		$(addsuffix .ilk,$(binaries)) $(addsuffix .pdb,$(binaries)) \
-		$(tsimd_single_header_file)
-
 .PHONY: clean
 clean:
-ifneq ($(wildcard $(build_dir)),)
-	@echo deleting all binaries, all objects, all dependency files, all .exe files, all .ilk files, all .pdb files, all backup files, all temporary files, single header file and doc_html/ documentation directory
-	@$(RM) $(addprefix $(build_dir)/,$(all_build_files)) $(build_dir)/*~ $(build_dir)/*.tmp >$(NULL) 2>&1
+	@echo "removing build directory \"$(build_dir)\" and documentation directory \"doc_html\""
 	@$(RMDIR_R) doc_html >$(NULL) 2>&1
-ifneq ($(build_dir),.)
-	@$(RMDIR) $(build_dir) >$(NULL) 2>&1
-endif
-else
-	@echo build directory \"$(build_dir)\" does not exist, nothing to clean
-endif
+	@$(RMDIR_R) $(build_dir) >$(NULL) 2>&1
 
 .PHONY: info
 info:
@@ -264,10 +249,11 @@ doc docs docu documentation doxygen dox doxy:
 # 04. Mar 23 (Jonas Keller): added rule for generating single header file
 # uses quom (https://github.com/Viatorus/quom)
 .PHONY: single-header
-single-header: gen-transpose-autogen
+single-header: gen-transpose-autogen format
 	@echo "generating tsimd single header file"
-	@./generateSingleHeader.sh $(tsimd_single_header_file)
-	@echo "single header written to $(tsimd_single_header_file)"
+	@$(MKDIR) $(build_dir)
+	@./generateSingleHeader.sh $(build_dir)/$(tsimd_single_header_file)
+	@echo "single header written to $(build_dir)/$(tsimd_single_header_file)"
 
 # 06. Sep 23 (Jonas Keller): added rule for autogenerating transpose functions
 transpose_autogen_file = src/lib/tsimd/autogen/ext_transpose.H

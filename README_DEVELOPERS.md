@@ -45,10 +45,10 @@ $ make autotest
 and run them:
 
 ```shell
-$ ./simdvecautotest0
-$ ./simdvecautotest1
-$ ./simdvecautotestM
-$ ./simdvecautotest_load_store
+$ ./build/src/test/autotest/test0
+$ ./build/src/test/autotest/test1
+$ ./build/src/test/autotest/testM
+$ ./build/src/test/autotest/test_load_store
 ```
 
 ### Testing different configurations automatically

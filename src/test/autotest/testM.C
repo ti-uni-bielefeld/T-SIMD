@@ -22,10 +22,11 @@
 //
 // ===========================================================================
 
-#include "SIMDVecAll.H"
 #include "core.H"
 #include "mask.H"
 #include "wrappers_mask.H"
+
+#include <tsimd.H>
 
 #include <cstdio>
 #include <cstdlib>

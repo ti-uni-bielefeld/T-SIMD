@@ -34,9 +34,10 @@
 
 // 13. May 23 (Jonas Keller): added tests for Double versions of functions
 
-#include "SIMDVecAll.H"
 #include "core.H"
 #include "wrappers.H"
+
+#include <tsimd.H>
 
 #include <cstdio>
 #include <cstdlib>

@@ -1,7 +1,6 @@
 #!/bin/sh
 # ===========================================================================
 # 
-# generateSingleHeader.sh --
 # Generates a single header file from the T-SIMD library.
 # 
 # This source code file is part of the following software:

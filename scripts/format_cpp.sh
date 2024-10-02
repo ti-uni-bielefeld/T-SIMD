@@ -1,8 +1,7 @@
 #!/bin/sh
 #===========================================================================
 #
-# formatAllHC --
-# run clang-format on all .H and .C files in the directory
+# runs clang-format on all .H and .C files in the given directory
 #
 # This file is part of the following software:
 # 

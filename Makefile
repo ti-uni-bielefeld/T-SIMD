@@ -230,7 +230,7 @@ dep:
 .PHONY: format
 format:
 	@echo "formatting all .C and .H files"
-	@./formatAllHC .
+	@./scripts/format_cpp.sh .
 
 # 02. Mar 23 (Jonas Keller): added documenation rule
 # 20. Nov 23 (Jonas Keller): added check for doxygen version
@@ -252,7 +252,7 @@ doc docs docu documentation doxygen dox doxy:
 single-header: gen-transpose-autogen format
 	@echo "generating tsimd single header file"
 	@$(MKDIR) $(build_dir)
-	@./generateSingleHeader.sh $(build_dir)/$(tsimd_single_header_file)
+	@./scripts/generate_single-header.sh $(build_dir)/$(tsimd_single_header_file)
 	@echo "single header written to $(build_dir)/$(tsimd_single_header_file)"
 
 # 06. Sep 23 (Jonas Keller): added rule for autogenerating transpose functions
@@ -264,6 +264,6 @@ gen-transpose-autogen:
 	@echo "generating $(transpose_autogen_file)"
 	@$(MKDIR) $(dir $(transpose_autogen_file))
 	@$(MKDIR) $(dir $(transpose_autogen_log))
-	@./transpose_inplace_autogen.tcl > $(transpose_autogen_file) 2> $(transpose_autogen_log)
+	@./scripts/transpose_inplace_autogen.tcl > $(transpose_autogen_file) 2> $(transpose_autogen_log)
 
 -include $(addprefix $(build_dir)/,$(depend_files))

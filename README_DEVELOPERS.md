@@ -60,7 +60,7 @@ The script compiles and runs the tests for different configurations in parallel,
 The script can be run with
 
 ```shell
-$ ./autotest.py
+$ scripts/autotest.py
 ```
 
 The results of the tests are written into a directory starting with `autotest_` followed by the hostname of the machine and the current date and time.

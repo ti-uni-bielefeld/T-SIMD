@@ -271,9 +271,13 @@ single-header: gen-transpose-autogen
 
 # 06. Sep 23 (Jonas Keller): added rule for autogenerating transpose functions
 transpose_autogen_file = src/lib/tsimd/autogen/ext_transpose.H
+transpose_autogen_log = $(build_dir)/transpose_autogen.log
+
 .PHONY: gen-transpose-autogen
-gen-transpose-autogen: check-clang-format-version
+gen-transpose-autogen:
 	@echo "generating $(transpose_autogen_file)"
-	@./transpose_inplace_autogen.tcl | clang-format > $(transpose_autogen_file)
+	@$(MKDIR) $(dir $(transpose_autogen_file))
+	@$(MKDIR) $(dir $(transpose_autogen_log))
+	@./transpose_inplace_autogen.tcl > $(transpose_autogen_file) 2> $(transpose_autogen_log)
 
 -include $(addprefix $(build_dir)/,$(depend_files))

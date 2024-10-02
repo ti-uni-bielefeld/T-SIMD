@@ -207,12 +207,10 @@ proc resetCounterInfo {} {
     set ::counterInfoList [list]
 }
     
-proc writeCounterInfo {fileName} {
-    set f [open $fileName "w"]
+proc writeCounterInfo {} {
     foreach counterInfo $::counterInfoList {
-        puts $f $counterInfo
+        puts stderr $counterInfo
     }
-    close $f
 }
 
 # ===========================================================================
@@ -994,4 +992,4 @@ puts "$internalExtEnd"
 puts "$simdEnd"
 puts $includeGuardEnd
 
-writeCounterInfo "transpose_inplace_autogen_stat.txt"
+writeCounterInfo

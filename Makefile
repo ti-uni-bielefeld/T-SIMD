@@ -249,21 +249,21 @@ doc docs docu documentation doxygen dox doxy:
 # 04. Mar 23 (Jonas Keller): added rule for generating single header file
 # uses quom (https://github.com/Viatorus/quom)
 .PHONY: single-header
-single-header: gen-transpose-autogen format
+single-header: gen-autogen format
 	@echo "generating tsimd single header file"
 	@$(MKDIR) $(build_dir)
 	@./scripts/generate_single-header.sh $(build_dir)/$(tsimd_single_header_file)
 	@echo "single header written to $(build_dir)/$(tsimd_single_header_file)"
 
 # 06. Sep 23 (Jonas Keller): added rule for autogenerating transpose functions
-transpose_autogen_file = src/lib/tsimd/autogen/ext_transpose.H
-transpose_autogen_log = $(build_dir)/transpose_autogen.log
+autogen_dir = src/lib/tsimd/autogen/
 
-.PHONY: gen-transpose-autogen
-gen-transpose-autogen:
-	@echo "generating $(transpose_autogen_file)"
-	@$(MKDIR) $(dir $(transpose_autogen_file))
-	@$(MKDIR) $(dir $(transpose_autogen_log))
-	@./scripts/transpose_inplace_autogen.tcl > $(transpose_autogen_file) 2> $(transpose_autogen_log)
+# add scripts for generating autogen files here
+.PHONY: gen-autogen
+gen-autogen:
+	@echo "generating autogen files"
+	@$(MKDIR) $(dir $(autogen_dir))
+	@$(MKDIR) $(dir $(build_dir))
+	@./scripts/transpose_inplace_autogen.tcl > $(autogen_dir)/ext_transpose.H 2> $(build_dir)/transpose_inplace_autogen.log
 
 -include $(addprefix $(build_dir)/,$(depend_files))

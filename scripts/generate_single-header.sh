@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # ===========================================================================
 # 
 # Generates a single header file from the T-SIMD library.

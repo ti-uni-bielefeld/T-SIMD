@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #===========================================================================
 #
 # runs clang-format on all .H and .C files in the given directory

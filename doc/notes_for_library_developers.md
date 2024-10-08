@@ -1,4 +1,6 @@
-# Notes for Developers
+# Notes for Library Developers
+
+This page contains information for developers contributing to the T-SIMD library.
 
 ## Overview over the project structure
 

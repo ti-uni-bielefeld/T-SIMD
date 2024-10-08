@@ -17,7 +17,7 @@ Either
 
 To use the **T-SIMD** library, simply include the single-header file `tsimd_sh.H` or the `tsimd.H` header from the archive.
 
-For documentation of functions and classes, see the [Library Refernce](topics.html).
+For documentation of functions and classes, see the [Library Reference](topics.html).
 
 ## Compiler and C++ Standard Support/Requirements
 

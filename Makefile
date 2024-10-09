@@ -262,8 +262,8 @@ autogen_dir = src/lib/tsimd/autogen/
 .PHONY: gen-autogen
 gen-autogen:
 	@echo "generating autogen files"
-	@$(MKDIR) $(dir $(autogen_dir))
-	@$(MKDIR) $(dir $(build_dir))
+	@$(MKDIR) $(autogen_dir)
+	@$(MKDIR) $(build_dir)
 	@./scripts/transpose_inplace_autogen.tcl > $(autogen_dir)/ext_transpose.H 2> $(build_dir)/transpose_inplace_autogen.log
 
 -include $(addprefix $(build_dir)/,$(depend_files))

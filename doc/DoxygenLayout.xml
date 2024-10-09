@@ -31,7 +31,7 @@ distributed by the licensee; see the license agreement for details.
   <navindex>
     <tab type="mainpage" visible="yes" title=""/>
     <tab type="pages" visible="yes" title=" " intro=""/>
-    <tab type="topics" visible="yes" title="Library Reference" intro=""/>
+    <tab type="topics" visible="yes" title="Library Reference" intro=" "/>
     <tab type="modules" visible="no" title="" intro="">
       <tab type="modulelist" visible="yes" title="" intro=""/>
       <tab type="modulemembers" visible="yes" title="" intro=""/>
@@ -213,11 +213,11 @@ distributed by the licensee; see the license agreement for details.
 
   <!-- Layout definition for a group page -->
   <group>
-    <briefdescription visible="yes"/>
+    <briefdescription visible="no"/>
     <groupgraph visible="yes"/>
-    <detaileddescription title=""/>
+    <detaileddescription title="Description"/>
     <memberdecl>
-      <nestedgroups visible="yes" title=""/>
+      <nestedgroups visible="yes" title="Subgroups"/>
       <modules visible="yes" title=""/>
       <dirs visible="yes" title=""/>
       <files visible="yes" title=""/>

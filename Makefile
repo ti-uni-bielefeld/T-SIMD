@@ -234,7 +234,7 @@ format:
 
 # 02. Mar 23 (Jonas Keller): added documenation rule
 # 20. Nov 23 (Jonas Keller): added check for doxygen version
-min_doxygen_version = 1.9.8
+min_doxygen_version = 1.12.0
 actual_doxygen_version = $(shell doxygen --version | grep -io "[0-9][0-9a-z.-]*" | head -n1)
 # this has unnecessary many aliases, but why not
 .PHONY: doc docs docu documentation doxygen dox doxy

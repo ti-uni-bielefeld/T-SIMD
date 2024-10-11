@@ -191,8 +191,8 @@ endif
 
 .PHONY: clean
 clean:
-	@echo "removing build directory \"$(build_dir)\" and documentation directory \"doc_html\""
-	@$(RMDIR_R) doc_html >$(NULL) 2>&1
+	@echo "removing build directory \"$(build_dir)\" and documentation directory \"docs/html\""
+	@$(RMDIR_R) docs/html >$(NULL) 2>&1
 	@$(RMDIR_R) $(build_dir) >$(NULL) 2>&1
 
 .PHONY: info
@@ -244,7 +244,7 @@ doc docs docu documentation doxygen dox doxy:
 		|| (echo "Error: Doxygen version $(min_doxygen_version) or higher is required (found: $(actual_doxygen_version))" \
 			; exit 1)
 	@echo "generating documentation"
-	@doxygen doc/Doxyfile
+	@doxygen docs/Doxyfile
 
 # 04. Mar 23 (Jonas Keller): added rule for generating single header file
 # uses quom (https://github.com/Viatorus/quom)

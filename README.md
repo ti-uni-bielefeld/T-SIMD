@@ -8,7 +8,7 @@ Templates parameters are the element data type of the vectors and the vector wid
 
 The documentation of **T-SIMD** is available [here](https://ti-uni-bielefeld.github.io/T-SIMD/).
 
-Alternatively, you can generate the documentation yourself by cloning the repository, running `make doc` in the root directory and then opening the file `doc_html/index.html` in a web browser.
+Alternatively, you can generate the documentation yourself by cloning the repository, running `make doc` in the root directory and then opening the file `docs/html/index.html` in a web browser.
 
 # Example
 

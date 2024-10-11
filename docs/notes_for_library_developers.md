@@ -16,7 +16,7 @@ The project is organized into the following directory structure:
       - `sandbox/`: sandbox implementations for testing
   - `test/`: test programs
     - `autotest/`: test programs for the automatic tests
-- `doc/`: configuration file for generating the documentation with `doxygen`
+- `docs/`: configuration file for generating the documentation with `doxygen`
 - `scripts/`: various scripts
 
 All build artifacts are placed in the `build/` directory which is listed in the `.gitignore` file to avoid accidentally committing build artifacts.
@@ -103,10 +103,10 @@ To generate the documentation, run
 $ make doc
 ```
 
-The documentation will be in the folder `doc_html`.
-To view the generated documentation, open the file `doc_html/index.html` in a web browser.
+The documentation will be in the folder `docs/html`.
+To view the generated documentation, open the file `docs/html/index.html` in a web browser.
 
-The configuration file for documentation generation is contained in the file `doc/Doxyfile` (this is also where the files to be included in the documentation are specified).
+The configuration file for documentation generation is contained in the file `docs/Doxyfile` (this is also where the files to be included in the documentation are specified).
 
 ## Generating the single-header include file
 

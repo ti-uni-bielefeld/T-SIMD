@@ -2,7 +2,7 @@
 COMPILE_AND_TEST/
 autotest*/
 build*/
-doc_html/
+docs/html/
 latex/
 *.tmp
 *.o

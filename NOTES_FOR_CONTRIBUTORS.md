@@ -1,6 +1,13 @@
-# Notes for Library Developers
+# Notes for Contributors
 
-This page contains information for developers contributing to the T-SIMD library.
+This page contains information for developers contributing to the **T-SIMD** library.
+
+## General Information for Contributing
+
+Contributions to the **T-SIMD** library are welcome. Please follow the following guidelines below when contributing:
+- Open an [issue](https://github.com/ti-uni-bielefeld/T-SIMD/issues) or [pull request](https://github.com/ti-uni-bielefeld/T-SIMD/pulls) on the GitHub repository for any suggestions, bug reports, or contributions.
+- Format the code as described in the [Formatting](#formatting) section before contributing.
+- Make sure the code compiles and passes the tests (see the [Testing](#testing) section) before contributing.
 
 ## Overview over the project structure
 

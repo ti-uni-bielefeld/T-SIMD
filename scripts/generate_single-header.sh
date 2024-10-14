@@ -46,8 +46,11 @@ cat <<EOF > $sh_name
 // ===========================================================================
 //
 // Single header version of the T-SIMD library.
+// GitHub repository: https://github.com/ti-uni-bielefeld/T-SIMD
+// Documentation: https://ti-uni-bielefeld.github.io/T-SIMD/
 //
-// Generated on $(date -Iseconds).
+// Generated on $(date -uIseconds)
+// from commit $(git rev-parse --short HEAD) ($(git rev-parse HEAD))
 //
 // This file is part of the following software:
 //

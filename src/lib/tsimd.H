@@ -43,5 +43,7 @@
 #include "tsimd/alloc.H"
 // backward compatibility
 #include "tsimd/backward_compat.H"
+// experimental functions
+#include "tsimd/experimental.H"
 
 #endif

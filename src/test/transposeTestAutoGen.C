@@ -24,8 +24,7 @@
 
 #define MAX_SIMD_WIDTH 64
 
-#include "time_measurement.H"
-
+#include <time_measurement.H>
 #include <tsimd.H>
 
 #include <stdlib.h>

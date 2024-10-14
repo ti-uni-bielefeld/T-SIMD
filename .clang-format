@@ -107,7 +107,7 @@ IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: "\".*\""
     Priority: 0
-  - Regex: "<tsimd\\.H>"
+  - Regex: "<(tsimd|time_measurement)\\.H>"
     Priority: 1
   - Regex: "<.*>"
     Priority: 2

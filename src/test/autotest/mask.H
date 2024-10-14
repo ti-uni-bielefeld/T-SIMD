@@ -35,11 +35,11 @@
 #ifndef SIMD_VEC_AUTO_TEST_MASK_H_
 #define SIMD_VEC_AUTO_TEST_MASK_H_
 
-#include "../time_measurement.H"
 #include "core.H"
 #include "serial.H"
 #include "serial_mask.H"
 
+#include <time_measurement.H>
 #include <tsimd.H>
 
 #include <bitset>

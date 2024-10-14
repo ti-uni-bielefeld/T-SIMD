@@ -29,7 +29,11 @@
 #ifndef SIMD_EXPERIMENTAL_H_
 #define SIMD_EXPERIMENTAL_H_
 
-#include <tsimd.H>
+#include "base.H"
+#include "defs.H"
+#include "vec.H"
+
+#include <cstddef>
 
 namespace simd {
 

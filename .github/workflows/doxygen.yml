@@ -38,18 +38,10 @@ jobs:
           wget -nv https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
           tar -xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
           sudo cp doxygen-${DOXYGEN_VERSION}/bin/* /usr/bin
-      - name: Install clang-format
-        run: sudo pip3 install clang-format
-      - name: Install quom
-        run: sudo pip3 install quom
       - name: Checkout
         uses: actions/checkout@v4
       - name: Make documentation
         run: make doc
-      - name: Make single header
-        run: |
-          make single-header
-          cp build/tsimd_sh.H docs/html
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

@@ -244,7 +244,7 @@ doc docs docu documentation doxygen dox doxy:
 		|| (echo "Error: Doxygen version $(min_doxygen_version) or higher is required (found: $(actual_doxygen_version))" \
 			; exit 1)
 	@echo "generating documentation"
-	@doxygen docs/Doxyfile
+	@PROJECT_NUMBER=$(shell git describe --tags --always) doxygen docs/Doxyfile
 
 # 04. Mar 23 (Jonas Keller): added rule for generating single header file
 # uses quom (https://github.com/Viatorus/quom)

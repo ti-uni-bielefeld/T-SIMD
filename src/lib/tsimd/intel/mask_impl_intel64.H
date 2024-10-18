@@ -34,6 +34,7 @@
 
 #include "../base.H"
 #include "../defs.H"
+#include "../mask_impl_emu.H"
 #include "../types.H"
 #include "../vec.H"
 #include "base_impl_intel64.H"
@@ -1422,7 +1423,7 @@ static SIMD_INLINE Vec<T, 64> mask_hadd(const Vec<T, 64> &src,
 {
   Vec<T, 64> x, y;
   unzip<1>(a, b, x, y);
-  return mask_add(src, k, x, y);
+  return internal::mask::mask_add(src, k, x, y);
 }
 
 template <typename T>
@@ -1432,7 +1433,7 @@ static SIMD_INLINE Vec<T, 64> maskz_hadd(const Mask<T, 64> &k,
 {
   Vec<T, 64> x, y;
   unzip<1>(a, b, x, y);
-  return maskz_add(k, x, y);
+  return internal::mask::maskz_add(k, x, y);
 }
 
 // ---------------------------------------------------------------------------
@@ -1447,7 +1448,7 @@ static SIMD_INLINE Vec<T, 64> mask_hadds(const Vec<T, 64> &src,
 {
   Vec<T, 64> x, y;
   unzip<1>(a, b, x, y);
-  return mask_adds(src, k, x, y);
+  return internal::mask::mask_adds(src, k, x, y);
 }
 
 template <typename T>
@@ -1457,7 +1458,7 @@ static SIMD_INLINE Vec<T, 64> maskz_hadds(const Mask<T, 64> &k,
 {
   Vec<T, 64> x, y;
   unzip<1>(a, b, x, y);
-  return maskz_adds(k, x, y);
+  return internal::mask::maskz_adds(k, x, y);
 }
 
 // ---------------------------------------------------------------------------
@@ -1472,7 +1473,7 @@ static SIMD_INLINE Vec<T, 64> mask_hsub(const Vec<T, 64> &src,
 {
   Vec<T, 64> x, y;
   unzip<1>(a, b, x, y);
-  return mask_sub(src, k, x, y);
+  return internal::mask::mask_sub(src, k, x, y);
 }
 
 template <typename T>
@@ -1482,7 +1483,7 @@ static SIMD_INLINE Vec<T, 64> maskz_hsub(const Mask<T, 64> &k,
 {
   Vec<T, 64> x, y;
   unzip<1>(a, b, x, y);
-  return maskz_sub(k, x, y);
+  return internal::mask::maskz_sub(k, x, y);
 }
 
 // ---------------------------------------------------------------------------
@@ -1497,7 +1498,7 @@ static SIMD_INLINE Vec<T, 64> mask_hsubs(const Vec<T, 64> &src,
 {
   Vec<T, 64> x, y;
   unzip<1>(a, b, x, y);
-  return mask_subs(src, k, x, y);
+  return internal::mask::mask_subs(src, k, x, y);
 }
 
 template <typename T>
@@ -1507,7 +1508,7 @@ static SIMD_INLINE Vec<T, 64> maskz_hsubs(const Mask<T, 64> &k,
 {
   Vec<T, 64> x, y;
   unzip<1>(a, b, x, y);
-  return maskz_subs(k, x, y);
+  return internal::mask::maskz_subs(k, x, y);
 }
 
 // 16. Oct 22 (Jonas Keller): added overloaded versions of mask_cmp* functions
@@ -1682,7 +1683,7 @@ static SIMD_INLINE Vec<T, 64> mask_avg(const Vec<T, 64> &src,
   const auto lsb = bit_and(bit_or(a, b), one);
   const auto as  = srai<1>(a);
   const auto bs  = srai<1>(b);
-  return mask_add(src, k, lsb, add(as, bs));
+  return internal::mask::mask_add(src, k, lsb, add(as, bs));
 }
 
 template <typename T,
@@ -1695,7 +1696,7 @@ static SIMD_INLINE Vec<T, 64> maskz_avg(const Mask<T, 64> &k,
   const auto lsb = bit_and(bit_or(a, b), one);
   const auto as  = srai<1>(a);
   const auto bs  = srai<1>(b);
-  return maskz_add(k, lsb, add(as, bs));
+  return internal::mask::maskz_add(k, lsb, add(as, bs));
 }
 
 // NOTE: Float version doesn't round!

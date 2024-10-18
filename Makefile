@@ -87,7 +87,6 @@ static_bins ?= 0
 # - may require -lpthread in libraries above
 
 userdefs_arch     = -march=native -mfpmath=sse
-userdefs_avx512   = -mavx512f -mavx512bw -mavx512dq -mavx512vl -mpopcnt
 userdefs_c        = -ggdb -fno-var-tracking
 userdefs_cppstd   = -std=c++17
 userdefs_cpp      =

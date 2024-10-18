@@ -10,6 +10,14 @@ For documentation of functions and classes, see the [Library Reference](topics.h
 
 For further information on the **T-SIMD** library and the SIMD implementation of Warping methods, including related papers, videos, and image databases see https://www.ti.uni-bielefeld.de/html/people/moeller/tsimd_warpingsimd.html.
 
+## Download and Usage
+
+Download the latest release of **T-SIMD** from the [GitHub releases page](https://github.com/ti-uni-bielefeld/T-SIMD/releases).
+
+The easiest way to use **T-SIMD** is to download and include the single-header version `tsimd_sh.H` in your project.
+
+Alternatively, you can download the full source code and include the `src/lib/tsimd.H` header file.
+
 ## Example
 
 The following example shows how to use **T-SIMD** to compute the sum of two vectors
@@ -28,28 +36,6 @@ int main() {
   return 0;
 }
 ```
-
-## Download and Usage
-
-Download the **T-SIMD** library in one of the following ways.
-For information on the functions and classes provided by **T-SIMD**, see the [documentation](https://ti-uni-bielefeld.github.io/T-SIMD/) and [Library Reference](https://ti-uni-bielefeld.github.io/T-SIMD/topics.html).
-
-### Single-header version
-
-The easiest way to use **T-SIMD** is to download the single-header version of the library:
-
-- [https://ti-uni-bielefeld.github.io/T-SIMD/tsimd_sh.H](https://ti-uni-bielefeld.github.io/T-SIMD/tsimd_sh.H)
-
-and include it in your project.
-
-### Full archive
-
-Alternatively, you can download the full archive of the library from the GitHub repository:
-
-- [https://github.com/ti-uni-bielefeld/T-SIMD](https://github.com/ti-uni-bielefeld/T-SIMD)
-
-Either clone the repository or download the zip archive (green "Code" button -> "Download ZIP") and copy the directory `src/lib/` into your project.
-To use **T-SIMD**, include the header `tsimd.H` from the copied directory.
 
 ## Additional information
 

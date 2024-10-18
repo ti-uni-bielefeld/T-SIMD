@@ -102,7 +102,7 @@ The code should ideally be formatted after every change and before making a new 
 
 ## Generating the documentation
 
-Generating the documentation requires `doxygen` 1.9.8 or later (https://www.doxygen.nl).
+Generating the documentation requires `doxygen` 1.12.0 or later (https://www.doxygen.nl).
 
 To generate the documentation, run
 
@@ -165,3 +165,34 @@ $ scripts/autotest.py
 
 The results of the tests are written into a directory starting with `autotest_` followed by the hostname of the machine and the current date and time.
 
+## Releasing a new version
+
+To release a new version, follow these steps:
+
+### Before the release
+
+- Format the code with `make format`.
+- Make sure the code is working properly by running the tests.
+
+### Creating the release
+
+- Choose a new version number according to the [Semantic Versioning](https://semver.org/) scheme.
+- Create a new tag for the new version with the following command (making sure you are on the commit you want to tag as the release (usually the most recent one)):
+  ```shell
+  $ git tag -a <tag> -m "<description>"
+  ```
+  For example, using version 1.2.3 as an example:
+  ```shell
+  $ git tag -a v1.2.3 -m "Version 1.2.3"
+  ```
+
+  It is important that the tag name starts with a lowercase `v` followed by the version number (meaning it must match `v*.*.*`).
+- Push the tag to the repository:
+  ```shell
+  $ git push origin v1.2.3
+  ```
+  This automatically triggers GitHub actions to do the following things (defined in the [.github/workflows/](.github/workflows/) directory):
+  - Publish the documentation on GitHub Pages.
+  - Create a release draft on GitHub with the single-header include file already attached.
+- Edit the release draft on GitHub to add the changelog and other information. See the previous releases for examples.
+- Publish the release on GitHub.

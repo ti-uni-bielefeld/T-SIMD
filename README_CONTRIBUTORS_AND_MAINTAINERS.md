@@ -194,5 +194,5 @@ To release a new version, follow these steps:
   This automatically triggers GitHub actions to do the following things (defined in the [.github/workflows/](.github/workflows/) directory):
   - Publish the documentation on GitHub Pages.
   - Create a release draft on GitHub with the single-header include file already attached.
-- Edit the release draft on GitHub to add the changelog and other information. See the previous releases for examples.
-- Publish the release on GitHub.
+- Edit the release draft in the [releases section on GitHub](https://github.com/ti-uni-bielefeld/T-SIMD/releases) to add the changelog and other information. See the previous releases for examples.
+- Publish the release.

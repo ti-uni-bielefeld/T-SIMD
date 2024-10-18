@@ -1,6 +1,6 @@
-# Notes for Contributors
+# Notes for Contributors and Maintainers
 
-This page contains information for developers contributing to the **T-SIMD** library.
+This page contains information for developers contributing to and maintaining the **T-SIMD** library.
 
 ## General Information for Contributing
 

@@ -189,10 +189,11 @@ To release a new version, follow these steps:
   It is important that the tag name starts with a lowercase `v` followed by the version number (meaning it must match `v*.*.*`).
 - Push the tag to the repository:
   ```shell
-  $ git push origin v1.2.3
+  $ git push origin tag v1.2.3
   ```
   This automatically triggers GitHub actions to do the following things (defined in the [.github/workflows/](.github/workflows/) directory):
   - Publish the documentation on GitHub Pages.
   - Create a release draft on GitHub with the single-header include file already attached.
 - Edit the release draft in the [releases section on GitHub](https://github.com/ti-uni-bielefeld/T-SIMD/releases) to add the changelog and other information. See the previous releases for examples.
+  - Note that you might have to wait a few moments for the GitHub actions to finish before the release draft appears.
 - Publish the release.

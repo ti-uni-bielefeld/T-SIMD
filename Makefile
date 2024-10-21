@@ -228,8 +228,8 @@ dep:
 # @clang-format -i *.C *.H
 .PHONY: format
 format:
-	@echo "formatting all .C and .H files"
-	@./scripts/format_cpp.sh .
+	@echo "formatting all .C and .H files in src/"
+	@./scripts/format_cpp.sh src
 
 # 02. Mar 23 (Jonas Keller): added documenation rule
 # 20. Nov 23 (Jonas Keller): added check for doxygen version

@@ -86,8 +86,6 @@ This software is distributed based on a specific **license agreement**, please s
 
 ## Authors and Contributors
 
-This software is distributed based on a specific **license agreement**, please see the file [LICENSE.md](LICENSE.md).
-
 **T-SIMD** was originally written by [Ralf Möller](http://www.ti.uni-bielefeld.de/html/people/moeller/) (moeller@ti.uni-bielefeld.de).
 
 [Jonas Keller](https://github.com/jonicho) substantially improved and extended the **T-SIMD** library, added the documentation and set up the GitHub repository.

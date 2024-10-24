@@ -132,7 +132,7 @@ Once `quom` is installed, run
 $ make single-header
 ```
 
-to generate the single-header include file `build/tsimd_sh.H` which can now be distributed and included in projects on its own.
+to generate the single-header include file `build/tsimd.H` which can now be distributed and included in projects on its own.
 
 ## Testing
 

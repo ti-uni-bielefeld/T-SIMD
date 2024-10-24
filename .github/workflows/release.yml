@@ -27,7 +27,7 @@ jobs:
       - name: Prepare Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/tsimd_sh.H
+          files: build/tsimd.H
           draft: true
           generate_release_notes: true
           make_latest: true

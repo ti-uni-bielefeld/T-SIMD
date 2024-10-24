@@ -38,7 +38,7 @@ binaries = $(default_binaries) $(autotest_binaries)
 
 depend_files = $(addsuffix .d,$(binaries))
 
-tsimd_single_header_file = tsimd_sh.H
+tsimd_single_header_file = tsimd.H
 
 objects      = $(addsuffix .o,$(binaries))
 

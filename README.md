@@ -16,7 +16,7 @@ For further information on the **T-SIMD** library and the SIMD implementation of
 
 Download the latest release of **T-SIMD** from the [GitHub releases page](https://github.com/ti-uni-bielefeld/T-SIMD/releases).
 
-The easiest way to use **T-SIMD** is to download and include the single-header version `tsimd_sh.H` in your project.
+The easiest way to use **T-SIMD** is to download and include the single-header version `tsimd.H` in your project.
 
 Alternatively, you can download the full source code and include the `src/lib/tsimd.H` header file.
 
@@ -26,7 +26,7 @@ The following example shows how to use **T-SIMD** to compute the sum of two vect
 and print the result to the standard output.
 
 ```cpp
-#include "tsimd.H" // or "tsimd_sh.H" if you use the single-header version
+#include "tsimd.H"
 #include <stdio.h>
 
 int main() {

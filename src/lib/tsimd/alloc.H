@@ -120,9 +120,14 @@ inline void aligned_free(void *ptr)
  * aligned memory blocks.
  *
  * @tparam T type of the elements in the memory block
- * @tparam ALIGN alignment of the memory block in bytes
+ * @tparam ALIGN alignment of the memory block in bytes, default is
+ * `NATIVE_SIMD_WIDTH`
  */
+#ifdef NATIVE_SIMD_WIDTH
+template <typename T, size_t ALIGN = NATIVE_SIMD_WIDTH>
+#else
 template <typename T, size_t ALIGN>
+#endif
 class aligned_allocator
 {
   // exclude from doxygen (until endcond)

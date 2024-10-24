@@ -2,7 +2,8 @@ name: Build Doxygen Documentation and Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    tags:
+      - "v*.*.*"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -39,19 +40,13 @@ jobs:
       - name: Make documentation
         run: make doc
       - name: Setup Pages
-        # Only when a release tag is pushed
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/configure-pages@v5
       - name: Upload artifact
-        # Only when a release tag is pushed
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'docs/html'
 
   deploy:
-    # Only when a release tag is pushed
-    if: startsWith(github.ref, 'refs/tags/v')
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

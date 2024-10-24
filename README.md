@@ -16,9 +16,9 @@ For further information on the **T-SIMD** library and the SIMD implementation of
 
 Download the latest release of **T-SIMD** from the [GitHub releases page](https://github.com/ti-uni-bielefeld/T-SIMD/releases).
 
-The easiest way to use **T-SIMD** is to download and include the single-header version `tsimd.H` in your project.
+The easiest way to use **T-SIMD** is to download and include the single-header version `%tsimd.H` in your project.
 
-Alternatively, you can download the full source code and include the `src/lib/tsimd.H` header file.
+Alternatively, you can download the full source code and include the `%src/lib/tsimd.H` header file.
 
 ## Example
 
@@ -56,7 +56,7 @@ To limit the maximum vector width that **T-SIMD** will automatically use, see th
 
 ### Preprocessor Definitions
 
-The following preprocessor definitions can be defined to change the behavior of **T-SIMD** (**WARNING**: These definitions **must** be defined before including `tsimd.H` or any other **T-SIMD** header file):
+The following preprocessor definitions can be defined to change the behavior of **T-SIMD** (**WARNING**: These definitions **must** be defined before including `%tsimd.H` or any other **T-SIMD** header file):
 
 - `MAX_SIMD_WIDTH` : This macro can be used to limit the maximum vector width that **T-SIMD** will use automatically. Must be an integer of at least 16.<br>
 **Note**: While **T-SIMD** will not use vectors wider than `MAX_SIMD_WIDTH` (except when a width is explicitly specified), other libraries or the compiler may still use wider vectors, e.g. when auto-vectorizing code.

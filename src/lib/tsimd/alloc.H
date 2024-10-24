@@ -69,6 +69,7 @@ inline void *aligned_malloc(size_t alignment, size_t size)
 #endif
 }
 
+#if defined(NATIVE_SIMD_WIDTH) || defined(DOXYGEN)
 /**
  * @ingroup group_aligned_alloc
  * @brief Aligned memory allocation aligned to `NATIVE_SIMD_WIDTH`.
@@ -87,6 +88,7 @@ inline void *aligned_malloc(size_t size)
 {
   return aligned_malloc(NATIVE_SIMD_WIDTH, size);
 }
+#endif
 
 /**
  * @ingroup group_aligned_alloc

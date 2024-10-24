@@ -202,6 +202,12 @@ int main(int argc, char *argv[])
   TestAll<Unary, SW, Div2rd>::test(repeats1, pattern);
   TestFloat<Binary, SW, Sign>::test(repeats1, pattern);
   TestAll<Binary, SW, AbsDiff>::test(repeats1, pattern);
+  TestInt<Unary, SW, Integrate>::test(repeats1, pattern);
+
+  // TODO: integrate produces errors for floating point types because of
+  // different summation orders. How to fix this?
+  // TestFloat<Unary, SW, Integrate>::test(repeats1, pattern);
+
   // TODO: operators
   // TODO: Vecs
   printf("simdvecautotest1 complete\n");

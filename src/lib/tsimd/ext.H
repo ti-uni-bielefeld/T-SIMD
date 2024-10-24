@@ -3268,6 +3268,72 @@ static SIMD_INLINE void transpose(
   // internal::ext::transpose2inplcLane(rows);
 }
 
+// ========================================================================
+// integration of values in simd::Vec
+// ========================================================================
+
+// example:
+//        0    1    2    3    4    5    6    7
+// +      -    0    1    2    3    4    5    6    slle(1)
+//      --------------------------------------
+//        0  0-1  1-2  2-3  3-4  4-5  5-6  6-7
+// +      -    -    0  0-1  1-2  2-3  3-4  4-5    slle(2)
+//      --------------------------------------
+//        0  0-1  0-2  0-3  1-4  2-5  3-6  4-7
+// +      -    -    -    -    0  0-1  0-2  0-3    slle(4)
+//      --------------------------------------
+//        0  0-1  0-2  0-3  0-4  0-5  0-6  0-7
+//
+// problem: slle has immediate argument, T-SIMD: template parameter
+
+namespace internal {
+namespace ext {
+// primary template
+template <typename T, size_t SIMD_WIDTH, int SHIFT, int END_SHIFT>
+struct HInt
+{
+public:
+  static SIMD_INLINE simd::Vec<T, SIMD_WIDTH> integrate(
+    const simd::Vec<T, SIMD_WIDTH> &v)
+  {
+    return HInt<T, SIMD_WIDTH, 2 * SHIFT, END_SHIFT>::integrate(
+      simd::add(v, simd::slle<SHIFT>(v)));
+  }
+};
+
+// termination template
+template <typename T, size_t SIMD_WIDTH, int END_SHIFT>
+struct HInt<T, SIMD_WIDTH, END_SHIFT, END_SHIFT>
+{
+public:
+  static SIMD_INLINE simd::Vec<T, SIMD_WIDTH> integrate(
+    const simd::Vec<T, SIMD_WIDTH> &v)
+  {
+    return v;
+  }
+};
+} // namespace ext
+} // namespace internal
+
+/**
+ * @ingroup group_horizontal
+ * @brief Integrates the values of a Vec.
+ *
+ * This function integrates the values of a Vec, i.e. it computes the
+ * prefix sum of the elements.
+ *
+ * @param[in] v Vec to integrate
+ *
+ * @return Vec with integrated values
+ */
+template <typename T, size_t SIMD_WIDTH>
+static SIMD_INLINE simd::Vec<T, SIMD_WIDTH> integrate(
+  const simd::Vec<T, SIMD_WIDTH> &v)
+{
+  return internal::ext::HInt<T, SIMD_WIDTH, 1,
+                             simd::Vec<T, SIMD_WIDTH>::elems>::integrate(v);
+}
+
 // ===========================================================================
 // setones: set all bits to 1
 // ===========================================================================

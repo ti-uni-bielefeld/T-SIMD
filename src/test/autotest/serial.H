@@ -2599,6 +2599,21 @@ static SIMD_INLINE uint64_t msb2int(const SerialVec<Double, SIMD_WIDTH> &a)
   return msb2int(reinterpret<uint64_t>(a));
 }
 
+// ---------------------------------------------------------------------------
+// integrate
+// ---------------------------------------------------------------------------
+template <typename T, size_t SIMD_WIDTH>
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> integrate(const SerialVec<T, SIMD_WIDTH> &a)
+{
+  SerialVec<T, SIMD_WIDTH> c;
+  T sum = 0;
+  for (size_t i = 0; i < c.elements; i++) {
+    sum += a[i];
+    c[i] = sum;
+  }
+  return c;
+}
+
 } // namespace auto_test
 } // namespace simd
 

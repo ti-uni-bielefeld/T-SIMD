@@ -2572,6 +2572,26 @@ struct Iota
   }
 };
 
+template <typename T, size_t SIMD_WIDTH>
+struct Integrate
+{
+  static SIMD_INLINE std::string name()
+  {
+    return t2s<T, SIMD_WIDTH>("integrate");
+  }
+
+  static SIMD_INLINE void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec)
+  {
+    vec.randomize();
+  }
+
+  template <template <typename, size_t> class VEC>
+  static SIMD_INLINE VEC<T, SIMD_WIDTH> apply(const VEC<T, SIMD_WIDTH> &a)
+  {
+    return integrate(a);
+  }
+};
+
 } // namespace auto_test
 } // namespace simd
 

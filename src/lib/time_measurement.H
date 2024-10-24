@@ -159,11 +159,6 @@ int clock_gettime(clockid_t clock_id, struct timespec *tp)
 #endif
 
 namespace simd {
-/**
- * @addtogroup group_time_measurements
- * @{
- */
-
 /* long long not supported everywhere
 signed long long
 getTimeUsec()
@@ -288,8 +283,6 @@ long int timeSpecDiffNsec(const struct timespec &x, const struct timespec &y)
   timespec_subtract(x, y, diff);
   return 1000000000L * diff.tv_sec + diff.tv_nsec;
 }
-
-/** @} */
 
 } // namespace simd
 

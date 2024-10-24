@@ -30,6 +30,8 @@
 #ifndef SIMDALLOC_H_
 #define SIMDALLOC_H_
 
+#include "defs.H"
+
 #include <cstddef>
 #include <utility>
 
@@ -53,6 +55,8 @@ namespace simd {
  * @param alignment alignment of the memory block in bytes
  * @param size size of the memory block in bytes
  * @return pointer to the allocated memory block
+ *
+ * @sa aligned_malloc(size_t)
  */
 inline void *aligned_malloc(size_t alignment, size_t size)
 {
@@ -63,6 +67,25 @@ inline void *aligned_malloc(size_t alignment, size_t size)
   if (posix_memalign(&ptr, alignment, size) != 0) { return nullptr; }
   return ptr;
 #endif
+}
+
+/**
+ * @ingroup group_aligned_alloc
+ * @brief Aligned memory allocation aligned to `NATIVE_SIMD_WIDTH`.
+ *
+ * This function allocates a block of memory of size bytes, aligned to
+ * `NATIVE_SIMD_WIDTH`.
+ *
+ * The allocated memory must be freed with aligned_free().
+ *
+ * @param size size of the memory block in bytes
+ * @return pointer to the allocated memory block
+ *
+ * @sa aligned_malloc(size_t, size_t)
+ */
+inline void *aligned_malloc(size_t size)
+{
+  return aligned_malloc(NATIVE_SIMD_WIDTH, size);
 }
 
 /**

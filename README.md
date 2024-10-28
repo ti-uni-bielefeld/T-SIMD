@@ -86,7 +86,7 @@ This software is distributed based on a specific **license agreement**, please s
 
 ## Authors and Contributors
 
-**T-SIMD** was originally written by [Ralf Möller](http://www.ti.uni-bielefeld.de/html/people/moeller/) (moeller@ti.uni-bielefeld.de).
+**T-SIMD** was originally written by [Prof. Dr.-Ing. Ralf Möller](http://www.ti.uni-bielefeld.de/html/people/moeller/) (moeller@ti.uni-bielefeld.de).
 
 [Jonas Keller](https://github.com/jonicho) substantially improved and extended the **T-SIMD** library, added the documentation and set up the GitHub repository.
 
@@ -98,4 +98,4 @@ Their specific contributions are mentioned in the source files. Thanks a lot to 
 
 If you find any bugs or errors in **T-SIMD**, please [open an issue on GitHub](https://github.com/ti-uni-bielefeld/T-SIMD/issues).
 
-Alternatively, or for other inquiries, contact [Ralf Möller](http://www.ti.uni-bielefeld.de/html/people/moeller/) (moeller@ti.uni-bielefeld.de).
+Alternatively, or for other inquiries, contact [Prof. Dr.-Ing. Ralf Möller](http://www.ti.uni-bielefeld.de/html/people/moeller/) (moeller@ti.uni-bielefeld.de).

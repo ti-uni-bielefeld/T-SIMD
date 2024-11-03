@@ -165,8 +165,8 @@ inline void simd_aligned_free(void *ptr)
   simd::aligned_free(ptr);
 }
 
-/// Alias for simd::simd_aligned_allocator. @deprecated Use
-/// simd::simd_aligned_allocator instead.
+/// Alias for simd::aligned_allocator. @deprecated Use simd::aligned_allocator
+/// instead.
 template <typename T, size_t ALIGN>
 using simd_aligned_allocator = simd::aligned_allocator<T, ALIGN>;
 

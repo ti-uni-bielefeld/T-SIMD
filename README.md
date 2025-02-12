@@ -8,7 +8,7 @@ Templates parameters are the element data type of the vectors and the vector wid
 
 The documentation of **T-SIMD** is available [here](https://ti-uni-bielefeld.github.io/T-SIMD/).
 
-For documentation of functions and classes, see the [Library Reference](topics.html).
+For documentation of functions and classes, see the [Library Reference](https://ti-uni-bielefeld.github.io/T-SIMD/topics.html).
 
 For further information on the **T-SIMD** library and the SIMD implementation of Warping methods, including related papers, videos, and image databases see https://www.ti.uni-bielefeld.de/html/people/moeller/tsimd_warpingsimd.html.
 

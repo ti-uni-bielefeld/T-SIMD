@@ -4,6 +4,14 @@
 
 Templates parameters are the element data type of the vectors and the vector width in bytes (e.g. 16 for SSE* and NEON, 32 for AVX/AVX2). This makes it possible to flexibly change the data type and the vector instruction set for entire portions of the code. Moreover, many implementation details at the intrinsics level are hidden by **T-SIMD**. SSE*, AVX/AVX2, AVX-512, and ARM NEON vector instruction sets are currently supported. In addition, higher-level functions like transposition are provided.
 
+## Download and Usage
+
+To use T-SIMD, simply download the [latest single-header version of **T-SIMD**](https://github.com/ti-uni-bielefeld/T-SIMD/releases/latest/download/tsimd.H) and include it in your project.
+
+Alternatively, you can download the full source code of the latest release of **T-SIMD** from the [latest release](https://github.com/ti-uni-bielefeld/T-SIMD/releases/latest) ("Assets" -> "Source code") and include the `%src/lib/tsimd.H` header file in your project.
+
+On the [GitHub releases page](https://github.com/ti-uni-bielefeld/T-SIMD/releases) you can find the current and all previous releases of **T-SIMD**.
+
 ## Documentation
 
 The documentation of **T-SIMD** is available [here](https://ti-uni-bielefeld.github.io/T-SIMD/).
@@ -11,14 +19,6 @@ The documentation of **T-SIMD** is available [here](https://ti-uni-bielefeld.git
 For documentation of functions and classes, see the [Library Reference](https://ti-uni-bielefeld.github.io/T-SIMD/topics.html).
 
 For further information on the **T-SIMD** library and the SIMD implementation of Warping methods, including related papers, videos, and image databases see https://www.ti.uni-bielefeld.de/html/people/moeller/tsimd_warpingsimd.html.
-
-## Download and Usage
-
-Download the latest release of **T-SIMD** from the [GitHub releases page](https://github.com/ti-uni-bielefeld/T-SIMD/releases).
-
-The easiest way to use **T-SIMD** is to download and include the single-header version `%tsimd.H` in your project.
-
-Alternatively, you can download the full source code and include the `%src/lib/tsimd.H` header file.
 
 ## Example
 

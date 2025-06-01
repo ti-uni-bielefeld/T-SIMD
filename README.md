@@ -8,7 +8,7 @@ Templates parameters are the element data type of the vectors and the vector wid
 
 To use T-SIMD, simply download the [latest single-header version of **T-SIMD**](https://github.com/ti-uni-bielefeld/T-SIMD/releases/latest/download/tsimd.H) and include it in your project.
 
-Alternatively, you can download the full source code of the latest release of **T-SIMD** from the [latest release](https://github.com/ti-uni-bielefeld/T-SIMD/releases/latest) ("Assets" -> "Source code") and include the `%src/lib/tsimd.H` header file in your project.
+Alternatively, you can download the full source code of the latest release of **T-SIMD** from the [latest release](https://github.com/ti-uni-bielefeld/T-SIMD/releases/latest) ("Assets" -> "Source code") and include the `src/lib/tsimd.H` header file in your project.
 
 On the [GitHub releases page](https://github.com/ti-uni-bielefeld/T-SIMD/releases) you can find the current and all previous releases of **T-SIMD**.
 
@@ -56,7 +56,7 @@ To limit the maximum vector width that **T-SIMD** will automatically use, see th
 
 ### Preprocessor Definitions
 
-The following preprocessor definitions can be defined to change the behavior of **T-SIMD** (**WARNING**: These definitions **must** be defined before including `%tsimd.H` or any other **T-SIMD** header file):
+The following preprocessor definitions can be defined to change the behavior of **T-SIMD** (**WARNING**: These definitions **must** be defined before including `tsimd.H` or any other **T-SIMD** header file):
 
 - `MAX_SIMD_WIDTH` : This macro can be used to limit the maximum vector width that **T-SIMD** will use automatically. Must be an integer of at least 16.<br>
 **Note**: While **T-SIMD** will not use vectors wider than `MAX_SIMD_WIDTH` (except when a width is explicitly specified), other libraries or the compiler may still use wider vectors, e.g. when auto-vectorizing code.

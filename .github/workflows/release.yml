@@ -1,12 +1,23 @@
-name: Prepare Release
+name: Prepare Release and Deploy Documentation to GitHub Pages
 
 on:
   push:
     tags:
       - "v*.*.*"
+    branches:
+      - "main"
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages and creating a release
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 defaults:
   run:
@@ -15,19 +26,49 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DOXYGEN_VERSION: 1.12.0
     steps:
       - name: Install quom
         run: sudo pip3 install quom
       - name: Install clang-format
         run: sudo pip3 install clang-format
+      - name: Install doxygen
+        run: |
+          wget -nv https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
+          tar -xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
+          sudo cp doxygen-${DOXYGEN_VERSION}/bin/* /usr/bin
       - name: Checkout
         uses: actions/checkout@v4
       - name: Make single header
         run: make single-header
+      - name: Make documentation
+        run: make doc
+      - name: Zip documentation
+        run: zip -r T-SIMD_documentation.zip docs/html
       - name: Prepare Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/tsimd.H
+          files: |
+            build/tsimd.H
+            T-SIMD_documentation.zip
           draft: true
           generate_release_notes: true
           make_latest: true
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload docs as artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/html'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

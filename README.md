@@ -10,6 +10,10 @@ The documentation of **T-SIMD** is available [here](https://ti-uni-bielefeld.git
 
 For documentation of functions and classes, see the [Library Reference](https://ti-uni-bielefeld.github.io/T-SIMD/topics.html).
 
+The documentation for the current release is also available [here](https://github.com/ti-uni-bielefeld/T-SIMD/releases/latest/download/T-SIMD_documentation.zip).
+
+To download the documentation of previous releases, see the [GitHub releases page](https://github.com/ti-uni-bielefeld/T-SIMD/releases)
+
 For further information on the **T-SIMD** library and the SIMD implementation of Warping methods, including related papers, videos, and image databases see https://www.ti.uni-bielefeld.de/html/people/moeller/tsimd_warpingsimd.html.
 
 ## Download and Usage

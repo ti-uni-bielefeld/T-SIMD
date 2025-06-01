@@ -147,17 +147,20 @@ ifeq ($(realpath $(build_dir)),$(realpath .))
 $(error build directory cannot be the project root directory)
 endif
 
-.PHONY: all_default
-all_default: $(addprefix $(build_dir)/,$(default_binaries))
+.PHONY: all
+all: default_binaries single-header docs
 	@echo "use 'make autotest' to compile $(autotest_binaries)"
 	@echo "  requires long compilation time and may run out of memory,"
 	@echo "  compilation may take much longer on g++ than on clang++"
 
+.PHONY: all_binaries all_bins
+all_binaries all_bins: default_binaries autotest
+
+.PHONY: default_binaries
+default_binaries: $(addprefix $(build_dir)/,$(default_binaries))
+
 .PHONY: autotest
 autotest: $(addprefix $(build_dir)/,$(autotest_binaries))
-
-.PHONY: all
-all: all_default autotest
 
 .PHONY: $(binaries)
 $(binaries): %: $(build_dir)/%
@@ -243,7 +246,9 @@ doc docs docu documentation doxygen dox doxy:
 		|| (echo "Error: Doxygen version $(min_doxygen_version) or higher is required (found: $(actual_doxygen_version))" \
 			; exit 1)
 	@echo "generating documentation"
-	@PROJECT_NUMBER=$(shell git describe --tags --always) doxygen docs/Doxyfile
+	@# call doxygen and send stdout and stderr to log file and send stderr to console
+	@PROJECT_NUMBER=$(shell git describe --tags --always) doxygen docs/Doxyfile 2> >(tee docs/doxygen.log >&2) 1>> docs/doxygen.log
+	@echo "documentation generated, open docs/html/index.html in your browser"
 
 # 04. Mar 23 (Jonas Keller): added rule for generating single header file
 # uses quom (https://github.com/Viatorus/quom)
@@ -252,7 +257,6 @@ single-header: gen-autogen format
 	@echo "generating tsimd single header file"
 	@$(MKDIR) $(build_dir)
 	@./scripts/generate_single-header.sh $(build_dir)/$(tsimd_single_header_file)
-	@echo "single header written to $(build_dir)/$(tsimd_single_header_file)"
 
 # 06. Sep 23 (Jonas Keller): added rule for autogenerating transpose functions
 autogen_dir = src/lib/tsimd/autogen/

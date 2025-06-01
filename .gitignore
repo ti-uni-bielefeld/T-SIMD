@@ -3,6 +3,7 @@ COMPILE_AND_TEST/
 autotest*/
 build*/
 docs/html/
+docs/doxygen.log
 *.tmp
 *.o
 *.ilk

@@ -33,13 +33,16 @@ if ! which clang-format > /dev/null; then
         exit 1
 fi
 
-REQUIRED_CLANG_FORMAT_VERSION=16
-if [[ $(clang-format --version | grep -oP '(?<=version )\d+') -lt $REQUIRED_CLANG_FORMAT_VERSION ]]; then
-        echo "Error: clang-format version $REQUIRED_CLANG_FORMAT_VERSION or higher required (found $(clang-format --version))"
+REQUIRED_CLANG_FORMAT_VERSION=20
+ACTUAL_CLANG_FORMAT_VERSION=$(clang-format --version)
+if [[ $(echo $ACTUAL_CLANG_FORMAT_VERSION | grep -oP '(?<=version )\d+') -lt $REQUIRED_CLANG_FORMAT_VERSION ]]; then
+        echo "Error: clang-format version $REQUIRED_CLANG_FORMAT_VERSION or higher required (found $ACTUAL_CLANG_FORMAT_VERSION)"
         exit 1
 fi
 
-find $1 -type f \( -name "*.H" -o -name "*.C" \) | while read -r src; do
+set -e # Exit on error
+
+find "$1" -type f \( -name "*.H" -o -name "*.C" \) | while read -r src; do
         # "clang-format -i" can break links, so we format into a temporary file
         # and then write the new content back
         tmpSrc="${src}.tmp"

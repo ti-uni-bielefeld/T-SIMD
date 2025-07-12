@@ -2603,7 +2603,8 @@ static SIMD_INLINE uint64_t msb2int(const SerialVec<Double, SIMD_WIDTH> &a)
 // integrate
 // ---------------------------------------------------------------------------
 template <typename T, size_t SIMD_WIDTH>
-static SIMD_INLINE SerialVec<T, SIMD_WIDTH> integrate(const SerialVec<T, SIMD_WIDTH> &a)
+static SIMD_INLINE SerialVec<T, SIMD_WIDTH> integrate(
+  const SerialVec<T, SIMD_WIDTH> &a)
 {
   SerialVec<T, SIMD_WIDTH> c;
   T sum = 0;

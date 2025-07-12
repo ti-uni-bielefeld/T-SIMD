@@ -78,7 +78,7 @@ struct MySIMDStruct {
 
 ## Formatting
 
-The code is formatted with `clang-format` version 16 or newer (https://clang.llvm.org/docs/ClangFormat.html, https://releases.llvm.org/download.html) using the configuration file `.clang-format`.
+The code is formatted with `clang-format` version 20 or newer (https://clang.llvm.org/docs/ClangFormat.html, https://releases.llvm.org/download.html) using the configuration file `.clang-format`.
 
 `clang-format` can be installed with the following commands for example:
 

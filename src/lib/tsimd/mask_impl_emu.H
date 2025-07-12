@@ -121,7 +121,13 @@ class Mask
 
 public:
   Mask() = default;
-  explicit SIMD_INLINE Mask(const Vec<T, SIMD_WIDTH> &x) : mask(x) {}
+  explicit SIMD_INLINE Mask(const Vec<T, SIMD_WIDTH> &x)
+  {
+    // shift the most significant bit into all bits
+    const auto &xInt    = reinterpret<typename TypeInfo<T>::IntegerType>(x);
+    const auto &shifted = srai<sizeof(T) * 8 - 1>(xInt);
+    mask                = reinterpret<T>(shifted);
+  }
   SIMD_INLINE Mask(const uint64_t x) : mask(int2bits<T, SIMD_WIDTH>(x)) {}
   explicit SIMD_INLINE operator Vec<T, SIMD_WIDTH>() const { return mask; }
   SIMD_INLINE operator uint64_t() const { return msb2int<T, SIMD_WIDTH>(mask); }

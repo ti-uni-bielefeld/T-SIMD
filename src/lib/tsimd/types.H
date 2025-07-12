@@ -152,6 +152,7 @@ struct TypeInfo<Byte>
   using NextLargerType = Word;
   using UnsignedType   = Byte;
   using SignedType     = SignedByte;
+  using IntegerType    = SignedByte;
 };
 
 template <>
@@ -168,6 +169,7 @@ struct TypeInfo<SignedByte>
   using NextLargerType = Short;
   using UnsignedType   = Byte;
   using SignedType     = SignedByte;
+  using IntegerType    = SignedByte;
 };
 
 template <>
@@ -181,6 +183,7 @@ struct TypeInfo<Word>
   using NextLargerType = Int; // no larger unsigned type, use Int
   using UnsignedType   = Word;
   using SignedType     = Short;
+  using IntegerType    = Short;
 };
 
 template <>
@@ -194,6 +197,7 @@ struct TypeInfo<Short>
   using NextLargerType = Int;
   using UnsignedType   = Word;
   using SignedType     = Short;
+  using IntegerType    = Short;
 };
 
 template <>
@@ -207,6 +211,7 @@ struct TypeInfo<Int>
   using NextLargerType = Long;
   using UnsignedType   = uint32_t; // not a SIMD type
   using SignedType     = Int;
+  using IntegerType    = Int;
 };
 
 template <>
@@ -220,6 +225,7 @@ struct TypeInfo<Long>
   using NextLargerType = Long;     // no larger integer type than Long
   using UnsignedType   = uint64_t; // not a SIMD type
   using SignedType     = Long;
+  using IntegerType    = Long;
 };
 
 template <>
@@ -232,6 +238,7 @@ struct TypeInfo<Float>
   using NextLargerType = Double;
   using UnsignedType   = Float; // no unsigned float type
   using SignedType     = Float;
+  using IntegerType    = Int;
 };
 
 template <>
@@ -244,6 +251,7 @@ struct TypeInfo<Double>
   using NextLargerType = Double; // no larger double type than Double
   using UnsignedType   = Double; // no unsigned double type
   using SignedType     = Double;
+  using IntegerType    = Long;
 };
 
 } // namespace types
@@ -321,6 +329,9 @@ struct TypeInfo
   /// @brief The signed type (e.g. SignedByte for Byte), or the same
   /// type if there is no signed type
   using SignedType = typename internal::types::TypeInfo<T>::SignedType;
+  /// @brief The signed integer type of the same size (e.g. SignedByte for Byte,
+  /// Int for Float)
+  using IntegerType = typename internal::types::TypeInfo<T>::IntegerType;
 };
 
 // ===========================================================================

@@ -51,6 +51,9 @@ int main(int argc, char *argv[])
 
   printf("pattern \"%s\", repeats1 = %zu\n", pattern.c_str(), repeats1);
 
+  TestAll<TesterUnaryMaskToVec, SW, Mask_toVec>::test(repeats1, pattern);
+  TestAll<TesterBinaryWithMask, SW, Mask_ifelsezeroFromVec>::test(repeats1,
+                                                                  pattern);
   TestAll<TesterMaskConditionBinary, SW, Mask_ifelse>::test(repeats1, pattern);
   TestAll<TesterMaskConditionUnary, SW, Mask_ifelsezero>::test(repeats1,
                                                                pattern);

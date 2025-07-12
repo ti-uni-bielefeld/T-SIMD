@@ -248,10 +248,15 @@ struct CmpEqual
 
   template <typename T, size_t SIMD_WIDTH>
   static bool cmpVec(SerialVec<T, SIMD_WIDTH> &expected,
-                     SerialVec<T, SIMD_WIDTH> &actual)
+                     SerialVec<T, SIMD_WIDTH> &actual,
+                     bool strictBitsCmp = false)
   {
     if (memcmp(&expected, &actual, sizeof(SerialVec<T, SIMD_WIDTH>)) == 0) {
       return true;
+    } else if (strictBitsCmp) {
+      // if strictBitsCmp is true, we only want to compare the bit patterns of
+      // the SerialVecs, so we return false here
+      return false;
     }
     for (size_t i = 0; i < SerialVec<T, SIMD_WIDTH>::elems; ++i) {
       if (!cmpScalar(expected[i], actual[i])) { return false; }
@@ -261,11 +266,11 @@ struct CmpEqual
 
   template <typename T, size_t SIMD_WIDTH>
   static bool cmpVec(SerialVec<T, SIMD_WIDTH> &expected,
-                     Vec<T, SIMD_WIDTH> &actual)
+                     Vec<T, SIMD_WIDTH> &actual, bool strictBitsCmp = false)
   {
     SerialVec<T, SIMD_WIDTH> actualSerial =
       SerialVec<T, SIMD_WIDTH>::fromVec(actual);
-    return cmpVec(expected, actualSerial);
+    return cmpVec(expected, actualSerial, strictBitsCmp);
   }
 };
 

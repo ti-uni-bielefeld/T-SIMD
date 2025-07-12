@@ -1,5 +1,5 @@
 ---
-# Requires clang-format 16 or newer
+# Requires clang-format 20 or newer
 # Install with "pip install clang-format" or "pip3 install clang-format" for example
 
 Language: Cpp
@@ -11,18 +11,24 @@ AlignConsecutiveAssignments:
   AcrossEmptyLines: false
   AcrossComments: false
   AlignCompound: false
+  AlignFunctionDeclarations: false
+  AlignFunctionPointers: false
   PadOperators: true
 AlignConsecutiveBitFields:
   Enabled: true
   AcrossEmptyLines: false
   AcrossComments: false
   AlignCompound: false
+  AlignFunctionDeclarations: false
+  AlignFunctionPointers: false
   PadOperators: false
 AlignConsecutiveMacros:
   Enabled: true
   AcrossEmptyLines: false
   AcrossComments: false
   AlignCompound: false
+  AlignFunctionDeclarations: false
+  AlignFunctionPointers: false
   PadOperators: false
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: Always
@@ -62,7 +68,7 @@ IfMacros:
   - SIMD_IF_CONSTEXPR
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex: "\".*\""
+  - Regex: '".*"'
     Priority: 0
   - Regex: "<(tsimd|time_measurement)\\.H>"
     Priority: 1
@@ -70,6 +76,10 @@ IncludeCategories:
     Priority: 2
 IndentCaseLabels: false
 InsertNewlineAtEOF: true
+KeepEmptyLines:
+  AtEndOfFile: false
+  AtStartOfBlock: false
+  AtStartOfFile: false
 PointerAlignment: Right
 SpaceAfterCStyleCast: true
 SpaceAfterTemplateKeyword: true

@@ -323,8 +323,8 @@ struct CmpRelError
 // tests for different type combinations: no additional template argument
 // ===========================================================================
 
-template <template <typename, size_t, template <typename, size_t> class, class>
-          class Tester,
+template <template <typename, size_t, template <typename, size_t> class,
+                    class> class Tester,
           size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TestSignedInt
@@ -340,8 +340,8 @@ struct TestSignedInt
   }
 };
 
-template <template <typename, size_t, template <typename, size_t> class, class>
-          class Tester,
+template <template <typename, size_t, template <typename, size_t> class,
+                    class> class Tester,
           size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TestUnsignedInt
@@ -353,8 +353,8 @@ struct TestUnsignedInt
   }
 };
 
-template <template <typename, size_t, template <typename, size_t> class, class>
-          class Tester,
+template <template <typename, size_t, template <typename, size_t> class,
+                    class> class Tester,
           size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TestFloat
@@ -368,8 +368,8 @@ struct TestFloat
   }
 };
 
-template <template <typename, size_t, template <typename, size_t> class, class>
-          class Tester,
+template <template <typename, size_t, template <typename, size_t> class,
+                    class> class Tester,
           size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TestInt
@@ -381,8 +381,8 @@ struct TestInt
   }
 };
 
-template <template <typename, size_t, template <typename, size_t> class, class>
-          class Tester,
+template <template <typename, size_t, template <typename, size_t> class,
+                    class> class Tester,
           size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TestSigned
@@ -394,8 +394,8 @@ struct TestSigned
   }
 };
 
-template <template <typename, size_t, template <typename, size_t> class, class>
-          class Tester,
+template <template <typename, size_t, template <typename, size_t> class,
+                    class> class Tester,
           size_t SIMD_WIDTH, template <typename, size_t> class FCT,
           class CMP = CmpEqual>
 struct TestAll
@@ -411,11 +411,10 @@ struct TestAll
 // tests for different type combinations: one additional int template argument
 // ===========================================================================
 
-template <
-  template <typename, size_t, template <size_t, typename, size_t> class, class>
-  class Tester,
-  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t, template <size_t, typename, size_t> class,
+                    class> class Tester,
+          size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestSignedIntTI
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -429,11 +428,10 @@ struct TestSignedIntTI
   }
 };
 
-template <
-  template <typename, size_t, template <size_t, typename, size_t> class, class>
-  class Tester,
-  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t, template <size_t, typename, size_t> class,
+                    class> class Tester,
+          size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestUnsignedIntTI
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -443,11 +441,10 @@ struct TestUnsignedIntTI
   }
 };
 
-template <
-  template <typename, size_t, template <size_t, typename, size_t> class, class>
-  class Tester,
-  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t, template <size_t, typename, size_t> class,
+                    class> class Tester,
+          size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestFloatTI
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -459,11 +456,10 @@ struct TestFloatTI
   }
 };
 
-template <
-  template <typename, size_t, template <size_t, typename, size_t> class, class>
-  class Tester,
-  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t, template <size_t, typename, size_t> class,
+                    class> class Tester,
+          size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestIntTI
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -473,11 +469,10 @@ struct TestIntTI
   }
 };
 
-template <
-  template <typename, size_t, template <size_t, typename, size_t> class, class>
-  class Tester,
-  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t, template <size_t, typename, size_t> class,
+                    class> class Tester,
+          size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestSignedTI
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -487,11 +482,10 @@ struct TestSignedTI
   }
 };
 
-template <
-  template <typename, size_t, template <size_t, typename, size_t> class, class>
-  class Tester,
-  size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
-  class CMP = CmpEqual>
+template <template <typename, size_t, template <size_t, typename, size_t> class,
+                    class> class Tester,
+          size_t SIMD_WIDTH, template <size_t, typename, size_t> class FCT,
+          class CMP = CmpEqual>
 struct TestAllTI
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -505,12 +499,11 @@ struct TestAllTI
 // tests for different type combinations: two additional int template args.
 // ===========================================================================
 
-template <template <typename, size_t,
-                    template <size_t, size_t, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH,
-          template <size_t, size_t, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, size_t, typename, size_t> class,
+            class> class Tester,
+  size_t SIMD_WIDTH, template <size_t, size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestSignedIntTII
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -524,12 +517,11 @@ struct TestSignedIntTII
   }
 };
 
-template <template <typename, size_t,
-                    template <size_t, size_t, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH,
-          template <size_t, size_t, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, size_t, typename, size_t> class,
+            class> class Tester,
+  size_t SIMD_WIDTH, template <size_t, size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestUnsignedIntTII
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -539,12 +531,11 @@ struct TestUnsignedIntTII
   }
 };
 
-template <template <typename, size_t,
-                    template <size_t, size_t, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH,
-          template <size_t, size_t, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, size_t, typename, size_t> class,
+            class> class Tester,
+  size_t SIMD_WIDTH, template <size_t, size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestFloatTII
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -556,12 +547,11 @@ struct TestFloatTII
   }
 };
 
-template <template <typename, size_t,
-                    template <size_t, size_t, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH,
-          template <size_t, size_t, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, size_t, typename, size_t> class,
+            class> class Tester,
+  size_t SIMD_WIDTH, template <size_t, size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestIntTII
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -571,12 +561,11 @@ struct TestIntTII
   }
 };
 
-template <template <typename, size_t,
-                    template <size_t, size_t, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH,
-          template <size_t, size_t, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, size_t, typename, size_t> class,
+            class> class Tester,
+  size_t SIMD_WIDTH, template <size_t, size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestSignedTII
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -586,12 +575,11 @@ struct TestSignedTII
   }
 };
 
-template <template <typename, size_t,
-                    template <size_t, size_t, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH,
-          template <size_t, size_t, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, size_t, template <size_t, size_t, typename, size_t> class,
+            class> class Tester,
+  size_t SIMD_WIDTH, template <size_t, size_t, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestAllTII
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -605,11 +593,11 @@ struct TestAllTII
 // test for different type combinations: one additional template type arg.
 // ===========================================================================
 
-template <template <typename, typename, size_t,
-                    template <typename, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, typename, size_t,
+            template <typename, typename, size_t> class, class> class Tester,
+  size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestAllTT
 {
   // 26. Nov 22 (Jonas Keller): Added testAllSeconds to make this easier to
@@ -651,11 +639,11 @@ private:
 
 // 07. Feb (Jonas Keller): Added TestAllTTSameSize
 
-template <template <typename, typename, size_t,
-                    template <typename, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, typename, size_t,
+            template <typename, typename, size_t> class, class> class Tester,
+  size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestAllTTSameSize
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -682,11 +670,11 @@ struct TestAllTTSameSize
   }
 };
 
-template <template <typename, typename, size_t,
-                    template <typename, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, typename, size_t,
+            template <typename, typename, size_t> class, class> class Tester,
+  size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestAllTTOneSmaller
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -708,11 +696,11 @@ struct TestAllTTOneSmaller
   }
 };
 
-template <template <typename, typename, size_t,
-                    template <typename, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, typename, size_t,
+            template <typename, typename, size_t> class, class> class Tester,
+  size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestAllTTLarger
 {
   static void test(size_t repeats, const std::string &pattern)
@@ -757,11 +745,11 @@ struct TestAllTTLarger
   }
 };
 
-template <template <typename, typename, size_t,
-                    template <typename, typename, size_t> class, class>
-          class Tester,
-          size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
-          class CMP = CmpEqual>
+template <
+  template <typename, typename, size_t,
+            template <typename, typename, size_t> class, class> class Tester,
+  size_t SIMD_WIDTH, template <typename, typename, size_t> class FCT,
+  class CMP = CmpEqual>
 struct TestAllTTSameSizeOrLarger
 {
   static void test(size_t repeats, const std::string &pattern)

@@ -560,10 +560,10 @@ struct TestMaskZLoad
   }
 };
 
-template <size_t SIMD_WIDTH,
-          template <typename, size_t, template <typename, size_t> class>
-          class TEST,
-          template <typename, size_t> class FCT>
+template <
+  size_t SIMD_WIDTH,
+  template <typename, size_t, template <typename, size_t> class> class TEST,
+  template <typename, size_t> class FCT>
 void testAll(const size_t reps)
 {
   TEST<Byte, SIMD_WIDTH, FCT>::test(reps);

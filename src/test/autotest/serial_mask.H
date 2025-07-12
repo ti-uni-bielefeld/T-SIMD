@@ -137,12 +137,13 @@ struct SerialMask
   SerialMask(const typename _UInt<bits>::type &_mask) : mask(_mask) {}
   SerialMask(const SerialVec<T, SIMD_WIDTH> &x)
   {
+    const SerialVec<UInt<sizeof(T) * 8>, SIMD_WIDTH> &xUInt =
+      reinterpret<UInt<sizeof(T) * 8>>(x);
     mask = 0;
-    // avoids comparison with TypeInfo::trueval, which fails for
-    // Float (NaN)
-    SerialVec<T, SIMD_WIDTH> negX = bit_not(x);
     for (size_t i = 0; i < x.elements; i++) {
-      if (negX[i] == T(0)) { mask = mask | (UInt<bits>(1) << i); }
+      if ((xUInt[i] >> (sizeof(T) * 8 - 1)) != 0) {
+        mask = mask | (UInt<bits>(1) << i);
+      }
     }
   }
   explicit operator SerialVec<T, SIMD_WIDTH>() const

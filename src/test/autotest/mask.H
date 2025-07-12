@@ -839,6 +839,117 @@ struct TesterMaskUnaryBool
 };
 
 // =============================================================================
+// test for binary vector functions that also need a mask template parameter
+// =============================================================================
+
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
+          class CMP = CmpEqual>
+struct TesterBinaryWithMask
+{
+  static void test(size_t repeats, const std::string &pattern)
+  {
+    std::string name = FCT<T, SIMD_WIDTH>::name();
+    if (name.find(pattern) == std::string::npos) { return; }
+    std::string args = "v,v";
+    printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
+      SerialVec<T, SIMD_WIDTH> cond;
+      SerialVec<T, SIMD_WIDTH> a;
+      FCT<T, SIMD_WIDTH>::randomizeInput(cond);
+      FCT<T, SIMD_WIDTH>::randomizeInput(a);
+      SerialVec<T, SIMD_WIDTH> cs =
+        FCT<T, SIMD_WIDTH>::template apply<SerialVec, SerialMask>(cond, a);
+      SerialVec<T, SIMD_WIDTH> cp = SerialVec<T, SIMD_WIDTH>::fromVec(
+        FCT<T, SIMD_WIDTH>::template apply<Vec, Mask>(cond.getVec(),
+                                                      a.getVec()));
+      if (!CMP::cmpVec(cs, cp)) {
+        errors++;
+        if (errors <= PRINT_ERRORS) {
+          printError(name, args);
+          PRINT_VEC(T, cond);
+          PRINT_VEC(T, a);
+          PRINT_VEC(T, cs);
+          PRINT_VEC(T, cp);
+        }
+        EXIT;
+      }
+    }
+    printErrorStats(errors, trials);
+#endif
+
+    Vec<T, SIMD_WIDTH> input1, input2;
+    struct timespec start = getTimeSpecMonotonic();
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+        doNotOptimize(input1);
+        doNotOptimize(input2);
+        Vec<T, SIMD_WIDTH> result =
+          FCT<T, SIMD_WIDTH>::template apply<Vec, Mask>(input1, input2);
+        doNotOptimize(result);
+      }
+    }
+    struct timespec end = getTimeSpecMonotonic();
+    long int time       = timeSpecDiffNsec(end, start);
+    printTimeStats(time, repeats);
+  }
+};
+
+// =============================================================================
+// test for unary mask functions that return a vector
+// =============================================================================
+
+template <typename T, size_t SIMD_WIDTH, template <typename, size_t> class FCT,
+          class CMP = CmpEqual>
+struct TesterUnaryMaskToVec
+{
+  static void test(size_t repeats, const std::string &pattern)
+  {
+    std::string name = FCT<T, SIMD_WIDTH>::name();
+    if (name.find(pattern) == std::string::npos) { return; }
+    std::string args = "m";
+    printInfo(name, args);
+#if !ONLY_TIME_MEASUREMENT
+    size_t errors = 0, trials = 0;
+    for (size_t i = 0; i < repeats; i++, trials++) {
+      SerialMask<T, SIMD_WIDTH> k;
+      FCT<T, SIMD_WIDTH>::randomizeInput(k);
+      SerialVec<T, SIMD_WIDTH> cs =
+        FCT<T, SIMD_WIDTH>::template apply<SerialVec, SerialMask>(k);
+      SerialVec<T, SIMD_WIDTH> cp = SerialVec<T, SIMD_WIDTH>::fromVec(
+        FCT<T, SIMD_WIDTH>::template apply<Vec, Mask>(k.getMask()));
+      if (!CMP::cmpVec(cs, cp, true)) {
+        errors++;
+        if (errors <= PRINT_ERRORS) {
+          printError(name, args);
+          PRINT_SERIAL_MASK(T, SIMD_WIDTH, k);
+          PRINT_VEC(T, cs);
+          PRINT_VEC(T, cp);
+        }
+        EXIT;
+      }
+    }
+    printErrorStats(errors, trials);
+#endif
+
+    Mask<T, SIMD_WIDTH> inputMask;
+    struct timespec start = getTimeSpecMonotonic();
+    for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
+      for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
+        doNotOptimize(inputMask);
+        Vec<T, SIMD_WIDTH> result =
+          FCT<T, SIMD_WIDTH>::template apply<Vec, Mask>(inputMask);
+        doNotOptimize(result);
+      }
+    }
+    struct timespec end = getTimeSpecMonotonic();
+    long int time       = timeSpecDiffNsec(end, start);
+    printTimeStats(time, repeats);
+  }
+};
+
+// =============================================================================
 // test for unary mask functions
 // =============================================================================
 

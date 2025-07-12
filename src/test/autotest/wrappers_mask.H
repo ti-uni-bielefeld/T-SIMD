@@ -42,6 +42,22 @@ namespace simd {
 namespace auto_test {
 
 template <typename T, size_t SIMD_WIDTH>
+struct Mask_toVec
+{
+  static std::string name() { return t2s<T, SIMD_WIDTH>("Vec"); }
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
+  {
+    mask.randomize();
+  }
+  template <template <typename, size_t> class Vec,
+            template <typename, size_t> class Mask>
+  static Vec<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &a)
+  {
+    return Vec<T, SIMD_WIDTH>(a);
+  };
+};
+
+template <typename T, size_t SIMD_WIDTH>
 struct Mask_ifelse
 {
   static std::string name() { return t2s<T, SIMD_WIDTH>("mask_ifelse"); }
@@ -75,6 +91,26 @@ struct Mask_ifelsezero
                                   const Vec<T, SIMD_WIDTH> &trueVal)
   {
     return mask_ifelsezero(cond, trueVal);
+  }
+};
+
+// the same as Mask_ifelsezero, but with the condition as a vector, to test
+// conversion from vector to mask
+template <typename T, size_t SIMD_WIDTH>
+struct Mask_ifelsezeroFromVec
+{
+  static std::string name() { return t2s<T, SIMD_WIDTH>("mask_ifelsezero"); }
+  static void randomizeInput(SerialMask<T, SIMD_WIDTH> &mask)
+  {
+    mask.randomize();
+  }
+  static void randomizeInput(SerialVec<T, SIMD_WIDTH> &vec) { vec.randomize(); }
+  template <template <typename, size_t> class Vec,
+            template <typename, size_t> class Mask>
+  static Vec<T, SIMD_WIDTH> apply(const Vec<T, SIMD_WIDTH> &cond,
+                                  const Vec<T, SIMD_WIDTH> &trueVal)
+  {
+    return mask_ifelsezero(Mask<T, SIMD_WIDTH>(cond), trueVal);
   }
 };
 

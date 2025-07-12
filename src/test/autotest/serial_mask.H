@@ -145,6 +145,15 @@ struct SerialMask
       if (negX[i] == T(0)) { mask = mask | (UInt<bits>(1) << i); }
     }
   }
+  explicit operator SerialVec<T, SIMD_WIDTH>() const
+  {
+    SerialVec<T, SIMD_WIDTH> result;
+    for (size_t i = 0; i < bits; i++) {
+      result[i] =
+        (mask & (UInt<bits>(1) << i)) != 0 ? TypeInfo<T>::trueval() : T(0);
+    }
+    return result;
+  }
 
   operator UInt<bits>() const { return mask; }
   operator typename _UInt<bits>::type() const { return mask; }

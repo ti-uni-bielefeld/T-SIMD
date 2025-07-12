@@ -1,8 +1,8 @@
 .vscode/
-COMPILE_AND_TEST/
-autotest*/
-build*/
-docs/html/
+/COMPILE_AND_TEST/
+/autotest*/
+/build*/
+/docs/html/
 *.tmp
 *.o
 *.ilk

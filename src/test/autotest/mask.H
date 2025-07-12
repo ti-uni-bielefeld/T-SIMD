@@ -87,11 +87,9 @@ struct TesterMaskUnary
       FCT<T, SIMD_WIDTH>::randomizeInput(src);
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
-      SerialVec<T, SIMD_WIDTH> cs =
-        FCT<T, SIMD_WIDTH>::template apply(src, k, a);
-      SerialVec<T, SIMD_WIDTH> cp =
-        SerialVec<T, SIMD_WIDTH>::fromVec(FCT<T, SIMD_WIDTH>::template apply(
-          src.getVec(), k.getMask(), a.getVec()));
+      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::apply(src, k, a);
+      SerialVec<T, SIMD_WIDTH> cp = SerialVec<T, SIMD_WIDTH>::fromVec(
+        FCT<T, SIMD_WIDTH>::apply(src.getVec(), k.getMask(), a.getVec()));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -117,7 +115,7 @@ struct TesterMaskUnary
         doNotOptimize(input);
         doNotOptimize(inputMask);
         Vec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply(inputSrc, inputMask, input);
+          FCT<T, SIMD_WIDTH>::apply(inputSrc, inputMask, input);
         doNotOptimize(result);
       }
     }
@@ -148,9 +146,9 @@ struct TesterMaskZUnary
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
-      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::template apply(k, a);
+      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::apply(k, a);
       SerialVec<T, SIMD_WIDTH> cp = SerialVec<T, SIMD_WIDTH>::fromVec(
-        FCT<T, SIMD_WIDTH>::template apply(k.getMask(), a.getVec()));
+        FCT<T, SIMD_WIDTH>::apply(k.getMask(), a.getVec()));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -173,8 +171,7 @@ struct TesterMaskZUnary
       for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
-        Vec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply(inputMask, input);
+        Vec<T, SIMD_WIDTH> result = FCT<T, SIMD_WIDTH>::apply(inputMask, input);
         doNotOptimize(result);
       }
     }
@@ -208,10 +205,9 @@ struct TesterMaskBinary
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
       FCT<T, SIMD_WIDTH>::randomizeInput(b);
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
-      SerialVec<T, SIMD_WIDTH> cs =
-        FCT<T, SIMD_WIDTH>::template apply(src, k, a, b);
+      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::apply(src, k, a, b);
       SerialVec<T, SIMD_WIDTH> cp =
-        SerialVec<T, SIMD_WIDTH>::fromVec(FCT<T, SIMD_WIDTH>::template apply(
+        SerialVec<T, SIMD_WIDTH>::fromVec(FCT<T, SIMD_WIDTH>::apply(
           src.getVec(), k.getMask(), a.getVec(), b.getVec()));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
@@ -239,8 +235,8 @@ struct TesterMaskBinary
         doNotOptimize(input1);
         doNotOptimize(input2);
         doNotOptimize(inputMask);
-        Vec<T, SIMD_WIDTH> result = FCT<T, SIMD_WIDTH>::template apply(
-          inputSrc, inputMask, input1, input2);
+        Vec<T, SIMD_WIDTH> result =
+          FCT<T, SIMD_WIDTH>::apply(inputSrc, inputMask, input1, input2);
         doNotOptimize(result);
       }
     }
@@ -272,10 +268,9 @@ struct TesterMaskZBinary
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
       FCT<T, SIMD_WIDTH>::randomizeInput(b);
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
-      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::template apply(k, a, b);
-      SerialVec<T, SIMD_WIDTH> cp =
-        SerialVec<T, SIMD_WIDTH>::fromVec(FCT<T, SIMD_WIDTH>::template apply(
-          k.getMask(), a.getVec(), b.getVec()));
+      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::apply(k, a, b);
+      SerialVec<T, SIMD_WIDTH> cp = SerialVec<T, SIMD_WIDTH>::fromVec(
+        FCT<T, SIMD_WIDTH>::apply(k.getMask(), a.getVec(), b.getVec()));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -301,7 +296,7 @@ struct TesterMaskZBinary
         doNotOptimize(input2);
         doNotOptimize(inputMask);
         Vec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply(inputMask, input1, input2);
+          FCT<T, SIMD_WIDTH>::apply(inputMask, input1, input2);
         doNotOptimize(result);
       }
     }
@@ -333,10 +328,9 @@ struct TesterMaskConditionBinary
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
       FCT<T, SIMD_WIDTH>::randomizeInput(b);
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
-      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::template apply(k, a, b);
-      SerialVec<T, SIMD_WIDTH> cp =
-        SerialVec<T, SIMD_WIDTH>::fromVec(FCT<T, SIMD_WIDTH>::template apply(
-          k.getMask(), a.getVec(), b.getVec()));
+      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::apply(k, a, b);
+      SerialVec<T, SIMD_WIDTH> cp = SerialVec<T, SIMD_WIDTH>::fromVec(
+        FCT<T, SIMD_WIDTH>::apply(k.getMask(), a.getVec(), b.getVec()));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -362,7 +356,7 @@ struct TesterMaskConditionBinary
         doNotOptimize(input2);
         doNotOptimize(inputMask);
         Vec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply(inputMask, input1, input2);
+          FCT<T, SIMD_WIDTH>::apply(inputMask, input1, input2);
         doNotOptimize(result);
       }
     }
@@ -393,9 +387,9 @@ struct TesterMaskConditionUnary
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
-      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::template apply(k, a);
+      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::apply(k, a);
       SerialVec<T, SIMD_WIDTH> cp = SerialVec<T, SIMD_WIDTH>::fromVec(
-        FCT<T, SIMD_WIDTH>::template apply(k.getMask(), a.getVec()));
+        FCT<T, SIMD_WIDTH>::apply(k.getMask(), a.getVec()));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -418,8 +412,7 @@ struct TesterMaskConditionUnary
       for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
-        Vec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply(inputMask, input);
+        Vec<T, SIMD_WIDTH> result = FCT<T, SIMD_WIDTH>::apply(inputMask, input);
         doNotOptimize(result);
       }
     }
@@ -454,10 +447,9 @@ struct TesterMaskUnaryTemplateType
       FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
       FCT<Tout, T, SIMD_WIDTH>::randomizeInput(k);
       SerialVec<Tout, SIMD_WIDTH> cs =
-        FCT<Tout, T, SIMD_WIDTH>::template apply(src, k, a);
+        FCT<Tout, T, SIMD_WIDTH>::apply(src, k, a);
       SerialVec<Tout, SIMD_WIDTH> cp = SerialVec<Tout, SIMD_WIDTH>::fromVec(
-        FCT<Tout, T, SIMD_WIDTH>::template apply(src.getVec(), k.getMask(),
-                                                 a.getVec()));
+        FCT<Tout, T, SIMD_WIDTH>::apply(src.getVec(), k.getMask(), a.getVec()));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -484,7 +476,7 @@ struct TesterMaskUnaryTemplateType
         doNotOptimize(input);
         doNotOptimize(inputMask);
         Vec<Tout, SIMD_WIDTH> result =
-          FCT<Tout, T, SIMD_WIDTH>::template apply(inputSrc, inputMask, input);
+          FCT<Tout, T, SIMD_WIDTH>::apply(inputSrc, inputMask, input);
         doNotOptimize(result);
       }
     }
@@ -516,10 +508,9 @@ struct TesterMaskZUnaryTemplateType
       SerialMask<T, SIMD_WIDTH> k;
       FCT<Tout, T, SIMD_WIDTH>::randomizeInput(a);
       FCT<Tout, T, SIMD_WIDTH>::randomizeInput(k);
-      SerialVec<Tout, SIMD_WIDTH> cs =
-        FCT<Tout, T, SIMD_WIDTH>::template apply(k, a);
+      SerialVec<Tout, SIMD_WIDTH> cs = FCT<Tout, T, SIMD_WIDTH>::apply(k, a);
       SerialVec<Tout, SIMD_WIDTH> cp = SerialVec<Tout, SIMD_WIDTH>::fromVec(
-        FCT<Tout, T, SIMD_WIDTH>::template apply(k.getMask(), a.getVec()));
+        FCT<Tout, T, SIMD_WIDTH>::apply(k.getMask(), a.getVec()));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -543,7 +534,7 @@ struct TesterMaskZUnaryTemplateType
         doNotOptimize(input);
         doNotOptimize(inputMask);
         Vec<Tout, SIMD_WIDTH> result =
-          FCT<Tout, T, SIMD_WIDTH>::template apply(inputMask, input);
+          FCT<Tout, T, SIMD_WIDTH>::apply(inputMask, input);
         doNotOptimize(result);
       }
     }
@@ -574,11 +565,10 @@ struct TesterMaskScalar
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(src);
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
-      T a = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
-      SerialVec<T, SIMD_WIDTH> cs =
-        FCT<T, SIMD_WIDTH>::template apply(src, k, a);
+      T a                         = FCT<T, SIMD_WIDTH>::randomizeInputScalar();
+      SerialVec<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::apply(src, k, a);
       SerialVec<T, SIMD_WIDTH> cp = SerialVec<T, SIMD_WIDTH>::fromVec(
-        FCT<T, SIMD_WIDTH>::template apply(src.getVec(), k.getMask(), a));
+        FCT<T, SIMD_WIDTH>::apply(src.getVec(), k.getMask(), a));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -606,7 +596,7 @@ struct TesterMaskScalar
         doNotOptimize(inputMask);
         doNotOptimize(inputScalar);
         Vec<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply(inputSrc, inputMask, inputScalar);
+          FCT<T, SIMD_WIDTH>::apply(inputSrc, inputMask, inputScalar);
         doNotOptimize(result);
       }
     }
@@ -696,11 +686,9 @@ struct TesterMaskCmp
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
       FCT<T, SIMD_WIDTH>::randomizeInput(b);
-      SerialMask<T, SIMD_WIDTH> cs =
-        FCT<T, SIMD_WIDTH>::template apply(k, a, b);
-      SerialMask<T, SIMD_WIDTH> cp =
-        SerialMask<T, SIMD_WIDTH>::fromMask(FCT<T, SIMD_WIDTH>::template apply(
-          k.getMask(), a.getVec(), b.getVec()));
+      SerialMask<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::apply(k, a, b);
+      SerialMask<T, SIMD_WIDTH> cp = SerialMask<T, SIMD_WIDTH>::fromMask(
+        FCT<T, SIMD_WIDTH>::apply(k.getMask(), a.getVec(), b.getVec()));
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -726,7 +714,7 @@ struct TesterMaskCmp
         doNotOptimize(input2);
         doNotOptimize(inputMask);
         Mask<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply(inputMask, input1, input2);
+          FCT<T, SIMD_WIDTH>::apply(inputMask, input1, input2);
         doNotOptimize(result);
       }
     }
@@ -816,9 +804,8 @@ struct TesterMaskUnaryBool
       SerialVec<T, SIMD_WIDTH> a;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       FCT<T, SIMD_WIDTH>::randomizeInput(a);
-      const bool cs = FCT<T, SIMD_WIDTH>::template apply(k, a);
-      const bool cp =
-        FCT<T, SIMD_WIDTH>::template apply(k.getMask(), a.getVec());
+      const bool cs = FCT<T, SIMD_WIDTH>::apply(k, a);
+      const bool cp = FCT<T, SIMD_WIDTH>::apply(k.getMask(), a.getVec());
       if (!CMP::cmpScalar(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -841,7 +828,7 @@ struct TesterMaskUnaryBool
       for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(input);
         doNotOptimize(inputMask);
-        size_t result = FCT<T, SIMD_WIDTH>::template apply(inputMask, input);
+        size_t result = FCT<T, SIMD_WIDTH>::apply(inputMask, input);
         doNotOptimize(result);
       }
     }
@@ -870,9 +857,9 @@ struct TesterUnaryK
     for (size_t i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
-      SerialMask<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::template apply(k);
+      SerialMask<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::apply(k);
       SerialMask<T, SIMD_WIDTH> cp = SerialMask<T, SIMD_WIDTH>::fromMask(
-        FCT<T, SIMD_WIDTH>::template apply(k.getMask()));
+        FCT<T, SIMD_WIDTH>::apply(k.getMask()));
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -892,8 +879,7 @@ struct TesterUnaryK
     for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
-        Mask<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply(inputMask);
+        Mask<T, SIMD_WIDTH> result = FCT<T, SIMD_WIDTH>::apply(inputMask);
         doNotOptimize(result);
       }
     }
@@ -923,9 +909,9 @@ struct TesterBinaryK
       SerialMask<T, SIMD_WIDTH> k, l;
       FCT<T, SIMD_WIDTH>::randomizeInput(k);
       FCT<T, SIMD_WIDTH>::randomizeInput(l);
-      SerialMask<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::template apply(k, l);
+      SerialMask<T, SIMD_WIDTH> cs = FCT<T, SIMD_WIDTH>::apply(k, l);
       SerialMask<T, SIMD_WIDTH> cp = SerialMask<T, SIMD_WIDTH>::fromMask(
-        FCT<T, SIMD_WIDTH>::template apply(k.getMask(), l.getMask()));
+        FCT<T, SIMD_WIDTH>::apply(k.getMask(), l.getMask()));
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -948,7 +934,7 @@ struct TesterBinaryK
         doNotOptimize(inputMask1);
         doNotOptimize(inputMask2);
         Mask<T, SIMD_WIDTH> result =
-          FCT<T, SIMD_WIDTH>::template apply(inputMask1, inputMask2);
+          FCT<T, SIMD_WIDTH>::apply(inputMask1, inputMask2);
         doNotOptimize(result);
       }
     }
@@ -978,8 +964,8 @@ struct TesterBinaryBoolK
     FCT<T, SIMD_WIDTH>::randomizeInput(k);
     FCT<T, SIMD_WIDTH>::randomizeInput(l);
     for (size_t i = 0; i < repeats; i++, trials++) {
-      bool cs = FCT<T, SIMD_WIDTH>::template apply(k, l);
-      bool cp = FCT<T, SIMD_WIDTH>::template apply(k.getMask(), l.getMask());
+      bool cs = FCT<T, SIMD_WIDTH>::apply(k, l);
+      bool cp = FCT<T, SIMD_WIDTH>::apply(k.getMask(), l.getMask());
       if (!CMP::cmpScalar(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -1001,8 +987,7 @@ struct TesterBinaryBoolK
       for (size_t j = 0; j < 1000; j++) {
         doNotOptimize(inputMask1);
         doNotOptimize(inputMask2);
-        bool result =
-          FCT<T, SIMD_WIDTH>::template apply(inputMask1, inputMask2);
+        bool result = FCT<T, SIMD_WIDTH>::apply(inputMask1, inputMask2);
         doNotOptimize(result);
       }
     }
@@ -1032,8 +1017,8 @@ struct TesterUnaryBoolK
     SerialMask<T, SIMD_WIDTH> k;
     FCT<T, SIMD_WIDTH>::randomizeInput(k);
     for (size_t i = 0; i < repeats; i++, trials++) {
-      bool cs = FCT<T, SIMD_WIDTH>::template apply(k);
-      bool cp = FCT<T, SIMD_WIDTH>::template apply(k.getMask());
+      bool cs = FCT<T, SIMD_WIDTH>::apply(k);
+      bool cp = FCT<T, SIMD_WIDTH>::apply(k.getMask());
       if (!CMP::cmpScalar(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -1053,7 +1038,7 @@ struct TesterUnaryBoolK
     for (size_t i = 0; i < repeats / 1000; i++) {
       for (size_t j = 0; j < 1000; j++) {
         doNotOptimize(inputMask);
-        bool result = FCT<T, SIMD_WIDTH>::template apply(inputMask);
+        bool result = FCT<T, SIMD_WIDTH>::apply(inputMask);
         doNotOptimize(result);
       }
     }
@@ -1086,11 +1071,9 @@ struct TesterMaskUnaryTI
       FCT<I, T, SIMD_WIDTH>::randomizeInput(src);
       FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
       FCT<I, T, SIMD_WIDTH>::randomizeInput(k);
-      SerialVec<T, SIMD_WIDTH> cs =
-        FCT<I, T, SIMD_WIDTH>::template apply(src, k, a);
-      SerialVec<T, SIMD_WIDTH> cp =
-        SerialVec<T, SIMD_WIDTH>::fromVec(FCT<I, T, SIMD_WIDTH>::template apply(
-          src.getVec(), k.getMask(), a.getVec()));
+      SerialVec<T, SIMD_WIDTH> cs = FCT<I, T, SIMD_WIDTH>::apply(src, k, a);
+      SerialVec<T, SIMD_WIDTH> cp = SerialVec<T, SIMD_WIDTH>::fromVec(
+        FCT<I, T, SIMD_WIDTH>::apply(src.getVec(), k.getMask(), a.getVec()));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -1116,7 +1099,7 @@ struct TesterMaskUnaryTI
         doNotOptimize(inputSrc);
         doNotOptimize(inputMask);
         Vec<T, SIMD_WIDTH> result =
-          FCT<I, T, SIMD_WIDTH>::template apply(inputSrc, inputMask, input);
+          FCT<I, T, SIMD_WIDTH>::apply(inputSrc, inputMask, input);
         doNotOptimize(result);
       }
     }
@@ -1170,9 +1153,9 @@ struct TesterMaskZUnaryTI
       SerialMask<T, SIMD_WIDTH> k;
       FCT<I, T, SIMD_WIDTH>::randomizeInput(a);
       FCT<I, T, SIMD_WIDTH>::randomizeInput(k);
-      SerialVec<T, SIMD_WIDTH> cs = FCT<I, T, SIMD_WIDTH>::template apply(k, a);
+      SerialVec<T, SIMD_WIDTH> cs = FCT<I, T, SIMD_WIDTH>::apply(k, a);
       SerialVec<T, SIMD_WIDTH> cp = SerialVec<T, SIMD_WIDTH>::fromVec(
-        FCT<I, T, SIMD_WIDTH>::template apply(k.getMask(), a.getVec()));
+        FCT<I, T, SIMD_WIDTH>::apply(k.getMask(), a.getVec()));
       if (!CMP::cmpVec(cs, cp)) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -1196,7 +1179,7 @@ struct TesterMaskZUnaryTI
         doNotOptimize(input);
         doNotOptimize(inputMask);
         Vec<T, SIMD_WIDTH> result =
-          FCT<I, T, SIMD_WIDTH>::template apply(inputMask, input);
+          FCT<I, T, SIMD_WIDTH>::apply(inputMask, input);
         doNotOptimize(result);
       }
     }
@@ -1248,9 +1231,9 @@ struct TesterUnaryKTI
     for (size_t i = 0; i < repeats; i++, trials++) {
       SerialMask<T, SIMD_WIDTH> k;
       FCT<I, T, SIMD_WIDTH>::randomizeInput(k);
-      SerialMask<T, SIMD_WIDTH> cs = FCT<I, T, SIMD_WIDTH>::template apply(k);
+      SerialMask<T, SIMD_WIDTH> cs = FCT<I, T, SIMD_WIDTH>::apply(k);
       SerialMask<T, SIMD_WIDTH> cp = SerialMask<T, SIMD_WIDTH>::fromMask(
-        FCT<I, T, SIMD_WIDTH>::template apply(k.getMask()));
+        FCT<I, T, SIMD_WIDTH>::apply(k.getMask()));
       if (cs != cp) {
         errors++;
         if (errors <= PRINT_ERRORS) {
@@ -1270,8 +1253,7 @@ struct TesterUnaryKTI
     for (size_t i = 0; i < repeats / SIMD_TIME_MEASUREMENT_UNROLL; i++) {
       for (size_t j = 0; j < SIMD_TIME_MEASUREMENT_UNROLL; j++) {
         doNotOptimize(inputMask);
-        Mask<T, SIMD_WIDTH> result =
-          FCT<I, T, SIMD_WIDTH>::template apply(inputMask);
+        Mask<T, SIMD_WIDTH> result = FCT<I, T, SIMD_WIDTH>::apply(inputMask);
         doNotOptimize(result);
       }
     }

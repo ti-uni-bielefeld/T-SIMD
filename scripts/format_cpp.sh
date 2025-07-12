@@ -42,7 +42,7 @@ fi
 
 set -e # Exit on error
 
-find $1 -type f \( -name "*.H" -o -name "*.C" \) | while read -r src; do
+find "$1" -type f \( -name "*.H" -o -name "*.C" \) | while read -r src; do
         # "clang-format -i" can break links, so we format into a temporary file
         # and then write the new content back
         tmpSrc="${src}.tmp"

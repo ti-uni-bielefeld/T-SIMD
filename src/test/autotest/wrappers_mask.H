@@ -54,7 +54,7 @@ struct Mask_toVec
   static Vec<T, SIMD_WIDTH> apply(const Mask<T, SIMD_WIDTH> &a)
   {
     return Vec<T, SIMD_WIDTH>(a);
-  };
+  }
 };
 
 template <typename T, size_t SIMD_WIDTH>

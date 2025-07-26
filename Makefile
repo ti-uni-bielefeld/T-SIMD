@@ -147,17 +147,20 @@ ifeq ($(realpath $(build_dir)),$(realpath .))
 $(error build directory cannot be the project root directory)
 endif
 
-.PHONY: all_default
-all_default: $(addprefix $(build_dir)/,$(default_binaries))
+.PHONY: default
+default: all_except_autotest
 	@echo "use 'make autotest' to compile $(autotest_binaries)"
 	@echo "  requires long compilation time and may run out of memory,"
 	@echo "  compilation may take much longer on g++ than on clang++"
+
+.PHONY: all_except_autotest
+all_except_autotest: $(addprefix $(build_dir)/,$(default_binaries))
 
 .PHONY: autotest
 autotest: $(addprefix $(build_dir)/,$(autotest_binaries))
 
 .PHONY: all
-all: all_default autotest
+all: all_except_autotest autotest
 
 .PHONY: $(binaries)
 $(binaries): %: $(build_dir)/%
